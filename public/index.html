@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>한국 GICS 섹터 · 실시간 대시보드 (KIS)</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin:0; background:#f6f7f9; color:#1a1f2e; font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; }
+.wrap { max-width:1140px; margin:0 auto; padding:20px 18px 48px; }
+header { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+h1 { font-size:20px; margin:0; font-weight:800; }
+.sub { color:#6b7280; font-size:12.5px; margin:3px 0 0; }
+.right { text-align:right; font-size:12px; color:#6b7280; }
+.live { display:inline-flex; align-items:center; gap:6px; background:#fdeaec; color:#e5384d; padding:4px 10px; border-radius:20px; font-weight:700; font-size:12px; }
+.live.off { background:#eef1f4; color:#8a93a2; }
+.live .dot { width:8px; height:8px; border-radius:50%; background:#e5384d; animation:pulse 1.4s infinite; }
+.live.off .dot { background:#9aa3b2; animation:none; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+.upd { margin-top:6px; font-size:11.5px; }
+.tabs { display:flex; gap:6px; margin:18px 0 4px; }
+.tab { border:1px solid #d7dce4; background:#fff; color:#5b6472; border-radius:9px 9px 0 0; padding:8px 16px; font-size:13px; font-weight:700; cursor:pointer; }
+.tab.on { background:#1a2a4a; color:#fff; border-color:#1a2a4a; }
+.btn { border:1px solid #d7dce4; background:#fff; color:#374151; border-radius:8px; padding:5px 11px; font-size:12px; font-weight:600; cursor:pointer; }
+.btn:hover { background:#f1f3f7; } .btn:disabled{opacity:.5;cursor:default;}
+.btn.on { background:#2f6df6; color:#fff; border-color:#2f6df6; }
+.panel { background:#fff; border:1px solid #eceef2; border-radius:0 14px 14px 14px; padding:16px 18px; box-shadow:0 1px 2px rgba(20,30,60,.04); }
+.panel h2 { font-size:14px; margin:0 0 10px; font-weight:700; }
+.chart-box { position:relative; height:320px; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th,td { padding:9px 8px; text-align:right; border-bottom:1px solid #f0f2f5; white-space:nowrap; }
+th { font-size:11.5px; color:#8a93a2; font-weight:600; }
+th.l,td.l { text-align:left; }
+td.desc { text-align:left; white-space:normal; color:#6b7280; font-size:12px; max-width:320px; }
+tbody tr:hover { background:#fafbfc; }
+.rankcell { font-weight:800; color:#c2c8d2; width:26px; }
+.nm { font-weight:700; } .tk { font-size:11px; color:#98a1b0; font-weight:600; margin-left:3px; }
+.up { color:#e5384d; } .down { color:#2563d6; } .flat { color:#6b7280; }
+.secbar { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
+.secbtn { border:1px solid #d7dce4; background:#fff; color:#374151; border-radius:20px; padding:6px 13px; font-size:12.5px; font-weight:700; cursor:pointer; }
+.toolbar { display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
+.wait{color:#c2c8d2;font-size:11px;} .err{color:#e5384d;font-size:12px;}
+.legend{font-size:11.5px;color:#8a93a2;line-height:1.7;margin-top:10px;} .legend b{color:#5b6472;}
+.hidden{display:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>한국 GICS 섹터 · 실시간 대시보드</h1>
+      <div class="sub">한국투자증권(KIS) 오픈API · 국내주식 실시간 시세 · 08:00~18:00 자동 갱신</div>
+    </div>
+    <div class="right">
+      <span class="live" id="liveBadge"><span class="dot"></span>LIVE</span>
+      <div class="upd" id="upd">준비 중…</div>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab on" id="tabB" onclick="showTab('B')">섹터별 TOP10 종목</div>
+    <div class="tab" id="tabA" onclick="showTab('A')">11개 섹터 등락률</div>
+  </div>
+
+  <!-- TAB B : 섹터별 TOP10 -->
+  <div class="panel" id="viewB">
+    <div class="secbar" id="secbar"></div>
+    <div class="toolbar">
+      <span style="font-size:12px;color:#8a93a2">정렬:</span>
+      <button class="btn on" id="sortMc" onclick="setSort('mc')">시가총액순</button>
+      <button class="btn" id="sortVol" onclick="setSort('vol')">거래량순</button>
+      <button class="btn" id="refreshB" style="margin-left:auto">↻ 새로고침</button>
+    </div>
+    <div id="tableB"><div class="wait" style="padding:20px">위에서 섹터를 선택하세요.</div></div>
+    <div class="legend" id="legendB"></div>
+  </div>
+
+  <!-- TAB A : 섹터 등락률 -->
+  <div class="panel hidden" id="viewA">
+    <div class="toolbar"><button class="btn" id="loadA">전체 섹터 불러오기</button>
+      <span style="font-size:12px;color:#8a93a2">각 섹터 TOP10의 시총가중 등락률</span></div>
+    <div class="chart-box" style="margin-bottom:14px"><canvas id="secChart"></canvas></div>
+    <div id="tableSA"></div>
+    <div class="legend">각 섹터 시총 상위 10종목의 <b>시가총액 가중 평균 등락률</b>로 섹터 강약을 표시합니다. 데이터: KIS 실시간(중계 서버 경유).</div>
+  </div>
+</div>
+
+<script>
+const SECTORS=[
+ {t:'XLK',ko:'정보기술',c:'#2f6df6'},{t:'XLV',ko:'헬스케어',c:'#12b28c'},{t:'XLF',ko:'금융',c:'#8a5cf6'},
+ {t:'XLY',ko:'임의소비재',c:'#f6923f'},{t:'XLP',ko:'필수소비재',c:'#e0568a'},{t:'XLC',ko:'커뮤니케이션',c:'#3fb6d6'},
+ {t:'XLI',ko:'산업재',c:'#7c8794'},{t:'XLB',ko:'소재',c:'#b0863f'},{t:'XLE',ko:'에너지',c:'#d64545'},
+ {t:'XLU',ko:'유틸리티',c:'#4a7c59'},{t:'XLRE',ko:'부동산',c:'#c56fb0'}
+];
+const KTOP10={
+ XLK:[["005930","삼성전자","메모리반도체·스마트폰·가전 세계 1위 종합 전자"],["000660","SK하이닉스","DRAM·낸드 메모리, HBM 시장 선두"],["402340","SK스퀘어","SK하이닉스 등 보유 반도체·ICT 투자지주"],["009150","삼성전기","MLCC·카메라모듈·기판 전자부품"],["042700","한미반도체","반도체 후공정 장비, HBM용 TC본더"],["011070","LG이노텍","애플 공급 카메라모듈·기판 부품"],["036930","주성엔지니어링","반도체·디스플레이 증착(ALD/CVD) 장비"],["240810","원익IPS","반도체·디스플레이 증착·식각 장비"],["058470","리노공업","반도체 검사용 테스트소켓·프로브핀"],["000990","DB하이텍","아날로그 반도체 파운드리"]],
+ XLC:[["035420","NAVER","국내 1위 검색포털·커머스·웹툰"],["017670","SK텔레콤","국내 1위 이동통신사, AI 확장"],["035720","카카오","카카오톡 기반 메신저·핀테크·콘텐츠"],["030200","KT","유무선 통신·미디어·AI 종합 통신사"],["259960","크래프톤","배틀그라운드(PUBG) 글로벌 게임사"],["352820","하이브","BTS 소속 K팝 대표 엔터"],["032640","LG유플러스","이동통신·인터넷·IPTV 통신사"],["036570","엔씨소프트","리니지 등 MMORPG 게임사"],["251270","넷마블","모바일게임 개발·퍼블리싱"],["263750","펄어비스","검은사막 글로벌 게임사"]],
+ XLF:[["105560","KB금융","국민은행 중심 국내 최대 금융지주"],["032830","삼성생명","국내 1위 생명보험사"],["055550","신한지주","신한은행 중심 대형 금융지주"],["086790","하나금융지주","하나은행 중심 금융지주"],["000810","삼성화재","국내 1위 손해보험사"],["006800","미래에셋증권","국내 대형 종합 증권사"],["316140","우리금융지주","우리은행 중심 금융지주"],["138040","메리츠금융지주","보험·증권 통합 금융지주"],["024110","기업은행","중소기업 지원 국책은행"],["071050","한국금융지주","한국투자증권 중심 금융지주"]],
+ XLV:[["207940","삼성바이오로직스","세계 1위 바이오의약품 CDMO"],["068270","셀트리온","바이오시밀러 개발·판매"],["196170","알테오젠","피하주사 제형변환 플랫폼"],["326030","SK바이오팜","뇌전증 신약 세노바메이트"],["000100","유한양행","폐암신약 렉라자 보유 제약사"],["128940","한미약품","신약개발 중심 대형 제약사"],["000250","삼천당제약","점안제 중심, 아일리아 시밀러"],["141080","리가켐바이오","ADC(항체약물접합체) 플랫폼"],["028300","HLB","항암신약 리보세라닙 개발"],["302440","SK바이오사이언스","백신 개발·생산 전문"]],
+ XLY:[["005380","현대차","국내 1위 완성차, 전기차 라인업"],["000270","기아","현대차그룹 완성차, SUV·전기차"],["012330","현대모비스","자동차 부품·모듈, 전동화 부품"],["161390","한국타이어앤테크놀로지","국내 1위 타이어 제조"],["004170","신세계","백화점·면세점 유통"],["023530","롯데쇼핑","백화점·마트·이커머스 유통"],["111770","영원무역","아웃도어 의류 OEM(노스페이스 등)"],["383220","F&F","MLB·디스커버리 패션기업"],["035250","강원랜드","내국인 출입 카지노·리조트"],["139480","이마트","국내 1위 대형마트"]],
+ XLP:[["033780","KT&G","국내 1위 담배, 홍삼·건기식"],["090430","아모레퍼시픽","설화수·라네즈 화장품"],["271560","오리온","초코파이 등 제과, 해외 매출 큼"],["051900","LG생활건강","화장품·생활용품·음료"],["097950","CJ제일제당","비비고 등 식품·바이오"],["026960","동서","맥심 커피믹스 등 식품 유통"],["004370","농심","신라면 등 라면·스낵"],["004990","롯데지주","롯데그룹 지주, 식품·유통·화학"],["007310","오뚜기","라면·카레·소스 종합식품"],["000080","하이트진로","참이슬·테라 소주·맥주"]],
+ XLI:[["028260","삼성물산","건설·상사·패션·리조트, 삼성 지주격"],["329180","HD현대중공업","세계적 조선사, 상선·해양·엔진"],["012450","한화에어로스페이스","항공엔진·방산, K9 자주포"],["034020","두산에너빌리티","발전설비·원전, 가스터빈·SMR"],["267260","HD현대일렉트릭","변압기 등 전력기기, 북미 수요"],["010120","LS일렉트릭","전력·자동화기기, 스마트에너지"],["009540","HD한국조선해양","HD현대 조선 중간지주, LNG선"],["042660","한화오션","옛 대우조선, 상선·잠수함"],["010140","삼성중공업","LNG선 강자, 해양플랜트"],["064350","현대로템","철도차량·K2 전차 방산"]],
+ XLB:[["005490","POSCO홀딩스","포스코그룹 지주, 철강·이차전지 소재"],["010130","고려아연","아연·연 제련 세계 최상위"],["051910","LG화학","석유화학·첨단소재·생명과학"],["003670","포스코퓨처엠","이차전지 양극재·음극재, 내화물"],["247540","에코프로비엠","전기차용 하이니켈 양극재"],["086520","에코프로","에코프로그룹 이차전지 소재 지주"],["000880","한화","한화그룹 지주, 방산·태양광"],["011780","금호석유","합성고무·합성수지 정밀화학"],["014680","한솔케미칼","정밀화학, 반도체·이차전지 소재"],["011170","롯데케미칼","에틸렌·폴리머 석유화학"]],
+ XLE:[["096770","SK이노베이션","정유·화학·배터리 SK 에너지 지주"],["010950","S-Oil","아람코 계열 정유사"],["267250","HD현대","조선·정유·건설기계 HD현대 지주"],["078930","GS","정유·유통·발전 GS그룹 지주"],["018670","SK가스","LPG 수입·유통, LNG 확장"],["006120","SK디스커버리","SK케미칼·SK가스 지주"],["017940","E1","LPG 수입·저장·판매"],["001250","GS글로벌","철강·석유화학 종합상사"],["004090","한국석유","아스팔트·용제 석유제품"]],
+ XLU:[["015760","한국전력","발전·송배전 국내 최대 전력 공기업"],["052690","한전기술","원전·화력 발전소 설계"],["036460","한국가스공사","LNG 수입·도매 가스 공기업"],["051600","한전KPS","발전설비 정비·유지보수"],["071320","지역난방공사","집단에너지 열·전기 공급"],["004690","삼천리","수도권 도시가스·발전"],["015360","예스코홀딩스","도시가스 공급 지주"],["017390","서울도시가스","서울 서부권 도시가스"],["034590","인천도시가스","인천 도시가스 공급"]],
+ XLRE:[["088980","맥쿼리인프라","국내 최대 인프라 펀드(유료도로·항만)"],["395400","SK리츠","SK 사옥·주유소 투자 리츠"],["330590","롯데리츠","롯데 유통 부동산 리츠"],["365550","ESR켄달스퀘어리츠","물류센터 특화 리츠"],["293940","신한알파리츠","오피스 투자 신한 리츠"],["448730","삼성FN리츠","삼성 오피스 임대 리츠"],["417310","코람코더원리츠","오피스·리테일 복합 리츠"],["357120","코람코라이프인프라리츠","전국 주유소 투자 리츠"],["348950","제이알글로벌리츠","해외 오피스 글로벌 리츠"],["400760","NH올원리츠","오피스·물류 투자 NH 리츠"]]
+};
+
+const cls=v=>v==null?'flat':(v>0?'up':(v<0?'down':'flat'));
+function fmtCap(eok){ if(eok==null||isNaN(eok)) return '—'; if(eok>=10000) return (eok/10000).toFixed(1)+'조'; return Math.round(eok).toLocaleString()+'억'; }
+function fmtVol(v){ if(v==null||isNaN(v)) return '—'; if(v>=1e6) return (v/1e6).toFixed(1)+'M'; if(v>=1e3) return (v/1e3).toFixed(0)+'K'; return ''+v; }
+function isMarketHours(){ try{ const h=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Seoul'})).getHours(); return h>=8&&h<18; }catch(e){ return true; } }
+async function apiQuotes(codes){ const r=await fetch('/api/quotes?codes='+codes.join(',')); if(!r.ok) throw new Error('서버 오류 '+r.status); return (await r.json()).data; }
+
+/* ===== TAB B : 섹터 TOP10 ===== */
+let curSec='XLK', sortMode='mc', stocks=[], runningB=false;
+function drawSecbar(){ document.getElementById('secbar').innerHTML=SECTORS.map(s=>`<button class="secbtn" style="${curSec===s.t?`background:${s.c};color:#fff;border-color:transparent;`:''}" onclick="pickSector('${s.t}')">${s.ko}</button>`).join(''); }
+window.pickSector=function(t){ curSec=t; drawSecbar(); loadB(); };
+window.setSort=function(m){ sortMode=m; document.getElementById('sortMc').classList.toggle('on',m==='mc'); document.getElementById('sortVol').classList.toggle('on',m==='vol'); renderB(); };
+function renderB(){
+  const ok=stocks.filter(x=>x.ok);
+  ok.sort((a,b)=> sortMode==='mc' ? b.mktcapEok-a.mktcapEok : b.volume-a.volume);
+  const bad=stocks.filter(x=>!x.ok);
+  document.getElementById('tableB').innerHTML=`<table><thead><tr><th class="l">#</th><th class="l">종목</th><th>현재가</th><th>등락률</th><th>시가총액</th><th>거래량</th><th class="l">한 줄 설명</th></tr></thead><tbody>${ok.map((r,i)=>`<tr><td class="l rankcell">${i+1}</td><td class="l"><span class="nm">${r.name}</span><span class="tk">${r.code}</span></td><td>${r.price.toLocaleString()}원</td><td class="${cls(r.changePct)}">${(r.changePct>=0?'+':'')+r.changePct.toFixed(2)}%</td><td>${fmtCap(r.mktcapEok)}</td><td>${fmtVol(r.volume)}</td><td class="desc">${r.desc}</td></tr>`).join('')}${bad.map(r=>`<tr><td class="l rankcell">·</td><td class="l"><span class="nm">${r.name}</span><span class="tk">${r.code}</span></td><td colspan="5" class="l ${r.err?'err':'wait'}">${r.err?'실패':'로딩 중…'}</td></tr>`).join('')}</tbody></table>`;
+}
+async function loadB(){
+  if(runningB) return; runningB=true; document.getElementById('refreshB').disabled=true;
+  const list=KTOP10[curSec];
+  stocks=list.map(([code,name,desc])=>({code,name,desc,ok:false}));
+  renderB();
+  try{
+    const res=await apiQuotes(list.map(x=>x[0]));
+    const map={}; res.forEach(q=>map[q.code]=q);
+    stocks.forEach(st=>{ const q=map[st.code]; if(q&&!q.error){ st.price=q.price; st.changePct=q.changePct; st.volume=q.volume; st.mktcapEok=q.mktcapEok; st.ok=true; } else { st.err=q?q.error:'없음'; } });
+  }catch(e){ stocks.forEach(st=>st.err=e.message); }
+  renderB();
+  const ok=stocks.filter(s=>s.ok).length;
+  document.getElementById('upd').innerHTML=SECTORS.find(s=>s.t===curSec).ko+' TOP10 · 갱신 '+new Date().toLocaleTimeString('ko-KR',{hour12:false})+(ok<stocks.length?` · <span style="color:#e5384d">${stocks.length-ok}개 실패</span>`:'');
+  runningB=false; document.getElementById('refreshB').disabled=false;
+}
+document.getElementById('refreshB').addEventListener('click',loadB);
+document.getElementById('legendB').innerHTML='섹터 내 <b>시가총액 상위 10종목</b>. 시가총액·거래량·현재가·등락률 모두 KIS 실시간(중계 서버 경유). 정렬 버튼으로 시총순↔거래량순 전환. 08:00~18:00에 60초마다 자동 갱신.';
+drawSecbar();
+
+/* ===== TAB A : 섹터 등락률 ===== */
+let secChart=null, runningA=false;
+async function loadA(){
+  if(runningA) return; runningA=true; document.getElementById('loadA').disabled=true; document.getElementById('loadA').textContent='불러오는 중…';
+  const allCodes=[]; SECTORS.forEach(s=>KTOP10[s.t].forEach(x=>allCodes.push(x[0])));
+  let map={};
+  try{ const res=await apiQuotes(allCodes); res.forEach(q=>map[q.code]=q); }catch(e){}
+  const rows=SECTORS.map(s=>{ let wsum=0,w=0; KTOP10[s.t].forEach(x=>{ const q=map[x[0]]; if(q&&!q.error&&q.mktcapEok){ wsum+=q.changePct*q.mktcapEok; w+=q.mktcapEok; } });
+    return {...s, chg: w? wsum/w : null }; }).filter(r=>r.chg!=null).sort((a,b)=>b.chg-a.chg);
+  const labels=rows.map(r=>r.ko), data=rows.map(r=>r.chg), colors=rows.map(r=>r.chg>0?'#e5384d':(r.chg<0?'#2563d6':'#9aa3b2'));
+  if(secChart) secChart.destroy();
+  secChart=new Chart(document.getElementById('secChart'),{type:'bar',data:{labels,datasets:[{data,backgroundColor:colors,borderRadius:5,barThickness:16}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>(c.parsed.x>=0?'+':'')+c.parsed.x.toFixed(2)+'%'}}},scales:{x:{ticks:{callback:v=>v+'%'},grid:{color:'#f0f2f5'}},y:{grid:{display:false}}}}});
+  document.getElementById('tableSA').innerHTML=`<table><thead><tr><th class="l">#</th><th class="l">섹터</th><th>시총가중 등락률</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td class="l rankcell">${i+1}</td><td class="l"><span class="nm">${r.ko}</span></td><td class="${cls(r.chg)}">${(r.chg>=0?'+':'')+r.chg.toFixed(2)}%</td></tr>`).join('')}</tbody></table>`;
+  document.getElementById('loadA').disabled=false; document.getElementById('loadA').textContent='↻ 다시 불러오기';
+  document.getElementById('upd').innerHTML='섹터 종합 · 갱신 '+new Date().toLocaleTimeString('ko-KR',{hour12:false});
+  runningA=false;
+}
+document.getElementById('loadA').addEventListener('click',loadA);
+
+/* ===== 탭 & 자동갱신 ===== */
+window.showTab=function(x){
+  document.getElementById('tabA').classList.toggle('on',x==='A');
+  document.getElementById('tabB').classList.toggle('on',x==='B');
+  document.getElementById('viewA').classList.toggle('hidden',x!=='A');
+  document.getElementById('viewB').classList.toggle('hidden',x!=='B');
+};
+function updateLive(){ const on=isMarketHours(); const b=document.getElementById('liveBadge'); b.classList.toggle('off',!on); b.innerHTML='<span class="dot"></span>'+(on?'LIVE':'장마감'); }
+updateLive(); setInterval(updateLive,30000);
+loadB();
+setInterval(()=>{ if(!isMarketHours()) return;
+  if(!document.getElementById('viewB').classList.contains('hidden')&&!runningB) loadB(); }, 60000);
+</script>
+</body>
+</html>

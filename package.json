@@ -1,0 +1,12 @@
+{
+  "name": "kis-sector-dashboard",
+  "version": "1.0.0",
+  "description": "한국투자증권 KIS 오픈API 기반 한국 GICS 섹터 실시간 대시보드",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

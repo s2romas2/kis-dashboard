@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>내부자(임원) 매수 · 한국 대시보드</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin:0; background:#f6f7f9; color:#1a1f2e; font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; }
+.wrap { max-width:1100px; margin:0 auto; padding:20px 18px 48px; }
+header { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+h1 { font-size:20px; margin:0; font-weight:800; }
+.sub { color:#6b7280; font-size:12.5px; margin:3px 0 0; }
+a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
+.toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:16px 0; }
+input.search { border:1px solid #d7dce4; border-radius:8px; padding:6px 10px; font-size:13px; min-width:170px; }
+.meta { font-size:12px; color:#8a93a2; margin-left:auto; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:12px; }
+.card { background:#fff; border:1px solid #eceef2; border-radius:14px; padding:14px 15px; box-shadow:0 1px 2px rgba(20,30,60,.04); }
+.rank { font-size:12px; font-weight:800; color:#c2c8d2; }
+.card h3 { font-size:15px; margin:2px 0 0; font-weight:800; }
+.tk { font-size:11px; color:#98a1b0; font-weight:600; margin-left:4px; }
+.amt { font-size:22px; font-weight:800; color:#e5384d; margin:8px 0 2px; letter-spacing:-.5px; }
+.who { font-size:13px; margin:2px 0; }
+.who b { color:#1a2a4a; }
+.badge { display:inline-block; background:#eef3ff; color:#2f5fd0; font-size:10.5px; font-weight:700; border-radius:10px; padding:2px 7px; margin-left:5px; }
+.row { font-size:12.5px; color:#4b5563; margin:3px 0; }
+.k { color:#8a93a2; }
+.live { color:#e5384d; font-weight:700; }
+.foot { font-size:11px; color:#98a1b0; margin-top:8px; display:flex; justify-content:space-between; }
+.foot a { color:#2f6df6; text-decoration:none; }
+.loading { text-align:center; padding:40px; color:#6b7280; }
+.note { font-size:11.5px; color:#8a93a2; margin-top:16px; line-height:1.6; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>💰 내부자(임원) 매수 · 1억↑</h1>
+      <div class="sub">최근 30일 · 임원(경영진)이 1억원 이상 순매수한 종목 · 공시(DART) 기준</div>
+    </div>
+    <a class="back" href="/">← 섹터 대시보드</a>
+  </header>
+  <div class="toolbar">
+    <input class="search" id="q" placeholder="종목명·내부자 검색" oninput="render()">
+    <span class="meta" id="meta">불러오는 중…</span>
+  </div>
+  <div id="grid" class="grid"><div class="loading">내부자 매수 데이터를 불러오는 중…</div></div>
+  <div class="note" id="note"></div>
+</div>
+<script>
+let DATA=null, quoteCache={};
+const won = v => v==null?'—':v.toLocaleString()+'원';
+const medal = i => i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
+async function load(){
+  try { DATA = await (await fetch('/data/insider.json?t='+Date.now())).json(); }
+  catch(e){ document.getElementById('grid').innerHTML='<div class="loading">insider.json을 아직 못 찾았습니다. GitHub Actions 실행 후 생성됩니다.</div>'; return; }
+  document.getElementById('meta').textContent = '최근 '+DATA.days+'일 · '+DATA.count+'건 · 갱신 '+DATA.updated;
+  document.getElementById('note').innerHTML='※ 매수금액 = <b>공시 원문의 취득단가 × 매수수량</b> (DART 임원·주요주주 특정증권등 소유상황보고서 기준). '
+    +'전환사채 등 주식 외 증권은 괄호 안 주당단가를 사용. 현재가는 KIS 실시간(참고용). 임원(직위 보유)만 집계, 주요주주 제외. 정보 제공용이며 투자권유가 아닙니다.';
+  render(); enrich();
+}
+function card(m,i){
+  const q=quoteCache[m.code];
+  const price=q?won(q.price):'…';
+  return `<div class="card">
+    <div class="rank">${medal(i)}</div>
+    <h3>${m.name}<span class="tk">${m.code||''}</span></h3>
+    <div class="amt">+${m.amountEok}억 매수</div>
+    <div class="who"><b>${m.insider}</b><span class="badge">${m.position}</span></div>
+    <div class="row"><span class="k">매수</span> ${m.qty.toLocaleString()}주 @ ${won(m.price)} <span class="k">(취득단가)</span></div>
+    <div class="row"><span class="k">현재가</span> <span class="live">${price}</span> <span class="k">· 공시일 ${m.date? m.date.replace(/(\\d{4})(\\d{2})(\\d{2})/,'$1.$2.$3'):''}</span></div>
+    <div class="foot"><span class="k">${m.src||'공시원문'}</span><a href="${m.link}" target="_blank">공시 원문 →</a></div>
+  </div>`;
+}
+function filtered(){
+  if(!DATA) return [];
+  const kw=(document.getElementById('q').value||'').trim();
+  return DATA.list.filter(m=> !kw || (m.name&&m.name.includes(kw)) || (m.insider&&m.insider.includes(kw)) || (m.code&&m.code.includes(kw)));
+}
+function render(){
+  const l=filtered();
+  document.getElementById('grid').innerHTML = l.length? l.map((m,i)=>card(m,i)).join('') : '<div class="loading">해당 종목이 없습니다.</div>';
+}
+async function enrich(){
+  if(!DATA) return;
+  const codes=DATA.list.slice(0,60).map(m=>m.code).filter(c=>c&&!quoteCache[c]);
+  for(let i=0;i<codes.length;i+=20){
+    try{ const d=(await (await fetch('/api/quotes?codes='+codes.slice(i,i+20).join(','))).json()).data||[];
+      d.forEach(q=>{ if(!q.error) quoteCache[q.code]=q; }); render(); }catch(e){}
+  }
+}
+load();
+</script>
+</body>
+</html>

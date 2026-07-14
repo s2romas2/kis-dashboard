@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>실적 스크리닝 · 한국 대시보드</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin:0; background:#f6f7f9; color:#1a1f2e; font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; }
+.wrap { max-width:1180px; margin:0 auto; padding:20px 18px 48px; }
+header { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+h1 { font-size:20px; margin:0; font-weight:800; }
+.sub { color:#6b7280; font-size:12.5px; margin:3px 0 0; }
+a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
+.toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:16px 0; }
+.chip { border:1px solid #d7dce4; background:#fff; color:#374151; border-radius:20px; padding:5px 12px; font-size:12.5px; font-weight:700; cursor:pointer; }
+.chip.on { background:#1a2a4a; color:#fff; border-color:#1a2a4a; }
+input.search { border:1px solid #d7dce4; border-radius:8px; padding:6px 10px; font-size:13px; min-width:160px; }
+.meta { font-size:12px; color:#8a93a2; margin-left:auto; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:12px; }
+.card { background:#fff; border:1px solid #eceef2; border-radius:14px; padding:14px 15px; box-shadow:0 1px 2px rgba(20,30,60,.04); }
+.card h3 { font-size:15px; margin:0; font-weight:800; }
+.tk { font-size:11px; color:#98a1b0; font-weight:600; margin-left:4px; }
+.badges { margin:4px 0 8px; }
+.badge { display:inline-block; font-size:10.5px; font-weight:700; border-radius:12px; padding:2px 7px; margin-right:4px; }
+.b1{background:#e8f0ff;color:#2f5fd0;} .b2{background:#e9f7ee;color:#12a150;} .b3{background:#fff1e6;color:#d97917;}
+.rpt { font-size:11.5px; color:#8a93a2; margin-bottom:8px; }
+.row { font-size:12.5px; margin:2px 0; }
+.k { color:#8a93a2; } .up{color:#e5384d;font-weight:700;} .down{color:#2563d6;font-weight:700;} .flat{color:#6b7280;}
+.yh { background:#ffe3e3; color:#e5384d; font-size:10px; font-weight:700; border-radius:8px; padding:1px 5px; margin-left:4px; }
+.trend { font-size:11.5px; color:#4b5563; margin:6px 0; background:#fafbfc; border-radius:8px; padding:6px 8px; }
+.ind { font-size:12px; margin:6px 0; }
+table.q { width:100%; border-collapse:collapse; font-size:11.5px; margin-top:6px; }
+table.q th, table.q td { padding:3px 5px; text-align:right; border-bottom:1px solid #f2f4f7; }
+table.q th { color:#98a1b0; font-weight:600; }
+table.q td.l, table.q th.l { text-align:left; }
+.foot { font-size:11px; color:#98a1b0; margin-top:8px; display:flex; justify-content:space-between; gap:6px; }
+.foot a { color:#2f6df6; text-decoration:none; }
+.loading { text-align:center; padding:40px; color:#6b7280; }
+.live { color:#e5384d; font-weight:700; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>📊 실적 스크리닝 (분기실적 · 공시기준)</h1>
+      <div class="sub">조건: ① 영업·매출 YoY+10%·QoQ+20% / ② 영업이익 3분기 연속 증가 / ③ 흑자전환 — 하나라도 충족</div>
+    </div>
+    <a class="back" href="/">← 섹터 대시보드</a>
+  </header>
+
+  <div class="toolbar">
+    <span class="chip on" data-f="all" onclick="setF('all')">전체</span>
+    <span class="chip" data-f="1" onclick="setF('1')">① 성장</span>
+    <span class="chip" data-f="2" onclick="setF('2')">② 연속증가</span>
+    <span class="chip" data-f="3" onclick="setF('3')">③ 흑자전환</span>
+    <input class="search" id="q" placeholder="종목명·코드 검색" oninput="render()">
+    <span class="meta" id="meta">불러오는 중…</span>
+  </div>
+
+  <div id="grid" class="grid"><div class="loading">스크리닝 결과를 불러오는 중…</div></div>
+</div>
+
+<script>
+let DATA = null, FILTER = 'all', quoteCache = {};
+const cls = v => v == null ? 'flat' : (v > 0 ? 'up' : (v < 0 ? 'down' : 'flat'));
+const pf = v => v == null ? '—' : ((v >= 0 ? '+' : '') + v + '%');
+const medal = i => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+
+async function loadData() {
+  try {
+    const r = await fetch('/data/screener.json?t=' + Date.now());
+    DATA = await r.json();
+  } catch (e) { document.getElementById('grid').innerHTML = '<div class="loading">screener.json을 아직 못 찾았습니다. GitHub Actions를 1회 실행하면 생성됩니다.</div>'; return; }
+  document.getElementById('meta').textContent = DATA.period + ' 기준 · ' + DATA.count + '종목 통과 · 갱신 ' + DATA.updated;
+  render();
+  enrich();
+}
+
+function card(m, i) {
+  const yh = m.yearHigh ? '<span class="yh">연중최고</span>' : '';
+  const badges = m.conds.map(c => `<span class="badge b${c}">${c === 1 ? '① 성장' : c === 2 ? '② 연속증가' : '③ 흑자전환'}</span>`).join('');
+  const trend = (m.opqSeries || []).map(x => `${x.q.slice(2)} ${x.op}억<span class="${cls(x.qoq)}">(${pf(x.qoq)})</span>`).join(' → ');
+  const rows = (m.table || []).map(r => `<tr><td class="l">${r.q.slice(2)}</td><td>${r.rev}</td><td>${r.op}</td><td>${r.ni}</td></tr>`).join('');
+  const q = quoteCache[m.code];
+  const cap = q ? (q.mktcapEok >= 10000 ? (q.mktcapEok/10000).toFixed(1)+'조' : q.mktcapEok.toLocaleString()+'억') : '…';
+  const price = q ? q.price.toLocaleString()+'원' : '…';
+  const perOp = (q && m.opAnnual > 0) ? (q.mktcapEok / m.opAnnual).toFixed(1) : '—';
+  const perNi = (q && m.niAnnual > 0) ? (q.mktcapEok / m.niAnnual).toFixed(1) : '—';
+  return `<div class="card">
+    <h3>${medal(i)} ${m.name}<span class="tk">${m.code}</span></h3>
+    <div class="badges">${badges}</div>
+    <div class="rpt">${m.rptNm || (m.period + ' 분기보고서')} (${m.basis === 'CFS' ? '연결' : '별도'})</div>
+    <div class="row"><span class="k">매출</span> <b>${m.rev}억</b> · YoY <span class="${cls(m.revYoY)}">${pf(m.revYoY)}</span> / QoQ <span class="${cls(m.revQoQ)}">${pf(m.revQoQ)}</span></div>
+    <div class="row"><span class="k">영업</span> <b>${m.op}억</b>${yh} · YoY <span class="${cls(m.opYoY)}">${pf(m.opYoY)}</span> / QoQ <span class="${cls(m.opQoQ)}">${pf(m.opQoQ)}</span></div>
+    <div class="row"><span class="k">순익</span> <b>${m.ni}억</b> · YoY <span class="${cls(m.niYoY)}">${pf(m.niYoY)}</span> / QoQ <span class="${cls(m.niQoQ)}">${pf(m.niQoQ)}</span></div>
+    <div class="trend">영업이익 추이 · ${trend}</div>
+    <div class="ind"><span class="k">OPM</span> ${m.opm}% · <span class="k">NPM</span> ${m.npm}% · <span class="k">PER(영업)</span> <span class="live">${perOp}</span> · <span class="k">PER(순익)</span> <span class="live">${perNi}</span></div>
+    <div class="ind"><span class="k">시총</span> <span class="live">${cap}</span> · <span class="k">현재가</span> <span class="live">${price}</span> <span class="k">(KIS 실시간)</span></div>
+    <table class="q"><thead><tr><th class="l">분기</th><th>매출</th><th>영업</th><th>순익</th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="foot"><span>${m.rceptDt ? m.rceptDt.replace(/(\\d{4})(\\d{2})(\\d{2})/,'$1.$2.$3') : ''}</span><a href="${m.link || 'https://dart.fss.or.kr'}" target="_blank">공시 원문 →</a></div>
+  </div>`;
+}
+
+function filtered() {
+  if (!DATA) return [];
+  const kw = (document.getElementById('q').value || '').trim();
+  return DATA.list.filter(m => (FILTER === 'all' || m.conds.includes(+FILTER)) && (!kw || m.name.includes(kw) || m.code.includes(kw)));
+}
+function render() {
+  const list = filtered();
+  document.getElementById('grid').innerHTML = list.length ? list.map((m, i) => card(m, i)).join('') : '<div class="loading">조건에 맞는 종목이 없습니다.</div>';
+}
+window.setF = f => { FILTER = f; document.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c.dataset.f === f)); render(); };
+
+// KIS 실시간 시총·현재가 채우기 (상위 60종목, 20개씩)
+async function enrich() {
+  if (!DATA) return;
+  const codes = DATA.list.slice(0, 60).map(m => m.code).filter(c => !quoteCache[c]);
+  for (let i = 0; i < codes.length; i += 20) {
+    const batch = codes.slice(i, i + 20);
+    try {
+      const r = await fetch('/api/quotes?codes=' + batch.join(','));
+      const d = (await r.json()).data || [];
+      d.forEach(q => { if (!q.error) quoteCache[q.code] = q; });
+      render();
+    } catch (e) {}
+  }
+}
+loadData();
+</script>
+</body>
+</html>

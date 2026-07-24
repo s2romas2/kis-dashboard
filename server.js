@@ -51,6 +51,78 @@ async function getToken() {
   return tokenCache.token;
 }
 
+// ===== RSI(14) — 일봉 종가 기반, 일 단위 캐시 =====
+function ymdSeoul(offsetDays) {
+  const d = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+  if (offsetDays) d.setDate(d.getDate() + offsetDays);
+  return '' + d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+}
+function rsiWilder(closes, period) {
+  period = period || 14;
+  if (!closes || closes.length < period + 1) return null;
+  let gain = 0, loss = 0;
+  for (let i = 1; i <= period; i++) {
+    const d = closes[i] - closes[i - 1];
+    if (d > 0) gain += d; else loss -= d;
+  }
+  let ag = gain / period, al = loss / period;
+  for (let i = period + 1; i < closes.length; i++) {
+    const d = closes[i] - closes[i - 1];
+    ag = (ag * (period - 1) + (d > 0 ? d : 0)) / period;
+    al = (al * (period - 1) + (d < 0 ? -d : 0)) / period;
+  }
+  if (al === 0) return 100;
+  return Math.round((100 - 100 / (1 + ag / al)) * 10) / 10;
+}
+const dailyCache = {}; // code -> { ymd, dates[], closes[] } 하루 1회만 KIS 일봉 호출
+async function fetchDailyCloses(code) {
+  const today = ymdSeoul();
+  const c = dailyCache[code];
+  if (c && c.ymd === today) return c;
+  const token = await getToken();
+  const url = BASE + '/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice'
+    + '?fid_cond_mrkt_div_code=J&fid_input_iscd=' + encodeURIComponent(code)
+    + '&fid_input_date_1=' + ymdSeoul(-140) + '&fid_input_date_2=' + today
+    + '&fid_period_div_code=D&fid_org_adj_prc=0';
+  const r = await fetch(url, {
+    headers: {
+      'content-type': 'application/json',
+      'authorization': 'Bearer ' + token,
+      'appkey': APPKEY,
+      'appsecret': APPSECRET,
+      'tr_id': 'FHKST03010100',
+      'custtype': 'P'
+    }
+  });
+  const j = await r.json();
+  const arr = (j.output2 || []).filter(function (x) { return x && x.stck_bsop_date && x.stck_clpr; });
+  if (!arr.length) {
+    const msg = j.msg1 || '';
+    if (/초당|EGW00201|초과/.test(msg)) { await sleep(500); return fetchDailyCloses(code); }
+    return null;
+  }
+  arr.sort(function (a, b) { return a.stck_bsop_date < b.stck_bsop_date ? -1 : 1; });
+  const out = {
+    ymd: today,
+    dates: arr.map(function (x) { return x.stck_bsop_date; }),
+    closes: arr.map(function (x) { return Number(x.stck_clpr); })
+  };
+  dailyCache[code] = out;
+  return out;
+}
+async function rsiFor(code, livePrice) {
+  try {
+    const cached = dailyCache[code] && dailyCache[code].ymd === ymdSeoul();
+    if (!cached) await sleep(230); // 캐시 없을 때만 추가 KIS 호출 → 호출 간격 유지
+    const dc = await fetchDailyCloses(code);
+    if (!dc) return null;
+    const closes = dc.closes.slice();
+    if (dc.dates[dc.dates.length - 1] === ymdSeoul()) closes[closes.length - 1] = livePrice; // 오늘 봉이 있으면 현재가로 대체
+    else closes.push(livePrice); // 없으면 현재가를 오늘 봉으로 추가
+    return rsiWilder(closes, 14);
+  } catch (e) { return null; }
+}
+
 async function fetchQuoteOnce(code) {
   const token = await getToken();
   const url = BASE + '/uapi/domestic-stock/v1/quotations/inquire-price'
@@ -72,12 +144,14 @@ async function fetchQuoteOnce(code) {
     if (/초당|EGW00201|초과/.test(msg)) { await sleep(500); return fetchQuoteOnce(code); }
     return { code: code, error: msg };
   }
+  const price = Number(o.stck_prpr);
   return {
     code: code,
-    price: Number(o.stck_prpr),
+    price: price,
     changePct: Number(o.prdy_ctrt),
     volume: Number(o.acml_vol),
-    mktcapEok: Number(o.hts_avls)
+    mktcapEok: Number(o.hts_avls),
+    rsi: await rsiFor(code, price)
   };
 }
 

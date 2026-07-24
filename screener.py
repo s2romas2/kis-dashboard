@@ -4,14 +4,32 @@
 # 조건2) 영업이익 최근 3분기 연속 증가(QoQ)
 # 조건3) 최근 분기 영업이익 흑자전환(직전분기 적자→최근분기 흑자)
 # 단일분기: Q1/Q2/Q3 = 당기금액(thstrm_amount, 이미 3개월치), Q4 = 연간 - 3분기누적(thstrm_add)
-import os, io, sys, json, time, zipfile, urllib.request, xml.etree.ElementTree as ET
+import os, io, sys, json, time, zipfile, urllib.request, datetime, xml.etree.ElementTree as ET
 
 DART_KEY = os.environ.get('DART_KEY', '')
 UNIVERSE_LIMIT = int(os.environ.get('UNIVERSE_LIMIT', '0'))
 UNIVERSE_OFFSET = int(os.environ.get('UNIVERSE_OFFSET', '0'))
 CHUNK = int(os.environ.get('CHUNK', '50'))
-LATEST_YEAR = int(os.environ.get('LATEST_YEAR', '2026'))
-LATEST_Q = int(os.environ.get('LATEST_Q', '1'))
+
+def latest_period(today=None):
+    # 정기보고서 제출기한이 지난 최신 분기를 자동 계산
+    # Q1 분기보고서: 5/15까지, 반기보고서(Q2): 8/14까지, Q3 분기보고서: 11/14까지,
+    # 사업보고서(Q4 확정): 다음해 3/31까지
+    t = today or datetime.date.today()
+    md = (t.month, t.day)
+    if md >= (11, 15):
+        return t.year, 3
+    if md >= (8, 15):
+        return t.year, 2
+    if md >= (5, 16):
+        return t.year, 1
+    if md >= (4, 1):
+        return t.year - 1, 4
+    return t.year - 1, 3
+
+_AY, _AQ = latest_period()
+LATEST_YEAR = int(os.environ.get('LATEST_YEAR', _AY))
+LATEST_Q = int(os.environ.get('LATEST_Q', _AQ))
 REPRT = {1: '11013', 2: '11012', 3: '11014', 4: '11011'}
 OP_NAMES = {'영업이익'}
 REV_NAMES = {'매출액', '수익(매출액)', '영업수익'}

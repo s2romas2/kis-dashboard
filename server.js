@@ -178,6 +178,30 @@ const server = http.createServer(async function (req, res) {
     return;
   }
 
+  if (u.pathname === '/api/history') {
+    // 일봉 종가 이력 (dailyCache 재활용 — /api/quotes 이후 호출하면 대부분 캐시 적중)
+    const codes = (u.searchParams.get('codes') || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean).slice(0, 200);
+    const days = Math.min(Number(u.searchParams.get('days') || 60) || 60, 100);
+    try {
+      const out = [];
+      for (let i = 0; i < codes.length; i++) {
+        const code = codes[i];
+        const cached = dailyCache[code] && dailyCache[code].ymd === ymdSeoul();
+        if (!cached && i > 0) await sleep(230); // KIS 호출이 필요한 경우만 간격 유지
+        try {
+          const dc = await fetchDailyCloses(code);
+          out.push(dc ? { code: code, dates: dc.dates.slice(-days), closes: dc.closes.slice(-days) } : { code: code, error: 'no data' });
+        } catch (e) { out.push({ code: code, error: e.message }); }
+      }
+      res.setHeader('content-type', 'application/json');
+      res.end(JSON.stringify({ data: out, ts: Date.now() }));
+    } catch (e) {
+      res.statusCode = 500;
+      res.end(JSON.stringify({ error: e.message }));
+    }
+    return;
+  }
+
   const rel = u.pathname === '/' ? '/index.html' : u.pathname;
   const full = path.join(PUB, rel);
   if (!full.startsWith(PUB)) { res.statusCode = 403; res.end('forbidden'); return; }

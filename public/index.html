@@ -44,6 +44,16 @@ tbody tr:hover { background:#fafbfc; }
 .wait{color:#c2c8d2;font-size:11px;} .err{color:#e5384d;font-size:12px;}
 .legend{font-size:11.5px;color:#8a93a2;line-height:1.7;margin-top:10px;} .legend b{color:#5b6472;}
 .hidden{display:none;}
+/* 스탁이지 스타일 섹터 리스트 */
+.secrow{display:grid;grid-template-columns:130px 1fr 70px 90px 150px;align-items:center;gap:12px;padding:13px 6px;border-bottom:1px solid #f0f2f5;}
+.secrow:hover{background:#fafbfc;}
+.secrow .sname{font-weight:800;font-size:14.5px;}
+.secrow .scnt{font-size:11px;color:#98a1b0;font-weight:600;margin-left:5px;}
+.secrow .srsi{font-size:19px;font-weight:800;text-align:right;}
+.secrow .schg{font-size:13.5px;font-weight:700;text-align:right;}
+.secrow .sad{text-align:right;}
+.adlabel{font-size:10.5px;color:#98a1b0;margin-top:3px;}
+@media (max-width:720px){ .secrow{grid-template-columns:100px 1fr 54px 70px 110px;gap:7px;} .secrow .srsi{font-size:16px;} }
 </style>
 </head>
 <body>
@@ -85,7 +95,7 @@ tbody tr:hover { background:#fafbfc; }
       <span style="font-size:12px;color:#8a93a2">각 섹터 TOP10의 시총가중 등락률</span></div>
     <div class="chart-box" style="margin-bottom:14px"><canvas id="secChart"></canvas></div>
     <div id="tableSA"></div>
-    <div class="legend">각 섹터 시총 상위 10종목의 <b>시가총액 가중 평균 등락률</b>로 섹터 강약을 표시합니다. 데이터: KIS 실시간(중계 서버 경유).</div>
+    <div class="legend">각 섹터 시총 상위 10종목 기준. <b>미니 그래프</b>는 최근 60거래일 시총가중 추세(상승 빨강·하락 파랑), <b>큰 숫자</b>는 섹터 RSI(14) 시총가중 평균(<span class="up">70↑ 과열</span>·<span class="down">30↓ 과매도</span>), <b>우측 막대</b>는 당일 상승·보합·하락 종목 비율. 데이터: KIS 실시간(중계 서버 경유).</div>
   </div>
 </div>
 
@@ -117,6 +127,28 @@ function fmtCap(eok){ if(eok==null||isNaN(eok)) return '—'; if(eok>=10000) ret
 function fmtVol(v){ if(v==null||isNaN(v)) return '—'; if(v>=1e6) return (v/1e6).toFixed(1)+'M'; if(v>=1e3) return (v/1e3).toFixed(0)+'K'; return ''+v; }
 function isMarketHours(){ try{ const h=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Seoul'})).getHours(); return h>=8&&h<18; }catch(e){ return true; } }
 async function apiQuotes(codes){ const r=await fetch('/api/quotes?codes='+codes.join(',')); if(!r.ok) throw new Error('서버 오류 '+r.status); return (await r.json()).data; }
+async function apiHistory(codes,days){ const r=await fetch('/api/history?codes='+codes.join(',')+'&days='+(days||60)); if(!r.ok) throw new Error('서버 오류 '+r.status); return (await r.json()).data; }
+function sparkSVG(vals,w,h){ w=w||120; h=h||38;
+  if(!vals||vals.length<2) return '<span class="wait">—</span>';
+  const min=Math.min(...vals),max=Math.max(...vals),rng=(max-min)||1;
+  const pts=vals.map((v,i)=>[(i/(vals.length-1)*w).toFixed(1), (h-3-(v-min)/rng*(h-6)).toFixed(1)]);
+  const up=vals[vals.length-1]>=vals[0], col=up?'#e5384d':'#2563d6', last=pts[pts.length-1];
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${col}" stroke-width="1.6" stroke-linejoin="round"/><circle cx="${last[0]}" cy="${last[1]}" r="2.6" fill="${col}"/></svg>`;
+}
+function adBar(up,down,flat){ const n=(up+down+flat)||1, w=140, h=9;
+  const uw=Math.round(up/n*w), dw=Math.round(down/n*w), fw=Math.max(w-uw-dw,0);
+  return `<svg width="${w}" height="${h}" style="border-radius:5px;overflow:hidden"><rect x="0" width="${w}" height="${h}" fill="#e2e6ec"/><rect x="0" width="${uw}" height="${h}" fill="#e5384d"/><rect x="${uw+fw}" width="${dw}" height="${h}" fill="#2563d6"/></svg>`;
+}
+function sectorIndex(codes,histMap,quoteMap,K){ K=K||60;
+  const series=[]; let wsum=0;
+  codes.forEach(c=>{ const hh=histMap[c], q=quoteMap[c];
+    if(hh&&hh.closes&&hh.closes.length>15&&q&&!q.error&&q.mktcapEok){ series.push({cl:hh.closes.slice(-K), w:q.mktcapEok}); wsum+=q.mktcapEok; } });
+  if(!series.length||!wsum) return null;
+  const L=Math.min(...series.map(s=>s.cl.length));
+  const out=[];
+  for(let t=0;t<L;t++){ let v=0; series.forEach(s=>{ const cl=s.cl.slice(-L); v+=s.w*(cl[t]/cl[0]); }); out.push(v/wsum); }
+  return out;
+}
 
 /* ===== TAB B : 섹터 TOP10 ===== */
 let curSec='XLK', sortMode='mc', stocks=[], runningB=false;
@@ -157,14 +189,25 @@ let secChart=null, runningA=false;
 async function loadA(){
   if(runningA) return; runningA=true; document.getElementById('loadA').disabled=true; document.getElementById('loadA').textContent='불러오는 중…';
   const allCodes=[]; SECTORS.forEach(s=>KTOP10[s.t].forEach(x=>allCodes.push(x[0])));
-  let map={};
+  let map={}, hmap={};
   try{ const res=await apiQuotes(allCodes); res.forEach(q=>map[q.code]=q); }catch(e){}
-  const rows=SECTORS.map(s=>{ let wsum=0,w=0,rs=0,rw=0; KTOP10[s.t].forEach(x=>{ const q=map[x[0]]; if(q&&!q.error&&q.mktcapEok){ wsum+=q.changePct*q.mktcapEok; w+=q.mktcapEok; if(q.rsi!=null){ rs+=q.rsi*q.mktcapEok; rw+=q.mktcapEok; } } });
-    return {...s, chg: w? wsum/w : null, rsi: rw? rs/rw : null }; }).filter(r=>r.chg!=null).sort((a,b)=>b.chg-a.chg);
-  const labels=rows.map(r=>r.ko), data=rows.map(r=>r.chg), colors=rows.map(r=>r.chg>0?'#e5384d':(r.chg<0?'#2563d6':'#9aa3b2'));
+  document.getElementById('loadA').textContent='추세 데이터 불러오는 중…';
+  try{ const hs=await apiHistory(allCodes,60); hs.forEach(h=>hmap[h.code]=h); }catch(e){}
+  const rows=SECTORS.map(s=>{ let wsum=0,w=0,rs=0,rw=0,up=0,down=0,flat=0; KTOP10[s.t].forEach(x=>{ const q=map[x[0]]; if(q&&!q.error&&q.mktcapEok){ wsum+=q.changePct*q.mktcapEok; w+=q.mktcapEok; if(q.rsi!=null){ rs+=q.rsi*q.mktcapEok; rw+=q.mktcapEok; } if(q.changePct>0)up++; else if(q.changePct<0)down++; else flat++; } });
+    return {...s, chg: w? wsum/w : null, rsi: rw? rs/rw : null, up, down, flat, n:up+down+flat, trend: sectorIndex(KTOP10[s.t].map(x=>x[0]),hmap,map) }; }).filter(r=>r.chg!=null).sort((a,b)=>(b.rsi??-1)-(a.rsi??-1));
+  const chartRows=[...rows].sort((a,b)=>b.chg-a.chg);
+  const labels=chartRows.map(r=>r.ko), data=chartRows.map(r=>r.chg), colors=chartRows.map(r=>r.chg>0?'#e5384d':(r.chg<0?'#2563d6':'#9aa3b2'));
   if(secChart) secChart.destroy();
   secChart=new Chart(document.getElementById('secChart'),{type:'bar',data:{labels,datasets:[{data,backgroundColor:colors,borderRadius:5,barThickness:16}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>(c.parsed.x>=0?'+':'')+c.parsed.x.toFixed(2)+'%'}}},scales:{x:{ticks:{callback:v=>v+'%'},grid:{color:'#f0f2f5'}},y:{grid:{display:false}}}}});
-  document.getElementById('tableSA').innerHTML=`<table><thead><tr><th class="l">#</th><th class="l">섹터</th><th>시총가중 등락률</th><th>RSI(14)</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td class="l rankcell">${i+1}</td><td class="l"><span class="nm">${r.ko}</span></td><td class="${cls(r.chg)}">${(r.chg>=0?'+':'')+r.chg.toFixed(2)}%</td><td class="${rsiCls(r.rsi)}">${fmtRsi(r.rsi)}</td></tr>`).join('')}</tbody></table>`;
+  document.getElementById('tableSA').innerHTML=
+    `<div style="font-size:11.5px;color:#8a93a2;margin:6px 2px 2px">RSI 높은 순 · 그래프: 최근 60거래일 시총가중 추세 · 막대: 당일 <span class="up">상승</span>/<span class="down">하락</span> 종목 비율</div>`+
+    rows.map(r=>`<div class="secrow">
+      <div>${sparkSVG(r.trend)}</div>
+      <div><span class="sname">${r.ko}</span><span class="scnt">(${r.n})</span></div>
+      <div class="srsi ${rsiCls(r.rsi)}">${fmtRsi(r.rsi)}</div>
+      <div class="schg ${cls(r.chg)}">${(r.chg>=0?'+':'')+r.chg.toFixed(2)}%</div>
+      <div class="sad">${adBar(r.up,r.down,r.flat)}<div class="adlabel">▲${r.up} · ─${r.flat} · ▼${r.down}</div></div>
+    </div>`).join('');
   document.getElementById('loadA').disabled=false; document.getElementById('loadA').textContent='↻ 다시 불러오기';
   document.getElementById('upd').innerHTML='섹터 종합 · 갱신 '+new Date().toLocaleTimeString('ko-KR',{hour12:false});
   runningA=false;

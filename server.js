@@ -36,19 +36,42 @@ const sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms
 let tokenCache = null;
 try { tokenCache = JSON.parse(fs.readFileSync(TOKEN_FILE, 'utf8')); } catch (e) {}
 
+let tokenInflight = null; // 동시 요청 시 토큰 중복 발급 방지 (KIS tokenP는 분당 1회 제한)
 async function getToken() {
   if (tokenCache && tokenCache.token && Date.now() < tokenCache.exp - 60000) return tokenCache.token;
-  const r = await fetch(BASE + '/oauth2/tokenP', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ grant_type: 'client_credentials', appkey: APPKEY, appsecret: APPSECRET })
+  if (!tokenInflight) {
+    tokenInflight = (async function () {
+      const r = await fetch(BASE + '/oauth2/tokenP', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ grant_type: 'client_credentials', appkey: APPKEY, appsecret: APPSECRET })
+      });
+      const j = await r.json();
+      if (!j.access_token) throw new Error('토큰 발급 실패: ' + (j.error_description || j.msg1 || JSON.stringify(j)));
+      tokenCache = { token: j.access_token, exp: Date.now() + ((j.expires_in || 86400) * 1000) };
+      try { fs.writeFileSync(TOKEN_FILE, JSON.stringify(tokenCache)); } catch (e) {}
+      console.log('KIS 접근토큰 발급/갱신 완료');
+      return tokenCache.token;
+    })();
+    tokenInflight.finally(function () { tokenInflight = null; });
+  }
+  return tokenInflight;
+}
+// 동시 조회 풀 — limit개씩 병렬, 호출당 소폭 간격 (KIS 실전 초당 20건 제한 대비 여유)
+async function mapLimit(items, limit, fn) {
+  const out = new Array(items.length);
+  let idx = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async function () {
+    while (true) {
+      const i = idx++;
+      if (i >= items.length) break;
+      try { out[i] = await fn(items[i], i); }
+      catch (e) { out[i] = { code: items[i], error: e.message }; }
+      await sleep(90);
+    }
   });
-  const j = await r.json();
-  if (!j.access_token) throw new Error('토큰 발급 실패: ' + (j.error_description || j.msg1 || JSON.stringify(j)));
-  tokenCache = { token: j.access_token, exp: Date.now() + ((j.expires_in || 86400) * 1000) };
-  try { fs.writeFileSync(TOKEN_FILE, JSON.stringify(tokenCache)); } catch (e) {}
-  console.log('KIS 접근토큰 발급/갱신 완료');
-  return tokenCache.token;
+  await Promise.all(workers);
+  return out;
 }
 
 // ===== RSI(14) — 일봉 종가 기반, 일 단위 캐시 =====
@@ -113,7 +136,7 @@ async function fetchDailyCloses(code) {
 async function rsiFor(code, livePrice) {
   try {
     const cached = dailyCache[code] && dailyCache[code].ymd === ymdSeoul();
-    if (!cached) await sleep(230); // 캐시 없을 때만 추가 KIS 호출 → 호출 간격 유지
+    if (!cached) await sleep(110); // 캐시 없을 때만 추가 KIS 호출 → 호출 간격 유지
     const dc = await fetchDailyCloses(code);
     if (!dc) return null;
     const closes = dc.closes.slice();
@@ -156,6 +179,38 @@ async function fetchQuoteOnce(code) {
 }
 
 const PUB = path.join(__dirname, 'public');
+
+// ===== 전 종목 스냅샷 — 장중 백그라운드 사전 갱신 → 화면은 즉시 응답 =====
+let KTOPCODES = [];
+try {
+  const kt = JSON.parse(fs.readFileSync(path.join(PUB, 'ktop10.json'), 'utf8'));
+  Object.keys(kt.stocks).forEach(function (s) { kt.stocks[s].forEach(function (x) { KTOPCODES.push(x[0]); }); });
+  console.log('ktop10.json 로드: ' + KTOPCODES.length + '종목');
+} catch (e) { console.error('ktop10.json 로드 실패:', e.message); }
+const snapshot = { data: {}, ts: 0, sweeping: false, lastEnd: 0 };
+function seoulHour() { try { return new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' })).getHours(); } catch (e) { return 12; } }
+async function sweep() {
+  if (snapshot.sweeping || !KTOPCODES.length) return;
+  snapshot.sweeping = true;
+  const t0 = Date.now();
+  try {
+    await mapLimit(KTOPCODES, 2, async function (code) {
+      const q = await fetchQuoteOnce(code);
+      snapshot.data[code] = q;
+      snapshot.ts = Date.now();
+      return q;
+    });
+  } catch (e) {}
+  snapshot.lastEnd = Date.now();
+  snapshot.sweeping = false;
+  console.log('스냅샷 갱신 완료: ' + Object.keys(snapshot.data).length + '종목, ' + Math.round((Date.now() - t0) / 1000) + '초');
+}
+setTimeout(sweep, 2000); // 서버 기동 직후 1회
+setInterval(function () {
+  const h = seoulHour();
+  const stale = Date.now() - snapshot.lastEnd > 180000; // 3분
+  if (h >= 8 && h < 18 && stale && !snapshot.sweeping) sweep();
+}, 60000);
 const server = http.createServer(async function (req, res) {
   const u = new URL(req.url, 'http://x');
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -163,12 +218,8 @@ const server = http.createServer(async function (req, res) {
   if (u.pathname === '/api/quotes') {
     const codes = (u.searchParams.get('codes') || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean).slice(0, 200);
     try {
-      const out = [];
-      for (let i = 0; i < codes.length; i++) {
-        if (i > 0) await sleep(220);
-        try { out.push(await fetchQuoteOnce(codes[i])); }
-        catch (e) { out.push({ code: codes[i], error: e.message }); }
-      }
+      const out = await mapLimit(codes, 3, function (code) { return fetchQuoteOnce(code); });
+      out.forEach(function (q) { if (q && q.code && !q.error) { snapshot.data[q.code] = q; snapshot.ts = Date.now(); } });
       res.setHeader('content-type', 'application/json');
       res.end(JSON.stringify({ data: out, ts: Date.now() }));
     } catch (e) {
@@ -178,21 +229,28 @@ const server = http.createServer(async function (req, res) {
     return;
   }
 
+  if (u.pathname === '/api/summary') {
+    // 백그라운드 스냅샷 즉시 응답 (전체 섹터 화면용)
+    const done = KTOPCODES.filter(function (c) { return snapshot.data[c] && !snapshot.data[c].error; }).length;
+    res.setHeader('content-type', 'application/json');
+    res.end(JSON.stringify({
+      data: KTOPCODES.map(function (c) { return snapshot.data[c] || { code: c, pending: true }; }),
+      ts: snapshot.ts,
+      complete: KTOPCODES.length > 0 && done >= KTOPCODES.length - 3, // 일부 실패(거래정지 등) 허용
+      progress: done + '/' + KTOPCODES.length
+    }));
+    return;
+  }
+
   if (u.pathname === '/api/history') {
     // 일봉 종가 이력 (dailyCache 재활용 — /api/quotes 이후 호출하면 대부분 캐시 적중)
     const codes = (u.searchParams.get('codes') || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean).slice(0, 200);
     const days = Math.min(Number(u.searchParams.get('days') || 60) || 60, 100);
     try {
-      const out = [];
-      for (let i = 0; i < codes.length; i++) {
-        const code = codes[i];
-        const cached = dailyCache[code] && dailyCache[code].ymd === ymdSeoul();
-        if (!cached && i > 0) await sleep(230); // KIS 호출이 필요한 경우만 간격 유지
-        try {
-          const dc = await fetchDailyCloses(code);
-          out.push(dc ? { code: code, dates: dc.dates.slice(-days), closes: dc.closes.slice(-days) } : { code: code, error: 'no data' });
-        } catch (e) { out.push({ code: code, error: e.message }); }
-      }
+      const out = await mapLimit(codes, 3, async function (code) {
+        const dc = await fetchDailyCloses(code);
+        return dc ? { code: code, dates: dc.dates.slice(-days), closes: dc.closes.slice(-days) } : { code: code, error: 'no data' };
+      });
       res.setHeader('content-type', 'application/json');
       res.end(JSON.stringify({ data: out, ts: Date.now() }));
     } catch (e) {

@@ -7,6 +7,8 @@ DART_KEY = os.environ.get('DART_KEY', '')
 DAYS = int(os.environ.get('DAYS', '30'))
 MAXR = int(os.environ.get('MAXR', '0'))          # 테스트용 처리 건수 제한(0=전체)
 MIN_AMT = int(os.environ.get('MIN_AMT', '100000000'))  # 1억
+BUY_ONLY = os.environ.get('BUY_ONLY', '1') == '1'      # 1=장내매수만 집계
+REASONS = {}                                            # 사유별 건수(디버그용)
 BASE = 'https://opendart.fss.or.kr/api'
 
 def fetch(url):
@@ -64,6 +66,9 @@ def parse_doc(rcept):
     # 임원만: 직위명이 있어야 함(주요주주는 보통 직위 없음)
     if not position or position in ('-', '해당없음'):
         return None
+    # 비임원 제외: 계열사·조합·법인 등 (예: "계열사등" 명의 취득은 경영진 매수가 아님)
+    if re.search(r'계열|주요주주|최대주주|특수관계|조합|재단|단체|법인|기타', position):
+        return None
     # 세부변동내역: ACODE 기준 정확 매핑. 증감=MDF_STK_CNT, 취득단가=ACI_AMT2, 합계=MDF_STK_SUM
     seg = raw[raw.find('세부변동내역'): (raw.find('증권시장에서 주식등을') or len(raw))]
     rows = re.findall(r'<TR[^>]*>(.*?)</TR>', seg, re.S)
@@ -83,20 +88,37 @@ def parse_doc(rcept):
             return num(mp.group(1))
         m = re.search(r'(\d[\d,]*)', t)
         return num(m.group(1)) if m else None
-    qty, amt = 0, 0
+    def rowreason(cm):
+        # 보고사유 셀: D002 원문은 "장내매수(+)", "주식배당(+)", "장내매도(-)" 형태
+        for v in cm.values():
+            if re.search(r'\([+\-]\)\s*$', v):
+                return v
+        for v in cm.values():
+            if re.search(r'장내매수|장외매수|장내매도|신규선임|신규보고|주식배당|무상신주|유상신주|수증|증여|상속|전환|행사|취득|처분', v):
+                return v
+        return ''
+    qty, amt, reasons = 0, 0, set()
     for row in rows:
         cm = cellmap(row)
         if 'MDF_STK_SUM' in cm or 'MDF_STK_CNT' not in cm:
+            continue
+        reason = rowreason(cm)
+        REASONS[reason or '(사유식별불가)'] = REASONS.get(reason or '(사유식별불가)', 0) + 1
+        # 장내매수만 집계 (BUY_ONLY=0 이면 기존처럼 모든 증가분 집계)
+        if BUY_ONLY and '장내매수' not in reason:
             continue
         chg = num(cm.get('MDF_STK_CNT'))
         price = firstnum(cm.get('ACI_AMT2'))
         if chg and chg > 0 and price and price > 0:
             qty += chg
             amt += chg * price
+            if reason:
+                reasons.add(re.sub(r'\([+\-]\)\s*$', '', reason).strip())
     if amt < MIN_AMT:
         return None
     avg_price = round(amt / qty) if qty else None
-    return {'name': name, 'position': position, 'qty': qty, 'amount': amt, 'price': avg_price}
+    return {'name': name, 'position': position, 'qty': qty, 'amount': amt, 'price': avg_price,
+            'reason': ', '.join(sorted(reasons)) if reasons else ('장내매수' if BUY_ONLY else '취득')}
 
 def main():
     if not DART_KEY:
@@ -117,13 +139,16 @@ def main():
             'code': scode, 'name': cname, 'corp_code': corp,
             'insider': r['name'], 'position': r['position'],
             'qty': r['qty'], 'amount': r['amount'], 'amountEok': round(r['amount'] / 1e8, 1),
-            'price': r['price'], 'date': dt,
+            'price': r['price'], 'date': dt, 'reason': r.get('reason', ''),
             'link': 'https://dart.fss.or.kr/dsaf001/main.do?rcpNo=' + rcept,
             'src': '공시원문 취득단가'
         })
         time.sleep(0.03)
+    top_reasons = sorted(REASONS.items(), key=lambda x: -x[1])[:12]
+    print('사유 분포(상위): ' + ', '.join('%s=%d' % t for t in top_reasons), file=sys.stderr)
     matches.sort(key=lambda m: m['amount'], reverse=True)
-    out = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'days': DAYS, 'count': len(matches), 'list': matches}
+    out = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'days': DAYS, 'count': len(matches),
+           'buyOnly': BUY_ONLY, 'list': matches}
     os.makedirs('public/data', exist_ok=True)
     with open('public/data/insider.json', 'w', encoding='utf-8') as f:
         json.dump(out, f, ensure_ascii=False)

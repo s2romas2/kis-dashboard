@@ -87,12 +87,12 @@ def parse_doc(rcept):
             return num(mp.group(1))
         m = re.search(r'(\d[\d,]*)', t)
         return num(m.group(1)) if m else None
-    def rowreason(cm):
-        # 보고사유 셀: D002 원문은 "장내매수(+)", "주식배당(+)", "장내매도(-)" 형태
-        for v in cm.values():
+    def rowreason(vals):
+        # 보고사유 셀: "장내매수(+)" 등. 사유 셀은 ACODE가 아닌 AUNIT인 문서가 많아 전체 셀에서 탐색
+        for v in vals:
             if re.search(r'\([+\-]\)\s*$', v):
                 return v
-        for v in cm.values():
+        for v in vals:
             if re.search(r'장내매수|장외매수|장내매도|신규선임|신규보고|주식배당|무상신주|유상신주|수증|증여|상속|전환|행사|취득|처분', v):
                 return v
         return ''
@@ -103,8 +103,8 @@ def parse_doc(rcept):
             continue
         reason, chg, price = None, None, None
         if 'MDF_STK_CNT' in cm:
-            # 유형 A: ACODE 매핑 문서 (증감=MDF_STK_CNT, 취득단가=ACI_AMT2)
-            reason = rowreason(cm)
+            # 유형 A: ACODE 매핑 문서 (증감=MDF_STK_CNT, 취득단가=ACI_AMT2). 사유는 전체 셀에서 탐색
+            reason = rowreason(cells)
             chg = num(cm.get('MDF_STK_CNT'))
             price = firstnum(cm.get('ACI_AMT2'))
         elif len(cells) >= 7 and re.search(r'\([+\-]\)', cells[0]):

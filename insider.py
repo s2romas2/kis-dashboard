@@ -63,12 +63,9 @@ def parse_doc(rcept):
     pos = re.search(r'ACODE="STF_PSM"[^>]*>\s*([^<]+)', raw)
     name = clean(nm.group(1)) if nm else ''
     position = clean(pos.group(1)) if pos else ''
-    # 임원만: 직위명이 있어야 함(주요주주는 보통 직위 없음)
+    # 임원·주요주주 등 누구든 포함. 직위가 없으면 '주요주주'로 표기
     if not position or position in ('-', '해당없음'):
-        return None
-    # 비임원 제외: 계열사·조합·법인 등 (예: "계열사등" 명의 취득은 경영진 매수가 아님)
-    if re.search(r'계열|주요주주|최대주주|특수관계|조합|재단|단체|법인|기타', position):
-        return None
+        position = '주요주주'
     # 세부변동내역: ACODE 기준 정확 매핑. 증감=MDF_STK_CNT, 취득단가=ACI_AMT2, 합계=MDF_STK_SUM
     seg = raw[raw.find('세부변동내역'): (raw.find('증권시장에서 주식등을') or len(raw))]
     rows = re.findall(r'<TR[^>]*>(.*?)</TR>', seg, re.S)

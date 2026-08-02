@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>시장 PBR · 한국 대시보드</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin:0; background:#f6f7f9; color:#1a1f2e; font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; }
+.wrap { max-width:1100px; margin:0 auto; padding:20px 18px 48px; }
+header { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+h1 { font-size:20px; margin:0; font-weight:800; }
+.sub { color:#6b7280; font-size:12.5px; margin:3px 0 0; }
+a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
+.meta { font-size:12px; color:#8a93a2; }
+.tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin:18px 0 14px; }
+.tile { background:#fff; border:1px solid #eceef2; border-radius:14px; padding:14px 16px; box-shadow:0 1px 2px rgba(20,30,60,.04); }
+.tile .nm { font-size:13px; font-weight:700; color:#5b6472; }
+.tile .val { font-size:26px; font-weight:800; margin:4px 0 2px; letter-spacing:-.5px; }
+.tile .rng { font-size:11.5px; color:#8a93a2; line-height:1.5; }
+.tile .pos { font-size:11px; font-weight:700; border-radius:10px; padding:2px 8px; display:inline-block; margin-top:5px; }
+.pos.hi { background:#fdeaec; color:#e5384d; } .pos.lo { background:#e8f0ff; color:#2563d6; } .pos.mid { background:#eef1f4; color:#6b7280; }
+.panel { background:#fff; border:1px solid #eceef2; border-radius:14px; padding:16px 18px; margin-bottom:14px; box-shadow:0 1px 2px rgba(20,30,60,.04); }
+.panel h2 { font-size:14px; margin:0 0 10px; font-weight:700; }
+.chart-box { position:relative; height:280px; }
+.legend { font-size:11.5px; color:#8a93a2; line-height:1.7; margin-top:12px; } .legend b { color:#5b6472; }
+.loading { text-align:center; padding:40px; color:#6b7280; }
+@media (max-width:720px){ .wrap{padding:14px 10px 40px;} .chart-box{height:220px;} .tile .val{font-size:22px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>📐 시장 PBR (주가순자산비율)</h1>
+      <div class="sub">코스피 · 코스닥 (KRX) / S&P500 · 나스닥100 (SPY·QQQ 프록시) · 매일 자동 갱신</div>
+    </div>
+    <div style="text-align:right">
+      <a class="back" href="/">← 섹터 대시보드</a>
+      <div class="meta" id="meta">불러오는 중…</div>
+    </div>
+  </header>
+  <div class="tiles" id="tiles"></div>
+  <div class="panel"><h2>🇰🇷 한국 — 코스피 · 코스닥 PBR 추이</h2><div class="chart-box"><canvas id="krChart"></canvas></div></div>
+  <div class="panel"><h2>🇺🇸 미국 — S&P500 · 나스닥100 PBR 추이</h2><div class="chart-box"><canvas id="usChart"></canvas></div></div>
+  <div class="legend"><b>PBR</b>(주가÷주당순자산)이 낮을수록 장부가치 대비 저평가. 코스피·코스닥은 KRX 공식 지수 통계, 미국은 대표 ETF(SPY·QQQ)의 보유종목 가중 PBR을 프록시로 사용합니다(집계 기준이 달라 절대 비교보다는 <b>각 지수의 과거 대비 위치</b>를 보세요). 표시 배지는 보유 이력 내 위치(백분위): 상위 20% 과열권 · 하위 20% 저평가권. 한국은 매 거래일, 미국은 매일 1포인트 축적. 정보 제공용이며 투자권유가 아닙니다.</div>
+</div>
+<script>
+const NAMES={kospi:'코스피',kosdaq:'코스닥',sp500:'S&P500',nasdaq100:'나스닥100'};
+const COLORS={kospi:'#e5384d',kosdaq:'#f6923f',sp500:'#2f6df6',nasdaq100:'#8a5cf6'};
+function pctile(vals,v){ if(!vals.length) return null; const s=[...vals].sort((a,b)=>a-b); let c=0; for(const x of s){ if(x<=v)c++; } return Math.round(c/s.length*100); }
+function tile(k,st,vals){
+  const p=pctile(vals,st.pbr);
+  const cls=p==null?'mid':(p>=80?'hi':(p<=20?'lo':'mid'));
+  const lbl=p==null?'—':(p>=80?'과열권 · 이력 상위 '+Math.max(100-p,1)+'%':(p<=20?'저평가권 · 이력 하위 '+Math.max(p,1)+'%':'중간권 (백분위 '+p+')'));
+  return `<div class="tile"><div class="nm" style="color:${COLORS[k]}">${NAMES[k]}</div>
+    <div class="val">${st.pbr.toFixed(2)}<span style="font-size:13px;color:#98a1b0">배</span></div>
+    <div class="rng">이력 최저 ${st.min} · 평균 ${st.avg} · 최고 ${st.max}<br>기준일 ${st.date}</div>
+    <div class="pos ${cls}">${lbl}</div></div>`;
+}
+function mkChart(id,keys,D){
+  const all=new Set(); keys.forEach(k=>(D.series[k]||[]).forEach(([d])=>all.add(d)));
+  const labels=[...all].sort();
+  const ds=keys.filter(k=>(D.series[k]||[]).length).map(k=>{
+    const m=Object.fromEntries(D.series[k]);
+    return {label:NAMES[k],data:labels.map(d=>m[d]??null),borderColor:COLORS[k],backgroundColor:COLORS[k],
+      borderWidth:1.8,pointRadius:0,pointHitRadius:8,spanGaps:true,tension:.2};
+  });
+  if(!ds.length){ document.getElementById(id).parentElement.innerHTML='<div class="loading">데이터 수집 대기 중 — 다음 자동 갱신 후 표시됩니다.</div>'; return; }
+  try{
+  new Chart(document.getElementById(id),{type:'line',data:{labels,datasets:ds},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{position:'top',labels:{boxWidth:14,font:{size:11}}},
+        tooltip:{callbacks:{label:c=>c.dataset.label+' '+(c.parsed.y==null?'—':c.parsed.y.toFixed(2)+'배')}}},
+      scales:{x:{ticks:{maxTicksLimit:8,font:{size:10}},grid:{display:false}},
+        y:{ticks:{callback:v=>v.toFixed(1),font:{size:10}},grid:{color:'#f0f2f5'}}}}});
+  }catch(e){ /* 차트 라이브러리 로딩 실패 시 타일·수치는 그대로 표시 */ }
+}
+(async function(){
+  let D;
+  try{ D=await (await fetch('/data/valuation.json?t='+Date.now())).json(); }
+  catch(e){ document.getElementById('tiles').innerHTML='<div class="loading">valuation.json이 아직 없습니다. 첫 자동 수집 후 표시됩니다.</div>'; return; }
+  document.getElementById('meta').textContent='갱신 '+D.updated;
+  document.getElementById('tiles').innerHTML=['kospi','kosdaq','sp500','nasdaq100']
+    .filter(k=>D.latest&&D.latest[k])
+    .map(k=>tile(k,D.latest[k],(D.series[k]||[]).map(([,v])=>v))).join('')||'<div class="loading">데이터 수집 대기 중…</div>';
+  mkChart('krChart',['kospi','kosdaq'],D);
+  mkChart('usChart',['sp500','nasdaq100'],D);
+})();
+</script>
+</body>
+</html>

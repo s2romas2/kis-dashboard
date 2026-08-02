@@ -70,41 +70,44 @@ def parse_flash(rcept):
         unit = {'백만원': 1_000_000, '억원': 100_000_000, '천원': 1_000, '원': 1}.get(u, 1_000_000)
     else:
         unit = 1_000_000
-    rows = re.findall(r'<TR[^>]*>(.*?)</TR>', raw, re.S)
+    # 실제 서식은 소문자 HTML 테이블. 표준 배치(당해실적 행, rowspan 구조):
+    # [항목, 당해실적, 당기, 전기, 전기대비%, 흑전여부, 전년동기, 전년동기대비%, 흑전여부]
+    def signum(c):
+        v = num(c)
+        if v is not None and ('△' in c or c.strip().startswith('(')):
+            v = -abs(v)
+        return v
+    rows = re.findall(r'<tr[^>]*>(.*?)</tr>', raw, re.S | re.I)
     res = {}
     for row in rows:
-        cells = [clean(c) for _, c in re.findall(r'<T[EDHU]([^>]*)>(.*?)</T[EDHU]>', row, re.S)]
-        cells = [c for c in cells if c != '']
-        if len(cells) < 2:
+        cells = [clean(c) for c in re.findall(r'<t[dh][^>]*>(.*?)</t[dh]>', row, re.S | re.I)]
+        if not cells:
             continue
         head = cells[0].replace(' ', '')
         key = None
-        if re.match(r'^-?매출액', head) or head.startswith('매출액') or head.startswith('영업수익'):
+        if head.startswith('매출액') or head.startswith('영업수익'):
             key = 'rev'
         elif head.startswith('영업이익'):
             key = 'op'
-        elif re.match(r'^(당기순이익|분기순이익|반기순이익|연결당기순이익)', head):
+        elif re.match(r'^(당기순이익|분기순이익|반기순이익)', head):
             key = 'ni'
         if not key or key in res:
             continue
-        # 셀 배치: [항목, (당해실적 라벨?), 당기, 전기, 전기대비%, 전년동기, 전년동기대비%] 등 변형 다양
-        nums = []
-        for c in cells[1:]:
-            v = num(c)
-            nums.append(v)
-        vals = [v for v in nums if v is not None]
-        if not vals:
+        cur = qoq = yoy = None
+        c1 = cells[1].replace(' ', '') if len(cells) > 1 else ''
+        if len(cells) >= 8 and c1.startswith('당해실적'):
+            cur, qoq, yoy = signum(cells[2]), signum(cells[4]), signum(cells[7])
+        else:
+            nums = [signum(c) for c in cells[1:]]
+            nums = [v for v in nums if v is not None]
+            if not nums:
+                continue
+            cur = nums[0]
+            if len(nums) >= 3 and abs(nums[-1]) < 1000 <= abs(nums[0]):
+                yoy = nums[-1]
+        if cur is None:
             continue
-        cur = vals[0]
-        yoy = None
-        # 증감율 셀: '%' 포함 셀 우선, 없으면 마지막 값이 비율(절대값<1000)로 보이면 채택
-        pct = [num(c) for c in cells[1:] if '%' in c or '△' in c]
-        pct = [p for p in pct if p is not None]
-        if pct:
-            yoy = pct[-1]
-        elif len(vals) >= 3 and abs(vals[-1]) < 1000 and abs(vals[0]) >= 1000:
-            yoy = vals[-1]
-        res[key] = {'cur': cur, 'yoy': yoy}
+        res[key] = {'cur': cur, 'yoy': yoy, 'qoq': qoq}
     if 'rev' not in res and 'op' not in res:
         return None
     def eok(v):
@@ -114,6 +117,12 @@ def parse_flash(rcept):
         if k in res:
             out[k] = eok(res[k]['cur'])
             out[k + 'YoY'] = res[k]['yoy']
+            out[k + 'QoQ'] = res[k]['qoq']
+    pm = re.search(r'\(\s*(\d{2})\s*년\s*(\d)\s*분기\s*\)', raw)
+    if pm:
+        out['period'] = '20%s Q%s' % (pm.group(1), pm.group(2))
+    elif re.search(r'\(\s*\d{2}\s*년\s*반기\s*\)', raw):
+        out['period'] = '반기'
     return out
 
 def main():

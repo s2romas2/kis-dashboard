@@ -63,10 +63,10 @@ function card(m){
   const noNum = m.rev==null && m.op==null;
   return `<div class="card">
     <h3>${m.name}<span class="tk">${m.code||''}</span>${noNum?'<span class="badge">원문 확인</span>':''}</h3>
-    <div class="dt">공시일 ${fmtDate(m.date)} · ${m.title||''}</div>
+    <div class="dt">공시일 ${fmtDate(m.date)}${m.period?' · <b>'+m.period+'</b>':''} · ${m.title||''}</div>
     ${noNum?'':`
-    <div class="row"><span class="k">매출액</span><span class="v">${eokf(m.rev)} <span class="${cls(m.revYoY)}">${pct(m.revYoY)}</span></span></div>
-    <div class="row"><span class="k">영업이익</span><span class="v">${eokf(m.op)} <span class="${cls(m.opYoY)}">${pct(m.opYoY)}</span></span></div>
+    <div class="row"><span class="k">매출액 <span style="font-size:10px">(YoY·QoQ)</span></span><span class="v">${eokf(m.rev)} <span class="${cls(m.revYoY)}">${pct(m.revYoY)}</span> <span class="${cls(m.revQoQ)}" style="font-size:11px">${pct(m.revQoQ)}</span></span></div>
+    <div class="row"><span class="k">영업이익</span><span class="v">${eokf(m.op)} <span class="${cls(m.opYoY)}">${pct(m.opYoY)}</span> <span class="${cls(m.opQoQ)}" style="font-size:11px">${pct(m.opQoQ)}</span></span></div>
     ${m.ni!=null?`<div class="row"><span class="k">순이익</span><span class="v">${eokf(m.ni)} <span class="${cls(m.niYoY)}">${pct(m.niYoY)}</span></span></div>`:''}`}
     <div class="foot"><span class="k">잠정실적(공정공시)</span><a href="${m.link}" target="_blank">공시 원문 →</a></div>
   </div>`;

@@ -8,6 +8,11 @@ import os, json, time, datetime, urllib.request, urllib.parse, sys, re
 OUT = 'public/data/valuation.json'
 BACKFILL_START = os.environ.get('BACKFILL_START', '2020-01-02')  # 이력 시작일
 MAX_POINTS = 6000                                                # 시리즈 최대 보관(20년+)
+DEBUG = []                                                       # 실행 진단(JSON에 포함)
+
+def dbg(msg):
+    DEBUG.append(str(msg)[:300])
+    print(msg, file=sys.stderr)
 KRX_URL = 'http://data.krx.co.kr/comm/bldAttendant/getJsonData.cmd'
 KRX_HDR = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
@@ -32,7 +37,7 @@ def krx_series(start, today, series):
     try:
         from pykrx import stock as krxstock
     except Exception as e:
-        print('pykrx 불가:', e, file=sys.stderr)
+        dbg('pykrx 불가: %s' % e)
         return
     import datetime as _dt
     for key, tick in (('kospi', '1001'), ('kosdaq', '2001')):
@@ -48,12 +53,12 @@ def krx_series(start, today, series):
                     if v and float(v) > 0:
                         pairs.append([idx.strftime('%Y-%m-%d'), round(float(v), 2)])
             except Exception as ex:
-                print('pykrx %s %d년 실패: %s' % (key, y, ex), file=sys.stderr)
+                dbg('pykrx %s %d년 실패: %r' % (key, y, ex))
             time.sleep(1)
             y += 1
         if len(pairs) > 30:
             series[key] = sorted(pairs)
-        print('KRX %s: %d포인트' % (key, len(pairs)), file=sys.stderr)
+        dbg('KRX %s: %d포인트' % (key, len(pairs)))
 
 def sp500_multpl():
     """S&P500 월별 P/B 장기 이력 (multpl.com) — 2020년부터"""
@@ -70,9 +75,11 @@ def sp500_multpl():
             if date >= BACKFILL_START:
                 out.append([date, float(val)])
         out = sorted(dict(out).items())
+        if not out:
+            dbg('multpl 매칭 0건, 응답 앞부분: %r' % h[:250])
         return [[d, v] for d, v in out]
     except Exception as e:
-        print('multpl 실패:', e, file=sys.stderr)
+        dbg('multpl 실패: %r' % e)
         return []
 
 def us_pbr():
@@ -81,7 +88,7 @@ def us_pbr():
     try:
         import yfinance as yf
     except Exception as e:
-        print('yfinance 없음:', e, file=sys.stderr)
+        dbg('yfinance 없음: %s' % e)
         return out
     for key, tk in (('nasdaq100', 'QQQ'),):
         pb = None
@@ -89,7 +96,7 @@ def us_pbr():
             t = yf.Ticker(tk)
             try:
                 eh = t.funds_data.equity_holdings
-                print('%s equity_holdings 구조: %r' % (tk, eh), file=sys.stderr)
+                dbg('%s eh: %.250r' % (tk, eh))
                 if hasattr(eh, 'index'):  # DataFrame: 지표명이 index 또는 컬럼
                     for idx in list(eh.index):
                         if 'book' in str(idx).lower():
@@ -103,15 +110,15 @@ def us_pbr():
                         if 'book' in str(kk).lower():
                             pb = float(vv); break
             except Exception as ex:
-                print('funds_data 실패 %s: %s' % (tk, ex), file=sys.stderr)
+                dbg('funds_data 실패 %s: %r' % (tk, ex))
             pb = tofloat(pb)
             if pb and not (1 < pb < 50):
-                print('%s PBR 이상값 %s → 폐기' % (tk, pb), file=sys.stderr)
+                dbg('%s PBR 이상값 %s 폐기' % (tk, pb))
                 pb = None
             if pb:
                 out[key] = round(pb, 2)
         except Exception as e:
-            print('US PBR 실패 %s: %s' % (tk, e), file=sys.stderr)
+            dbg('US PBR 실패 %s: %r' % (tk, e))
     return out
 
 def main():
@@ -130,14 +137,14 @@ def main():
     sp = sp500_multpl()
     if sp:
         series['sp500'] = sp
-    print('S&P500(multpl) %d포인트' % len(sp), file=sys.stderr)
+    dbg('multpl: %d포인트' % len(sp))
     us = us_pbr()
     ds = today.strftime('%Y-%m-%d')
     for k, v in us.items():
         have_k = set(d for d, _ in series[k])
         if ds not in have_k:
             series[k].append([ds, v])
-    print('US PBR:', us, file=sys.stderr)
+    dbg('US PBR: %s' % us)
     # 과거 오염값 정리(비정상 저값 제거)
     for k in ('sp500', 'nasdaq100'):
         series[k] = [p for p in series[k] if p[1] and p[1] > 1]
@@ -152,7 +159,7 @@ def main():
                          'avg': round(sum(vals) / len(vals), 2)}
 
     out = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'series': series, 'latest': latest,
-           'note': '코스피·코스닥: KRX 지수 PBR(2020~, 일별) / S&P500: multpl 월별 P/B(2020~) / 나스닥100: QQQ 보유종목 가중 PBR(프록시, 일별 축적)'}
+           'debug': DEBUG[-25:], 'note': '코스피·코스닥: KRX 지수 PBR(2020~, 일별) / S&P500: multpl 월별 P/B(2020~) / 나스닥100: QQQ 보유종목 가중 PBR(프록시, 일별 축적)'}
     os.makedirs('public/data', exist_ok=True)
     with open(OUT, 'w', encoding='utf-8') as f:
         json.dump(out, f, ensure_ascii=False)

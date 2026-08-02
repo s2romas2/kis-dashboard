@@ -1,0 +1,29 @@
+name: 진단 프로브
+on:
+  workflow_dispatch: {}
+  push:
+    paths: ['probe.py']
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 프로브 실행
+        env:
+          DART_KEY: ${{ secrets.DART_KEY }}
+          DAYS: '45'
+          TARGET: '아가방'
+        run: python probe.py
+      - name: 결과 커밋
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/probe.json
+          git commit -m "진단 프로브 결과" || echo "변경 없음"
+          git pull --rebase origin main || true
+          git push

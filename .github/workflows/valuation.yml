@@ -16,7 +16,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: 의존성 설치
-        run: pip install yfinance
+        run: pip install yfinance pykrx
       - name: PBR 수집
         run: python valuation.py
       - name: 결과 커밋

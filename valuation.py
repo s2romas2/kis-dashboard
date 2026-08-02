@@ -27,35 +27,33 @@ def tofloat(v):
     except Exception:
         return None
 
-def krx_post(payload):
-    data = urllib.parse.urlencode(payload).encode()
-    req = urllib.request.Request(KRX_URL, data=data, headers=KRX_HDR)
-    with urllib.request.urlopen(req, timeout=25) as r:
-        return json.loads(r.read().decode('utf-8'))
-
-def krx_day(ymd):
-    """특정일 전체지수 PER/PBR — 코스피·코스닥 행만 추출"""
-    for bld in ('dbms/MDC/STAT/standard/MDCSTAT00701', 'dbms/MDC/STAT/standard/MDCSTAT00702'):
-        try:
-            j = krx_post({'bld': bld, 'locale': 'ko_KR', 'searchType': '1',
-                          'trdDd': ymd, 'idxIndMidclssCd': '01', 'money': '1', 'csvxls_isNo': 'false'})
-            rows = j.get('output') or j.get('OutBlock_1') or j.get('block1') or []
-            res = {}
-            for it in rows:
-                nm = (it.get('IDX_NM') or it.get('IDX_IND_NM') or '').strip()
-                pbr = tofloat(it.get('PBR'))
-                per = tofloat(it.get('PER'))
-                if pbr is None:
-                    continue
-                if nm == '코스피':
-                    res['kospi'] = {'pbr': pbr, 'per': per}
-                elif nm == '코스닥':
-                    res['kosdaq'] = {'pbr': pbr, 'per': per}
-            if res:
-                return res, bld
-        except Exception as e:
-            print('KRX %s %s 실패: %s' % (bld, ymd, e), file=sys.stderr)
-    return {}, None
+def krx_series(start, today, series):
+    """pykrx로 코스피(1001)·코스닥(2001) 일별 PBR — 연 단위 청크로 전체 재수집(자가치유)"""
+    try:
+        from pykrx import stock as krxstock
+    except Exception as e:
+        print('pykrx 불가:', e, file=sys.stderr)
+        return
+    import datetime as _dt
+    for key, tick in (('kospi', '1001'), ('kosdaq', '2001')):
+        pairs = []
+        y = start.year
+        while y <= today.year:
+            s = max(start, _dt.date(y, 1, 1)).strftime('%Y%m%d')
+            e = min(today, _dt.date(y, 12, 31)).strftime('%Y%m%d')
+            try:
+                df = krxstock.get_index_fundamental(s, e, tick)
+                for idx, row in df.iterrows():
+                    v = row.get('PBR')
+                    if v and float(v) > 0:
+                        pairs.append([idx.strftime('%Y-%m-%d'), round(float(v), 2)])
+            except Exception as ex:
+                print('pykrx %s %d년 실패: %s' % (key, y, ex), file=sys.stderr)
+            time.sleep(1)
+            y += 1
+        if len(pairs) > 30:
+            series[key] = sorted(pairs)
+        print('KRX %s: %d포인트' % (key, len(pairs)), file=sys.stderr)
 
 def sp500_multpl():
     """S&P500 월별 P/B 장기 이력 (multpl.com) — 2020년부터"""
@@ -78,7 +76,7 @@ def sp500_multpl():
         return []
 
 def us_pbr():
-    """QQQ 보유종목 가중 PBR (나스닥100 프록시). 실패해도 나머지는 진행."""
+    """QQQ 보유종목 가중 PBR (나스닥100 프록시). 값 범위 검증(1~50배) 포함."""
     out = {}
     try:
         import yfinance as yf
@@ -86,30 +84,32 @@ def us_pbr():
         print('yfinance 없음:', e, file=sys.stderr)
         return out
     for key, tk in (('nasdaq100', 'QQQ'),):
+        pb = None
         try:
             t = yf.Ticker(tk)
-            pb = None
-            try:  # 신버전: funds_data
-                fd = t.funds_data
-                eh = getattr(fd, 'equity_holdings', None)
-                if eh is not None:
-                    if hasattr(eh, 'loc'):  # DataFrame
-                        for idx in ('priceToBook', 'Price/Book'):
-                            try:
-                                pb = float(eh.loc[idx].iloc[0]); break
-                            except Exception:
-                                pass
-                    elif isinstance(eh, dict):
-                        pb = eh.get('priceToBook')
-            except Exception:
-                pass
-            if not pb:  # 구버전/대체 경로
-                info = getattr(t, 'info', {}) or {}
-                pb = info.get('priceToBook')
+            try:
+                eh = t.funds_data.equity_holdings
+                print('%s equity_holdings 구조: %r' % (tk, eh), file=sys.stderr)
+                if hasattr(eh, 'index'):  # DataFrame: 지표명이 index 또는 컬럼
+                    for idx in list(eh.index):
+                        if 'book' in str(idx).lower():
+                            pb = float(eh.loc[idx].iloc[0]); break
+                    if pb is None:
+                        for col in list(getattr(eh, 'columns', [])):
+                            if 'book' in str(col).lower():
+                                pb = float(eh[col].iloc[0]); break
+                elif isinstance(eh, dict):
+                    for kk, vv in eh.items():
+                        if 'book' in str(kk).lower():
+                            pb = float(vv); break
+            except Exception as ex:
+                print('funds_data 실패 %s: %s' % (tk, ex), file=sys.stderr)
             pb = tofloat(pb)
+            if pb and not (1 < pb < 50):
+                print('%s PBR 이상값 %s → 폐기' % (tk, pb), file=sys.stderr)
+                pb = None
             if pb:
                 out[key] = round(pb, 2)
-            time.sleep(1)
         except Exception as e:
             print('US PBR 실패 %s: %s' % (tk, e), file=sys.stderr)
     return out
@@ -122,27 +122,9 @@ def main():
     have = {k: set(d for d, _ in series[k]) for k in series}
     today = datetime.date.today()
 
-    # ── 한국: 2020년부터 백필(최초 또는 이력 부족 시), 이후엔 최근 10일 증분 ──
+    # ── 한국: pykrx로 2020년부터 일별 PBR 전체 수집(매 실행 자가치유) ──
     start = datetime.date.fromisoformat(BACKFILL_START)
-    oldest = series['kospi'][0][0] if series['kospi'] else None
-    full = len(series['kospi']) < 30 or (oldest and oldest > (start + datetime.timedelta(days=40)).isoformat())
-    scan_from = start if full else max(start, today - datetime.timedelta(days=10))
-    used_bld, got = None, 0
-    d = scan_from
-    while d <= today:
-        if d.weekday() < 5:
-            ds = d.strftime('%Y-%m-%d')
-            if ds not in have['kospi']:
-                res, bld = krx_day(d.strftime('%Y%m%d'))
-                used_bld = used_bld or bld
-                for k in ('kospi', 'kosdaq'):
-                    if k in res:
-                        series[k].append([ds, res[k]['pbr']])
-                        have[k].add(ds)
-                        got += 1
-                time.sleep(0.3)
-        d += datetime.timedelta(days=1)
-    print('KRX 수집 %d포인트 (bld=%s, %s부터)' % (got, used_bld, scan_from), file=sys.stderr)
+    krx_series(start, today, series)
 
     # ── 미국: S&P500 = multpl 월별 장기 이력(현재월 포함), 나스닥100 = QQQ 매일 축적 ──
     sp = sp500_multpl()
@@ -152,9 +134,13 @@ def main():
     us = us_pbr()
     ds = today.strftime('%Y-%m-%d')
     for k, v in us.items():
-        if ds not in have.get(k, set()):
+        have_k = set(d for d, _ in series[k])
+        if ds not in have_k:
             series[k].append([ds, v])
     print('US PBR:', us, file=sys.stderr)
+    # 과거 오염값 정리(비정상 저값 제거)
+    for k in ('sp500', 'nasdaq100'):
+        series[k] = [p for p in series[k] if p[1] and p[1] > 1]
 
     latest = {}
     for k in series:

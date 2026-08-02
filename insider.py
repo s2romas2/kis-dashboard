@@ -70,12 +70,14 @@ def parse_doc(rcept):
     seg = raw[raw.find('세부변동내역'): (raw.find('증권시장에서 주식등을') or len(raw))]
     rows = re.findall(r'<TR[^>]*>(.*?)</TR>', seg, re.S)
     def cellmap(row):
-        d = {}
+        d, cells = {}, []
         for attr, c in re.findall(r'<T[EDHU]([^>]*)>(.*?)</T[EDHU]>', row, re.S):
+            txt = clean(c)
+            cells.append(txt)
             m = re.search(r'ACODE="([^"]*)"', attr)
             if m:
-                d[m.group(1)] = clean(c)
-        return d
+                d[m.group(1)] = txt
+        return d, cells
     def firstnum(t):
         # 주식 외 증권(CB 등)은 "행사총액 (주당단가)" 형태 → 괄호 안이 실제 단가
         if not t:
@@ -96,16 +98,28 @@ def parse_doc(rcept):
         return ''
     qty, amt, reasons = 0, 0, set()
     for row in rows:
-        cm = cellmap(row)
-        if 'MDF_STK_SUM' in cm or 'MDF_STK_CNT' not in cm:
+        cm, cells = cellmap(row)
+        if 'MDF_STK_SUM' in cm:
             continue
-        reason = rowreason(cm)
+        reason, chg, price = None, None, None
+        if 'MDF_STK_CNT' in cm:
+            # 유형 A: ACODE 매핑 문서 (증감=MDF_STK_CNT, 취득단가=ACI_AMT2)
+            reason = rowreason(cm)
+            chg = num(cm.get('MDF_STK_CNT'))
+            price = firstnum(cm.get('ACI_AMT2'))
+        elif len(cells) >= 7 and re.search(r'\([+\-]\)', cells[0]):
+            # 유형 B: AUNIT형 문서 — 위치 기반
+            # [보고사유, 변동일, 증권종류, 변동전, 증감, 변동후, 취득/처분단가, ...]
+            reason = cells[0]
+            bf, af = num(cells[3]), num(cells[5])
+            chg = (af - bf) if (bf is not None and af is not None) else num(cells[4])
+            price = firstnum(cells[6])
+        else:
+            continue
         REASONS[reason or '(사유식별불가)'] = REASONS.get(reason or '(사유식별불가)', 0) + 1
-        # 장내매수만 집계 (BUY_ONLY=0 이면 기존처럼 모든 증가분 집계)
-        if BUY_ONLY and '장내매수' not in reason:
+        # 장내매수만 집계 (BUY_ONLY=0 이면 모든 증가분 집계)
+        if BUY_ONLY and '장내매수' not in (reason or ''):
             continue
-        chg = num(cm.get('MDF_STK_CNT'))
-        price = firstnum(cm.get('ACI_AMT2'))
         if chg and chg > 0 and price and price > 0:
             qty += chg
             amt += chg * price

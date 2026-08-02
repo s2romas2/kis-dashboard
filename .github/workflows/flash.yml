@@ -25,6 +25,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add public/data/flash.json
+          git add public/data/flash_debug.txt 2>/dev/null || true
           git commit -m "잠정실적 속보 갱신" || echo "변경 없음"
           git pull --rebase origin main || true
           git push

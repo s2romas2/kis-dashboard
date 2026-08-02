@@ -150,6 +150,24 @@ def main():
         json.dump(out, f, ensure_ascii=False)
     parsed = sum(1 for i in items if 'rev' in i or 'op' in i)
     print('저장: %d건 (숫자 파싱 성공 %d건)' % (len(items), parsed), file=sys.stderr)
+    # 파싱 전멸 시: 실제 문서 구조 덤프(파서 개선용)
+    if items and parsed == 0:
+        try:
+            with open('public/data/flash_debug.txt', 'w', encoding='utf-8') as df:
+                for x in reps[:2]:
+                    b = fetch('%s/document.xml?crtfc_key=%s&rcept_no=%s' % (BASE, DART_KEY, x['rcept_no']))
+                    try:
+                        z = zipfile.ZipFile(io.BytesIO(b))
+                        raw = z.read(z.namelist()[0]).decode('utf-8', 'ignore')
+                    except Exception as e:
+                        df.write('=== %s %s: unzip 실패 %s\n' % (x['corp_name'], x['rcept_no'], e))
+                        continue
+                    df.write('===== %s %s (%d bytes) =====\n' % (x['corp_name'], x['rcept_no'], len(raw)))
+                    i = raw.find('매출액')
+                    df.write(raw[max(0, i - 3000): i + 9000] if i >= 0 else raw[:12000])
+                    df.write('\n\n')
+        except Exception as e:
+            print('디버그 덤프 실패:', e, file=sys.stderr)
     for m in items[:15]:
         print('%s %-12s 매출%s(%s%%) 영업%s(%s%%) %s' % (
             m['code'], m['name'][:10], m.get('rev'), m.get('revYoY'), m.get('op'), m.get('opYoY'), m['date']))

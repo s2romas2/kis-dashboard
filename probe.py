@@ -24,7 +24,8 @@ for (rcept, corp, cname, dt, scode) in reps:
         info['position'] = ins.clean(pos.group(1)) if pos else '?'
         i = raw.find('세부변동내역')
         seg = raw[i:i + 6000] if i >= 0 else raw[:6000]
-        info['seg'] = re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', seg))[:1200]
+        info['seg'] = re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', seg))[:600]
+        info['rawseg'] = re.sub(r'\s+', ' ', seg)[:3500]  # 태그 포함 원문
         info['parsed'] = ins.parse_doc(rcept)
     except Exception as e:
         info['err'] = repr(e)

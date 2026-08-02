@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # 1회용 진단 — 특정 회사(TARGET)의 D002 공시를 상세 분석해 왜 스크리너에 안 잡히는지 확인
+# rerun-2
 import os, io, json, zipfile, re, importlib.util
 
 spec = importlib.util.spec_from_file_location('ins', 'insider.py')

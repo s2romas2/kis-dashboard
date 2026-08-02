@@ -73,15 +73,16 @@ def sp500_multpl():
             r'([A-Z][a-z]{2})\s+(\d{1,2}),\s*(\d{4})\s*</td>\s*<td[^>]*>\s*(?:<[^>]*>\s*)*([\d]+\.[\d]+)',
             r'>\s*([A-Z][a-z]{2})\s+(\d{1,2}),\s*(\d{4})[\s\S]{0,120}?([\d]+\.[\d]+)',
         ]
-        for pat in pats:
+        for pi, pat in enumerate(pats):
+            n = 0
             for mo, dd, yy, val in re.findall(pat, h):
                 if mo not in MONTHS:
                     continue
                 date = '%04d-%02d-%02d' % (int(yy), MONTHS[mo], int(dd))
                 if date >= BACKFILL_START and 0.5 < float(val) < 20:
                     out.append([date, float(val)])
-            if out:
-                break
+                    n += 1
+            dbg('multpl 패턴%d: %d건' % (pi, n))
         out = sorted(dict(out).items())
         if not out:
             m0 = re.search(r'[A-Z][a-z]{2}\s+\d{1,2},\s*\d{4}', h)

@@ -18,6 +18,9 @@ jobs:
       - name: 의존성 설치
         run: pip install yfinance pykrx
       - name: PBR 수집
+        env:
+          KRX_ID: ${{ secrets.KRX_ID }}
+          KRX_PW: ${{ secrets.KRX_PW }}
         run: python valuation.py
       - name: 결과 커밋
         run: |

@@ -58,7 +58,8 @@ def krx_series(start, today, series):
             y += 1
         if len(pairs) > 30:
             series[key] = sorted(pairs)
-        dbg('KRX %s: %d포인트' % (key, len(pairs)))
+        dbg('KRX %s: %d포인트%s' % (key, len(pairs),
+            '' if pairs else ' (0건 — KRX 로그인 필요 가능성: KRX_ID/KRX_PW 시크릿 확인)'))
 
 def sp500_multpl():
     """S&P500 월별 P/B 장기 이력 (multpl.com) — 2020년부터"""
@@ -68,15 +69,23 @@ def sp500_multpl():
                                      headers={'User-Agent': 'Mozilla/5.0'})
         h = urllib.request.urlopen(req, timeout=25).read().decode('utf-8', 'ignore')
         out = []
-        for mo, dd, yy, val in re.findall(r'>\s*([A-Z][a-z]{2})\s+(\d{1,2}),\s*(\d{4})\s*<[^>]*>\s*(?:<[^>]*>\s*)*([\d]+\.[\d]+)', h):
-            if mo not in MONTHS:
-                continue
-            date = '%04d-%02d-%02d' % (int(yy), MONTHS[mo], int(dd))
-            if date >= BACKFILL_START:
-                out.append([date, float(val)])
+        pats = [
+            r'([A-Z][a-z]{2})\s+(\d{1,2}),\s*(\d{4})\s*</td>\s*<td[^>]*>\s*(?:<[^>]*>\s*)*([\d]+\.[\d]+)',
+            r'>\s*([A-Z][a-z]{2})\s+(\d{1,2}),\s*(\d{4})[\s\S]{0,120}?([\d]+\.[\d]+)',
+        ]
+        for pat in pats:
+            for mo, dd, yy, val in re.findall(pat, h):
+                if mo not in MONTHS:
+                    continue
+                date = '%04d-%02d-%02d' % (int(yy), MONTHS[mo], int(dd))
+                if date >= BACKFILL_START and 0.5 < float(val) < 20:
+                    out.append([date, float(val)])
+            if out:
+                break
         out = sorted(dict(out).items())
         if not out:
-            dbg('multpl 매칭 0건, 응답 앞부분: %r' % h[:250])
+            m0 = re.search(r'[A-Z][a-z]{2}\s+\d{1,2},\s*\d{4}', h)
+            dbg('multpl 매칭 0건, 샘플: %r' % (h[max(0, m0.start() - 120):m0.start() + 250] if m0 else h[:250]))
         return [[d, v] for d, v in out]
     except Exception as e:
         dbg('multpl 실패: %r' % e)
@@ -112,6 +121,8 @@ def us_pbr():
             except Exception as ex:
                 dbg('funds_data 실패 %s: %r' % (tk, ex))
             pb = tofloat(pb)
+            if pb and 0 < pb < 1:
+                pb = round(1.0 / pb, 2)  # 야후가 역수(북/프라이스)로 주는 경우
             if pb and not (1 < pb < 50):
                 dbg('%s PBR 이상값 %s 폐기' % (tk, pb))
                 pb = None

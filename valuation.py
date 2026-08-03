@@ -33,33 +33,40 @@ def tofloat(v):
         return None
 
 def krx_series(start, today, series):
-    """pykrx로 코스피(1001)·코스닥(2001) 일별 PBR — 연 단위 청크로 전체 재수집(자가치유)"""
-    try:
-        from pykrx import stock as krxstock
-    except Exception as e:
-        dbg('pykrx 불가: %s' % e)
-        return
-    import datetime as _dt
-    for key, tick in (('kospi', '1001'), ('kosdaq', '2001')):
+    """KRX 개별지수 PER/PBR API 직접 호출 (MDCSTAT00702, 730일 청크)
+    코스피=indTpCd 1/001, 코스닥=2/001. PBR 필드=WT_STKPRC_NETASST_RTO"""
+    url = 'https://data.krx.co.kr/comm/bldAttendant/getJsonData.cmd'
+    hdr = {'User-Agent': 'Mozilla/5.0',
+           'Referer': 'https://data.krx.co.kr/contents/MDC/MDI/outerLoader/index.cmd',
+           'X-Requested-With': 'XMLHttpRequest'}
+    for key, (t1, t2) in (('kospi', ('1', '001')), ('kosdaq', ('2', '001'))):
         pairs = []
-        y = start.year
-        while y <= today.year:
-            s = max(start, _dt.date(y, 1, 1)).strftime('%Y%m%d')
-            e = min(today, _dt.date(y, 12, 31)).strftime('%Y%m%d')
+        s_d = start
+        while s_d <= today:
+            e_d = min(s_d + datetime.timedelta(days=729), today)
+            data = urllib.parse.urlencode({
+                'bld': 'dbms/MDC/STAT/standard/MDCSTAT00702', 'locale': 'ko_KR',
+                'indTpCd': t1, 'indTpCd2': t2,
+                'strtDd': s_d.strftime('%Y%m%d'), 'endDd': e_d.strftime('%Y%m%d'),
+                'share': '2', 'money': '3', 'csvxls_isNo': 'false'}).encode()
             try:
-                df = krxstock.get_index_fundamental(s, e, tick)
-                for idx, row in df.iterrows():
-                    v = row.get('PBR')
-                    if v and float(v) > 0:
-                        pairs.append([idx.strftime('%Y-%m-%d'), round(float(v), 2)])
+                req = urllib.request.Request(url, data=data, headers=hdr)
+                body = urllib.request.urlopen(req, timeout=30).read().decode('utf-8', 'ignore')
+                rows = (json.loads(body).get('output')) or []
+                if not rows:
+                    dbg('KRX %s %s~%s 빈 응답: %r' % (key, s_d, e_d, body[:160]))
+                for it in rows:
+                    dd = (it.get('TRD_DD') or '').replace('/', '-')
+                    v = tofloat(it.get('WT_STKPRC_NETASST_RTO'))
+                    if len(dd) == 10 and v:
+                        pairs.append([dd, round(v, 2)])
             except Exception as ex:
-                dbg('pykrx %s %d년 실패: %r' % (key, y, ex))
+                dbg('KRX %s 청크 실패: %r' % (key, ex))
             time.sleep(1)
-            y += 1
+            s_d = e_d + datetime.timedelta(days=1)
         if len(pairs) > 30:
             series[key] = sorted(pairs)
-        dbg('KRX %s: %d포인트%s' % (key, len(pairs),
-            '' if pairs else ' (0건 — KRX 로그인 필요 가능성: KRX_ID/KRX_PW 시크릿 확인)'))
+        dbg('KRX %s: %d포인트' % (key, len(pairs)))
 
 def sp500_multpl():
     """S&P500 월별 P/B 장기 이력 (multpl.com) — 2020년부터"""

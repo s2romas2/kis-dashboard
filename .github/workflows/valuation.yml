@@ -16,7 +16,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: 의존성 설치
-        run: pip install yfinance pykrx
+        run: pip install yfinance
       - name: PBR 수집
         env:
           KRX_ID: ${{ secrets.KRX_ID }}

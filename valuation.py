@@ -68,6 +68,27 @@ def krx_series(start, today, series):
             series[key] = sorted(pairs)
         dbg('KRX %s: %d포인트' % (key, len(pairs)))
 
+def naver_kr():
+    """네이버 금융 지수 페이지에서 코스피·코스닥 당일 PBR (KRX 공식값 기반, 해외 접속 허용)"""
+    out = {}
+    for key, code in (('kospi', 'KOSPI'), ('kosdaq', 'KOSDAQ')):
+        try:
+            req = urllib.request.Request('https://finance.naver.com/sise/sise_index.naver?code=' + code,
+                                         headers={'User-Agent': 'Mozilla/5.0'})
+            h = urllib.request.urlopen(req, timeout=20).read().decode('euc-kr', 'ignore')
+            m = re.search(r'PBR[^0-9]{0,20}([\d]+\.[\d]+)', h)
+            if m:
+                v = float(m.group(1))
+                if 0.2 < v < 6:
+                    out[key] = round(v, 2)
+                else:
+                    dbg('naver %s 이상값 %s' % (key, v))
+            else:
+                dbg('naver %s PBR 미발견, 응답 %d바이트' % (key, len(h)))
+        except Exception as e:
+            dbg('naver %s 실패: %r' % (key, e))
+    return out
+
 def sp500_multpl():
     """S&P500 월별 P/B 장기 이력 (multpl.com) — 2020년부터"""
     MONTHS = {'Jan':1,'Feb':2,'Mar':3,'Apr':4,'May':5,'Jun':6,'Jul':7,'Aug':8,'Sep':9,'Oct':10,'Nov':11,'Dec':12}
@@ -148,9 +169,16 @@ def main():
     have = {k: set(d for d, _ in series[k]) for k in series}
     today = datetime.date.today()
 
-    # ── 한국: pykrx로 2020년부터 일별 PBR 전체 수집(매 실행 자가치유) ──
+    # ── 한국: KRX 직접 수집 시도(해외 IP 차단 시 실패) → 실패하면 네이버로 당일 값 축적 ──
     start = datetime.date.fromisoformat(BACKFILL_START)
     krx_series(start, today, series)
+    ds_today = today.strftime('%Y-%m-%d')
+    if not any(d == ds_today for d, _ in series['kospi']):
+        nv = naver_kr()
+        for k, v in nv.items():
+            if not any(d == ds_today for d, _ in series[k]):
+                series[k].append([ds_today, v])
+        dbg('naver 당일 보충: %s' % nv)
 
     # ── 미국: S&P500 = multpl 월별 장기 이력(현재월 포함), 나스닥100 = QQQ 매일 축적 ──
     sp = sp500_multpl()

@@ -15,12 +15,13 @@ except Exception as e:
     print('KIND 다운로드 실패:', repr(e), file=sys.stderr)
 
 m = {}
+# 열 구조: [회사명, 시장구분, 종목코드, 업종, 주요제품, 상장일, 결산월, 대표자명, 홈페이지, 지역]
 for row in re.findall(r'<tr[^>]*>(.*?)</tr>', h, re.S | re.I):
     cells = [clean(c) for c in re.findall(r'<td[^>]*>(.*?)</td>', row, re.S | re.I)]
-    if len(cells) >= 4 and re.fullmatch(r'\d{6}', cells[1] or ''):
-        prod = cells[3][:90]
+    if len(cells) >= 5 and re.fullmatch(r'[0-9A-Z]{6}', cells[2] or ''):
+        prod = cells[4][:90]
         if prod and prod != '-':
-            m[cells[1]] = prod
+            m[cells[2]] = prod
 
 out = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'count': len(m), 'map': m}
 if not m:

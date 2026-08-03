@@ -68,56 +68,47 @@ def krx_series(start, today, series):
             series[key] = sorted(pairs)
         dbg('KRX %s: %d포인트' % (key, len(pairs)))
 
-def naver_kr():
-    """네이버 모바일 증권 API에서 코스피·코스닥 당일 PBR (JSON)"""
-    def findkey(obj, name):
-        if isinstance(obj, dict):
-            for k, v in obj.items():
-                if name in str(k).lower():
-                    f = tofloat(v)
-                    if f:
-                        return f
-                r = findkey(v, name)
-                if r:
-                    return r
-        elif isinstance(obj, list):
-            for v in obj:
-                r = findkey(v, name)
-                if r:
-                    return r
-        return None
+def naver_candles(code, n=90):
+    """네이버 모바일 증권 API — 지수 일별 종가 (해외 접속 허용)"""
+    req = urllib.request.Request('https://m.stock.naver.com/api/index/%s/price?pageSize=%d&page=1' % (code, n),
+                                 headers={'User-Agent': 'Mozilla/5.0', 'Referer': 'https://m.stock.naver.com/'})
+    j = json.loads(urllib.request.urlopen(req, timeout=20).read().decode('utf-8', 'ignore'))
+    items = j if isinstance(j, list) else (j.get('priceInfos') or j.get('result') or [])
     out = {}
-    for key, code in (('kospi', 'KOSPI'), ('kosdaq', 'KOSDAQ')):
-        got = None
-        for url, hdr in (
-                ('https://finance.daum.net/api/quotes/%s' % code,
-                 {'User-Agent': 'Mozilla/5.0', 'Referer': 'https://finance.daum.net/domestic'}),
-                ('https://m.stock.naver.com/api/index/%s/integration' % code,
-                 {'User-Agent': 'Mozilla/5.0', 'Referer': 'https://m.stock.naver.com/'})):
-            try:
-                req = urllib.request.Request(url, headers=hdr)
-                body = urllib.request.urlopen(req, timeout=20).read().decode('utf-8', 'ignore')
-                j = json.loads(body)
-                v = None
-                # totalInfos: [{'code':'pbr','key':'PBR','value':'0.98'}, ...] 패턴 우선
-                for it in (j.get('totalInfos') or []):
-                    cd = str(it.get('code', '')).lower()
-                    ky = str(it.get('key', '')).upper()
-                    if cd == 'pbr' or ky == 'PBR':
-                        v = tofloat(it.get('value'))
-                        break
-                if v is None:
-                    v = findkey(j, 'pbr')
-                if v and 0.2 < v < 6:
-                    got = round(v, 2)
-                    break
-                infos = [str(it.get('code')) for it in (j.get('totalInfos') or [])]
-                dbg('naver-api %s %s: pbr 없음. totalInfos코드: %s' % (key, url.rsplit('/', 1)[-1], ','.join(infos)[:200] or str(j)[:150]))
-            except Exception as e:
-                dbg('naver-api %s 실패: %r' % (key, e))
-        if got:
-            out[key] = got
+    for it in items:
+        d = str(it.get('localTradedAt', ''))[:10]
+        v = tofloat(str(it.get('closePrice', '')).replace(',', ''))
+        if len(d) == 10 and v:
+            out[d] = v
     return out
+
+def kr_estimate(series, anchor):
+    """마지막 KRX 공식값(anchor) 이후를 지수 등락률로 매일 자동 추정
+    (순자산·이익은 분기 단위로만 변해 지수 변동 스케일링이 근사적으로 정확)"""
+    for key, code in (('kospi', 'KOSPI'), ('kosdaq', 'KOSDAQ')):
+        a = (anchor or {}).get(key)
+        if not a:
+            continue
+        try:
+            candles = naver_candles(code)
+        except Exception as e:
+            dbg('캔들 %s 실패: %r' % (code, e))
+            continue
+        if a not in candles:
+            dbg('%s anchor %s 종가 없음 (캔들 %d개: %s~%s)' % (
+                key, a, len(candles), min(candles) if candles else '-', max(candles) if candles else '-'))
+            continue
+        base = candles[a]
+        for skey in (key, key + '_per'):
+            s2 = series.get(skey) or []
+            official = [p for p in s2 if p[0] <= a]
+            if not official:
+                continue
+            av = official[-1][1]
+            est = [[dt, round(av * c / base, 2)] for dt, c in sorted(candles.items()) if dt > a]
+            series[skey] = official + est
+            if est:
+                dbg('%s: 추정 %d포인트 (anchor %s=%.2f)' % (skey, len(est), a, av))
 
 def sp500_multpl():
     """S&P500 월별 P/B 장기 이력 (multpl.com) — 2020년부터"""
@@ -202,13 +193,7 @@ def main():
     # ── 한국: KRX 직접 수집 시도(해외 IP 차단 시 실패) → 실패하면 네이버로 당일 값 축적 ──
     start = datetime.date.fromisoformat(BACKFILL_START)
     krx_series(start, today, series)
-    ds_today = today.strftime('%Y-%m-%d')
-    if not any(d == ds_today for d, _ in series['kospi']):
-        nv = naver_kr()
-        for k, v in nv.items():
-            if not any(d == ds_today for d, _ in series[k]):
-                series[k].append([ds_today, v])
-        dbg('naver 당일 보충: %s' % nv)
+    kr_estimate(series, prev.get('krAnchor') or {})
 
     # ── 미국: S&P500 = multpl 월별 장기 이력(현재월 포함), 나스닥100 = QQQ 매일 축적 ──
     sp = sp500_multpl()
@@ -236,6 +221,7 @@ def main():
                          'avg': round(sum(vals) / len(vals), 2)}
 
     out = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'series': series, 'latest': latest,
+           'krAnchor': prev.get('krAnchor') or {},
            'debug': DEBUG[-25:], 'note': '코스피·코스닥: KRX 지수 PBR(2020~, 일별) / S&P500: multpl 월별 P/B(2020~) / 나스닥100: QQQ 보유종목 가중 PBR(프록시, 일별 축적)'}
     os.makedirs('public/data', exist_ok=True)
     with open(OUT, 'w', encoding='utf-8') as f:

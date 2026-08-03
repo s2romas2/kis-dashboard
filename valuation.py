@@ -87,11 +87,13 @@ def naver_kr():
                     return r
         return None
     out = {}
-    hdr = {'User-Agent': 'Mozilla/5.0', 'Referer': 'https://m.stock.naver.com/'}
     for key, code in (('kospi', 'KOSPI'), ('kosdaq', 'KOSDAQ')):
         got = None
-        for url in ('https://m.stock.naver.com/api/index/%s/basic' % code,
-                    'https://m.stock.naver.com/api/index/%s/integration' % code):
+        for url, hdr in (
+                ('https://finance.daum.net/api/quotes/%s' % code,
+                 {'User-Agent': 'Mozilla/5.0', 'Referer': 'https://finance.daum.net/domestic'}),
+                ('https://m.stock.naver.com/api/index/%s/integration' % code,
+                 {'User-Agent': 'Mozilla/5.0', 'Referer': 'https://m.stock.naver.com/'})):
             try:
                 req = urllib.request.Request(url, headers=hdr)
                 body = urllib.request.urlopen(req, timeout=20).read().decode('utf-8', 'ignore')

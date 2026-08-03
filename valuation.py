@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# 시장 밸류에이션(PBR) 일일 수집
+# 시장 밸류에이션(PBR) 일일 수집 (KRX 로그인 지원)
 # - 코스피/코스닥: KRX 정보데이터시스템 (지수 PER/PBR/배당수익률 통계)
 # - S&P500/나스닥100: 대표 ETF(SPY/QQQ) 보유종목 가중 PBR (Yahoo Finance, 프록시)
 # 결과: public/data/valuation.json  {series:{kospi:[[날짜,PBR],...],...}, latest:{...}}

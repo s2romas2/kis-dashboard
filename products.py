@@ -24,8 +24,10 @@ for row in re.findall(r'<tr[^>]*>(.*?)</tr>', h, re.S | re.I):
 
 out = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'count': len(m), 'map': m}
 if not m:
-    out['error'] = 'KIND 수집 실패(해외 차단 가능성)'
-    out['debug'] = h[:200]
+    out['error'] = 'KIND 표 파싱 실패'
+    i = h.lower().find('<tr')
+    out['debug'] = {'bytes': len(h), 'tr_count': len(re.findall(r'<tr', h, re.I)),
+                    'sample': re.sub(r'\s+', ' ', h[i:i + 1500]) if i >= 0 else h[:400]}
 import os
 os.makedirs('public/data', exist_ok=True)
 with open('public/data/products.json', 'w', encoding='utf-8') as f:

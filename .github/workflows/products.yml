@@ -1,0 +1,27 @@
+name: 상장법인 주요제품 갱신
+on:
+  schedule:
+    - cron: '0 21 1 * *'
+  workflow_dispatch: {}
+  push:
+    paths: ['products.py']
+permissions:
+  contents: write
+jobs:
+  products:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 주요제품 수집
+        run: python products.py
+      - name: 결과 커밋
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/products.json
+          git commit -m "주요제품 목록 갱신" || echo "변경 없음"
+          git pull --rebase origin main || true
+          git push

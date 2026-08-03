@@ -53,20 +53,21 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
     <button class="gbtn" id="g_y" onclick="setGran('y')">년</button>
   </div>
   <div class="panel"><h2>🇰🇷 한국 — 코스피 · 코스닥 PBR 추이 (2020~)</h2><div class="chart-box"><canvas id="krChart"></canvas></div></div>
+  <div class="panel"><h2>🇰🇷 한국 — 코스피 · 코스닥 PER 추이 (2020~)</h2><div class="chart-box"><canvas id="krPerChart"></canvas></div></div>
   <div class="panel"><h2>🇺🇸 미국 — S&P500 · 나스닥100 PBR 추이</h2><div class="chart-box"><canvas id="usChart"></canvas></div></div>
   <div class="legend"><b>PBR</b>(주가÷주당순자산)이 낮을수록 장부가치 대비 저평가. 코스피·코스닥은 KRX 공식 지수 통계, 미국은 대표 ETF(SPY·QQQ)의 보유종목 가중 PBR을 프록시로 사용합니다(집계 기준이 달라 절대 비교보다는 <b>각 지수의 과거 대비 위치</b>를 보세요). 표시 배지는 보유 이력 내 위치(백분위): 상위 20% 과열권 · 하위 20% 저평가권. 한국은 매 거래일, 미국은 매일 1포인트 축적. 정보 제공용이며 투자권유가 아닙니다.</div>
 </div>
 <script>
-const NAMES={kospi:'코스피',kosdaq:'코스닥',sp500:'S&P500',nasdaq100:'나스닥100'};
-const COLORS={kospi:'#e5384d',kosdaq:'#f6923f',sp500:'#2f6df6',nasdaq100:'#8a5cf6'};
+const NAMES={kospi:'코스피',kosdaq:'코스닥',sp500:'S&P500',nasdaq100:'나스닥100',kospi_per:'코스피 PER',kosdaq_per:'코스닥 PER'};
+const COLORS={kospi:'#e5384d',kosdaq:'#f6923f',sp500:'#2f6df6',nasdaq100:'#8a5cf6',kospi_per:'#12b28c',kosdaq_per:'#4a7c59'};
 function pctile(vals,v){ if(!vals.length) return null; const s=[...vals].sort((a,b)=>a-b); let c=0; for(const x of s){ if(x<=v)c++; } return Math.round(c/s.length*100); }
-function tile(k,st,vals){
+function tile(k,st,vals,per){
   const p=pctile(vals,st.pbr);
   const cls=p==null?'mid':(p>=80?'hi':(p<=20?'lo':'mid'));
   const lbl=p==null?'—':(p>=80?'과열권 · 이력 상위 '+Math.max(100-p,1)+'%':(p<=20?'저평가권 · 이력 하위 '+Math.max(p,1)+'%':'중간권 (백분위 '+p+')'));
   return `<div class="tile"><div class="nm" style="color:${COLORS[k]}">${NAMES[k]}</div>
     <div class="val">${st.pbr.toFixed(2)}<span style="font-size:13px;color:#98a1b0">배</span></div>
-    <div class="rng">이력 최저 ${st.min} · 평균 ${st.avg} · 최고 ${st.max}<br>기준일 ${st.date}</div>
+    <div class="rng">이력 최저 ${st.min} · 평균 ${st.avg} · 최고 ${st.max}<br>기준일 ${st.date}${per?`<br><b style=\"color:#12b28c\">PER ${per.pbr.toFixed(2)}배</b> <span style=\"font-size:10.5px\">(최저 ${per.min} · 평균 ${per.avg} · 최고 ${per.max})</span>`:''}</div>
     <div class="pos ${cls}">${lbl}</div></div>`;
 }
 let GRAN='d', CHARTS={}, D=null;
@@ -80,7 +81,7 @@ function resample(pairs){
   return [...m.values()];
 }
 window.setGran=function(g){ GRAN=g; ['d','w','m','y'].forEach(x=>document.getElementById('g_'+x).classList.toggle('on',x===g));
-  if(D){ mkChart('krChart',['kospi','kosdaq'],D); mkChart('usChart',['sp500','nasdaq100'],D); } };
+  if(D){ mkChart('krChart',['kospi','kosdaq'],D); mkChart('krPerChart',['kospi_per','kosdaq_per'],D); mkChart('usChart',['sp500','nasdaq100'],D); } };
 function mkChart(id,keys,D){
   const S={}; keys.forEach(k=>S[k]=resample(D.series[k]||[]));
   const all=new Set(); keys.forEach(k=>S[k].forEach(([d])=>all.add(d)));
@@ -107,8 +108,9 @@ function mkChart(id,keys,D){
   document.getElementById('meta').textContent='갱신 '+D.updated;
   document.getElementById('tiles').innerHTML=['kospi','kosdaq','sp500','nasdaq100']
     .filter(k=>D.latest&&D.latest[k])
-    .map(k=>tile(k,D.latest[k],(D.series[k]||[]).map(([,v])=>v))).join('')||'<div class="loading">데이터 수집 대기 중…</div>';
+    .map(k=>tile(k,D.latest[k],(D.series[k]||[]).map(([,v])=>v),D.latest[k+'_per'])).join('')||'<div class="loading">데이터 수집 대기 중…</div>';
   mkChart('krChart',['kospi','kosdaq'],D);
+  mkChart('krPerChart',['kospi_per','kosdaq_per'],D);
   mkChart('usChart',['sp500','nasdaq100'],D);
 })();
 </script>

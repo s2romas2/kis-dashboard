@@ -10,16 +10,31 @@ permissions:
 jobs:
   compare:
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: 시계열 계산
+      - name: 프로브(2종목) — 진단 즉시 커밋
+        env:
+          DART_KEY: ${{ secrets.DART_KEY }}
+          LIMIT: '2'
+        run: python compare.py || true
+      - name: 프로브 커밋
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/compare
+          git commit -m "시계열 프로브" || echo "변경 없음"
+          git pull --rebase origin main || true
+          git push || true
+      - name: 시계열 계산(전체)
         env:
           DART_KEY: ${{ secrets.DART_KEY }}
         run: python compare.py
       - name: 결과 커밋
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

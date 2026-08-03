@@ -15,6 +15,8 @@ REPRT = {1: '11013', 2: '11012', 3: '11014', 4: '11011'}
 QEND = {1: (3, 31), 2: (6, 30), 3: (9, 30), 4: (12, 31)}
 BASE = 'https://opendart.fss.or.kr/api'
 OUTDIR = 'public/data/compare'
+LIMIT = int(os.environ.get('LIMIT', '0'))
+DEBUG = []
 
 def fetch(url, timeout=30):
     for _ in range(3):
@@ -181,7 +183,14 @@ def main():
             targets[x['code']] = x.get('name', x['code'])
     except Exception:
         pass
-    cmap = corp_map()
+    if LIMIT:
+        targets = dict(list(targets.items())[:LIMIT])
+    try:
+        cmap = corp_map()
+        DEBUG.append('corp_map %d개' % len(cmap))
+    except Exception as e:
+        DEBUG.append('corp_map 실패: %r' % e)
+        cmap = {}
     os.makedirs(OUTDIR, exist_ok=True)
     index, ok, fail = {}, 0, 0
     for code, name in targets.items():
@@ -193,7 +202,17 @@ def main():
             r = build_series(code, name, corp)
         except Exception as e:
             print('%s 실패: %r' % (code, e), file=sys.stderr)
+            if len(DEBUG) < 10:
+                DEBUG.append('%s 예외: %r' % (code, e))
             r = None
+        if not r and len(DEBUG) < 10:
+            try:
+                px = candles(code)
+                fq = fin_quarters(corp)
+                sh = shares_by_year(corp)
+                DEBUG.append('%s 진단: 주가 %d일, 재무분기 %d개, 주식수연도 %d개' % (code, len(px), len(fq), len(sh)))
+            except Exception as e2:
+                DEBUG.append('%s 진단 실패: %r' % (code, e2))
         if r:
             with open('%s/%s.json' % (OUTDIR, code), 'w', encoding='utf-8') as f:
                 json.dump(r, f, ensure_ascii=False)
@@ -203,7 +222,7 @@ def main():
             fail += 1
         print('%s %s %s' % (code, name, 'OK' if r else 'SKIP'), file=sys.stderr)
     with open('%s/index.json' % OUTDIR, 'w', encoding='utf-8') as f:
-        json.dump({'updated': time.strftime('%Y-%m-%d %H:%M'), 'count': ok, 'codes': index}, f, ensure_ascii=False)
+        json.dump({'updated': time.strftime('%Y-%m-%d %H:%M'), 'count': ok, 'codes': index, 'debug': DEBUG}, f, ensure_ascii=False)
     print('완료: %d성공 / %d실패' % (ok, fail))
 
 if __name__ == '__main__':

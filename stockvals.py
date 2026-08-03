@@ -8,7 +8,8 @@ import os, sys, json, time, urllib.request, re
 APPKEY = os.environ.get('KIS_APPKEY', '')
 APPSECRET = os.environ.get('KIS_APPSECRET', '')
 BASE = 'https://openapi.koreainvestment.com:9443'
-OUT = 'public/data/stockvals.json'
+OUT = os.environ.get('OUT', 'public/data/stockvals.json')
+DEBUG = []
 LIMIT = int(os.environ.get('LIMIT', '0'))  # 테스트용
 
 def post_json(url, body):
@@ -39,11 +40,17 @@ def main():
         print('products.json 로드 실패:', e); sys.exit(1)
     if LIMIT:
         codes = codes[:LIMIT]
-    tok = post_json(BASE + '/oauth2/tokenP',
-                    {'grant_type': 'client_credentials', 'appkey': APPKEY, 'appsecret': APPSECRET})
+    DEBUG.append('키 길이: %d/%d, 대상 %d종목' % (len(APPKEY), len(APPSECRET), len(codes)))
+    try:
+        tok = post_json(BASE + '/oauth2/tokenP',
+                        {'grant_type': 'client_credentials', 'appkey': APPKEY, 'appsecret': APPSECRET})
+    except Exception as e:
+        tok = {'error': repr(e)}
     token = tok.get('access_token')
+    DEBUG.append('토큰: %s' % ('OK' if token else str(tok)[:200]))
     if not token:
-        print('토큰 발급 실패:', tok); sys.exit(1)
+        _dump({}, 0)
+        return
     hdr = {'content-type': 'application/json', 'authorization': 'Bearer ' + token,
            'appkey': APPKEY, 'appsecret': APPSECRET, 'tr_id': 'FHKST01010100', 'custtype': 'P'}
     m, fail = {}, 0
@@ -70,17 +77,25 @@ def main():
                            round(price)]
             else:
                 fail += 1
-        except Exception:
+                if len(DEBUG) < 8:
+                    DEBUG.append('%s 응답: %s' % (code, str(j)[:180]))
+        except Exception as e:
             fail += 1
+            if len(DEBUG) < 8:
+                DEBUG.append('%s 예외: %r' % (code, e))
             time.sleep(0.5)
         time.sleep(0.075)
         if i % 300 == 0:
             print('%d/%d…' % (i, len(codes)), file=sys.stderr)
-    out = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'count': len(m), 'fail': fail, 'map': m}
+    _dump(m, fail)
+
+def _dump(m, fail):
+    out = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'count': len(m), 'fail': fail,
+           'debug': DEBUG, 'map': m}
     os.makedirs('public/data', exist_ok=True)
     with open(OUT, 'w', encoding='utf-8') as f:
         json.dump(out, f, ensure_ascii=False)
-    print('저장: %d종목 (실패 %d)' % (len(m), fail))
+    print('저장: %d종목 (실패 %d) %s' % (len(m), fail, DEBUG[:3]))
 
 if __name__ == '__main__':
     main()

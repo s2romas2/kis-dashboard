@@ -76,7 +76,7 @@ def naver_kr():
             req = urllib.request.Request('https://finance.naver.com/sise/sise_index.naver?code=' + code,
                                          headers={'User-Agent': 'Mozilla/5.0'})
             h = urllib.request.urlopen(req, timeout=20).read().decode('euc-kr', 'ignore')
-            m = re.search(r'PBR[^0-9]{0,20}([\d]+\.[\d]+)', h)
+            m = re.search(r'PBR[\s\S]{0,120}?([\d]+\.[\d]+)', h)
             if m:
                 v = float(m.group(1))
                 if 0.2 < v < 6:
@@ -84,7 +84,8 @@ def naver_kr():
                 else:
                     dbg('naver %s 이상값 %s' % (key, v))
             else:
-                dbg('naver %s PBR 미발견, 응답 %d바이트' % (key, len(h)))
+                i = h.find('PBR')
+                dbg('naver %s PBR 컨텍스트: %r' % (key, h[max(0, i - 60):i + 200] if i >= 0 else ('PBR 문자열 없음, 앞부분: %r' % h[:150])))
         except Exception as e:
             dbg('naver %s 실패: %r' % (key, e))
     return out

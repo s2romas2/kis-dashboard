@@ -64,6 +64,9 @@ th.l,td.l { text-align:left; }
       <div class="fld"><label>PER — 시장의 몇 배</label><input id="perMin" type="number" step="0.1" placeholder="비움=무시"></div>
       <span class="x">~</span>
       <div class="fld"><label>&nbsp;</label><input id="perMax" type="number" step="0.1" placeholder="비움=무시"></div>
+      <div class="fld"><label>ROE(%)</label><input id="roeMin" type="number" step="1" placeholder="예 10"></div>
+      <span class="x">~</span>
+      <div class="fld"><label>&nbsp;</label><input id="roeMax" type="number" step="1" placeholder="비움=무시"></div>
       <div class="fld"><label>최소 시총(억)</label><input id="capMin" type="number" step="100" placeholder="예 1000"></div>
       <div class="fld"><label>&nbsp;</label><button class="btn" onclick="render()">적용</button></div>
     </div>
@@ -71,15 +74,20 @@ th.l,td.l { text-align:left; }
     <div class="hint" id="refline">시장 기준값 불러오는 중…</div>
   </div>
 
-  <div class="panel"><h2>PBR × PER 분포 (조건 충족 종목 강조)</h2><div class="chart-box"><canvas id="scat"></canvas></div>
-    <div class="hint">가로축 PBR·세로축 PER. <b>파란 점</b>=조건 충족, 회색 점=미충족, <b>★</b>=시장(코스피·코스닥) 현재 위치. 극단값은 축 범위(PBR 0~10, PER 0~120) 밖이면 생략.</div></div>
+  <div class="panel"><h2>분포 그래프
+    <span style="float:right">
+      <button class="chip on" id="sc1" onclick="setScat('pp')">PBR×PER</button>
+      <button class="chip" id="sc2" onclick="setScat('rp')">ROE×PBR</button>
+    </span></h2><div class="chart-box"><canvas id="scat"></canvas></div>
+    <div class="hint" id="scatHint">PBR×PER: 가로축 PBR·세로축 PER / ROE×PBR: 가로축 ROE(%)·세로축 PBR — <b>우하단(고ROE·저PBR)</b>이 저평가 후보, 좌하단(저ROE·저PBR)은 밸류 트랩 구역. <b>파란 점</b>=조건 충족, <b>★</b>=시장 현재 위치. 극단값은 축 밖이면 생략. PBR = PER × ROE 항등식 기준(적자 기업은 PER·ROE 생략).</div></div>
 
   <div class="panel"><h2>조건 충족 종목 <span id="cnt" style="color:#2f6df6"></span></h2>
     <div class="tblscroll" id="tbl"><div class="loading">조건을 입력하고 적용을 누르세요.</div></div>
     <div class="hint">시총 큰 순 상위 200개까지 표시. PBR·PER는 KIS 기준(전일/당일), 배수는 선택한 기준 시장의 현재값 대비. 정보 제공용이며 투자권유가 아닙니다.</div></div>
 </div>
 <script>
-let VALS={}, PRODMAP={}, MKT={}, CHART=null;
+let VALS={}, PRODMAP={}, MKT={}, CHART=null, SCAT='pp';
+window.setScat=function(s){ SCAT=s; document.getElementById('sc1').classList.toggle('on',s==='pp'); document.getElementById('sc2').classList.toggle('on',s==='rp'); render(); };
 const SECLIST=['정보기술','커뮤니케이션','금융','헬스케어','임의소비재','필수소비재','산업재','소재','에너지','유틸리티','부동산','기타'];
 let SEC='all';
 function pentry(c){ const e=PRODMAP[c]; return typeof e==='string'? {p:e} : (e||{}); }
@@ -94,9 +102,11 @@ function ref(marketOfStock){
 function num(id){ const v=document.getElementById(id).value; return v===''?null:Number(v); }
 function matches(){
   const pbrMin=num('pbrMin'), pbrMax=num('pbrMax'), perMin=num('perMin'), perMax=num('perMax'), capMin=num('capMin');
+  const roeMin=num('roeMin'), roeMax=num('roeMax');
   const out=[];
   for(const [code, arr] of Object.entries(VALS)){
-    const [pbr, per, cap] = arr;
+    const [pbr, per, cap, , roe0] = arr;
+    const roe = (roe0!=null)? roe0 : ((pbr&&per)? Math.round(pbr/per*10000)/100 : null);
     const e=pentry(code);
     if(SEC!=='all' && (e.s||'기타')!==SEC) continue;
     if(capMin!=null && (!cap || cap<capMin)) continue;
@@ -113,7 +123,11 @@ function matches(){
       if(perX==null) ok=false;
       else { if(perMin!=null && perX<perMin) ok=false; if(perMax!=null && perX>perMax) ok=false; }
     }
-    out.push({code, name:e.n||code, sec:e.s||'기타', m:e.m, pbr, per, cap, pbrX, perX, ok});
+    if(ok && (roeMin!=null || roeMax!=null)){
+      if(roe==null) ok=false;
+      else { if(roeMin!=null && roe<roeMin) ok=false; if(roeMax!=null && roe>roeMax) ok=false; }
+    }
+    out.push({code, name:e.n||code, sec:e.s||'기타', m:e.m, pbr, per, cap, roe, pbrX, perX, ok});
   }
   return out;
 }
@@ -128,26 +142,34 @@ function render(){
     <td class="l"><span class="nm">${x.name}</span><span class="tk">${x.code}</span> <span class="sec">${x.sec}</span></td>
     <td>${x.pbr!=null?x.pbr.toFixed(2):'—'}</td><td class="${x.pbrX!=null&&x.pbrX<1?'lo':'hi'}">${x.pbrX!=null?x.pbrX.toFixed(2)+'배':'—'}</td>
     <td>${x.per!=null?x.per.toFixed(1):'—'}</td><td class="${x.perX!=null&&x.perX<1?'lo':'hi'}">${x.perX!=null?x.perX.toFixed(2)+'배':'—'}</td>
+    <td class="${x.roe!=null&&x.roe>=10?'hi':''}">${x.roe!=null?x.roe.toFixed(1)+'%':'—'}</td>
     <td>${x.cap!=null?(x.cap>=10000?(x.cap/10000).toFixed(1)+'조':x.cap.toLocaleString()+'억'):'—'}</td></tr>`).join('');
   document.getElementById('tbl').innerHTML = hit.length?
-    `<table><thead><tr><th class="l">#</th><th class="l">종목</th><th>PBR</th><th>시장대비</th><th>PER</th><th>시장대비</th><th>시총</th></tr></thead><tbody>${rows}</tbody></table>`
+    `<table><thead><tr><th class="l">#</th><th class="l">종목</th><th>PBR</th><th>시장대비</th><th>PER</th><th>시장대비</th><th>ROE</th><th>시총</th></tr></thead><tbody>${rows}</tbody></table>`
     : '<div class="loading">조건에 맞는 종목이 없습니다.</div>';
   // 산점도
   try{
     if(CHART){ CHART.destroy(); CHART=null; }
-    const inR=p=>p.pbr!=null&&p.per!=null&&p.pbr<=10&&p.per<=120;
-    const okPts=all.filter(x=>x.ok&&inR(x)).map(x=>({x:x.pbr,y:x.per,nm:x.name}));
-    const noPts=all.filter(x=>!x.ok&&inR(x)).map(x=>({x:x.pbr,y:x.per,nm:x.name}));
-    const mkPts=[{x:MKT.kospiPbr,y:MKT.kospiPer,nm:'코스피'},{x:MKT.kosdaqPbr,y:MKT.kosdaqPer,nm:'코스닥'}].filter(p=>p.x&&p.y);
+    const isPP = SCAT==='pp';
+    const inR=p=> isPP ? (p.pbr!=null&&p.per!=null&&p.pbr<=10&&p.per<=120)
+                       : (p.roe!=null&&p.pbr!=null&&p.roe>=-10&&p.roe<=60&&p.pbr<=10);
+    const pt=x=> isPP ? {x:x.pbr,y:x.per,nm:x.name} : {x:x.roe,y:x.pbr,nm:x.name};
+    const okPts=all.filter(x=>x.ok&&inR(x)).map(pt);
+    const noPts=all.filter(x=>!x.ok&&inR(x)).map(pt);
+    const mroe=(p,e)=> (p&&e)? Math.round(p/e*10000)/100 : null;
+    const mkPts=(isPP
+      ? [{x:MKT.kospiPbr,y:MKT.kospiPer,nm:'코스피'},{x:MKT.kosdaqPbr,y:MKT.kosdaqPer,nm:'코스닥'}]
+      : [{x:mroe(MKT.kospiPbr,MKT.kospiPer),y:MKT.kospiPbr,nm:'코스피'},{x:mroe(MKT.kosdaqPbr,MKT.kosdaqPer),y:MKT.kosdaqPbr,nm:'코스닥'}]
+    ).filter(p=>p.x&&p.y);
     CHART=new Chart(document.getElementById('scat'),{type:'scatter',data:{datasets:[
       {label:'미충족',data:noPts,backgroundColor:'rgba(160,170,185,.35)',pointRadius:2.2},
       {label:'조건 충족',data:okPts,backgroundColor:'#2f6df6',pointRadius:3.4},
       {label:'시장',data:mkPts,backgroundColor:'#e5384d',pointStyle:'star',pointRadius:11,borderColor:'#e5384d',borderWidth:2}
     ]},options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{labels:{boxWidth:12,font:{size:11}}},
-        tooltip:{callbacks:{label:c=>`${c.raw.nm}: PBR ${c.raw.x} · PER ${c.raw.y}`}}},
-      scales:{x:{title:{display:true,text:'PBR(배)',font:{size:11}},min:0,max:10,grid:{color:'#f0f2f5'}},
-        y:{title:{display:true,text:'PER(배)',font:{size:11}},min:0,max:120,grid:{color:'#f0f2f5'}}}}});
+        tooltip:{callbacks:{label:c=> SCAT==='pp' ? `${c.raw.nm}: PBR ${c.raw.x} · PER ${c.raw.y}` : `${c.raw.nm}: ROE ${c.raw.x}% · PBR ${c.raw.y}`}}},
+      scales:{x:{title:{display:true,text:isPP?'PBR(배)':'ROE(%)',font:{size:11}},min:isPP?0:-10,max:isPP?10:60,grid:{color:'#f0f2f5'}},
+        y:{title:{display:true,text:isPP?'PER(배)':'PBR(배)',font:{size:11}},min:0,max:isPP?120:10,grid:{color:'#f0f2f5'}}}}});
   }catch(e){}
 }
 (async function(){

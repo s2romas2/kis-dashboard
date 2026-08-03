@@ -150,7 +150,7 @@ def build_series(code, name, corp):
         snaps.append((eff.isoformat(), bps, eps))
     if not snaps:
         return None
-    pbr, per = [], []
+    pbr, per, roe = [], [], []
     si = -1
     cur_bps = cur_eps = None
     for d, close in px:
@@ -162,9 +162,11 @@ def build_series(code, name, corp):
             pbr.append([d, round(close / cur_bps, 2)])
         if cur_eps and cur_eps > 0:
             per.append([d, round(close / cur_eps, 2)])
+            if cur_bps and cur_bps > 0:
+                roe.append([d, round(cur_eps / cur_bps * 100, 2)])
     if len(pbr) < 50:
         return None
-    return {'code': code, 'name': name, 'pbr': pbr, 'per': per}
+    return {'code': code, 'name': name, 'pbr': pbr, 'per': per, 'roe': roe}
 
 def main():
     if not DART_KEY:

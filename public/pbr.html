@@ -59,6 +59,7 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
     <button class="gbtn" onclick="addCmp()">+ 추가</button>
     <span id="cmpTags"></span>
   </div>
+  <div id="cmpInfo" style="font-size:12px;color:#5b6472;margin:-6px 0 12px;line-height:1.7"></div>
   <div class="panel"><h2>🇰🇷 한국 — 코스피 · 코스닥 PBR 추이 (2020~)</h2><div class="chart-box"><canvas id="krChart"></canvas></div></div>
   <div class="panel"><h2>🇰🇷 한국 — 코스피 · 코스닥 PER 추이 (2020~)</h2><div class="chart-box"><canvas id="krPerChart"></canvas></div></div>
   <div class="panel"><h2>🇺🇸 미국 — S&P500 · 나스닥100 PBR 추이</h2><div class="chart-box"><canvas id="usChart"></canvas></div></div>
@@ -93,7 +94,15 @@ window.addCmp=async function(){
 };
 window.rmCmp=function(code){ OVERLAYS=OVERLAYS.filter(o=>o.code!==code); drawCmpTags(); redraw(); };
 function drawCmpTags(){ document.getElementById('cmpTags').innerHTML=OVERLAYS.map((o,i)=>
-  `<span style="display:inline-block;background:${OVCOLORS[i]};color:#fff;border-radius:12px;padding:3px 10px;font-size:11.5px;font-weight:700;margin-left:4px;cursor:pointer" onclick="rmCmp('${o.code}')">${o.name} ✕</span>`).join(''); }
+  `<span style="display:inline-block;background:${OVCOLORS[i]};color:#fff;border-radius:12px;padding:3px 10px;font-size:11.5px;font-weight:700;margin-left:4px;cursor:pointer" onclick="rmCmp('${o.code}')">${o.name} ✕</span>`).join('');
+  const lastv=a=>(a&&a.length)?a[a.length-1][1]:null;
+  document.getElementById('cmpInfo').innerHTML=OVERLAYS.map((o,i)=>{
+    const pbr=lastv(o.pbr), per=lastv(o.per);
+    const roe=lastv(o.roe) ?? ((pbr&&per)? pbr/per*100 : null);
+    if(pbr==null) return '';
+    const dec = (per&&roe)? ` = PER ${per.toFixed(1)} × ROE ${roe.toFixed(1)}%` : '';
+    return `<span style="color:${OVCOLORS[i]};font-weight:700">${o.name}</span> 현재 PBR ${pbr.toFixed(2)}${dec}`;
+  }).filter(Boolean).join(' &nbsp;·&nbsp; '); }
 function redraw(){ if(D){ mkChart('krChart',['kospi','kosdaq'],D); mkChart('krPerChart',['kospi_per','kosdaq_per'],D); mkChart('usChart',['sp500','nasdaq100'],D); } }
 function isoWeek(ds){ const dt=new Date(ds+'T00:00:00'); const t=new Date(dt); t.setDate(dt.getDate()+3-((dt.getDay()+6)%7));
   const w1=new Date(t.getFullYear(),0,4); const wn=1+Math.round(((t-w1)/864e5-3+((w1.getDay()+6)%7))/7);

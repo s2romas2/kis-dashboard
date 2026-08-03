@@ -2,7 +2,7 @@
 # 전 상장사 현재 PBR·PER·시총 일일 수집 (KIS 오픈API)
 # (run: KIS 시크릿 등록 후 첫 실행)
 # 필요 시크릿: KIS_APPKEY, KIS_APPSECRET
-# 결과: public/data/stockvals.json {map: {code: [pbr, per, 시총(억), 현재가]}}
+# 결과: public/data/stockvals.json {map: {code: [pbr, per, 시총(억), 현재가, ROE%]}}
 import os, sys, json, time, urllib.request, re
 
 APPKEY = os.environ.get('KIS_APPKEY', '')
@@ -71,10 +71,14 @@ def main():
                 pbr = tonum(o.get('pbr'))
                 per = tonum(o.get('per'))
                 cap = tonum(o.get('hts_avls'))
+                eps = tonum(o.get('eps'))
+                bps = tonum(o.get('bps'))
+                roe = round(eps / bps * 100, 2) if (eps and bps and bps > 0 and eps > 0) else None
                 m[code] = [round(pbr, 2) if pbr and pbr > 0 else None,
                            round(per, 2) if per and per > 0 else None,
                            round(cap) if cap else None,
-                           round(price)]
+                           round(price),
+                           roe]
             else:
                 fail += 1
                 if len(DEBUG) < 8:

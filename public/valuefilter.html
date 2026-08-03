@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>밸류 필터 · 한국 대시보드</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin:0; background:#f6f7f9; color:#1a1f2e; font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; }
+.wrap { max-width:1140px; margin:0 auto; padding:20px 18px 48px; }
+header { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+h1 { font-size:20px; margin:0; font-weight:800; }
+.sub { color:#6b7280; font-size:12.5px; margin:3px 0 0; }
+a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
+.meta { font-size:12px; color:#8a93a2; }
+.panel { background:#fff; border:1px solid #eceef2; border-radius:14px; padding:16px 18px; margin:14px 0; box-shadow:0 1px 2px rgba(20,30,60,.04); }
+.panel h2 { font-size:14px; margin:0 0 10px; font-weight:700; }
+.frow { display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end; }
+.fld label { display:block; font-size:11.5px; color:#8a93a2; font-weight:700; margin-bottom:4px; }
+.fld input, .fld select { border:1px solid #d7dce4; border-radius:8px; padding:6px 9px; font-size:13px; width:86px; }
+.fld select { width:auto; }
+.x { color:#98a1b0; font-size:12px; padding:0 2px 8px; }
+.btn { border:none; background:#2f6df6; color:#fff; border-radius:8px; padding:8px 18px; font-size:13px; font-weight:700; cursor:pointer; }
+.hint { font-size:11.5px; color:#8a93a2; margin-top:8px; line-height:1.6; }
+.hint b { color:#5b6472; }
+.chip { border:1px solid #d7dce4; background:#fff; color:#374151; border-radius:20px; padding:5px 12px; font-size:12.5px; font-weight:700; cursor:pointer; display:inline-block; margin:2px 3px 0 0; }
+.chip.on { background:#1a2a4a; color:#fff; border-color:#1a2a4a; }
+.chart-box { position:relative; height:340px; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th,td { padding:8px 8px; text-align:right; border-bottom:1px solid #f0f2f5; white-space:nowrap; }
+th { font-size:11.5px; color:#8a93a2; font-weight:600; }
+th.l,td.l { text-align:left; }
+.nm { font-weight:700; } .tk { font-size:11px; color:#98a1b0; margin-left:3px; }
+.sec { font-size:11px; color:#5b6472; background:#eef1f4; border-radius:8px; padding:1px 7px; }
+.lo { color:#2563d6; font-weight:700; } .hi { color:#e5384d; font-weight:700; }
+.loading { text-align:center; padding:40px; color:#6b7280; }
+.tblscroll{overflow-x:auto;} .tblscroll table{min-width:560px;}
+@media (max-width:720px){ .wrap{padding:14px 10px 40px;} .chart-box{height:260px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>🎯 밸류 필터 (시장 대비 PBR·PER)</h1>
+      <div class="sub">전 상장사의 현재 PBR·PER를 시장(코스피·코스닥) 대비 배수로 필터링 · 매일 장마감 후 갱신</div>
+    </div>
+    <div style="text-align:right">
+      <a class="back" href="/">← 섹터 대시보드</a>
+      <div class="meta" id="meta">불러오는 중…</div>
+    </div>
+  </header>
+
+  <div class="panel">
+    <h2>필터 조건 — 배수를 자유롭게 입력하세요</h2>
+    <div class="frow">
+      <div class="fld"><label>기준 시장</label>
+        <select id="mkt"><option value="auto">종목별 소속시장</option><option value="K">코스피 기준</option><option value="Q">코스닥 기준</option></select></div>
+      <div class="fld"><label>PBR — 시장의 몇 배</label><input id="pbrMin" type="number" step="0.1" placeholder="예 0.3"></div>
+      <span class="x">~</span>
+      <div class="fld"><label>&nbsp;</label><input id="pbrMax" type="number" step="0.1" placeholder="예 1.5"></div>
+      <div class="fld"><label>PER — 시장의 몇 배</label><input id="perMin" type="number" step="0.1" placeholder="비움=무시"></div>
+      <span class="x">~</span>
+      <div class="fld"><label>&nbsp;</label><input id="perMax" type="number" step="0.1" placeholder="비움=무시"></div>
+      <div class="fld"><label>최소 시총(억)</label><input id="capMin" type="number" step="100" placeholder="예 1000"></div>
+      <div class="fld"><label>&nbsp;</label><button class="btn" onclick="render()">적용</button></div>
+    </div>
+    <div id="secbar2" style="margin-top:10px"></div>
+    <div class="hint" id="refline">시장 기준값 불러오는 중…</div>
+  </div>
+
+  <div class="panel"><h2>PBR × PER 분포 (조건 충족 종목 강조)</h2><div class="chart-box"><canvas id="scat"></canvas></div>
+    <div class="hint">가로축 PBR·세로축 PER. <b>파란 점</b>=조건 충족, 회색 점=미충족, <b>★</b>=시장(코스피·코스닥) 현재 위치. 극단값은 축 범위(PBR 0~10, PER 0~120) 밖이면 생략.</div></div>
+
+  <div class="panel"><h2>조건 충족 종목 <span id="cnt" style="color:#2f6df6"></span></h2>
+    <div class="tblscroll" id="tbl"><div class="loading">조건을 입력하고 적용을 누르세요.</div></div>
+    <div class="hint">시총 큰 순 상위 200개까지 표시. PBR·PER는 KIS 기준(전일/당일), 배수는 선택한 기준 시장의 현재값 대비. 정보 제공용이며 투자권유가 아닙니다.</div></div>
+</div>
+<script>
+let VALS={}, PRODMAP={}, MKT={}, CHART=null;
+const SECLIST=['정보기술','커뮤니케이션','금융','헬스케어','임의소비재','필수소비재','산업재','소재','에너지','유틸리티','부동산','기타'];
+let SEC='all';
+function pentry(c){ const e=PRODMAP[c]; return typeof e==='string'? {p:e} : (e||{}); }
+function drawSec(){ document.getElementById('secbar2').innerHTML=['all',...SECLIST].map(s=>
+  `<span class="chip ${SEC===s?'on':''}" onclick="setSec('${s}')">${s==='all'?'섹터 전체':s}</span>`).join(''); }
+window.setSec=function(s){ SEC=s; drawSec(); render(); };
+function ref(marketOfStock){
+  const sel=document.getElementById('mkt').value;
+  const use = sel==='auto' ? (marketOfStock==='Q'?'Q':'K') : sel;
+  return use==='Q' ? {pbr:MKT.kosdaqPbr, per:MKT.kosdaqPer} : {pbr:MKT.kospiPbr, per:MKT.kospiPer};
+}
+function num(id){ const v=document.getElementById(id).value; return v===''?null:Number(v); }
+function matches(){
+  const pbrMin=num('pbrMin'), pbrMax=num('pbrMax'), perMin=num('perMin'), perMax=num('perMax'), capMin=num('capMin');
+  const out=[];
+  for(const [code, arr] of Object.entries(VALS)){
+    const [pbr, per, cap] = arr;
+    const e=pentry(code);
+    if(SEC!=='all' && (e.s||'기타')!==SEC) continue;
+    if(capMin!=null && (!cap || cap<capMin)) continue;
+    const r=ref(e.m);
+    if(!r.pbr) continue;
+    let ok=true, pbrX=null, perX=null;
+    if(pbr){ pbrX=pbr/r.pbr; }
+    if(per && r.per){ perX=per/r.per; }
+    if(pbrMin!=null || pbrMax!=null){
+      if(pbrX==null) ok=false;
+      else { if(pbrMin!=null && pbrX<pbrMin) ok=false; if(pbrMax!=null && pbrX>pbrMax) ok=false; }
+    }
+    if(ok && (perMin!=null || perMax!=null)){
+      if(perX==null) ok=false;
+      else { if(perMin!=null && perX<perMin) ok=false; if(perMax!=null && perX>perMax) ok=false; }
+    }
+    out.push({code, name:e.n||code, sec:e.s||'기타', m:e.m, pbr, per, cap, pbrX, perX, ok});
+  }
+  return out;
+}
+function render(){
+  if(!Object.keys(VALS).length) return;
+  const all=matches();
+  const hit=all.filter(x=>x.ok).sort((a,b)=>(b.cap||0)-(a.cap||0));
+  document.getElementById('cnt').textContent='— '+hit.length+'종목';
+  // 표
+  const rows=hit.slice(0,200).map((x,i)=>`<tr>
+    <td class="l">${i+1}</td>
+    <td class="l"><span class="nm">${x.name}</span><span class="tk">${x.code}</span> <span class="sec">${x.sec}</span></td>
+    <td>${x.pbr!=null?x.pbr.toFixed(2):'—'}</td><td class="${x.pbrX!=null&&x.pbrX<1?'lo':'hi'}">${x.pbrX!=null?x.pbrX.toFixed(2)+'배':'—'}</td>
+    <td>${x.per!=null?x.per.toFixed(1):'—'}</td><td class="${x.perX!=null&&x.perX<1?'lo':'hi'}">${x.perX!=null?x.perX.toFixed(2)+'배':'—'}</td>
+    <td>${x.cap!=null?(x.cap>=10000?(x.cap/10000).toFixed(1)+'조':x.cap.toLocaleString()+'억'):'—'}</td></tr>`).join('');
+  document.getElementById('tbl').innerHTML = hit.length?
+    `<table><thead><tr><th class="l">#</th><th class="l">종목</th><th>PBR</th><th>시장대비</th><th>PER</th><th>시장대비</th><th>시총</th></tr></thead><tbody>${rows}</tbody></table>`
+    : '<div class="loading">조건에 맞는 종목이 없습니다.</div>';
+  // 산점도
+  try{
+    if(CHART){ CHART.destroy(); CHART=null; }
+    const inR=p=>p.pbr!=null&&p.per!=null&&p.pbr<=10&&p.per<=120;
+    const okPts=all.filter(x=>x.ok&&inR(x)).map(x=>({x:x.pbr,y:x.per,nm:x.name}));
+    const noPts=all.filter(x=>!x.ok&&inR(x)).map(x=>({x:x.pbr,y:x.per,nm:x.name}));
+    const mkPts=[{x:MKT.kospiPbr,y:MKT.kospiPer,nm:'코스피'},{x:MKT.kosdaqPbr,y:MKT.kosdaqPer,nm:'코스닥'}].filter(p=>p.x&&p.y);
+    CHART=new Chart(document.getElementById('scat'),{type:'scatter',data:{datasets:[
+      {label:'미충족',data:noPts,backgroundColor:'rgba(160,170,185,.35)',pointRadius:2.2},
+      {label:'조건 충족',data:okPts,backgroundColor:'#2f6df6',pointRadius:3.4},
+      {label:'시장',data:mkPts,backgroundColor:'#e5384d',pointStyle:'star',pointRadius:11,borderColor:'#e5384d',borderWidth:2}
+    ]},options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{boxWidth:12,font:{size:11}}},
+        tooltip:{callbacks:{label:c=>`${c.raw.nm}: PBR ${c.raw.x} · PER ${c.raw.y}`}}},
+      scales:{x:{title:{display:true,text:'PBR(배)',font:{size:11}},min:0,max:10,grid:{color:'#f0f2f5'}},
+        y:{title:{display:true,text:'PER(배)',font:{size:11}},min:0,max:120,grid:{color:'#f0f2f5'}}}}});
+  }catch(e){}
+}
+(async function(){
+  try{ const pj=await (await fetch('/data/products.json?t='+Date.now())).json(); PRODMAP=pj.map||{}; }catch(e){}
+  let V=null;
+  try{ V=await (await fetch('/data/stockvals.json?t='+Date.now())).json(); VALS=V.map||{}; }catch(e){}
+  let mk={};
+  try{ const d=await (await fetch('/data/valuation.json?t='+Date.now())).json();
+    const last=k=>{const s=d.series[k]||[]; return s.length?s[s.length-1][1]:null;};
+    MKT={kospiPbr:last('kospi'),kospiPer:last('kospi_per'),kosdaqPbr:last('kosdaq'),kosdaqPer:last('kosdaq_per')};
+  }catch(e){}
+  drawSec();
+  if(!Object.keys(VALS).length){
+    document.getElementById('tbl').innerHTML='<div class="loading">전종목 밸류 데이터(stockvals.json)가 아직 없습니다.<br>GitHub Secrets에 KIS_APPKEY·KIS_APPSECRET를 등록하면 매일 자동 수집됩니다.</div>';
+    document.getElementById('refline').textContent='시장 기준: 코스피 PBR '+(MKT.kospiPbr||'—')+' · PER '+(MKT.kospiPer||'—')+' / 코스닥 PBR '+(MKT.kosdaqPbr||'—')+' · PER '+(MKT.kosdaqPer||'—');
+    return;
+  }
+  document.getElementById('meta').textContent='전종목 '+V.count+'개 · 갱신 '+V.updated;
+  document.getElementById('refline').innerHTML='<b>시장 기준값</b> — 코스피 PBR '+MKT.kospiPbr+' · PER '+MKT.kospiPer+' / 코스닥 PBR '+MKT.kosdaqPbr+' · PER '+MKT.kosdaqPer
+    +' · 예) PBR에 0.3~0.8 입력 시 "시장 PBR의 0.3~0.8배" 종목만 표시';
+  document.getElementById('pbrMin').value='0.5'; document.getElementById('pbrMax').value='1.5';
+  render();
+})();
+</script>
+</body>
+</html>

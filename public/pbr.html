@@ -52,6 +52,13 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
     <button class="gbtn" id="g_m" onclick="setGran('m')">월</button>
     <button class="gbtn" id="g_y" onclick="setGran('y')">년</button>
   </div>
+  <div style="display:flex;gap:6px;margin:0 0 12px;align-items:center;flex-wrap:wrap">
+    <span style="font-size:12px;color:#8a93a2">기업 비교:</span>
+    <input id="cmpIn" list="cmpList" placeholder="종목명 입력 후 추가" style="border:1px solid #d7dce4;border-radius:8px;padding:5px 10px;font-size:12.5px;min-width:170px">
+    <datalist id="cmpList"></datalist>
+    <button class="gbtn" onclick="addCmp()">+ 추가</button>
+    <span id="cmpTags"></span>
+  </div>
   <div class="panel"><h2>🇰🇷 한국 — 코스피 · 코스닥 PBR 추이 (2020~)</h2><div class="chart-box"><canvas id="krChart"></canvas></div></div>
   <div class="panel"><h2>🇰🇷 한국 — 코스피 · 코스닥 PER 추이 (2020~)</h2><div class="chart-box"><canvas id="krPerChart"></canvas></div></div>
   <div class="panel"><h2>🇺🇸 미국 — S&P500 · 나스닥100 PBR 추이</h2><div class="chart-box"><canvas id="usChart"></canvas></div></div>
@@ -70,7 +77,24 @@ function tile(k,st,vals,per){
     <div class="rng">이력 최저 ${st.min} · 평균 ${st.avg} · 최고 ${st.max}<br>기준일 ${st.date}${per?`<br><b style=\"color:#12b28c\">PER ${per.pbr.toFixed(2)}배</b> <span style=\"font-size:10.5px\">(최저 ${per.min} · 평균 ${per.avg} · 최고 ${per.max})</span>`:''}</div>
     <div class="pos ${cls}">${lbl}</div></div>`;
 }
-let GRAN='d', CHARTS={}, D=null;
+let GRAN='d', CHARTS={}, D=null, CMPIDX={}, OVERLAYS=[];
+const OVCOLORS=['#1a2a4a','#d97917','#c2185b'];
+async function loadCmpIdx(){ try{ const j=await (await fetch('/data/compare/index.json?t='+Date.now())).json(); CMPIDX=j.codes||{};
+  document.getElementById('cmpList').innerHTML=Object.entries(CMPIDX).map(([c,n])=>`<option value="${n} (${c})">`).join(''); }catch(e){} }
+window.addCmp=async function(){
+  const v=(document.getElementById('cmpIn').value||'').trim(); if(!v) return;
+  let code=(v.match(/\((\d{6})\)/)||[])[1];
+  if(!code){ const hit=Object.entries(CMPIDX).find(([c,n])=>n===v||n.includes(v)||c===v); if(hit) code=hit[0]; }
+  if(!code||OVERLAYS.some(o=>o.code===code)) return;
+  if(OVERLAYS.length>=3){ alert('비교는 최대 3종목까지입니다'); return; }
+  try{ const j=await (await fetch('/data/compare/'+code+'.json?t='+Date.now())).json();
+    OVERLAYS.push(j); document.getElementById('cmpIn').value=''; drawCmpTags(); redraw(); }
+  catch(e){ alert('이 종목의 시계열 데이터가 아직 없습니다 (매일 밤 갱신)'); }
+};
+window.rmCmp=function(code){ OVERLAYS=OVERLAYS.filter(o=>o.code!==code); drawCmpTags(); redraw(); };
+function drawCmpTags(){ document.getElementById('cmpTags').innerHTML=OVERLAYS.map((o,i)=>
+  `<span style="display:inline-block;background:${OVCOLORS[i]};color:#fff;border-radius:12px;padding:3px 10px;font-size:11.5px;font-weight:700;margin-left:4px;cursor:pointer" onclick="rmCmp('${o.code}')">${o.name} ✕</span>`).join(''); }
+function redraw(){ if(D){ mkChart('krChart',['kospi','kosdaq'],D); mkChart('krPerChart',['kospi_per','kosdaq_per'],D); mkChart('usChart',['sp500','nasdaq100'],D); } }
 function isoWeek(ds){ const dt=new Date(ds+'T00:00:00'); const t=new Date(dt); t.setDate(dt.getDate()+3-((dt.getDay()+6)%7));
   const w1=new Date(t.getFullYear(),0,4); const wn=1+Math.round(((t-w1)/864e5-3+((w1.getDay()+6)%7))/7);
   return t.getFullYear()+'-W'+String(wn).padStart(2,'0'); }
@@ -91,6 +115,22 @@ function mkChart(id,keys,D){
     return {label:NAMES[k],data:labels.map(d=>m[d]??null),borderColor:COLORS[k],backgroundColor:COLORS[k],
       borderWidth:1.8,pointRadius:GRAN==='y'?3:0,pointHitRadius:8,spanGaps:true,tension:.2};
   });
+  if(id==='krChart'||id==='krPerChart'){
+    const fld=id==='krChart'?'pbr':'per';
+    OVERLAYS.forEach((o,i)=>{ const rs=resample((o[fld]||[]).filter(([d])=>all.size===0||true));
+      if(!rs.length) return;
+      rs.forEach(([d])=>all.add(d));
+      const m2=Object.fromEntries(rs);
+      ds.push({label:o.name,data:null,_ov:{m:m2,color:OVCOLORS[i],name:o.name}});
+    });
+    const labels2=[...all].sort();
+    labels.length=0; labels.push(...labels2);
+    ds.forEach(dset=>{ if(dset._ov){ const {m:m2,color,name}=dset._ov;
+        dset.data=labels.map(d=>m2[d]??null); dset.borderColor=color; dset.backgroundColor=color;
+        dset.borderWidth=1.6; dset.borderDash=[5,3]; dset.pointRadius=0; dset.pointHitRadius=8; dset.spanGaps=true; dset.tension=.2; delete dset._ov;
+      } else { const src=Object.fromEntries(S[Object.keys(NAMES).find(k=>NAMES[k]===dset.label)]||[]);
+        dset.data=labels.map(d=>src[d]??null); } });
+  }
   if(CHARTS[id]){ try{CHARTS[id].destroy();}catch(e){} CHARTS[id]=null; }
   if(!ds.length){ document.getElementById(id).parentElement.innerHTML='<div class="loading">데이터 수집 대기 중 — 다음 자동 갱신 후 표시됩니다.</div>'; return; }
   try{
@@ -109,6 +149,7 @@ function mkChart(id,keys,D){
   document.getElementById('tiles').innerHTML=['kospi','kosdaq','sp500','nasdaq100']
     .filter(k=>D.latest&&D.latest[k])
     .map(k=>tile(k,D.latest[k],(D.series[k]||[]).map(([,v])=>v),D.latest[k+'_per'])).join('')||'<div class="loading">데이터 수집 대기 중…</div>';
+  loadCmpIdx();
   mkChart('krChart',['kospi','kosdaq'],D);
   mkChart('krPerChart',['kospi_per','kosdaq_per'],D);
   mkChart('usChart',['sp500','nasdaq100'],D);

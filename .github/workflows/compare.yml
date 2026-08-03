@@ -1,0 +1,29 @@
+name: 종목 PBR·PER 시계열 갱신
+on:
+  schedule:
+    - cron: '30 21 * * 1-5'
+  workflow_dispatch: {}
+  push:
+    paths: ['compare.py', 'compare_extra.json']
+permissions:
+  contents: write
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 시계열 계산
+        env:
+          DART_KEY: ${{ secrets.DART_KEY }}
+        run: python compare.py
+      - name: 결과 커밋
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/compare
+          git commit -m "종목 PBR·PER 시계열 갱신" || echo "변경 없음"
+          git pull --rebase origin main || true
+          git push

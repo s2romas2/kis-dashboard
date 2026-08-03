@@ -43,7 +43,9 @@ for row in re.findall(r'<tr[^>]*>(.*?)</tr>', h, re.S | re.I):
     cells = [clean(c) for c in re.findall(r'<td[^>]*>(.*?)</td>', row, re.S | re.I)]
     if len(cells) >= 5 and re.fullmatch(r'[0-9A-Z]{6}', cells[2] or ''):
         ind, prod = cells[3], cells[4][:90]
-        entry = {'s': classify(ind, prod)}
+        mk = cells[1].replace(' ', '')
+        entry = {'s': classify(ind, prod), 'n': cells[0][:40],
+                 'm': 'K' if '유가' in mk else ('Q' if '코스닥' in mk else 'N')}
         if prod and prod != '-':
             entry['p'] = prod
         m[cells[2]] = entry

@@ -69,25 +69,42 @@ def krx_series(start, today, series):
         dbg('KRX %s: %d포인트' % (key, len(pairs)))
 
 def naver_kr():
-    """네이버 금융 지수 페이지에서 코스피·코스닥 당일 PBR (KRX 공식값 기반, 해외 접속 허용)"""
+    """네이버 모바일 증권 API에서 코스피·코스닥 당일 PBR (JSON)"""
+    def findkey(obj, name):
+        if isinstance(obj, dict):
+            for k, v in obj.items():
+                if name in str(k).lower():
+                    f = tofloat(v)
+                    if f:
+                        return f
+                r = findkey(v, name)
+                if r:
+                    return r
+        elif isinstance(obj, list):
+            for v in obj:
+                r = findkey(v, name)
+                if r:
+                    return r
+        return None
     out = {}
+    hdr = {'User-Agent': 'Mozilla/5.0', 'Referer': 'https://m.stock.naver.com/'}
     for key, code in (('kospi', 'KOSPI'), ('kosdaq', 'KOSDAQ')):
-        try:
-            req = urllib.request.Request('https://finance.naver.com/sise/sise_index.naver?code=' + code,
-                                         headers={'User-Agent': 'Mozilla/5.0'})
-            h = urllib.request.urlopen(req, timeout=20).read().decode('euc-kr', 'ignore')
-            m = re.search(r'PBR[\s\S]{0,120}?([\d]+\.[\d]+)', h)
-            if m:
-                v = float(m.group(1))
-                if 0.2 < v < 6:
-                    out[key] = round(v, 2)
-                else:
-                    dbg('naver %s 이상값 %s' % (key, v))
-            else:
-                i = h.find('PBR')
-                dbg('naver %s PBR 컨텍스트: %r' % (key, h[max(0, i - 60):i + 200] if i >= 0 else ('PBR 문자열 없음, 앞부분: %r' % h[:150])))
-        except Exception as e:
-            dbg('naver %s 실패: %r' % (key, e))
+        got = None
+        for url in ('https://m.stock.naver.com/api/index/%s/basic' % code,
+                    'https://m.stock.naver.com/api/index/%s/integration' % code):
+            try:
+                req = urllib.request.Request(url, headers=hdr)
+                body = urllib.request.urlopen(req, timeout=20).read().decode('utf-8', 'ignore')
+                j = json.loads(body)
+                v = findkey(j, 'pbr')
+                if v and 0.2 < v < 6:
+                    got = round(v, 2)
+                    break
+                dbg('naver-api %s %s: pbr 없음/이상. 키샘플: %s' % (key, url.rsplit('/', 1)[-1], str(j)[:180]))
+            except Exception as e:
+                dbg('naver-api %s 실패: %r' % (key, e))
+        if got:
+            out[key] = got
     return out
 
 def sp500_multpl():

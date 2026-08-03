@@ -96,11 +96,21 @@ def naver_kr():
                 req = urllib.request.Request(url, headers=hdr)
                 body = urllib.request.urlopen(req, timeout=20).read().decode('utf-8', 'ignore')
                 j = json.loads(body)
-                v = findkey(j, 'pbr')
+                v = None
+                # totalInfos: [{'code':'pbr','key':'PBR','value':'0.98'}, ...] 패턴 우선
+                for it in (j.get('totalInfos') or []):
+                    cd = str(it.get('code', '')).lower()
+                    ky = str(it.get('key', '')).upper()
+                    if cd == 'pbr' or ky == 'PBR':
+                        v = tofloat(it.get('value'))
+                        break
+                if v is None:
+                    v = findkey(j, 'pbr')
                 if v and 0.2 < v < 6:
                     got = round(v, 2)
                     break
-                dbg('naver-api %s %s: pbr 없음/이상. 키샘플: %s' % (key, url.rsplit('/', 1)[-1], str(j)[:180]))
+                infos = [str(it.get('code')) for it in (j.get('totalInfos') or [])]
+                dbg('naver-api %s %s: pbr 없음. totalInfos코드: %s' % (key, url.rsplit('/', 1)[-1], ','.join(infos)[:200] or str(j)[:150]))
             except Exception as e:
                 dbg('naver-api %s 실패: %r' % (key, e))
         if got:

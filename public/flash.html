@@ -51,11 +51,20 @@ input.search { border:1px solid #d7dce4; border-radius:8px; padding:6px 10px; fo
     <button class="chip" id="cUp" onclick="setF('up')">영업이익 증가</button>
     <span class="meta" id="meta">불러오는 중…</span>
   </div>
+  <div class="toolbar" id="secbar2" style="margin-top:-8px"></div>
   <div id="grid" class="grid"><div class="loading">잠정실적 데이터를 불러오는 중…</div></div>
   <div class="note">※ 금액 단위: 억원(공시 원문 단위를 환산). YoY는 공시 원문의 전년동기 대비 증감율. 일부 공시는 표 형식이 달라 숫자 추출이 안 될 수 있으며, 이 경우 공시 원문 링크로 확인하세요. 확정 실적은 이후 정기보고서(실적 스크리닝 메뉴)에서 반영됩니다. 정보 제공용이며 투자권유가 아닙니다.</div>
 </div>
 <script>
 let DATA=null, FMODE='all', PRODMAP={};
+const SECLIST=['정보기술','커뮤니케이션','금융','헬스케어','임의소비재','필수소비재','산업재','소재','에너지','유틸리티','부동산','기타'];
+let SEC='all';
+function pentry(c){ const e=PRODMAP[c]; return typeof e==='string'? {p:e,s:'기타'} : (e||{}); }
+function secOf(c){ return pentry(c).s || '기타'; }
+function drawSec(){ const el=document.getElementById('secbar2'); if(!el) return;
+  el.innerHTML=['all',...SECLIST].map(s=>`<span class="chip ${SEC===s?'on':''}" onclick="setSec('${s}')">${s==='all'?'섹터 전체':s}</span>`).join(''); }
+window.setSec=function(s){ SEC=s; drawSec(); render(); };
+
 const cls=v=>v==null?'flat':(v>0?'up':(v<0?'down':'flat'));
 const pct=v=>v==null?'—':((v>=0?'+':'')+Number(v).toFixed(1)+'%');
 const eokf=v=>v==null?'—':Number(v).toLocaleString()+'억';
@@ -64,7 +73,7 @@ window.setF=function(m){ FMODE=m; document.getElementById('cAll').classList.togg
 function card(m){
   const noNum = m.rev==null && m.op==null;
   const tp=[m.revYoY,m.opYoY,m.niYoY].every(v=>typeof v==='number'&&v>0);
-  const prod=PRODMAP[m.code];
+  const prod=pentry(m.code).p;
   return `<div class="card">
     <h3>${m.name}<span class="tk">${m.code||''}</span>${noNum?'<span class="badge">원문 확인</span>':''}${tp?`<span class="tbadge">3지표↑ +${Math.round(m.revYoY+m.opYoY+m.niYoY)}%</span>`:''}</h3>
     ${prod?`<div class="prodline">${prod}</div>`:''}
@@ -80,6 +89,7 @@ function render(){
   if(!DATA) return;
   const kw=(document.getElementById('q').value||'').trim();
   let l=DATA.list.filter(m=> !kw || (m.name&&m.name.includes(kw)) || (m.code&&m.code.includes(kw)));
+  if(SEC!=='all') l=l.filter(m=>secOf(m.code)===SEC);
   if(FMODE==='up') l=l.filter(m=>m.opYoY!=null&&m.opYoY>0);
   const score=m=>{const a=[m.revYoY,m.opYoY,m.niYoY]; return a.every(v=>typeof v==='number'&&v>0)? a[0]+a[1]+a[2] : null;};
   l=[...l].sort((x,y)=>{const sx=score(x),sy=score(y);
@@ -94,7 +104,7 @@ function render(){
   try{ const pj=await (await fetch('/data/products.json?t='+Date.now())).json(); PRODMAP=pj.map||{}; }catch(e){}
   try{ DATA=await (await fetch('/data/flash.json?t='+Date.now())).json(); }
   catch(e){ document.getElementById('grid').innerHTML='<div class="loading">flash.json이 아직 없습니다. 첫 자동 수집 후 표시됩니다.</div>'; return; }
-  render();
+  drawSec(); render();
 })();
 </script>
 </body>

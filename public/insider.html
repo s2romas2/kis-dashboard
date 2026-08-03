@@ -15,6 +15,8 @@ h1 { font-size:20px; margin:0; font-weight:800; }
 a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
 .toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:16px 0; }
 input.search { border:1px solid #d7dce4; border-radius:8px; padding:6px 10px; font-size:13px; min-width:170px; }
+.chip { border:1px solid #d7dce4; background:#fff; color:#374151; border-radius:20px; padding:5px 12px; font-size:12.5px; font-weight:700; cursor:pointer; display:inline-block; }
+.chip.on { background:#1a2a4a; color:#fff; border-color:#1a2a4a; }
 .meta { font-size:12px; color:#8a93a2; margin-left:auto; }
 .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:12px; }
 .card { background:#fff; border:1px solid #eceef2; border-radius:14px; padding:14px 15px; box-shadow:0 1px 2px rgba(20,30,60,.04); }
@@ -56,20 +58,30 @@ input.search { border:1px solid #d7dce4; border-radius:8px; padding:6px 10px; fo
     <input class="search" id="q" placeholder="종목명·내부자 검색" oninput="render()">
     <span class="meta" id="meta">불러오는 중…</span>
   </div>
+  <div class="toolbar" id="secbar2" style="margin-top:-8px"></div>
   <div id="grid" class="grid"><div class="loading">내부자 매수 데이터를 불러오는 중…</div></div>
   <div class="note" id="note"></div>
 </div>
 <script>
-let DATA=null, quoteCache={};
+let DATA=null, quoteCache={}, PRODMAP={};
+const SECLIST=['정보기술','커뮤니케이션','금융','헬스케어','임의소비재','필수소비재','산업재','소재','에너지','유틸리티','부동산','기타'];
+let SEC='all';
+function pentry(c){ const e=PRODMAP[c]; return typeof e==='string'? {p:e,s:'기타'} : (e||{}); }
+function secOf(c){ return pentry(c).s || '기타'; }
+function drawSec(){ const el=document.getElementById('secbar2'); if(!el) return;
+  el.innerHTML=['all',...SECLIST].map(s=>`<span class="chip ${SEC===s?'on':''}" onclick="setSec('${s}')">${s==='all'?'섹터 전체':s}</span>`).join(''); }
+window.setSec=function(s){ SEC=s; drawSec(); render(); };
+
 const won = v => v==null?'—':v.toLocaleString()+'원';
 const medal = i => i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
 async function load(){
+  try{ const pj=await (await fetch('/data/products.json?t='+Date.now())).json(); PRODMAP=pj.map||{}; }catch(e){}
   try { DATA = await (await fetch('/data/insider.json?t='+Date.now())).json(); }
   catch(e){ document.getElementById('grid').innerHTML='<div class="loading">insider.json을 아직 못 찾았습니다. GitHub Actions 실행 후 생성됩니다.</div>'; return; }
   document.getElementById('note').innerHTML='※ 매수금액 = <b>공시 원문의 취득단가 × 매수수량</b> (DART 임원·주요주주 특정증권등 소유상황보고서 기준). '
     +(DATA.buyOnly?'<b>취득 사유가 \'장내매수\'인 것만 집계</b> — 주식보상 지급·배당·전환 등 비매수 취득은 제외. 임원·주요주주 등 모든 내부자 포함. ':'')
     +'전환사채 등 주식 외 증권은 괄호 안 주당단가를 사용. 현재가는 KIS 실시간(참고용). 같은 종목의 여러 공시(임원 각자 제출)는 한 카드로 합산. 정보 제공용이며 투자권유가 아닙니다.';
-  render(); enrich();
+  drawSec(); render(); enrich();
 }
 const fmtDate=d=>d? d.replace(/(\d{4})(\d{2})(\d{2})/,'$1.$2.$3'):'';
 const eok=v=>Math.round(v/1e8*10)/10;
@@ -78,7 +90,7 @@ window.toggle=function(k){ if(openSet.has(k)) openSet.delete(k); else openSet.ad
 function filtered(){
   if(!DATA) return [];
   const kw=(document.getElementById('q').value||'').trim();
-  return DATA.list.filter(m=> !kw || (m.name&&m.name.includes(kw)) || (m.insider&&m.insider.includes(kw)) || (m.code&&m.code.includes(kw)));
+  return DATA.list.filter(m=> ((SEC==='all')||secOf(m.code)===SEC) && (!kw || (m.name&&m.name.includes(kw)) || (m.insider&&m.insider.includes(kw)) || (m.code&&m.code.includes(kw))));
 }
 function grouped(){
   const g={};

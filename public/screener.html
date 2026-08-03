@@ -60,21 +60,32 @@ table.q td.l, table.q th.l { text-align:left; }
     <span class="meta" id="meta">불러오는 중…</span>
   </div>
 
+  <div class="toolbar" id="secbar2" style="margin-top:-8px"></div>
   <div id="grid" class="grid"><div class="loading">스크리닝 결과를 불러오는 중…</div></div>
 </div>
 
 <script>
-let DATA = null, FILTER = 'all', quoteCache = {};
+let DATA = null, FILTER = 'all', quoteCache = {}, PRODMAP = {};
+const SECLIST=['정보기술','커뮤니케이션','금융','헬스케어','임의소비재','필수소비재','산업재','소재','에너지','유틸리티','부동산','기타'];
+let SEC='all';
+function pentry(c){ const e=PRODMAP[c]; return typeof e==='string'? {p:e,s:'기타'} : (e||{}); }
+function secOf(c){ return pentry(c).s || '기타'; }
+function drawSec(){ const el=document.getElementById('secbar2'); if(!el) return;
+  el.innerHTML=['all',...SECLIST].map(s=>`<span class="chip ${SEC===s?'on':''}" onclick="setSec('${s}')">${s==='all'?'섹터 전체':s}</span>`).join(''); }
+window.setSec=function(s){ SEC=s; drawSec(); render(); };
+
 const cls = v => v == null ? 'flat' : (v > 0 ? 'up' : (v < 0 ? 'down' : 'flat'));
 const pf = v => v == null ? '—' : ((v >= 0 ? '+' : '') + v + '%');
 const medal = i => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
 
 async function loadData() {
+  try{ const pj=await (await fetch('/data/products.json?t='+Date.now())).json(); PRODMAP=pj.map||{}; }catch(e){}
   try {
     const r = await fetch('/data/screener.json?t=' + Date.now());
     DATA = await r.json();
   } catch (e) { document.getElementById('grid').innerHTML = '<div class="loading">screener.json을 아직 못 찾았습니다. GitHub Actions를 1회 실행하면 생성됩니다.</div>'; return; }
   document.getElementById('meta').textContent = DATA.period + ' 기준 · ' + DATA.count + '종목 통과 · 갱신 ' + DATA.updated;
+  drawSec();
   render();
   enrich();
 }
@@ -107,13 +118,13 @@ function card(m, i) {
 function filtered() {
   if (!DATA) return [];
   const kw = (document.getElementById('q').value || '').trim();
-  return DATA.list.filter(m => (FILTER === 'all' || m.conds.includes(+FILTER)) && (!kw || m.name.includes(kw) || m.code.includes(kw)));
+  return DATA.list.filter(m => (FILTER === 'all' || m.conds.includes(+FILTER)) && ((SEC==='all')||secOf(m.code)===SEC) && (!kw || m.name.includes(kw) || m.code.includes(kw)));
 }
 function render() {
   const list = filtered();
   document.getElementById('grid').innerHTML = list.length ? list.map((m, i) => card(m, i)).join('') : '<div class="loading">조건에 맞는 종목이 없습니다.</div>';
 }
-window.setF = f => { FILTER = f; document.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c.dataset.f === f)); render(); };
+window.setF = f => { FILTER = f; document.querySelectorAll('.chip[data-f]').forEach(c => c.classList.toggle('on', c.dataset.f === f)); render(); };
 
 // KIS 실시간 시총·현재가 채우기 (상위 60종목, 20개씩)
 async function enrich() {

@@ -1,1 +1,1 @@
-{"updated": "2026-08-03 12:37", "count": 0, "fail": 0, "debug": ["키 길이: 36/10, 대상 2596종목", "토큰: {'error': \"<HTTPError 403: 'Forbidden'>\"}"], "map": {}}
+{"updated": "2026-08-04 01:35", "count": 0, "fail": 0, "debug": ["키 길이: 36/180, 대상 2596종목", "토큰: {'error': \"<HTTPError 403: 'Forbidden'>\"}"], "map": {}}

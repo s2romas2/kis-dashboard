@@ -41,6 +41,36 @@ try:
 except Exception as e:
     R['steps'].append('실패: %r' % e)
 
+# qcType 후보값 일괄 테스트 (구분자 __OUML__/__SZLIG__ 확인됨)
+R['try'] = []
+qg = '반도체__SZLIG__반도체,HBM__OUML__AI__SZLIG__인공지능,챗GPT'
+for qc in ('N', 'C', 'P', 'S', 'T', 'K', '0', '1', '2', ''):
+    for tu in ('date', 'week'):
+        try:
+            body = urllib.parse.urlencode({'qcType': qc, 'queryGroups': qg,
+                'startDate': '2024-01-01', 'endDate': '2026-08-01', 'timeUnit': tu,
+                'gender': '', 'age': '', 'device': ''}).encode()
+            r = fetch('https://datalab.naver.com/qcHash.naver',
+                      headers={'Referer': 'https://datalab.naver.com/keyword/trendSearch.naver',
+                               'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                               'X-Requested-With': 'XMLHttpRequest',
+                               'Origin': 'https://datalab.naver.com'}, data=body)
+            R['try'].append({'qc': qc, 'tu': tu, 'r': r[:160]})
+            if '"success":true' in r:
+                # 성공 시 결과 페이지에서 데이터 위치 확인
+                hk = json.loads(r).get('hashKey', '')
+                r2 = fetch('https://datalab.naver.com/keyword/trendResult.naver?hashKey=' + hk,
+                           headers={'Referer': 'https://datalab.naver.com/keyword/trendSearch.naver'})
+                idx = max(r2.find('chartData'), r2.find('"data"'), r2.find('graph'))
+                R['try'].append({'result_page': len(r2), 'peek': r2[max(0, idx - 50):idx + 500] if idx > 0 else r2[:500]})
+                break
+        except Exception as e:
+            R['try'].append({'qc': qc, 'tu': tu, 'err': repr(e)[:120]})
+        time.sleep(1.2)
+    else:
+        continue
+    break
+
 R['updated'] = time.strftime('%Y-%m-%d %H:%M')
 with open(OUT, 'w', encoding='utf-8') as f:
     json.dump(R, f, ensure_ascii=False)

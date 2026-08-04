@@ -41,13 +41,19 @@ def main():
     if LIMIT:
         codes = codes[:LIMIT]
     DEBUG.append('키 길이: %d/%d, 대상 %d종목' % (len(APPKEY), len(APPSECRET), len(codes)))
-    try:
-        tok = post_json(BASE + '/oauth2/tokenP',
-                        {'grant_type': 'client_credentials', 'appkey': APPKEY, 'appsecret': APPSECRET})
-    except Exception as e:
-        tok = {'error': repr(e)}
-    token = tok.get('access_token')
-    DEBUG.append('토큰: %s' % ('OK' if token else str(tok)[:200]))
+    token = None
+    for attempt in range(4):  # 토큰 발급은 1분 1회 제한 → 65초 간격 재시도
+        try:
+            tok = post_json(BASE + '/oauth2/tokenP',
+                            {'grant_type': 'client_credentials', 'appkey': APPKEY, 'appsecret': APPSECRET})
+        except Exception as e:
+            tok = {'error': repr(e)}
+        token = tok.get('access_token')
+        if token:
+            break
+        DEBUG.append('토큰 시도%d 실패: %s' % (attempt + 1, str(tok)[:150]))
+        time.sleep(65)
+    DEBUG.append('토큰: %s' % ('OK' if token else '최종 실패'))
     if not token:
         _dump({}, 0)
         return

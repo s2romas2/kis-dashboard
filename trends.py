@@ -156,7 +156,8 @@ def main():
     DEBUG.append('키 상태 — 네이버:%s 관세청:%s' % ('O' if NAVER_ID else 'X', 'O' if CUSTOMS_KEY else 'X'))
     dl = datalab(keys.get('datalab', {})) or pv.get('datalab', {})
     bz = buzz(keys.get('buzz', {}), pv.get('buzz'))
-    gt = gtrends(keys.get('google', [])) or pv.get('google', {})
+    gt = dict(pv.get('google', {}))  # 성공한 키워드만 갱신(부분 차단 시 이전값 유지)
+    gt.update(gtrends(keys.get('google', [])))
     ex = exports(keys.get('export', {}), pv.get('export'))
     out = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'debug': DEBUG,
            'datalab': dl, 'buzz': bz, 'google': gt, 'export': ex}

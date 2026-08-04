@@ -74,21 +74,12 @@ th.l,td.l { text-align:left; }
     <div class="hint" id="refline">시장 기준값 불러오는 중…</div>
   </div>
 
-  <div class="panel"><h2>시장 PBR·PER 추이
-    <span style="float:right">
-      <button class="chip on" id="mk1" onclick="setMkt('K')">코스피</button>
-      <button class="chip" id="mk2" onclick="setMkt('Q')">코스닥</button>
-    </span></h2>
-    <div class="chart-box" style="height:230px"><canvas id="mchart"></canvas></div>
-    <div class="hint"><b>파랑=PBR</b>(왼쪽축) · <b>주황=PER</b>(오른쪽축), 2020년~현재. 일·주·월·년 전환과 기업 비교는 <a href="/pbr.html" style="color:#2f6df6">시장 PBR·PER 페이지</a>에서 자세히 볼 수 있습니다.</div>
-  </div>
-
   <div class="panel"><h2>분포 그래프
     <span style="float:right">
       <button class="chip on" id="sc1" onclick="setScat('pp')">PBR×PER</button>
       <button class="chip" id="sc2" onclick="setScat('rp')">ROE×PBR</button>
     </span></h2><div class="chart-box"><canvas id="scat"></canvas></div>
-    <div class="hint" id="scatHint">PBR×PER: 가로축 PBR·세로축 PER / ROE×PBR: 가로축 ROE(%)·세로축 PBR — <b>우하단(고ROE·저PBR)</b>이 저평가 후보, 좌하단(저ROE·저PBR)은 밸류 트랩 구역. <b>파란 점</b>=조건 충족, <b>★</b>=시장 현재 위치. 극단값은 축 밖이면 생략. PBR = PER × ROE 항등식 기준(적자 기업은 PER·ROE 생략).</div></div>
+    <div class="hint" id="scatHint">PBR×PER: 가로축 PBR·세로축 PER / ROE×PBR: 가로축 ROE(%)·세로축 PBR — <b>우하단(고ROE·저PBR)</b>이 저평가 후보, 좌하단(저ROE·저PBR)은 밸류 트랩 구역. <b>파란 점</b>=조건 충족. <b style="color:#e5384d">빨간 선=코스피</b> · <b style="color:#7c3aed">보라 선=코스닥</b> 시장의 2020년~현재 분기별 이동 경로이며 끝의 <b>★</b>이 현재 위치(선 위에 마우스를 올리면 시점별 값 표시). 극단값은 축 밖이면 생략. PBR = PER × ROE 항등식 기준(적자 기업은 PER·ROE 생략).</div></div>
 
   <div class="panel"><h2>조건 충족 종목 <span id="cnt" style="color:#2f6df6"></span>
     <span style="float:right"><button class="chip" id="dlbtn" onclick="dlXlsx()">⬇ 엑셀 다운로드</button></span></h2>
@@ -166,46 +157,46 @@ function render(){
     const pt=x=> isPP ? {x:x.pbr,y:x.per,nm:x.name} : {x:x.roe,y:x.pbr,nm:x.name};
     const okPts=all.filter(x=>x.ok&&inR(x)).map(pt);
     const noPts=all.filter(x=>!x.ok&&inR(x)).map(pt);
-    const mroe=(p,e)=> (p&&e)? Math.round(p/e*10000)/100 : null;
-    const mkPts=(isPP
-      ? [{x:MKT.kospiPbr,y:MKT.kospiPer,nm:'코스피'},{x:MKT.kosdaqPbr,y:MKT.kosdaqPer,nm:'코스닥'}]
-      : [{x:mroe(MKT.kospiPbr,MKT.kospiPer),y:MKT.kospiPbr,nm:'코스피'},{x:mroe(MKT.kosdaqPbr,MKT.kosdaqPer),y:MKT.kosdaqPbr,nm:'코스닥'}]
-    ).filter(p=>p.x&&p.y);
-    CHART=new Chart(document.getElementById('scat'),{type:'scatter',data:{datasets:[
+    const trajK=mktTraj(isPP,'kospi','kospi_per','코스피','#e5384d','rgba(229,56,77,.45)');
+    const trajQ=mktTraj(isPP,'kosdaq','kosdaq_per','코스닥','#7c3aed','rgba(124,58,237,.45)');
+    const dsets=[
       {label:'미충족',data:noPts,backgroundColor:'rgba(160,170,185,.35)',pointRadius:2.2},
-      {label:'조건 충족',data:okPts,backgroundColor:'#2f6df6',pointRadius:3.4},
-      {label:'시장',data:mkPts,backgroundColor:'#e5384d',pointStyle:'star',pointRadius:11,borderColor:'#e5384d',borderWidth:2}
-    ]},options:{responsive:true,maintainAspectRatio:false,
+      {label:'조건 충족',data:okPts,backgroundColor:'#2f6df6',pointRadius:3.4}];
+    if(trajK) dsets.push(trajK);
+    if(trajQ) dsets.push(trajQ);
+    CHART=new Chart(document.getElementById('scat'),{type:'scatter',data:{datasets:dsets},
+      options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{labels:{boxWidth:12,font:{size:11}}},
         tooltip:{callbacks:{label:c=> SCAT==='pp' ? `${c.raw.nm}: PBR ${c.raw.x} · PER ${c.raw.y}` : `${c.raw.nm}: ROE ${c.raw.x}% · PBR ${c.raw.y}`}}},
       scales:{x:{title:{display:true,text:isPP?'PBR(배)':'ROE(%)',font:{size:11}},min:isPP?0:-10,max:isPP?10:60,grid:{color:'#f0f2f5'}},
         y:{title:{display:true,text:isPP?'PER(배)':'PBR(배)',font:{size:11}},min:0,max:isPP?120:10,grid:{color:'#f0f2f5'}}}}});
   }catch(e){}
 }
-// ===== 시장 PBR·PER 추이 차트 =====
-let MSERIES=null, MCHART=null, MKSEL='K';
-window.setMkt=function(k){ MKSEL=k;
-  document.getElementById('mk1').classList.toggle('on',k==='K');
-  document.getElementById('mk2').classList.toggle('on',k==='Q');
-  drawMkt(); };
-function drawMkt(){
-  if(!MSERIES) return;
-  const pbrS=MSERIES[MKSEL==='K'?'kospi':'kosdaq']||[], perS=MSERIES[MKSEL==='K'?'kospi_per':'kosdaq_per']||[];
-  const mp=new Map();
-  for(const [d,v] of pbrS) mp.set(d,{p:v});
-  for(const [d,v] of perS){ const o=mp.get(d)||{}; o.e=v; mp.set(d,o); }
-  const dates=[...mp.keys()].sort();
-  if(!dates.length) return;
-  const pbr=dates.map(d=>mp.get(d).p??null), per=dates.map(d=>mp.get(d).e??null);
-  if(MCHART){ MCHART.destroy(); MCHART=null; }
-  MCHART=new Chart(document.getElementById('mchart'),{type:'line',data:{labels:dates,datasets:[
-    {label:'PBR',data:pbr,borderColor:'#2f6df6',backgroundColor:'transparent',borderWidth:1.6,pointRadius:0,yAxisID:'y',spanGaps:true},
-    {label:'PER',data:per,borderColor:'#f59e0b',backgroundColor:'transparent',borderWidth:1.6,pointRadius:0,yAxisID:'y2',spanGaps:true}
-  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-    plugins:{legend:{labels:{boxWidth:12,font:{size:11}}}},
-    scales:{x:{ticks:{maxTicksLimit:8,font:{size:10}},grid:{display:false}},
-      y:{title:{display:true,text:'PBR(배)',font:{size:10}},grid:{color:'#f0f2f5'}},
-      y2:{position:'right',title:{display:true,text:'PER(배)',font:{size:10}},grid:{drawOnChartArea:false}}}}});
+// ===== 시장 궤적(2020~현재) — 산점도 오버레이용 =====
+let MSERIES=null;
+function mktTraj(isPP, pk, ek, name, solid, faded){
+  // 월별 마지막 값으로 시장의 (PBR, PER) 이동 경로 생성. 마지막 점=현재(★)
+  const s=(MSERIES&&MSERIES[pk])||[], e=(MSERIES&&MSERIES[ek])||[];
+  const mm=new Map();
+  for(const [d,v] of s){ const k=d.slice(0,7); const o=mm.get(k)||{}; o.p=v; mm.set(k,o); }
+  for(const [d,v] of e){ const k=d.slice(0,7); const o=mm.get(k)||{}; o.e=v; mm.set(k,o); }
+  const keys=[...mm.keys()].sort();
+  const lastKey=keys[keys.length-1];
+  const pts=keys.filter(k=> ['03','06','09','12'].includes(k.slice(5,7)) || k===lastKey).map(k=>{
+    const o=mm.get(k);
+    if(o.p==null||o.e==null) return null;
+    const roe=Math.round(o.p/o.e*10000)/100;
+    return isPP? {x:o.p, y:o.e, nm:name+' '+k} : {x:roe, y:o.p, nm:name+' '+k};
+  }).filter(Boolean);
+  if(!pts.length) return null;
+  const n=pts.length;
+  return {label:name+' 시장(2020~현재)', data:pts, showLine:true, tension:0, fill:false,
+    borderColor:faded, borderWidth:1.3,
+    pointRadius:pts.map((_,i)=> i===n-1?10:1.8),
+    pointStyle:pts.map((_,i)=> i===n-1?'star':'circle'),
+    pointBackgroundColor:pts.map((_,i)=> i===n-1?solid:faded),
+    pointBorderColor:solid,
+    pointBorderWidth:pts.map((_,i)=> i===n-1?2:0)};
 }
 // ===== 엑셀 다운로드 =====
 async function loadXLSX(){
@@ -269,7 +260,6 @@ window.dlXlsx=async function(){
     MSERIES=d.series;
   }catch(e){}
   drawSec();
-  try{ drawMkt(); }catch(e){}
   if(!Object.keys(VALS).length){
     document.getElementById('tbl').innerHTML='<div class="loading">전종목 밸류 데이터(stockvals.json)가 아직 없습니다.<br>GitHub Secrets에 KIS_APPKEY·KIS_APPSECRET를 등록하면 매일 자동 수집됩니다.</div>';
     document.getElementById('refline').textContent='시장 기준: 코스피 PBR '+(MKT.kospiPbr||'—')+' · PER '+(MKT.kospiPer||'—')+' / 코스닥 PBR '+(MKT.kosdaqPbr||'—')+' · PER '+(MKT.kosdaqPer||'—');

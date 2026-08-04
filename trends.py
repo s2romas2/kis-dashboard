@@ -153,7 +153,7 @@ def exports(hsmap, prev_exp):
             last = None
             for base in ('http://apis.data.go.kr', 'https://apis.data.go.kr', 'http://apis.data.go.kr'):
                 try:
-                    x = urllib.request.urlopen(base + q, timeout=45).read().decode('utf-8', 'ignore')
+                    x = urllib.request.urlopen(base + q, timeout=110).read().decode('utf-8', 'ignore')
                     break
                 except Exception as e2:
                     last = e2

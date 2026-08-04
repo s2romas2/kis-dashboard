@@ -41,11 +41,11 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
   </header>
 
   <div class="panel">
-    <h2>🔍 네이버 검색트렌드 <span style="color:#8a93a2;font-weight:400;font-size:12px">— 섹터별 키워드 검색 관심도 (주간, 2023~)</span></h2>
+    <h2>🔍 검색트렌드 (한국) <span style="color:#8a93a2;font-weight:400;font-size:12px">— 섹터별 키워드 검색 관심도 (주간, 5년)</span></h2>
     <div id="secbar"></div>
     <div class="chart-box" style="margin-top:10px"><canvas id="dlChart"></canvas></div>
     <div id="dlEmpty"></div>
-    <div class="hint">네이버 데이터랩 기준 상대 검색지수(기간 내 최대=100). 절대 검색량이 아니라 <b>추세</b>를 보는 지표입니다. 테마별 키워드는 trendkeys.json에서 수정할 수 있습니다.</div>
+    <div class="hint">구글트렌드 한국 지역 상대 검색지수(기간 내 최대=100). 절대 검색량이 아니라 <b>추세</b>를 보는 지표입니다. 구글이 수집을 차단하는 날은 성공한 섹터만 갱신되며 매일 누적됩니다. 테마별 키워드는 trendkeys.json에서 수정할 수 있습니다.</div>
   </div>
 
   <div class="panel">
@@ -53,7 +53,7 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
     <div class="chart-sm"><canvas id="bzBar"></canvas></div>
     <div class="chart-sm" style="margin-top:14px"><canvas id="bzHist"></canvas></div>
     <div id="bzEmpty"></div>
-    <div class="hint">위: 전체 섹터의 최근 7일 기사수 비교 · 아래: 위에서 선택한 섹터의 버즈 추이(측정일 누적). 네이버 뉴스 검색 기준이며 수집 시작 후 데이터가 쌓입니다.</div>
+    <div class="hint">위: 전체 섹터의 최근 7일 기사수 비교 · 아래: 위에서 선택한 섹터의 버즈 추이(측정일 누적). 구글뉴스 검색 기준(키워드당 최대 약 100건 집계)이며 수집 시작 후 데이터가 쌓입니다.</div>
   </div>
 
   <div class="panel">
@@ -91,7 +91,7 @@ function drawDL(){
   const dl=T.datalab||{};
   const secs=Object.keys(dl);
   if(!secs.length){
-    document.getElementById('dlEmpty').innerHTML='<div class="loading">아직 데이터가 없습니다.<br>GitHub Secrets에 <b>NAVER_ID · NAVER_SECRET</b>를 등록하면 매일 자동 수집됩니다.</div>';
+    document.getElementById('dlEmpty').innerHTML='<div class="loading">아직 데이터가 없습니다.<br>구글 수집이 차단된 날은 다음 자동 실행 때 채워집니다.</div>';
     document.getElementById('dlChart').parentElement.style.display='none';
     return;
   }
@@ -110,7 +110,7 @@ function drawBz(){
   const bz=T.buzz||{};
   const secs=Object.keys(bz);
   if(!secs.length){
-    document.getElementById('bzEmpty').innerHTML='<div class="loading">아직 데이터가 없습니다. 네이버 키 등록 후 매일 쌓입니다.</div>';
+    document.getElementById('bzEmpty').innerHTML='<div class="loading">아직 데이터가 없습니다. 매일 자동 수집되며 곧 쌓입니다.</div>';
     document.getElementById('bzBar').parentElement.style.display='none';
     document.getElementById('bzHist').parentElement.style.display='none';
     return;

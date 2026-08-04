@@ -20,8 +20,6 @@ jobs:
         run: pip install pytrends
       - name: 수집
         env:
-          NAVER_ID: ${{ secrets.NAVER_ID }}
-          NAVER_SECRET: ${{ secrets.NAVER_SECRET }}
           CUSTOMS_KEY: ${{ secrets.CUSTOMS_KEY }}
         run: python trends.py
       - name: 결과 커밋

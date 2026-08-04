@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
-# 트렌드 지표 수집
-# - 네이버 데이터랩: 섹터별 키워드 검색트렌드 (주간, 2023~) — NAVER_ID/NAVER_SECRET 필요
-# - 네이버 뉴스: 키워드별 최근 7일 기사수(버즈) 누적 — NAVER_ID/NAVER_SECRET 필요
-# - 구글트렌드: pytrends (미국 검색지수, 차단 시 이전값 유지)
+# 트렌드 지표 수집 (네이버 오픈API 종료로 키 불필요 소스로 구성)
+# - 검색트렌드(한국): pytrends geo=KR — 429 차단 시 성공한 섹터만 갱신(누적)
+# - 뉴스 버즈: 구글뉴스 RSS 최근 7일 기사수 — 키 불필요
+# - 구글트렌드(미국): pytrends geo=US — 키워드별 병합
 # - 관세청 수출: HS코드별 월별 수출액 — CUSTOMS_KEY(공공데이터포털) 필요
-# 키가 없는 항목은 건너뛰고 기존 데이터 유지
 import os, sys, json, time, re, urllib.request, urllib.parse, datetime
 import xml.etree.ElementTree as ET
 
-NAVER_ID = os.environ.get('NAVER_ID', '')
-NAVER_SECRET = os.environ.get('NAVER_SECRET', '')
 CUSTOMS_KEY = os.environ.get('CUSTOMS_KEY', '')
 OUT = 'public/data/trends.json'
 DEBUG = []
@@ -21,72 +18,66 @@ def prev():
     except Exception:
         return {}
 
-def naver_req(url, body=None):
-    headers = {'X-Naver-Client-Id': NAVER_ID, 'X-Naver-Client-Secret': NAVER_SECRET}
-    data = None
-    if body is not None:
-        headers['Content-Type'] = 'application/json'
-        data = json.dumps(body).encode()
-    req = urllib.request.Request(url, data=data, headers=headers)
-    return json.loads(urllib.request.urlopen(req, timeout=30).read().decode())
-
-def datalab(keys):
-    out = {}
-    if not NAVER_ID or not NAVER_SECRET:
-        DEBUG.append('데이터랩: 네이버 키 없음 → 건너뜀')
+def datalab(keys, prev_dl):
+    """검색트렌드(한국): pytrends geo=KR — 섹터당 테마 대표 키워드 최대 5개.
+    429 차단된 섹터는 이전값 유지, 성공분만 갱신(매일 누적)."""
+    out = dict(prev_dl or {})
+    try:
+        from pytrends.request import TrendReq
+    except Exception as e:
+        DEBUG.append('pytrends 미설치: %r' % e)
         return out
-    start, end = '2023-01-01', TODAY.isoformat()
-    for sec, themes in keys.items():
-        groups = [{'groupName': t, 'keywords': kws} for t, kws in themes.items()][:5]
-        try:
-            d = naver_req('https://openapi.naver.com/v1/datalab/search',
-                          {'startDate': start, 'endDate': end, 'timeUnit': 'week', 'keywordGroups': groups})
-            out[sec] = {r['title']: [[p['period'], p['ratio']] for p in r['data']] for r in d.get('results', [])}
-        except Exception as e:
-            if len(DEBUG) < 20:
-                DEBUG.append('데이터랩 %s: %r' % (sec, e))
-        time.sleep(0.35)
-    DEBUG.append('데이터랩 %d개 섹터 수집' % len(out))
+    ok = 0
+    try:
+        pt = TrendReq(hl='ko', tz=-540)
+        for sec, themes in keys.items():
+            reps = {t: kws[0] for t, kws in list(themes.items())[:5]}  # 테마당 대표 키워드 1개
+            for attempt in range(2):
+                try:
+                    pt.build_payload(list(reps.values()), timeframe='today 5-y', geo='KR')
+                    df = pt.interest_over_time()
+                    got = {}
+                    for t, kw in reps.items():
+                        if kw in df.columns:
+                            got[t] = [[d.strftime('%Y-%m-%d'), int(v)] for d, v in df[kw].items()]
+                    if got:
+                        out[sec] = got
+                        ok += 1
+                    time.sleep(12)
+                    break
+                except Exception as e:
+                    if attempt == 1 and len(DEBUG) < 20:
+                        DEBUG.append('검색트렌드 %s: %r' % (sec, str(e)[:80]))
+                    time.sleep(30)
+    except Exception as e:
+        DEBUG.append('검색트렌드 초기화: %r' % e)
+    DEBUG.append('검색트렌드 %d개 섹터 갱신' % ok)
     return out
 
 def buzz(keys, prev_buzz):
+    """뉴스 버즈: 구글뉴스 RSS 최근 7일 기사수 (키워드당 최대 ~100건 집계)"""
     out = dict(prev_buzz or {})
-    if not NAVER_ID or not NAVER_SECRET:
-        DEBUG.append('버즈: 네이버 키 없음 → 건너뜀')
-        return out
-    cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=7)
     done = 0
     for sec, kws in keys.items():
         total = 0
-        try:
-            for kw in kws:
-                cnt = 0
-                for startpos in range(1, 1000, 100):
-                    d = naver_req('https://openapi.naver.com/v1/search/news.json?query=%s&display=100&sort=date&start=%d'
-                                  % (urllib.parse.quote(kw), startpos))
-                    items = d.get('items', [])
-                    hit_old = False
-                    for it in items:
-                        try:
-                            pd = datetime.datetime.strptime(it['pubDate'], '%a, %d %b %Y %H:%M:%S %z')
-                            if pd >= cutoff:
-                                cnt += 1
-                            else:
-                                hit_old = True
-                        except Exception:
-                            pass
-                    if hit_old or len(items) < 100:
-                        break
-                    time.sleep(0.12)
-                total += cnt
-                time.sleep(0.12)
+        fail = False
+        for kw in kws:
+            try:
+                q = urllib.parse.quote('%s when:7d' % kw)
+                url = 'https://news.google.com/rss/search?q=%s&hl=ko&gl=KR&ceid=KR:ko' % q
+                x = urllib.request.urlopen(urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'}),
+                                           timeout=30).read().decode('utf-8', 'ignore')
+                total += len(re.findall(r'<item>', x))
+            except Exception as e:
+                fail = True
+                if len(DEBUG) < 20:
+                    DEBUG.append('버즈 %s/%s: %r' % (sec, kw, e))
+            time.sleep(0.5)
+        if not fail or total > 0:
             ser = [x for x in out.get(sec, []) if x[0] != TODAY.isoformat()]
             ser.append([TODAY.isoformat(), total])
             out[sec] = ser[-150:]
             done += 1
-        except Exception as e:
-            if len(DEBUG) < 20:
-                DEBUG.append('버즈 %s: %r' % (sec, e))
     DEBUG.append('버즈 %d개 섹터 측정' % done)
     return out
 
@@ -153,8 +144,8 @@ def exports(hsmap, prev_exp):
 def main():
     keys = json.load(open('trendkeys.json', encoding='utf-8'))
     pv = prev()
-    DEBUG.append('키 상태 — 네이버:%s 관세청:%s' % ('O' if NAVER_ID else 'X', 'O' if CUSTOMS_KEY else 'X'))
-    dl = datalab(keys.get('datalab', {})) or pv.get('datalab', {})
+    DEBUG.append('키 상태 — 관세청:%s' % ('O' if CUSTOMS_KEY else 'X'))
+    dl = datalab(keys.get('datalab', {}), pv.get('datalab'))
     bz = buzz(keys.get('buzz', {}), pv.get('buzz'))
     gt = dict(pv.get('google', {}))  # 성공한 키워드만 갱신(부분 차단 시 이전값 유지)
     gt.update(gtrends(keys.get('google', [])))

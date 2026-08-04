@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # 전 상장사 현재 PBR·PER·시총 일일 수집 (KIS 오픈API)
-# (run: KIS 시크릿 등록 후 첫 실행)
+# (rerun: 시크릿 재등록 후 재실행)
 # 필요 시크릿: KIS_APPKEY, KIS_APPSECRET
 # 결과: public/data/stockvals.json {map: {code: [pbr, per, 시총(억), 현재가, ROE%]}}
 import os, sys, json, time, urllib.request, re

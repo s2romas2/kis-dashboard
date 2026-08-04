@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>뷰티 트렌드 · 한국 대시보드</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin:0; background:#f6f7f9; color:#1a1f2e; font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; }
+.wrap { max-width:1140px; margin:0 auto; padding:20px 18px 48px; }
+header { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+h1 { font-size:20px; margin:0; font-weight:800; }
+.sub { color:#6b7280; font-size:12.5px; margin:3px 0 0; }
+a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
+.meta { font-size:12px; color:#8a93a2; }
+.panel { background:#fff; border:1px solid #eceef2; border-radius:14px; padding:16px 18px; margin:14px 0; box-shadow:0 1px 2px rgba(20,30,60,.04); }
+.panel h2 { font-size:14px; margin:0 0 10px; font-weight:700; }
+.chip { border:1px solid #d7dce4; background:#fff; color:#374151; border-radius:20px; padding:5px 12px; font-size:12.5px; font-weight:700; cursor:pointer; display:inline-block; margin:2px 3px 0 0; }
+.chip.on { background:#1a2a4a; color:#fff; border-color:#1a2a4a; }
+.chip.big { padding:7px 16px; font-size:13.5px; }
+.chip.geo.on { background:#2f6df6; border-color:#2f6df6; }
+.chart-box { position:relative; height:300px; }
+.hint { font-size:11.5px; color:#8a93a2; margin-top:8px; line-height:1.6; }
+.hint b { color:#5b6472; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px; margin-top:10px; }
+.card { border:1px solid #e5e8ee; border-radius:11px; padding:10px 12px; cursor:pointer; background:#fbfcfe; transition:.15s; }
+.card:hover { border-color:#2f6df6; }
+.card.on { border-color:#2f6df6; background:#eef4ff; }
+.card .bn { font-weight:800; font-size:13.5px; }
+.card .bv { font-size:11.5px; color:#8a93a2; margin-top:3px; }
+.card .bv b { color:#2f6df6; font-size:13px; }
+.loading { text-align:center; padding:40px; color:#6b7280; font-size:13px; line-height:1.8; }
+.amz { margin:6px 0 0; padding:0 0 0 2px; list-style:none; font-size:13px; }
+.amz li { padding:5px 8px; border-bottom:1px solid #f0f2f5; }
+.amz li b { color:#c2410c; font-size:11.5px; margin-right:8px; }
+.two { display:grid; grid-template-columns:3fr 2fr; gap:18px; }
+@media (max-width:760px){ .wrap{padding:14px 10px 40px;} .chart-box{height:240px;} .two{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>💄 뷰티 트렌드</h1>
+      <div class="sub">화장품·의료기기/시술 브랜드 검색 트렌드 + 아마존 USA 인기 검색어 · 매일 자동 갱신</div>
+      <div style="margin-top:6px"><a class="back" href="/">← 섹터 대시보드</a> &nbsp; <a class="back" href="/trends.html">📈 트렌드 지표</a></div>
+    </div>
+    <div class="meta" id="meta">불러오는 중…</div>
+  </header>
+
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <div id="bigbar"></div>
+      <div id="geobar"></div>
+    </div>
+    <div id="midbar" style="margin-top:10px"></div>
+  </div>
+
+  <div class="panel">
+    <h2 id="cmpTitle">브랜드 비교</h2>
+    <div class="chart-box"><canvas id="cmpChart"></canvas></div>
+    <div id="cmpEmpty"></div>
+    <div class="hint">구글트렌드 상대 검색지수(그룹 내 최대=100, 주간·5년). 브랜드가 5개를 넘는 분류는 앞 5개만 비교 차트에 표시되고, 나머지는 아래 카드에서 개별 확인. 절대 검색량이 아닌 <b>추세·상대비교</b> 지표입니다.</div>
+  </div>
+
+  <div class="panel">
+    <h2>브랜드 <span style="color:#8a93a2;font-weight:400;font-size:12px">— 카드를 클릭하면 제품별 검색량과 아마존 인기 검색어가 열립니다</span></h2>
+    <div class="grid" id="cards"></div>
+  </div>
+
+  <div class="panel" id="detailPanel" style="display:none">
+    <h2 id="dTitle"></h2>
+    <div class="two">
+      <div>
+        <div style="font-size:12px;color:#5b6472;font-weight:700;margin-bottom:6px" id="dChartTitle">제품별 검색 트렌드 (한국)</div>
+        <div class="chart-box" style="height:260px"><canvas id="dChart"></canvas></div>
+      </div>
+      <div>
+        <div style="font-size:12px;color:#5b6472;font-weight:700;margin-bottom:6px">🛒 아마존 USA 인기 검색어 (검색 수요 순)</div>
+        <ol class="amz" id="dAmz"></ol>
+      </div>
+    </div>
+    <div class="hint">왼쪽: 브랜드와 대표 제품 키워드의 검색지수(브랜드 기준 상대값) — 어떤 제품으로 관심이 쏠리는지 확인. 오른쪽: 아마존 미국 검색창 자동완성 순위 = 실제 아마존 구매 검색 수요.</div>
+  </div>
+</div>
+<script>
+let KEYS=null, D=null, BIG=null, MID=null, GEO='KR', BRAND=null;
+let cmpC=null, dC=null;
+const COLORS=['#2f6df6','#e5384d','#0ea472','#f59e0b','#7c3aed','#0891b2','#be185d','#65a30d'];
+const esc=s=>s.replace(/'/g,"\\'");
+function chips(el, items, cur, fn, cls){
+  document.getElementById(el).innerHTML=items.map(s=>
+    `<span class="chip ${cls||''} ${cur===s?'on':''}" onclick="${fn}('${esc(s)}')">${s}</span>`).join('');
+}
+function gtSer(geo,kw){ return ((D.gt||{})[geo]||{})[kw]||null; }
+function baseOpts(){
+  return {responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{labels:{boxWidth:12,font:{size:11}}}},
+    scales:{x:{ticks:{maxTicksLimit:9,font:{size:10}},grid:{display:false}},
+      y:{min:0,grid:{color:'#f0f2f5'},ticks:{font:{size:10}}}}};
+}
+window.setBig=function(b){ BIG=b; MID=Object.keys(KEYS[b])[0]; BRAND=null; draw(); };
+window.setMid=function(m){ MID=m; BRAND=null; draw(); };
+window.setGeo=function(g){ GEO=(g==='한국')?'KR':'US'; draw(); };
+window.setBrand=function(b){ BRAND=(BRAND===b)?null:b; drawCards(); drawDetail(); };
+function brandKey(b){ // 현재 지역에서 이 브랜드의 GT 키워드
+  const v=KEYS[BIG][MID][b];
+  return GEO==='US' ? (v.us||null) : b;
+}
+function draw(){
+  chips('bigbar', Object.keys(KEYS), BIG, 'setBig', 'big');
+  chips('geobar', ['한국','미국'], GEO==='KR'?'한국':'미국', 'setGeo', 'geo');
+  chips('midbar', Object.keys(KEYS[BIG]), MID, 'setMid');
+  drawCmp(); drawCards(); drawDetail();
+}
+function drawCmp(){
+  const brands=Object.keys(KEYS[BIG][MID]);
+  const use=brands.slice(0,5).map(b=>({b, k:brandKey(b)})).filter(x=>x.k&&gtSer(GEO,x.k));
+  document.getElementById('cmpTitle').textContent='브랜드 비교 — '+MID+' ('+(GEO==='KR'?'한국':'미국')+')';
+  if(cmpC){ cmpC.destroy(); cmpC=null; }
+  if(!use.length){
+    document.getElementById('cmpEmpty').innerHTML='<div class="loading">이 분류의 '+(GEO==='KR'?'한국':'미국')+' 데이터가 아직 수집되지 않았습니다.<br>구글 수집이 차단된 날은 다음 자동 실행 때 채워집니다.</div>';
+    return;
+  }
+  document.getElementById('cmpEmpty').innerHTML='';
+  const labels=gtSer(GEO,use[0].k).map(x=>x[0]);
+  cmpC=new Chart(document.getElementById('cmpChart'),{type:'line',data:{labels,
+    datasets:use.map((x,i)=>({label:x.b,data:gtSer(GEO,x.k).map(p=>p[1]),borderColor:COLORS[i%COLORS.length],
+      backgroundColor:'transparent',borderWidth:1.8,pointRadius:0,tension:.25}))},
+    options:baseOpts()});
+}
+function drawCards(){
+  const brands=KEYS[BIG][MID];
+  document.getElementById('cards').innerHTML=Object.keys(brands).map(b=>{
+    const k=brandKey(b);
+    const s=k?gtSer(GEO,k):null;
+    const last=s&&s.length?s[s.length-1][1]:null;
+    const prev=s&&s.length>4?s[s.length-5][1]:null;
+    const arrow=(last!=null&&prev!=null)?(last>prev?' <span style="color:#e5384d">▲</span>':(last<prev?' <span style="color:#2563d6">▼</span>':'')):'';
+    return `<div class="card ${BRAND===b?'on':''}" onclick="setBrand('${esc(b)}')">
+      <div class="bn">${b}</div>
+      <div class="bv">${last!=null?('관심도 <b>'+last+'</b>'+arrow):(GEO==='US'&&!brands[b].us?'미국 미판매':'수집 대기')}</div></div>`;
+  }).join('');
+}
+function drawDetail(){
+  const p=document.getElementById('detailPanel');
+  if(!BRAND){ p.style.display='none'; return; }
+  p.style.display='';
+  const v=KEYS[BIG][MID][BRAND];
+  document.getElementById('dTitle').textContent='🔎 '+BRAND+(v.us?' · '+v.us:'');
+  // 제품별 검색 트렌드(한국): 브랜드 + 제품 키워드
+  const kws=[BRAND, ...(v.products||[])];
+  const avail=kws.filter(k=>gtSer('KR',k));
+  if(dC){ dC.destroy(); dC=null; }
+  if(avail.length){
+    const labels=gtSer('KR',avail[0]).map(x=>x[0]);
+    dC=new Chart(document.getElementById('dChart'),{type:'line',data:{labels,
+      datasets:avail.map((k,i)=>({label:k,data:gtSer('KR',k).map(x=>x[1]),borderColor:COLORS[i%COLORS.length],
+        backgroundColor:'transparent',borderWidth:1.7,pointRadius:0,tension:.25}))},
+      options:baseOpts()});
+  }
+  const amz=(D.amazon||{})[BRAND];
+  document.getElementById('dAmz').innerHTML=amz&&amz.length
+    ? amz.slice(0,10).map((s,i)=>`<li><b>${i+1}</b>${s}</li>`).join('')
+    : '<li style="color:#8a93a2">'+(v.us?'수집 대기 중':'아마존 미판매(한국 전용 브랜드)')+'</li>';
+  p.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+(async function(){
+  try{ KEYS=await (await fetch('/beautykeys.json?t='+Date.now())).json(); }catch(e){ KEYS={}; }
+  try{ D=await (await fetch('/data/beauty.json?t='+Date.now())).json(); }catch(e){ D={}; }
+  D=D||{};
+  document.getElementById('meta').textContent=D.updated?('갱신 '+D.updated):'첫 수집 대기 중';
+  BIG=Object.keys(KEYS)[0]; MID=Object.keys(KEYS[BIG])[0];
+  draw();
+})();
+</script>
+</body>
+</html>

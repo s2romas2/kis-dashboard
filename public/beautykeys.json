@@ -7,58 +7,75 @@
       "스킨1004": {"us": "SKIN1004", "products": ["스킨1004 앰플", "스킨1004 선크림"]},
       "토리든": {"us": "Torriden", "products": ["토리든 다이브인세럼", "토리든 토너"]},
       "라운드랩": {"us": "Round Lab", "products": ["라운드랩 자작나무선크림", "라운드랩 토너"]},
+      "아비브": {"us": "Abib", "products": ["아비브 어성초크림", "아비브 패드"]},
       "믹순": {"us": "Mixsoon", "products": ["믹순 콩에센스"]},
-      "바이오던스": {"us": "Biodance", "products": ["바이오던스 마스크팩"]}
+      "바이오던스": {"us": "Biodance", "products": ["바이오던스 마스크팩"]},
+      "에스트라": {"us": "Aestura", "products": ["에스트라 아토베리어"]}
     },
     "더마·기능성": {
       "메디큐브": {"us": "Medicube", "products": ["메디큐브 콜라겐", "메디큐브 제로모공패드"]},
       "마녀공장": {"us": "Manyo", "products": ["마녀공장 클렌징오일", "마녀공장 갈락토미"]},
       "넘버즈인": {"us": "numbuzin", "products": ["넘버즈인 3번", "넘버즈인 세럼"]},
       "달바": {"us": "dAlba", "products": ["달바 미스트", "달바 선크림"]},
-      "메디힐": {"us": "Mediheal", "products": ["메디힐 마스크팩", "메디힐 패드"]}
+      "메디힐": {"us": "Mediheal", "products": ["메디힐 마스크팩", "메디힐 패드"]},
+      "닥터지": {"us": "Dr.G", "products": ["닥터지 선크림", "닥터지 크림"]},
+      "메디필": {"us": "Medi-Peel", "products": ["메디필 세럼"]},
+      "아이소이": {"us": "isoi", "products": ["아이소이 세럼"]}
     },
     "메이크업": {
       "클리오": {"us": "CLIO", "products": ["클리오 쿠션", "클리오 아이라이너"]},
       "롬앤": {"us": "romand", "products": ["롬앤 틴트", "롬앤 립스틱"]},
       "티르티르": {"us": "TIRTIR", "products": ["티르티르 쿠션", "티르티르 마스크핏"]},
       "페리페라": {"us": "Peripera", "products": ["페리페라 틴트"]},
-      "에스쁘아": {"us": "espoir", "products": ["에스쁘아 쿠션"]}
+      "에스쁘아": {"us": "espoir", "products": ["에스쁘아 쿠션"]},
+      "웨이크메이크": {"us": "Wakemake", "products": ["웨이크메이크 섀도우"]},
+      "데이지크": {"us": "Dasique", "products": ["데이지크 섀도우팔레트"]}
     },
     "럭셔리·전통": {
       "설화수": {"us": "Sulwhasoo", "products": ["설화수 윤조에센스", "설화수 자음생"]},
       "헤라": {"us": "HERA", "products": ["헤라 블랙쿠션", "헤라 립스틱"]},
       "더후": {"us": "The history of Whoo", "products": ["더후 천기단", "더후 쿠션"]},
       "라네즈": {"us": "Laneige", "products": ["라네즈 립슬리핑마스크", "라네즈 크림스킨"]},
-      "이니스프리": {"us": "innisfree", "products": ["이니스프리 그린티세럼", "이니스프리 선크림"]}
+      "이니스프리": {"us": "innisfree", "products": ["이니스프리 그린티세럼", "이니스프리 선크림"]},
+      "숨37": {"us": "SU:M37", "products": ["숨37 에센스"]}
     }
   },
-  "의료기기·시술": {
+  "뷰티디바이스·시술": {
     "스킨부스터": {
       "쥬베룩": {"us": "Juvelook", "products": ["쥬베룩 볼륨", "쥬베룩 가격"]},
       "리쥬란": {"us": "Rejuran", "products": ["리쥬란 힐러", "리쥬란 가격"]},
       "쥬브아셀": {"us": null, "products": ["쥬브아셀 가격"]},
       "리투오": {"us": null, "products": ["리투오 가격"]},
       "셀르디엠": {"us": null, "products": ["셀르디엠 가격"]},
-      "프로파일로": {"us": "Profhilo", "products": ["프로파일로 가격"]}
+      "프로파일로": {"us": "Profhilo", "products": ["프로파일로 가격"]},
+      "엑소좀": {"us": "exosome skin", "products": ["엑소좀 시술"]},
+      "물광주사": {"us": null, "products": ["물광주사 가격"]}
     },
     "톡신": {
       "보톡스": {"us": "Botox", "products": ["보톡스 가격", "턱보톡스"]},
       "나보타": {"us": "Jeuveau", "products": ["나보타 가격"]},
       "레티보": {"us": "Letybo", "products": ["레티보 가격"]},
       "제오민": {"us": "Xeomin", "products": ["제오민 가격"]},
-      "원더톡스": {"us": null, "products": ["원더톡스 가격"]}
+      "보툴렉스": {"us": "Botulax", "products": ["보툴렉스 가격"]},
+      "원더톡스": {"us": null, "products": ["원더톡스 가격"]},
+      "코어톡스": {"us": null, "products": ["코어톡스 가격"]}
     },
     "필러": {
       "쥬비덤": {"us": "Juvederm", "products": ["쥬비덤 가격"]},
       "레스틸렌": {"us": "Restylane", "products": ["레스틸렌 가격"]},
       "이브아르": {"us": null, "products": ["이브아르 가격"]},
+      "뉴라미스": {"us": "Neuramis", "products": ["뉴라미스 가격"]},
+      "벨로테로": {"us": "Belotero", "products": ["벨로테로 가격"]},
       "채움": {"us": null, "products": ["채움필러"]}
     },
     "리프팅·에너지기기": {
       "울쎄라": {"us": "Ultherapy", "products": ["울쎄라 가격", "울쎄라 300샷"]},
+      "써마지": {"us": "Thermage", "products": ["써마지 가격"]},
       "슈링크": {"us": null, "products": ["슈링크 가격", "슈링크 유니버스"]},
       "인모드": {"us": "InMode", "products": ["인모드 가격"]},
       "덴서티": {"us": "Density", "products": ["덴서티 가격"]},
+      "올리지오": {"us": "Oligio", "products": ["올리지오 가격"]},
+      "포텐자": {"us": "Potenza", "products": ["포텐자 가격"]},
       "온다": {"us": null, "products": ["온다리프팅 가격"]}
     },
     "콜라겐 자극": {
@@ -70,7 +87,8 @@
       "에이지알": {"us": "Medicube AGE-R", "products": ["에이지알 부스터프로", "에이지알 유쎄라딥샷"]},
       "듀얼소닉": {"us": "Dualsonic", "products": ["듀얼소닉 가격"]},
       "실큰": {"us": "Silkn", "products": ["실큰 리프팅기기"]},
-      "누페이스": {"us": "NuFACE", "products": ["누페이스 미니"]}
+      "누페이스": {"us": "NuFACE", "products": ["누페이스 미니"]},
+      "메디테라피": {"us": "Meditherapy", "products": ["메디테라피 기기"]}
     }
   }
 }

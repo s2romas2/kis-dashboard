@@ -4,7 +4,7 @@ on:
     - cron: '10 10 * * *'
   workflow_dispatch: {}
   push:
-    paths: ['trends.py', 'trendkeys.json']
+    paths: ['trends.py', 'public/trendkeys.json', 'public/beautykeys.json']
 permissions:
   contents: write
 jobs:

@@ -81,6 +81,35 @@ def buzz(keys, prev_buzz):
     DEBUG.append('버즈 %d개 섹터 측정' % done)
     return out
 
+def buzz_brands(prev_bb):
+    """뷰티 브랜드별 뉴스 버즈 (구글뉴스 RSS 최근 7일)"""
+    out = dict(prev_bb or {})
+    try:
+        bk = json.load(open('public/beautykeys.json', encoding='utf-8'))
+    except Exception as e:
+        DEBUG.append('beautykeys 로드 실패: %r' % e)
+        return out
+    done = 0
+    for big, mids in bk.items():
+        for mid, brands in mids.items():
+            for b in brands:
+                try:
+                    q = urllib.parse.quote('%s when:7d' % b)
+                    url = 'https://news.google.com/rss/search?q=%s&hl=ko&gl=KR&ceid=KR:ko' % q
+                    x = urllib.request.urlopen(urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'}),
+                                               timeout=30).read().decode('utf-8', 'ignore')
+                    cnt = len(re.findall(r'<item>', x))
+                    ser = [v for v in out.get(b, []) if v[0] != TODAY.isoformat()]
+                    ser.append([TODAY.isoformat(), cnt])
+                    out[b] = ser[-150:]
+                    done += 1
+                except Exception as e:
+                    if len(DEBUG) < 20:
+                        DEBUG.append('브랜드버즈 %s: %r' % (b, e))
+                time.sleep(0.45)
+    DEBUG.append('브랜드버즈 %d개' % done)
+    return out
+
 def gtrends(batches):
     out = {}
     try:
@@ -142,16 +171,17 @@ def exports(hsmap, prev_exp):
     return out
 
 def main():
-    keys = json.load(open('trendkeys.json', encoding='utf-8'))
+    keys = json.load(open('public/trendkeys.json', encoding='utf-8'))
     pv = prev()
     DEBUG.append('키 상태 — 관세청:%s' % ('O' if CUSTOMS_KEY else 'X'))
     dl = datalab(keys.get('datalab', {}), pv.get('datalab'))
     bz = buzz(keys.get('buzz', {}), pv.get('buzz'))
+    bb = buzz_brands(pv.get('buzz_brand'))
     gt = dict(pv.get('google', {}))  # 성공한 키워드만 갱신(부분 차단 시 이전값 유지)
     gt.update(gtrends(keys.get('google', [])))
     ex = exports(keys.get('export', {}), pv.get('export'))
     out = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'debug': DEBUG,
-           'datalab': dl, 'buzz': bz, 'google': gt, 'export': ex}
+           'datalab': dl, 'buzz': bz, 'buzz_brand': bb, 'google': gt, 'export': ex}
     os.makedirs('public/data', exist_ok=True)
     with open(OUT, 'w', encoding='utf-8') as f:
         json.dump(out, f, ensure_ascii=False)

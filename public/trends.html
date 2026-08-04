@@ -19,6 +19,9 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
 .panel h2 { font-size:14px; margin:0 0 10px; font-weight:700; }
 .chip { border:1px solid #d7dce4; background:#fff; color:#374151; border-radius:20px; padding:5px 12px; font-size:12.5px; font-weight:700; cursor:pointer; display:inline-block; margin:2px 3px 0 0; }
 .chip.on { background:#1a2a4a; color:#fff; border-color:#1a2a4a; }
+.chip.big { padding:7px 16px; font-size:13.5px; }
+.chip.big.on { background:#2f6df6; border-color:#2f6df6; }
+.lead { display:inline-block; background:#f0f4fa; color:#5b6472; border-radius:8px; padding:2px 8px; font-size:11px; font-weight:600; margin-left:6px; vertical-align:1px; }
 .chart-box { position:relative; height:300px; }
 .chart-sm { position:relative; height:230px; }
 .hint { font-size:11.5px; color:#8a93a2; margin-top:8px; line-height:1.6; }
@@ -32,134 +35,185 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
   <header>
     <div>
       <h1>📈 트렌드 지표</h1>
-      <div class="sub">네이버 검색트렌드 · 뉴스 버즈 · 구글트렌드(미국) · 관세청 수출 — 매일 자동 갱신</div>
+      <div class="sub">검색트렌드 · 뉴스 버즈 · 구글트렌드(미국) · 관세청 수출 — 아래 카테고리를 고르면 모든 지표가 함께 바뀝니다</div>
+      <div style="margin-top:6px"><a class="back" href="/">← 섹터 대시보드</a> &nbsp; <a class="back" href="/beauty.html">💄 뷰티 상세(아마존·제품별)</a></div>
     </div>
-    <div style="text-align:right">
-      <a class="back" href="/">← 섹터 대시보드</a>
-      <div class="meta" id="meta">불러오는 중…</div>
-    </div>
+    <div class="meta" id="meta">불러오는 중…</div>
   </header>
 
   <div class="panel">
-    <h2>🔍 검색트렌드 (한국) <span style="color:#8a93a2;font-weight:400;font-size:12px">— 섹터별 키워드 검색 관심도 (주간, 5년)</span></h2>
-    <div id="secbar"></div>
-    <div class="chart-box" style="margin-top:10px"><canvas id="dlChart"></canvas></div>
-    <div id="dlEmpty"></div>
-    <div class="hint">구글트렌드 한국 지역 상대 검색지수(기간 내 최대=100). 절대 검색량이 아니라 <b>추세</b>를 보는 지표입니다. 구글이 수집을 차단하는 날은 성공한 섹터만 갱신되며 매일 누적됩니다. 테마별 키워드는 trendkeys.json에서 수정할 수 있습니다.</div>
+    <div id="catbar"></div>
+    <div id="subbar" style="margin-top:8px"></div>
+    <div id="brandbar" style="margin-top:8px"></div>
   </div>
 
   <div class="panel">
-    <h2>📰 뉴스 버즈 <span style="color:#8a93a2;font-weight:400;font-size:12px">— 섹터 키워드의 최근 7일 기사수</span></h2>
+    <h2>🔍 검색트렌드 (한국) <span class="lead">매일 저녁 7시 수집 · 구글 반영지연 2~3일 · 주간 단위</span></h2>
+    <div class="chart-box"><canvas id="dlChart"></canvas></div>
+    <div id="dlEmpty"></div>
+    <div class="hint" id="dlHint"></div>
+  </div>
+
+  <div class="panel">
+    <h2>📰 뉴스 버즈 <span class="lead">매일 저녁 7시 수집 · 최근 7일 기사수 · 2026-08-04부터 누적</span></h2>
     <div class="chart-sm"><canvas id="bzBar"></canvas></div>
     <div class="chart-sm" style="margin-top:14px"><canvas id="bzHist"></canvas></div>
     <div id="bzEmpty"></div>
-    <div class="hint">위: 전체 섹터의 최근 7일 기사수 비교 · 아래: 위에서 선택한 섹터의 버즈 추이(측정일 누적). 구글뉴스 검색 기준(키워드당 최대 약 100건 집계)이며 수집 시작 후 데이터가 쌓입니다.</div>
+    <div class="hint">위: 최근 7일 기사수 비교 · 아래: 선택 항목의 버즈 추이. 구글뉴스 기준(항목당 최대 약 100건×키워드수). <b>측정 시작일(8/4)부터 매일 1개씩 점이 쌓여 선이 됩니다</b> — 과거 기사수는 소급 수집이 불가능합니다.</div>
   </div>
 
   <div class="panel">
-    <h2>🌎 구글트렌드 (미국) <span style="color:#8a93a2;font-weight:400;font-size:12px">— K뷰티·에스테틱·반도체 미국 검색 관심도 (5년)</span></h2>
-    <div id="gtbar"></div>
-    <div class="chart-box" style="margin-top:10px"><canvas id="gtChart"></canvas></div>
+    <h2>🌎 구글트렌드 (미국) <span class="lead">매일 저녁 7시 수집 · 구글 반영지연 2~3일 · 주간 단위</span></h2>
+    <div class="chart-box"><canvas id="gtChart"></canvas></div>
     <div id="gtEmpty"></div>
-    <div class="hint">미국 지역 상대 검색지수. 아마존 점유율 데이터는 공개되지 않아, 미국 검색 관심도가 <b>미국 수요의 대용 지표</b> 역할을 합니다. 구글이 수집을 차단하는 날은 이전 데이터가 유지됩니다.</div>
+    <div class="hint" id="gtHint">미국 지역 상대 검색지수. 아마존 점유율은 비공개라 미국 검색 관심도가 <b>미국 수요의 대용 지표</b>이며, 아마존 실검색 수요는 <a href="/beauty.html" style="color:#2f6df6">뷰티 상세</a>의 인기 검색어에서 확인. 구글 차단 시 이전 데이터 유지·매일 누적.</div>
   </div>
 
   <div class="panel">
-    <h2>🚢 수출 데이터 <span style="color:#8a93a2;font-weight:400;font-size:12px">— 관세청 품목별 월별 수출액 (2020~)</span></h2>
+    <h2>🚢 수출 데이터 <span class="lead">월 단위 관세청 확정치 · 확정까지 1~2개월 지연 · 매일 확인</span></h2>
     <div id="exbar"></div>
     <div class="chart-box" style="margin-top:10px"><canvas id="exChart"></canvas></div>
     <div id="exEmpty"></div>
-    <div class="hint">막대=월별 수출액(백만달러), 빨간 선=전년동월 대비 증감률(%). 관세청 확정치 기준이라 최근 1~2개월은 반영이 늦을 수 있습니다.</div>
+    <div class="hint">막대=월별 수출액(백만달러), 빨간 선=전년동월 대비 증감률(%). 관세청 확정치라 최근 1~2개월은 반영이 늦습니다.</div>
   </div>
 </div>
 <script>
-let T=null, SEC=null, GKEY=null, EX=null;
+let T={}, B={}, K={}, TK=null;
+let CAT='산업 섹터', SUB=null, BRAND=null, EX=null;
 let dlC=null, bzB=null, bzH=null, gtC=null, exC=null;
-const COLORS=['#2f6df6','#e5384d','#0ea472','#f59e0b','#7c3aed','#0891b2','#be185d','#65a30d'];
-function chips(el, items, cur, fn){
-  document.getElementById(el).innerHTML=items.map(s=>
-    `<span class="chip ${cur===s?'on':''}" onclick="${fn}('${s.replace(/'/g,"\\'")}')">${s}</span>`).join('');
+const COLORS=['#2f6df6','#e5384d','#0ea472','#f59e0b','#7c3aed','#0891b2','#be185d','#65a30d','#334155','#b45309'];
+const esc=s=>String(s).replace(/'/g,"\\'");
+const isBeauty=()=>CAT!=='산업 섹터';
+function chips(el, items, cur, fn, cls){
+  const box=document.getElementById(el);
+  if(!items||!items.length){ box.innerHTML=''; return; }
+  box.innerHTML=items.map(s=>
+    `<span class="chip ${cls||''} ${cur===s?'on':''}" onclick="${fn}('${esc(s)}')">${s}</span>`).join('');
 }
-function baseOpts(extra){
-  return Object.assign({responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+function baseOpts(rot){
+  const x={ticks:{maxTicksLimit:10,font:{size:10}},grid:{display:false}};
+  if(rot){ x.ticks={autoSkip:false,maxRotation:55,minRotation:35,font:{size:10}}; }
+  return {responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
     plugins:{legend:{labels:{boxWidth:12,font:{size:11}}}},
-    scales:{x:{ticks:{maxTicksLimit:10,font:{size:10}},grid:{display:false}},
-      y:{grid:{color:'#f0f2f5'},ticks:{font:{size:10}}}}}, extra||{});
+    scales:{x, y:{min:0,grid:{color:'#f0f2f5'},ticks:{font:{size:10}}}}};
 }
-window.setSec=function(s){ SEC=s; drawDL(); drawBzHist(); };
-function drawDL(){
-  const dl=T.datalab||{};
-  const secs=Object.keys(dl);
-  if(!secs.length){
-    document.getElementById('dlEmpty').innerHTML='<div class="loading">아직 데이터가 없습니다.<br>구글 수집이 차단된 날은 다음 자동 실행 때 채워집니다.</div>';
-    document.getElementById('dlChart').parentElement.style.display='none';
-    return;
-  }
-  if(!SEC||!dl[SEC]) SEC=secs[0];
-  chips('secbar', secs, SEC, 'setSec');
-  const themes=dl[SEC];
-  const names=Object.keys(themes);
-  const labels=(themes[names[0]]||[]).map(x=>x[0]);
-  if(dlC){ dlC.destroy(); }
-  dlC=new Chart(document.getElementById('dlChart'),{type:'line',data:{labels,
-    datasets:names.map((t,i)=>({label:t,data:themes[t].map(x=>x[1]),borderColor:COLORS[i%COLORS.length],
+window.setCat=function(c){ CAT=c; SUB=null; BRAND=null; draw(); };
+window.setSub=function(s){ SUB=s; BRAND=null; draw(); };
+window.setBrand=function(b){ BRAND=(BRAND===b)?null:b; draw(); };
+window.setEx=function(k){ EX=k; drawEx(); };
+function subList(){
+  if(!isBeauty()) return Object.keys(T.datalab||{}).length?Object.keys(T.datalab):Object.keys((TK&&TK.datalab)||{});
+  return Object.keys(K[CAT]||{});
+}
+function draw(){
+  chips('catbar', ['산업 섹터', ...Object.keys(K)], CAT, 'setCat', 'big');
+  const subs=subList();
+  if(!SUB||!subs.includes(SUB)) SUB=subs[0]||null;
+  chips('subbar', subs, SUB, 'setSub');
+  if(isBeauty()&&SUB){ chips('brandbar', ['브랜드 비교', ...Object.keys(K[CAT][SUB])], BRAND||'브랜드 비교', 'setBrand2'); }
+  else document.getElementById('brandbar').innerHTML='';
+  drawDL(); drawBz(); drawGt(); drawEx();
+}
+window.setBrand2=function(b){ BRAND=(b==='브랜드 비교')?null:b; draw(); };
+function gtKR(kw){ return ((B.gt||{}).KR||{})[kw]||null; }
+function gtUS(kw){ return ((B.gt||{}).US||{})[kw]||null; }
+function lineChart(canvasId, series, oldC){
+  // series: [{label, data:[[d,v],...]}]
+  if(oldC){ oldC.destroy(); }
+  const labels=series[0].data.map(x=>x[0]);
+  return new Chart(document.getElementById(canvasId),{type:'line',data:{labels,
+    datasets:series.map((s,i)=>({label:s.label,data:s.data.map(x=>x[1]),borderColor:COLORS[i%COLORS.length],
       backgroundColor:'transparent',borderWidth:1.8,pointRadius:0,tension:.25}))},
     options:baseOpts()});
 }
+function drawDL(){
+  const box=document.getElementById('dlChart').parentElement, empty=document.getElementById('dlEmpty');
+  let series=[], hint='';
+  if(!isBeauty()){
+    const themes=(T.datalab||{})[SUB]||{};
+    series=Object.keys(themes).map(t=>({label:t,data:themes[t]}));
+    hint='구글트렌드 한국, '+SUB+' 섹터 테마 키워드(그룹 내 최대=100). 절대량이 아닌 <b>추세</b> 지표. 키워드는 trendkeys.json에서 수정.';
+  } else if(SUB){
+    if(BRAND){
+      const v=K[CAT][SUB][BRAND];
+      series=[BRAND, ...(v.products||[])].filter(k=>gtKR(k)).map(k=>({label:k,data:gtKR(k)}));
+      hint='<b>'+BRAND+'</b>의 브랜드·제품 키워드 검색 추세(한국). 아마존 검색어는 <a href="/beauty.html" style="color:#2f6df6">뷰티 상세</a>에서.';
+    } else {
+      series=Object.keys(K[CAT][SUB]).filter(b=>gtKR(b)).slice(0,5).map(b=>({label:b,data:gtKR(b)}));
+      hint=SUB+' 브랜드 비교(최대 5개 표시, 그룹 내 최대=100). 브랜드 칩을 누르면 제품별로 내려갑니다.';
+    }
+  }
+  if(dlC){ dlC.destroy(); dlC=null; }
+  if(!series.length){
+    box.style.display='none';
+    empty.innerHTML='<div class="loading">이 항목의 데이터가 아직 수집되지 않았습니다.<br>구글 수집이 차단된 날은 다음 자동 실행(매일 저녁) 때 채워집니다.</div>';
+  } else {
+    box.style.display=''; empty.innerHTML='';
+    dlC=lineChart('dlChart', series, null);
+  }
+  document.getElementById('dlHint').innerHTML=hint;
+}
 function drawBz(){
-  const bz=T.buzz||{};
-  const secs=Object.keys(bz);
-  if(!secs.length){
-    document.getElementById('bzEmpty').innerHTML='<div class="loading">아직 데이터가 없습니다. 매일 자동 수집되며 곧 쌓입니다.</div>';
-    document.getElementById('bzBar').parentElement.style.display='none';
-    document.getElementById('bzHist').parentElement.style.display='none';
+  const barBox=document.getElementById('bzBar').parentElement, histBox=document.getElementById('bzHist').parentElement,
+        empty=document.getElementById('bzEmpty');
+  let names=[], src=null;
+  if(!isBeauty()){ src=T.buzz||{}; names=Object.keys(src); }
+  else if(SUB){ src=T.buzz_brand||{}; names=Object.keys(K[CAT][SUB]).filter(b=>src[b]); }
+  if(bzB){ bzB.destroy(); bzB=null; }
+  if(bzH){ bzH.destroy(); bzH=null; }
+  if(!names.length){
+    barBox.style.display='none'; histBox.style.display='none';
+    empty.innerHTML='<div class="loading">이 항목의 버즈 데이터가 아직 없습니다. 다음 자동 실행(매일 저녁) 때 수집됩니다.</div>';
     return;
   }
-  const latest=secs.map(s=>{const a=bz[s]; return a.length?a[a.length-1][1]:0;});
-  if(bzB){ bzB.destroy(); }
-  bzB=new Chart(document.getElementById('bzBar'),{type:'bar',data:{labels:secs,
+  barBox.style.display=''; histBox.style.display=''; empty.innerHTML='';
+  const latest=names.map(n=>{const a=src[n]; return a&&a.length?a[a.length-1][1]:0;});
+  bzB=new Chart(document.getElementById('bzBar'),{type:'bar',data:{labels:names,
     datasets:[{label:'최근 7일 기사수',data:latest,backgroundColor:'#2f6df6',borderRadius:4}]},
-    options:baseOpts()});
-  drawBzHist();
-}
-function drawBzHist(){
-  const bz=T.buzz||{};
-  if(!SEC||!bz[SEC]) return;
-  const ser=bz[SEC];
-  if(bzH){ bzH.destroy(); }
+    options:baseOpts(true)});
+  const target=(isBeauty()?(BRAND&&src[BRAND]?BRAND:names[0]):SUB);
+  const ser=src[target]||[];
   bzH=new Chart(document.getElementById('bzHist'),{type:'line',data:{labels:ser.map(x=>x[0]),
-    datasets:[{label:SEC+' 버즈 추이',data:ser.map(x=>x[1]),borderColor:'#e5384d',
-      backgroundColor:'rgba(229,56,77,.08)',fill:true,borderWidth:1.8,pointRadius:2,tension:.25}]},
+    datasets:[{label:target+' 버즈 추이 (측정 '+ser.length+'일째)',data:ser.map(x=>x[1]),borderColor:'#e5384d',
+      backgroundColor:'rgba(229,56,77,.08)',fill:true,borderWidth:1.8,pointRadius:4,pointBackgroundColor:'#e5384d',tension:.25}]},
     options:baseOpts()});
 }
-window.setG=function(k){ GKEY=k; drawGt(); };
 function drawGt(){
-  const gt=T.google||{};
-  const keys=Object.keys(gt);
-  if(!keys.length){
-    document.getElementById('gtEmpty').innerHTML='<div class="loading">구글트렌드 데이터가 아직 없습니다. 첫 수집을 기다리는 중이거나, 구글이 자동 수집을 차단한 상태일 수 있습니다.</div>';
-    document.getElementById('gtChart').parentElement.style.display='none';
-    return;
+  const box=document.getElementById('gtChart').parentElement, empty=document.getElementById('gtEmpty');
+  let series=[];
+  if(!isBeauty()){
+    const gt=T.google||{};
+    series=Object.keys(gt).map(k=>({label:k,data:gt[k]}));
+  } else if(SUB){
+    const brands=K[CAT][SUB];
+    if(BRAND){
+      const us=brands[BRAND]&&brands[BRAND].us;
+      if(us&&gtUS(us)) series=[{label:BRAND+' ('+us+')',data:gtUS(us)}];
+    } else {
+      series=Object.keys(brands).filter(b=>brands[b].us&&gtUS(brands[b].us)).slice(0,5)
+        .map(b=>({label:b+' ('+brands[b].us+')',data:gtUS(brands[b].us)}));
+    }
   }
-  if(!GKEY) GKEY='전체';
-  chips('gtbar', ['전체',...keys], GKEY, 'setG');
-  const use=GKEY==='전체'?keys:[GKEY];
-  const labels=(gt[use[0]]||[]).map(x=>x[0]);
-  if(gtC){ gtC.destroy(); }
-  gtC=new Chart(document.getElementById('gtChart'),{type:'line',data:{labels,
-    datasets:use.map((k,i)=>({label:k,data:gt[k].map(x=>x[1]),borderColor:COLORS[i%COLORS.length],
-      backgroundColor:'transparent',borderWidth:1.6,pointRadius:0,tension:.25}))},
-    options:baseOpts()});
+  if(gtC){ gtC.destroy(); gtC=null; }
+  if(!series.length){
+    box.style.display='none';
+    empty.innerHTML='<div class="loading">'+(isBeauty()&&BRAND?'이 브랜드는 미국 미판매이거나 데이터 수집 전입니다.':'미국 데이터가 아직 수집되지 않았습니다. 매일 저녁 자동 수집에서 채워집니다.')+'</div>';
+  } else {
+    box.style.display=''; empty.innerHTML='';
+    gtC=lineChart('gtChart', series, null);
+  }
 }
-window.setEx=function(k){ EX=k; drawEx(); };
 function drawEx(){
   const ex=T.export||{};
   const keys=Object.keys(ex);
+  if(exC){ exC.destroy(); exC=null; }
   if(!keys.length){
-    document.getElementById('exEmpty').innerHTML='<div class="loading">아직 데이터가 없습니다.<br>공공데이터포털 키를 GitHub Secrets에 <b>CUSTOMS_KEY</b>로 등록하면 매일 자동 수집됩니다.</div>';
+    document.getElementById('exEmpty').innerHTML='<div class="loading">아직 데이터가 없습니다.<br>공공데이터포털 인증키를 GitHub Secrets에 <b>CUSTOMS_KEY</b>로 등록하면 매일 자동 수집됩니다.<br><span style="font-size:12px">data.go.kr 가입 → "관세청 품목별 수출입실적" 활용신청 → 일반 인증키(Encoding) 복사</span></div>';
     document.getElementById('exChart').parentElement.style.display='none';
     return;
   }
+  document.getElementById('exChart').parentElement.style.display='';
+  document.getElementById('exEmpty').innerHTML='';
   if(!EX||!ex[EX]) EX=keys[0];
   chips('exbar', keys, EX, 'setEx');
   const ser=ex[EX];
@@ -171,26 +225,22 @@ function drawEx(){
     const pv=map.get(py);
     return pv? Math.round((v/pv-1)*1000)/10 : null;
   });
-  if(exC){ exC.destroy(); }
+  const o=baseOpts();
+  o.scales.y.title={display:true,text:'백만달러',font:{size:10}};
+  o.scales.y2={position:'right',grid:{drawOnChartArea:false},ticks:{font:{size:10}},title:{display:true,text:'YoY %',font:{size:10}}};
   exC=new Chart(document.getElementById('exChart'),{data:{labels,datasets:[
     {type:'bar',label:'수출액(백만$)',data:valsM,backgroundColor:'rgba(47,109,246,.65)',borderRadius:3,yAxisID:'y'},
     {type:'line',label:'전년동월비(%)',data:yoy,borderColor:'#e5384d',backgroundColor:'transparent',
-      borderWidth:1.8,pointRadius:0,tension:.2,yAxisID:'y2',spanGaps:true}]},
-    options:baseOpts({scales:{x:{ticks:{maxTicksLimit:12,font:{size:10}},grid:{display:false}},
-      y:{grid:{color:'#f0f2f5'},ticks:{font:{size:10}},title:{display:true,text:'백만달러',font:{size:10}}},
-      y2:{position:'right',grid:{drawOnChartArea:false},ticks:{font:{size:10}},title:{display:true,text:'YoY %',font:{size:10}}}}})});
+      borderWidth:1.8,pointRadius:0,tension:.2,yAxisID:'y2',spanGaps:true}]},options:o});
 }
 (async function(){
-  try{
-    T=await (await fetch('/data/trends.json?t='+Date.now())).json();
-  }catch(e){ T={}; }
-  if(!T||!T.updated){
-    document.getElementById('meta').textContent='첫 수집 대기 중';
-    T=T||{};
-  } else {
-    document.getElementById('meta').textContent='갱신 '+T.updated;
-  }
-  drawDL(); drawBz(); drawGt(); drawEx();
+  const ts=Date.now();
+  try{ T=await (await fetch('/data/trends.json?t='+ts)).json(); }catch(e){ T={}; }
+  try{ B=await (await fetch('/data/beauty.json?t='+ts)).json(); }catch(e){ B={}; }
+  try{ K=await (await fetch('/beautykeys.json?t='+ts)).json(); }catch(e){ K={}; }
+  try{ TK=await (await fetch('/trendkeys.json?t='+ts)).json(); }catch(e){ TK=null; }
+  document.getElementById('meta').textContent=T.updated?('갱신 '+T.updated+' (매일 저녁 자동)'):'첫 수집 대기 중';
+  draw();
 })();
 </script>
 </body>

@@ -27,6 +27,13 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
 .hint { font-size:11.5px; color:#8a93a2; margin-top:8px; line-height:1.6; }
 .hint b { color:#5b6472; }
 .loading { text-align:center; padding:40px; color:#6b7280; font-size:13px; line-height:1.8; }
+.amzrow { display:flex; gap:10px; padding:8px 4px; border-bottom:1px solid #f0f2f5; font-size:13px; flex-wrap:wrap; }
+.amzrow .bn { font-weight:800; min-width:110px; }
+.amzrow .sg { color:#374151; }
+.amzrow .sg b { color:#c2410c; font-size:11.5px; margin:0 3px 0 8px; }
+ol.amzlist { margin:6px 0 0; padding:0 0 0 4px; list-style:none; font-size:13.5px; }
+ol.amzlist li { padding:6px 8px; border-bottom:1px solid #f0f2f5; }
+ol.amzlist li b { color:#c2410c; font-size:11.5px; margin-right:9px; }
 @media (max-width:720px){ .wrap{padding:14px 10px 40px;} .chart-box{height:240px;} .chart-sm{height:200px;} }
 </style>
 </head>
@@ -69,6 +76,12 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
     <div class="hint" id="gtHint">미국 지역 상대 검색지수. 아마존 점유율은 비공개라 미국 검색 관심도가 <b>미국 수요의 대용 지표</b>이며, 아마존 실검색 수요는 <a href="/beauty.html" style="color:#2f6df6">뷰티 상세</a>의 인기 검색어에서 확인. 구글 차단 시 이전 데이터 유지·매일 누적.</div>
   </div>
 
+  <div class="panel" id="amzPanel" style="display:none">
+    <h2>🛒 아마존 USA 인기 검색어 <span class="lead">매일 수집 · 아마존 자동완성 순위 = 실제 구매 검색 수요</span></h2>
+    <div id="amzBody"></div>
+    <div class="hint">아마존 미국 검색창의 자동완성 순위를 그대로 수집한 것으로, 미국 소비자가 이 브랜드에서 <b>실제로 무엇을 검색하는지</b>의 순위입니다. 검색량 수치는 아마존이 비공개(순위만 제공). 미국 미판매(한국 전용) 브랜드는 제외됩니다.</div>
+  </div>
+
   <div class="panel">
     <h2>🚢 수출 데이터 <span class="lead">월 단위 관세청 확정치 · 확정까지 1~2개월 지연 · 매일 확인</span></h2>
     <div id="exbar"></div>
@@ -97,7 +110,7 @@ function baseOpts(rot){
     plugins:{legend:{labels:{boxWidth:12,font:{size:11}}}},
     scales:{x, y:{min:0,grid:{color:'#f0f2f5'},ticks:{font:{size:10}}}}};
 }
-window.setCat=function(c){ CAT=c; SUB=null; BRAND=null; draw(); };
+window.setCat=function(c){ CAT=c; SUB=null; BRAND=null; EX=null; draw(); };
 window.setSub=function(s){ SUB=s; BRAND=null; draw(); };
 window.setBrand=function(b){ BRAND=(BRAND===b)?null:b; draw(); };
 window.setEx=function(k){ EX=k; drawEx(); };
@@ -112,9 +125,28 @@ function draw(){
   chips('subbar', subs, SUB, 'setSub');
   if(isBeauty()&&SUB){ chips('brandbar', ['브랜드 비교', ...Object.keys(K[CAT][SUB])], BRAND||'브랜드 비교', 'setBrand2'); }
   else document.getElementById('brandbar').innerHTML='';
-  drawDL(); drawBz(); drawGt(); drawEx();
+  drawDL(); drawBz(); drawGt(); drawAmz(); drawEx();
 }
 window.setBrand2=function(b){ BRAND=(b==='브랜드 비교')?null:b; draw(); };
+function drawAmz(){
+  const p=document.getElementById('amzPanel'), body=document.getElementById('amzBody');
+  if(!isBeauty()||!SUB){ p.style.display='none'; return; }
+  p.style.display='';
+  const am=(B&&B.amazon)||{};
+  const brands=K[CAT][SUB];
+  if(BRAND){
+    const v=brands[BRAND], sug=am[BRAND];
+    body.innerHTML = sug&&sug.length
+      ? '<div style="font-weight:800;font-size:13.5px;margin-bottom:2px">'+BRAND+(v.us?' ('+v.us+')':'')+'</div>'
+        +'<ol class="amzlist">'+sug.slice(0,10).map((s,i)=>'<li><b>'+(i+1)+'위</b>'+s+'</li>').join('')+'</ol>'
+      : '<div class="loading">'+(v.us?'이 브랜드의 아마존 데이터가 아직 수집되지 않았습니다(매일 자동 수집).':'아마존 미판매(한국 전용) 브랜드입니다.')+'</div>';
+    return;
+  }
+  const rows=Object.keys(brands).filter(b=>am[b]&&am[b].length).map(b=>
+    '<div class="amzrow"><span class="bn">'+b+'</span><span class="sg">'
+    +am[b].slice(0,3).map((s,i)=>'<b>'+(i+1)+'위</b>'+s).join('')+'</span></div>').join('');
+  body.innerHTML = rows || '<div class="loading">이 분류의 아마존 데이터가 아직 수집되지 않았습니다.<br>첫 수집이 완료되면(1~2시간 내) 자동으로 채워집니다.</div>';
+}
 function gtKR(kw){ return ((B.gt||{}).KR||{})[kw]||null; }
 function gtUS(kw){ return ((B.gt||{}).US||{})[kw]||null; }
 function lineChart(canvasId, series, oldC){
@@ -214,7 +246,10 @@ function drawEx(){
   }
   document.getElementById('exChart').parentElement.style.display='';
   document.getElementById('exEmpty').innerHTML='';
-  if(!EX||!ex[EX]) EX=keys[0];
+  if(!EX||!ex[EX]){  // 카테고리에 맞는 품목 자동 선택
+    const pref = CAT==='화장품' ? '화장품' : (CAT==='뷰티디바이스·시술' ? '의료기기' : null);
+    EX = (pref && keys.find(k=>k.includes(pref))) || keys[0];
+  }
   chips('exbar', keys, EX, 'setEx');
   const ser=ex[EX];
   const labels=ser.map(x=>x[0]);

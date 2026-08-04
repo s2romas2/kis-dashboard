@@ -1,31 +1,27 @@
-name: 뷰티 트렌드 수집
+name: 데이터랩 웹 진단
 on:
-  schedule:
-    - cron: '40 2,11 * * *'
   workflow_dispatch: {}
   push:
-    paths: ['beauty.py', 'public/beautykeys.json']
+    paths: ['datalab_probe.py']
 permissions:
   contents: write
 jobs:
-  beauty:
+  probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 130
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: pytrends 설치
-        run: pip install pytrends
-      - name: 수집
-        run: python beauty.py
+      - name: 진단
+        run: python datalab_probe.py || true
       - name: 결과 커밋
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/data/beauty.json 2>/dev/null || true
-          git commit -m "뷰티 트렌드 갱신" || echo "변경 없음"
+          git add public/data/datalab_probe.json 2>/dev/null || true
+          git commit -m "데이터랩 진단" || echo "변경 없음"
           git pull --rebase origin main || true
           git push || true

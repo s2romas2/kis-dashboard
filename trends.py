@@ -147,9 +147,19 @@ def exports(hsmap, prev_exp):
     ok = 0
     for name, hs in hsmap.items():
         try:
-            url = ('https://apis.data.go.kr/1220000/itemtrade/getItemtradeList?serviceKey=%s'
-                   '&strtYymm=202001&endYymm=%s&hsSgn=%s' % (CUSTOMS_KEY, endm, hs))
-            x = urllib.request.urlopen(url, timeout=60).read().decode('utf-8', 'ignore')
+            q = ('/1220000/itemtrade/getItemtradeList?serviceKey=%s'
+                 '&strtYymm=202001&endYymm=%s&hsSgn=%s' % (CUSTOMS_KEY, endm, hs))
+            x = ''
+            last = None
+            for base in ('http://apis.data.go.kr', 'https://apis.data.go.kr', 'http://apis.data.go.kr'):
+                try:
+                    x = urllib.request.urlopen(base + q, timeout=45).read().decode('utf-8', 'ignore')
+                    break
+                except Exception as e2:
+                    last = e2
+                    time.sleep(3)
+            if not x:
+                raise last or Exception('빈 응답')
             root = ET.fromstring(x)
             ser = {}
             for it in root.iter('item'):

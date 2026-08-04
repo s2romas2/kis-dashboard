@@ -29,6 +29,12 @@ try:
             for pat in ('qcHash', 'queryGroups', 'trendSearch'):
                 for m in re.findall(r'.{0,250}' + pat + r'.{0,250}', js)[:4]:
                     R['js_qc'].append({'src': u.split('/')[-1][:40], 'pat': pat, 'ctx': m})
+            # ajax POST 데이터 구성부 (qcHash.naver 뒤 900자)
+            for m in re.findall(r'qcHash\.naver[\s\S]{0,900}', js)[:2]:
+                R['js_qc'].append({'src': u.split('/')[-1][:40], 'pat': 'ajax_data', 'ctx': m})
+            # keywordForm 직렬화 함수
+            for m in re.findall(r'getKeywordGroup[\s\S]{0,500}|serializeArray[\s\S]{0,300}', js)[:3]:
+                R['js_qc'].append({'src': u.split('/')[-1][:40], 'pat': 'form', 'ctx': m})
         except Exception as e:
             R['js_qc'].append({'src': u[:60], 'err': repr(e)})
         time.sleep(0.5)

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>리포트 · 한국 대시보드</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin:0; background:#f6f7f9; color:#1a1f2e; font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; }
+.wrap { max-width:1140px; margin:0 auto; padding:20px 18px 48px; }
+header { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+h1 { font-size:20px; margin:0; font-weight:800; }
+.sub { color:#6b7280; font-size:12.5px; margin:3px 0 0; }
+a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
+.meta { font-size:12px; color:#8a93a2; }
+.panel { background:#fff; border:1px solid #eceef2; border-radius:14px; padding:16px 18px; margin:14px 0; box-shadow:0 1px 2px rgba(20,30,60,.04); }
+.chip { border:1px solid #d7dce4; background:#fff; color:#374151; border-radius:20px; padding:5px 12px; font-size:12.5px; font-weight:700; cursor:pointer; display:inline-block; margin:2px 3px 0 0; }
+.chip.on { background:#1a2a4a; color:#fff; border-color:#1a2a4a; }
+.chip.big { padding:7px 16px; font-size:13.5px; }
+.chip.big.on { background:#2f6df6; border-color:#2f6df6; }
+.hint { font-size:11.5px; color:#8a93a2; margin-top:8px; line-height:1.6; }
+.hint b { color:#5b6472; }
+.rp { display:flex; gap:12px; align-items:center; padding:11px 4px; border-bottom:1px solid #f0f2f5; flex-wrap:wrap; }
+.rp:hover { background:#fafbfd; }
+.pg { min-width:56px; text-align:center; font-weight:800; font-size:13px; color:#2f6df6; background:#eef4ff; border-radius:9px; padding:7px 4px; }
+.pg.deep { color:#fff; background:#2f6df6; }
+.pg small { display:block; font-weight:600; font-size:10px; color:inherit; opacity:.75; }
+.rmain { flex:1; min-width:220px; }
+.rt { font-weight:700; font-size:13.5px; }
+.rt a { color:#1a1f2e; text-decoration:none; }
+.rt a:hover { color:#2f6df6; }
+.rsub { font-size:11.5px; color:#8a93a2; margin-top:2px; }
+.cat { font-size:11px; color:#5b6472; background:#eef1f4; border-radius:8px; padding:1px 7px; margin-right:5px; }
+.dl { font-size:12px; font-weight:700; color:#fff; background:#e5384d; border-radius:8px; padding:7px 12px; text-decoration:none; white-space:nowrap; }
+.loading { text-align:center; padding:40px; color:#6b7280; font-size:13px; }
+.lead { display:inline-block; background:#f0f4fa; color:#5b6472; border-radius:8px; padding:2px 8px; font-size:11px; font-weight:600; margin-left:6px; vertical-align:2px; }
+@media (max-width:640px){ .wrap{padding:14px 10px 40px;} .rp{gap:8px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>📑 증권사 리포트 <span class="lead">평일 아침·정오 갱신 · 최근 1주일 발간분</span></h1>
+      <div class="sub">국내 증권사 산업분석·종목분석 원문 PDF — 심층 리포트(페이지수 많은 순) 우선 정렬</div>
+      <div style="margin-top:6px"><a class="back" href="/">← 섹터 대시보드</a></div>
+    </div>
+    <div class="meta" id="meta">불러오는 중…</div>
+  </header>
+
+  <div class="panel">
+    <div id="tabbar"></div>
+    <div id="filterbar" style="margin-top:10px"></div>
+  </div>
+
+  <div class="panel">
+    <div id="list"><div class="loading">불러오는 중…</div></div>
+    <div class="hint" id="cnt"></div>
+    <div class="hint">파란 배지=페이지수(<b>진한 배지=50p 이상 심층</b>). 제목·PDF 클릭 시 각 증권사 원문이 새 창으로 열립니다(출처: 네이버 금융 리서치 공개 링크). 페이지수 측정이 안 된 리포트는 "—"로 표시되며 다음 갱신 때 채워집니다. 정보 제공용이며 투자권유가 아닙니다.</div>
+  </div>
+</div>
+<script>
+let D=null, PRODMAP={}, TAB='industry', FIL='전체';
+const esc=s=>String(s).replace(/'/g,"\\'").replace(/</g,'&lt;');
+function pentry(c){ const e=PRODMAP[c]; return typeof e==='string'? {p:e} : (e||{}); }
+function chips(el, items, cur, fn, cls){
+  document.getElementById(el).innerHTML=items.map(s=>
+    `<span class="chip ${cls||''} ${cur===s?'on':''}" onclick="${fn}('${esc(s)}')">${s}</span>`).join('');
+}
+window.setTab=function(t){ TAB=(t==='산업분석 리포트')?'industry':'company'; FIL='전체'; draw(); };
+window.setFil=function(f){ FIL=f; draw(); };
+function draw(){
+  chips('tabbar', ['산업분석 리포트','종목분석 리포트'], TAB==='industry'?'산업분석 리포트':'종목분석 리포트', 'setTab', 'big');
+  const arr=(D&&D[TAB])||[];
+  let fils=['전체','심층 50p+'];
+  if(TAB==='industry'){
+    fils=fils.concat([...new Set(arr.map(x=>x.cat||'기타'))].slice(0,14));
+  } else {
+    fils=fils.concat(['정보기술','커뮤니케이션','금융','헬스케어','임의소비재','필수소비재','산업재','소재','에너지','유틸리티','부동산','기타']);
+  }
+  chips('filterbar', fils, FIL, 'setFil');
+  let list=arr;
+  if(FIL==='심층 50p+') list=arr.filter(x=>(x.pg||0)>=50);
+  else if(FIL!=='전체'){
+    list = TAB==='industry' ? arr.filter(x=>(x.cat||'기타')===FIL)
+                            : arr.filter(x=>(pentry(x.code).s||'기타')===FIL);
+  }
+  document.getElementById('cnt').textContent='총 '+list.length+'건 (최근 1주일)';
+  if(!list.length){
+    document.getElementById('list').innerHTML='<div class="loading">해당 조건의 리포트가 없습니다.</div>';
+    return;
+  }
+  document.getElementById('list').innerHTML=list.map(x=>{
+    const pg=x.pg? `<div class="pg ${x.pg>=50?'deep':''}">${x.pg}<small>페이지</small></div>` : '<div class="pg" style="color:#98a1b0;background:#f4f5f8">—<small>측정중</small></div>';
+    const tag = TAB==='industry'
+      ? `<span class="cat">${esc(x.cat||'기타')}</span>`
+      : `<span class="cat">${esc(pentry(x.code).s||'기타')}</span><b>${esc(x.name)}</b> <span style="color:#98a1b0;font-size:11px">${x.code}</span> · `;
+    return `<div class="rp">${pg}
+      <div class="rmain">
+        <div class="rt"><a href="${x.pdf}" target="_blank" rel="noopener">${esc(x.t)}</a></div>
+        <div class="rsub">${tag}${esc(x.b)} · ${x.d} · 조회 ${x.v.toLocaleString()}</div>
+      </div>
+      <a class="dl" href="${x.pdf}" target="_blank" rel="noopener">PDF 보기</a></div>`;
+  }).join('');
+}
+(async function(){
+  try{ const pj=await (await fetch('/data/products.json?t='+Date.now())).json(); PRODMAP=pj.map||{}; }catch(e){}
+  try{ D=await (await fetch('/data/reports.json?t='+Date.now())).json(); }catch(e){ D=null; }
+  if(!D||!D.updated){
+    document.getElementById('list').innerHTML='<div class="loading">첫 수집 대기 중입니다. 잠시 후 다시 확인해주세요.</div>';
+    document.getElementById('meta').textContent='첫 수집 대기';
+    chips('tabbar', ['산업분석 리포트','종목분석 리포트'], '산업분석 리포트', 'setTab', 'big');
+    return;
+  }
+  document.getElementById('meta').textContent='갱신 '+D.updated;
+  draw();
+})();
+</script>
+</body>
+</html>

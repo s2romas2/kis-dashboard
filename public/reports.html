@@ -43,21 +43,25 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
   <header>
     <div>
       <h1>📑 증권사 리포트 <span class="lead">평일 아침·정오 갱신 · 최근 1주일 발간분</span></h1>
-      <div class="sub">국내 증권사 산업분석·종목분석 원문 PDF — 심층 리포트(페이지수 많은 순) 우선 정렬</div>
+      <div class="sub">국내 증권사 산업분석·종목분석 원문 PDF + 해외 IB 공개 리서치(한국어 번역) — 심층 리포트 우선 정렬 · 검색 지원</div>
       <div style="margin-top:6px"><a class="back" href="/">← 섹터 대시보드</a></div>
     </div>
     <div class="meta" id="meta">불러오는 중…</div>
   </header>
 
   <div class="panel">
-    <div id="tabbar"></div>
+    <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+      <div id="tabbar"></div>
+      <input id="q" type="search" placeholder="🔍 종목명·코드·증권사·애널리스트·제목 검색" oninput="draw()"
+        style="border:1px solid #d7dce4;border-radius:9px;padding:8px 12px;font-size:13px;width:min(340px,100%)">
+    </div>
     <div id="filterbar" style="margin-top:10px"></div>
   </div>
 
   <div class="panel">
     <div id="list"><div class="loading">불러오는 중…</div></div>
     <div class="hint" id="cnt"></div>
-    <div class="hint">파란 배지=페이지수(<b>진한 배지=50p 이상 심층</b>). 제목·PDF 클릭 시 각 증권사 원문이 새 창으로 열립니다(출처: 네이버 금융 리서치 공개 링크). 페이지수 측정이 안 된 리포트는 "—"로 표시되며 다음 갱신 때 채워집니다. 정보 제공용이며 투자권유가 아닙니다.</div>
+    <div class="hint">파란 배지=페이지수(<b>진한 배지=50p 이상 심층</b>), ✍=애널리스트(PDF 표지에서 자동 추출·베타). 해외 리서치는 골드만삭스·모건스탠리·J.P.모건·UBS·ING·맥킨지의 <b>무료 공개 리서치</b>를 제목·요약만 한국어로 자동 번역한 것이며 원문 링크로 연결됩니다(IB 정식 리포트 PDF는 유료 고객 전용이라 제공 불가). 페이지수·애널리스트 미측정분은 다음 갱신 때 채워집니다. 정보 제공용이며 투자권유가 아닙니다.</div>
   </div>
 </div>
 <script>
@@ -68,27 +72,46 @@ function chips(el, items, cur, fn, cls){
   document.getElementById(el).innerHTML=items.map(s=>
     `<span class="chip ${cls||''} ${cur===s?'on':''}" onclick="${fn}('${esc(s)}')">${s}</span>`).join('');
 }
-window.setTab=function(t){ TAB=(t==='산업분석 리포트')?'industry':'company'; FIL='전체'; draw(); };
+window.setTab=function(t){ TAB=(t==='산업분석 리포트')?'industry':(t==='종목분석 리포트'?'company':'global'); FIL='전체'; draw(); };
 window.setFil=function(f){ FIL=f; draw(); };
+function matchQ(x, q){
+  if(!q) return true;
+  const hay=[x.t,x.t_en,x.b,x.src,x.name,x.code,x.cat,...(x.an||[])].filter(Boolean).join(' ').toLowerCase();
+  return q.toLowerCase().split(/\s+/).every(w=>hay.includes(w));
+}
 function draw(){
-  chips('tabbar', ['산업분석 리포트','종목분석 리포트'], TAB==='industry'?'산업분석 리포트':'종목분석 리포트', 'setTab', 'big');
+  const tabName = TAB==='industry'?'산업분석 리포트':(TAB==='company'?'종목분석 리포트':'해외 리서치 (번역)');
+  chips('tabbar', ['산업분석 리포트','종목분석 리포트','해외 리서치 (번역)'], tabName, 'setTab', 'big');
+  const q=(document.getElementById('q').value||'').trim();
   const arr=(D&&D[TAB])||[];
-  let fils=['전체','심층 50p+'];
-  if(TAB==='industry'){
-    fils=fils.concat([...new Set(arr.map(x=>x.cat||'기타'))].slice(0,14));
-  } else {
-    fils=fils.concat(['정보기술','커뮤니케이션','금융','헬스케어','임의소비재','필수소비재','산업재','소재','에너지','유틸리티','부동산','기타']);
-  }
+  let fils=[];
+  if(TAB==='industry') fils=['전체','심층 50p+', ...[...new Set(arr.map(x=>x.cat||'기타'))].slice(0,14)];
+  else if(TAB==='company') fils=['전체','심층 50p+','정보기술','커뮤니케이션','금융','헬스케어','임의소비재','필수소비재','산업재','소재','에너지','유틸리티','부동산','기타'];
+  else fils=['전체', ...[...new Set(arr.map(x=>x.src))]];
   chips('filterbar', fils, FIL, 'setFil');
   let list=arr;
-  if(FIL==='심층 50p+') list=arr.filter(x=>(x.pg||0)>=50);
+  if(FIL==='심층 50p+') list=list.filter(x=>(x.pg||0)>=50);
   else if(FIL!=='전체'){
-    list = TAB==='industry' ? arr.filter(x=>(x.cat||'기타')===FIL)
-                            : arr.filter(x=>(pentry(x.code).s||'기타')===FIL);
+    list = TAB==='industry' ? list.filter(x=>(x.cat||'기타')===FIL)
+         : TAB==='company' ? list.filter(x=>(pentry(x.code).s||'기타')===FIL)
+         : list.filter(x=>x.src===FIL);
   }
+  list=list.filter(x=>matchQ(x,q));
   document.getElementById('cnt').textContent='총 '+list.length+'건 (최근 1주일)';
   if(!list.length){
     document.getElementById('list').innerHTML='<div class="loading">해당 조건의 리포트가 없습니다.</div>';
+    return;
+  }
+  if(TAB==='global'){
+    document.getElementById('list').innerHTML=list.map(x=>`<div class="rp">
+      <div class="pg" style="min-width:86px;font-size:11px">${esc(x.src)}</div>
+      <div class="rmain">
+        <div class="rt"><a href="${x.link}" target="_blank" rel="noopener">${esc(x.t)}</a></div>
+        <div class="rsub" style="color:#6b7280">${esc(x.t_en||'')}</div>
+        ${x.s?`<div class="rsub">${esc(x.s)}</div>`:''}
+        <div class="rsub">${esc(x.src)} · ${x.d}</div>
+      </div>
+      <a class="dl" href="${x.link}" target="_blank" rel="noopener">원문 보기</a></div>`).join('');
     return;
   }
   document.getElementById('list').innerHTML=list.map(x=>{
@@ -96,10 +119,11 @@ function draw(){
     const tag = TAB==='industry'
       ? `<span class="cat">${esc(x.cat||'기타')}</span>`
       : `<span class="cat">${esc(pentry(x.code).s||'기타')}</span><b>${esc(x.name)}</b> <span style="color:#98a1b0;font-size:11px">${x.code}</span> · `;
+    const an=x.an&&x.an.length? ` · ✍ ${x.an.map(esc).join('·')}` : '';
     return `<div class="rp">${pg}
       <div class="rmain">
         <div class="rt"><a href="${x.pdf}" target="_blank" rel="noopener">${esc(x.t)}</a></div>
-        <div class="rsub">${tag}${esc(x.b)} · ${x.d} · 조회 ${x.v.toLocaleString()}</div>
+        <div class="rsub">${tag}${esc(x.b)}${an} · ${x.d} · 조회 ${x.v.toLocaleString()}</div>
       </div>
       <a class="dl" href="${x.pdf}" target="_blank" rel="noopener">PDF 보기</a></div>`;
   }).join('');
@@ -110,7 +134,7 @@ function draw(){
   if(!D||!D.updated){
     document.getElementById('list').innerHTML='<div class="loading">첫 수집 대기 중입니다. 잠시 후 다시 확인해주세요.</div>';
     document.getElementById('meta').textContent='첫 수집 대기';
-    chips('tabbar', ['산업분석 리포트','종목분석 리포트'], '산업분석 리포트', 'setTab', 'big');
+    chips('tabbar', ['산업분석 리포트','종목분석 리포트','해외 리서치 (번역)'], '산업분석 리포트', 'setTab', 'big');
     return;
   }
   document.getElementById('meta').textContent='갱신 '+D.updated;

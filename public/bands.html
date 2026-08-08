@@ -47,7 +47,7 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
   <div id="result" style="display:none">
     <div class="panel"><div id="posline" style="margin-bottom:4px"></div><div class="hint" id="posdesc"></div></div>
     <div class="panel"><h2 id="perTitle">PER 밴드</h2><div class="chart-box"><canvas id="perBand"></canvas></div>
-      <div class="hint"><b>검정 굵은 선=주가</b>, 색선=주당순이익(EPS)×과거 10년 PER 분위(최고·75%·중앙·25%·최저)로 계산한 가격선. 주가가 아래쪽 선에 가까울수록 이익 대비 역사적 저평가 구간. 적자 기간은 EPS가 없어 밴드가 비어 있습니다.</div></div>
+      <div class="hint"><b>파란 굵은 선=주가</b>, 회색 실선=주당순이익(EPS)×과거 10년 PER 분위(아래부터 5%·25%·중앙·75%·95% 분위(극단값 제외))로 계산한 가격선. 주가가 아래쪽 선에 가까울수록 이익 대비 역사적 저평가 구간. 적자 기간은 EPS가 없어 밴드가 비어 있습니다.</div></div>
     <div class="panel" id="costPanel">
       <h2 id="costTitle">비용구조 (5개년)</h2>
       <div id="costType" style="margin-bottom:8px"></div>
@@ -57,15 +57,15 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
       <div class="hint">막대=매출액·매출원가·고정성비용(판관비+감가상각), 선=영업이익·순이익 (연간, 억원). 아래 차트=매출 대비 비율 추이. <b>변동비형</b>=원가가 매출과 함께 움직여 마진이 안정적(원자재 가격이 변수), <b>고정비형</b>=비용이 고정돼 매출 증가 시 이익이 크게 튐(가동률·판가가 변수). 판별은 5개년 원가율·고정비 비중·영업레버리지 기반 자동 추정입니다. DART 사업보고서 연결 기준.</div>
     </div>
     <div class="panel"><h2 id="pbrTitle">PBR 밴드</h2><div class="chart-box"><canvas id="pbrBand"></canvas></div>
-      <div class="hint"><b>검정 굵은 선=주가</b>, 색선=주당순자산(BPS)×과거 10년 PBR 분위. 자산가치 대비 주가 위치를 보는 밴드입니다. 데이터: DART 공시 재무(연결 우선, 공시지연 반영)÷실제 주가. <b>주가·배수선은 평일 매일 아침 갱신</b>, 재무(EPS·BPS)는 분기 공시 주기라 주 1회 재계산. 상장 10년 미만 종목은 상장 이후 구간만 표시.</div></div>
+      <div class="hint"><b>파란 굵은 선=주가</b>, 회색 실선=주당순자산(BPS)×과거 10년 PBR 분위(아래부터 5%→95% 분위). 자산가치 대비 주가 위치를 보는 밴드입니다. 데이터: DART 공시 재무(연결 우선, 공시지연 반영)÷실제 주가. <b>주가·배수선은 평일 매일 아침 갱신</b>, 재무(EPS·BPS)는 분기 공시 주기라 주 1회 재계산. 상장 10년 미만 종목은 상장 이후 구간만 표시.</div></div>
   </div>
   <div class="panel" id="empty"><div class="loading">위에서 종목을 검색해주세요.<br><span style="font-size:12px">지원 종목: 시가총액 상위 300 + 주요 108종목 (약 400개, 매주 자동 갱신 — 목록에 없는 종목은 순차 추가 중입니다)</span></div></div>
 </div>
 <script>
 let INDEX={}, perC=null, pbrC=null, costC=null, ratioC=null, DRV=null;
-const Q=[0,0.25,0.5,0.75,1];
-const QN=['최저','25%','중앙값','75%','최고'];
-const QC=['#2563d6','#0ea472','#8a93a2','#f59e0b','#e5384d'];
+const Q=[0.05,0.25,0.5,0.75,0.95];  // 극단값 제외한 분위
+const QN=['5%','25%','중앙값','75%','95%'];
+const QC=['#c3c9d3','#a5adba','#848d9c','#636d7d','#3f4856'];  // 회색 농도 실선 (옅음→진함)
 function quantile(sorted,q){
   const i=(sorted.length-1)*q, lo=Math.floor(i), hi=Math.ceil(i);
   return sorted[lo]+(sorted[hi]-sorted[lo])*(i-lo);
@@ -84,16 +84,17 @@ function mkBand(canvas, oldC, px, ratio, label){
   const wk=weekly(px);
   const labels=wk.map(x=>x[0]);
   const base=wk.map(([d,c])=>{ const r=rmap.get(d); return (r&&r>0)? c/r : null; });
-  const dsets=[{label:'주가',data:wk.map(x=>x[1]),borderColor:'#1a1f2e',borderWidth:2.2,pointRadius:0,tension:.15,spanGaps:true}];
+  const dsets=[];
   qs.forEach((qv,i)=>{
-    dsets.push({label:label+' '+QN[i]+' ('+qv.toFixed(1)+'배)',
+    dsets.push({label:qv.toFixed(1)+'배',
       data:base.map(b=>b!=null?Math.round(b*qv):null),
-      borderColor:QC[i],borderWidth:1.2,borderDash:i===2?[]:[5,4],pointRadius:0,tension:.15,spanGaps:true});
+      borderColor:QC[i],borderWidth:1.1,pointRadius:0,tension:.3,spanGaps:true});
   });
+  dsets.push({label:'주가',data:wk.map(x=>x[1]),borderColor:'#1d4ed8',borderWidth:2.6,pointRadius:0,tension:.1,spanGaps:true});
   if(oldC) oldC.destroy();
   const c=new Chart(canvas,{type:'line',data:{labels,datasets:dsets},
     options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-      plugins:{legend:{labels:{boxWidth:11,font:{size:10.5}}},
+      plugins:{legend:{labels:{boxWidth:18,boxHeight:2,font:{size:11}}},
         tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+(ctx.raw!=null?Number(ctx.raw).toLocaleString()+'원':'—')}}},
       scales:{x:{ticks:{maxTicksLimit:10,font:{size:10}},grid:{display:false}},
         y:{grid:{color:'#f0f2f5'},ticks:{font:{size:10},callback:v=>Number(v).toLocaleString()}}}}});

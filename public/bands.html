@@ -49,7 +49,7 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
     <div class="panel"><h2 id="perTitle">PER 밴드</h2><div class="chart-box"><canvas id="perBand"></canvas></div>
       <div class="hint"><b>검정 굵은 선=주가</b>, 색선=주당순이익(EPS)×과거 10년 PER 분위(최고·75%·중앙·25%·최저)로 계산한 가격선. 주가가 아래쪽 선에 가까울수록 이익 대비 역사적 저평가 구간. 적자 기간은 EPS가 없어 밴드가 비어 있습니다.</div></div>
     <div class="panel"><h2 id="pbrTitle">PBR 밴드</h2><div class="chart-box"><canvas id="pbrBand"></canvas></div>
-      <div class="hint"><b>검정 굵은 선=주가</b>, 색선=주당순자산(BPS)×과거 10년 PBR 분위. 자산가치 대비 주가 위치를 보는 밴드입니다. 데이터: DART 공시 재무(연결 우선, 공시지연 반영)÷실제 주가 · 상장 10년 미만 종목은 상장 이후 구간만 표시.</div></div>
+      <div class="hint"><b>검정 굵은 선=주가</b>, 색선=주당순자산(BPS)×과거 10년 PBR 분위. 자산가치 대비 주가 위치를 보는 밴드입니다. 데이터: DART 공시 재무(연결 우선, 공시지연 반영)÷실제 주가. <b>주가·배수선은 평일 매일 아침 갱신</b>, 재무(EPS·BPS)는 분기 공시 주기라 주 1회 재계산. 상장 10년 미만 종목은 상장 이후 구간만 표시.</div></div>
   </div>
   <div class="panel" id="empty"><div class="loading">위에서 종목을 검색해주세요.<br><span style="font-size:12px">지원 종목: 시가총액 상위 300 + 주요 108종목 (약 400개, 매주 자동 갱신 — 목록에 없는 종목은 순차 추가 중입니다)</span></div></div>
 </div>

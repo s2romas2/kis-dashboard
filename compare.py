@@ -50,8 +50,8 @@ def corp_map():
             m[sc] = it.findtext('corp_code').strip()
     return m
 
-def candles(code):
-    x = fetch('https://fchart.stock.naver.com/sise.nhn?symbol=%s&timeframe=day&count=2700&requestType=0' % code).decode('euc-kr', 'ignore')
+def candles(code, n=2700):
+    x = fetch('https://fchart.stock.naver.com/sise.nhn?symbol=%s&timeframe=day&count=%d&requestType=0' % (code, n)).decode('euc-kr', 'ignore')
     out = []
     for item in re.findall(r'data="([^"]+)"', x):
         p = item.split('|')
@@ -216,6 +216,35 @@ def main():
         try:
             old = json.load(open('%s/%s.json' % (OUTDIR, code), encoding='utf-8'))
             if old.get('v') == 2 and (old.get('gen') or '') >= cutoff_gen:
+                # 가벼운 일일 갱신: 최신 주가만 이어붙임 (재무 재계산은 주 1회)
+                try:
+                    if old.get('px'):
+                        pxmap = dict(old['px'][-90:])
+                        bps = eps = None
+                        if old.get('pbr'):
+                            d0, r0 = old['pbr'][-1]
+                            if pxmap.get(d0):
+                                bps = pxmap[d0] / r0
+                        if old.get('per'):
+                            d0, r0 = old['per'][-1]
+                            if pxmap.get(d0):
+                                eps = pxmap[d0] / r0
+                        last_d = old['px'][-1][0]
+                        added = False
+                        for d2, c2 in candles(code, 40):
+                            if d2 > last_d:
+                                old['px'].append([d2, c2])
+                                if bps:
+                                    old['pbr'].append([d2, round(c2 / bps, 2)])
+                                if eps and eps > 0:
+                                    old['per'].append([d2, round(c2 / eps, 2)])
+                                added = True
+                        if added:
+                            with open('%s/%s.json' % (OUTDIR, code), 'w', encoding='utf-8') as f:
+                                json.dump(old, f, ensure_ascii=False)
+                        time.sleep(0.15)
+                except Exception:
+                    pass
                 index[code] = name
                 ok += 1
                 continue

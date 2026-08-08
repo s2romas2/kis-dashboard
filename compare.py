@@ -138,7 +138,7 @@ def build_series(code, name, corp):
     for (y, q), v in sorted(fq.items()):
         qe = datetime.date(y, QEND[q][0], QEND[q][1])
         eff = qe + datetime.timedelta(days=90 if q == 4 else 50)
-        shares = sh.get(y) or sh.get(y - 1) or (sorted(sh.items())[-1][1] if sh else None)
+        shares = sorted(sh.items())[-1][1] if sh else None  # 최신 주식수 고정: 수정주가(분할 반영)와 기준 일치
         if not shares:
             continue
         bps = (v['eq'] / shares) if v.get('eq') else None
@@ -168,7 +168,7 @@ def build_series(code, name, corp):
         return None
     px_out = [[d, c] for d, c in px]
     return {'code': code, 'name': name, 'pbr': pbr, 'per': per, 'roe': roe,
-            'px': px_out, 'v': 2, 'gen': datetime.date.today().isoformat()}
+            'px': px_out, 'v': 3, 'gen': datetime.date.today().isoformat()}
 
 def main():
     if not DART_KEY:
@@ -215,7 +215,7 @@ def main():
         # 최근 7일 내 계산본(v2)은 재사용
         try:
             old = json.load(open('%s/%s.json' % (OUTDIR, code), encoding='utf-8'))
-            if old.get('v') == 2 and (old.get('gen') or '') >= cutoff_gen:
+            if old.get('v') == 3 and (old.get('gen') or '') >= cutoff_gen:
                 # 가벼운 일일 갱신: 최신 주가만 이어붙임 (재무 재계산은 주 1회)
                 try:
                     if old.get('px'):
@@ -285,6 +285,10 @@ def main():
             fail += 1
         print('%s %s %s' % (code, name, 'OK' if r else 'SKIP'), file=sys.stderr)
     DEBUG.append('이번 실행 계산 %d종목 (한도 %d)' % (ran, MAXRUN))
+    if LIMIT:  # 진단 모드: 검색 인덱스 보존
+        print('LIMIT 모드 — index.json 미갱신', file=sys.stderr)
+        print('완료: %d성공 / %d실패' % (ok, fail))
+        return
     with open('%s/index.json' % OUTDIR, 'w', encoding='utf-8') as f:
         json.dump({'updated': time.strftime('%Y-%m-%d %H:%M'), 'count': ok, 'codes': index, 'debug': DEBUG}, f, ensure_ascii=False)
     print('완료: %d성공 / %d실패' % (ok, fail))

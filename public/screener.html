@@ -84,7 +84,7 @@ async function loadData() {
     const r = await fetch('/data/screener.json?t=' + Date.now());
     DATA = await r.json();
   } catch (e) { document.getElementById('grid').innerHTML = '<div class="loading">screener.json을 아직 못 찾았습니다. GitHub Actions를 1회 실행하면 생성됩니다.</div>'; return; }
-  document.getElementById('meta').textContent = DATA.period + ' 기준 · ' + DATA.count + '종목 통과 · 갱신 ' + DATA.updated;
+  document.getElementById('meta').textContent = DATA.period + ' 기준(잠정실적 선반영) · ' + DATA.count + '종목 통과 · 갱신 ' + DATA.updated;
   drawSec();
   render();
   enrich();
@@ -103,7 +103,7 @@ function card(m, i) {
   return `<div class="card">
     <h3>${medal(i)} ${m.name}<span class="tk">${m.code}</span></h3>
     <div class="badges">${badges}</div>
-    <div class="rpt">${m.rptNm || (m.period + ' 분기보고서')} (${m.basis === 'CFS' ? '연결' : '별도'})</div>
+    <div class="rpt">${m.rptNm || (m.period + ' 분기보고서')} (${m.basis === 'CFS' ? '연결' : (m.basis === '잠정' ? '<b style="color:#c2410c">잠정실적</b>' : '별도')})${m.flash ? ' <span style="font-size:10px;color:#c2410c">— 정기보고서 제출 시 확정치로 자동 교체</span>' : ''}</div>
     <div class="row"><span class="k">매출</span> <b>${m.rev}억</b> · YoY <span class="${cls(m.revYoY)}">${pf(m.revYoY)}</span> / QoQ <span class="${cls(m.revQoQ)}">${pf(m.revQoQ)}</span></div>
     <div class="row"><span class="k">영업</span> <b>${m.op}억</b>${yh} · YoY <span class="${cls(m.opYoY)}">${pf(m.opYoY)}</span> / QoQ <span class="${cls(m.opQoQ)}">${pf(m.opQoQ)}</span></div>
     <div class="row"><span class="k">순익</span> <b>${m.ni}억</b> · YoY <span class="${cls(m.niYoY)}">${pf(m.niYoY)}</span> / QoQ <span class="${cls(m.niQoQ)}">${pf(m.niQoQ)}</span></div>

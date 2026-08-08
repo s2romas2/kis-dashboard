@@ -166,10 +166,70 @@ def main():
             'yearHigh': year_high, 'opAnnual': eok(lop * 4), 'niAnnual': eok(lni * 4) if lni is not None else None,
             'opqSeries': opq_series, 'table': table,
         })
+    # ── 잠정실적 오버레이: 정기보고서가 아직 없는 다음 분기를 잠정 공시로 선반영 ──
+    # (반기·분기보고서가 나와 LATEST_Q가 넘어가면 해당 분기는 확정치로 자동 대체됨)
+    try:
+        fl = json.load(open('public/data/flash.json', encoding='utf-8'))
+        ny, nq = (LATEST_YEAR + 1, 1) if LATEST_Q == 4 else (LATEST_YEAR, LATEST_Q + 1)
+        tag = '%d Q%d' % (ny, nq)
+
+        def infer_q(date8):  # 공시월로 대상 분기 추정 (잠정공시는 분기말 직후 발표)
+            try:
+                y, mth = int(date8[:4]), int(date8[4:6])
+            except Exception:
+                return None
+            return {1: (y - 1, 4), 2: (y - 1, 4), 4: (y, 1), 5: (y, 1),
+                    7: (y, 2), 8: (y, 2), 10: (y, 3), 11: (y, 3)}.get(mth)
+        fmap = {}
+        for it in fl.get('list', []):
+            p = (it.get('period') or '').strip()
+            tq = None
+            if p:
+                m2 = None
+                import re as _re
+                m2 = _re.match(r'(\d{4})\s*Q(\d)', p)
+                if m2:
+                    tq = (int(m2.group(1)), int(m2.group(2)))
+            else:
+                tq = infer_q(it.get('date', ''))
+            if tq != (ny, nq):
+                continue
+            if it['code'] not in fmap or (it.get('date') or '') > (fmap[it['code']].get('date') or ''):
+                fmap[it['code']] = it
+        byc = {m['code']: m for m in matches}
+        n_upd = n_new = 0
+        for code, it in fmap.items():
+            row = {'period': '%dQ%d' % (ny, nq), 'flash': True, 'basis': '잠정',
+                   'rev': it.get('rev'), 'op': it.get('op'), 'ni': it.get('ni'),
+                   'revYoY': it.get('revYoY'), 'revQoQ': it.get('revQoQ'),
+                   'opYoY': it.get('opYoY'), 'opQoQ': it.get('opQoQ'),
+                   'niYoY': it.get('niYoY'), 'niQoQ': it.get('niQoQ'),
+                   'opm': round(it['op'] / it['rev'] * 100, 1) if (it.get('rev') and it.get('op') is not None) else None,
+                   'npm': round(it['ni'] / it['rev'] * 100, 1) if (it.get('rev') and it.get('ni') is not None) else None,
+                   'link': it.get('link'), 'rptNm': '영업(잠정)실적 공시', 'rceptDt': it.get('date', '')}
+            g = [row.get(k) for k in ('opYoY', 'revYoY', 'opQoQ', 'revQoQ')]
+            cond1 = (None not in g) and all(x >= 10 for x in g) and (row.get('op') or 0) > 0
+            if code in byc:
+                m = byc[code]
+                m.update(row)
+                if cond1 and 1 not in m['conds']:
+                    m['conds'] = sorted(set(m['conds'] + [1]))
+                n_upd += 1
+            elif cond1:
+                matches.append(dict(row, code=code, name=it.get('name', code), corp_code='',
+                                    conds=[1], yearHigh=False, opAnnual=round((it.get('op') or 0) * 4),
+                                    niAnnual=None, opqSeries=[], table=[]))
+                n_new += 1
+        print('잠정 오버레이 %s: 교체 %d건, 신규 %d건 (잠정풀 %d)' % (tag, n_upd, n_new, len(fmap)), file=sys.stderr)
+    except Exception as e:
+        print('잠정 오버레이 실패: %r' % e, file=sys.stderr)
+
     # 각 매칭 종목의 최신 정기보고서 공시링크
     if os.environ.get('FETCH_LINKS', '1') == '1':
         yend = time.strftime('%Y%m%d'); ybgn = str(int(time.strftime('%Y')) - 1) + time.strftime('%m%d')
         for m in matches:
+            if m.get('flash'):  # 잠정 행은 공시 링크가 이미 있음
+                continue
             u = ('https://opendart.fss.or.kr/api/list.json?crtfc_key=%s&corp_code=%s&bgn_de=%s&end_de=%s&pblntf_ty=A&page_count=1&sort=date&sort_mth=desc'
                  % (DART_KEY, m['corp_code'], ybgn, yend))
             d = http_json(u); lst = d.get('list') or []

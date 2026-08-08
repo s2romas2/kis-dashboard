@@ -164,11 +164,11 @@ async function show(code){
   const r2=mkBand(document.getElementById('pbrBand'), pbrC, d.px, d.pbr, 'PBR'); pbrC=r2.c;
   let html='', desc=[];
   if(r1.cur&&r1.rvals){ const p=pct(r1.rvals,r1.cur);
-    html+=`<span class="pos ${p<=30?'lo':(p>=70?'hi':'mid')}">현재 PER ${r1.cur.toFixed(1)}배 — 10년 밴드 하위 ${p}%</span>`;
+    html+=`<span class="pos ${p<=30?'lo':(p>=70?'hi':'mid')}">현재 PER ${r1.cur.toFixed(1)}배 — 10년 중 백분위 ${p}% ${p<=30?'(역사적 하단)':(p>=70?'(역사적 상단)':'')}</span>`;
     desc.push(p<=30?'이익 대비 역사적 저평가 구간':(p>=70?'이익 대비 역사적 고평가 구간':'이익 대비 중간 구간')); }
   else html+='<span class="pos mid">PER — 적자 또는 데이터 부족</span>';
   if(r2.cur&&r2.rvals){ const p=pct(r2.rvals,r2.cur);
-    html+=`<span class="pos ${p<=30?'lo':(p>=70?'hi':'mid')}">현재 PBR ${r2.cur.toFixed(2)}배 — 10년 밴드 하위 ${p}%</span>`; }
+    html+=`<span class="pos ${p<=30?'lo':(p>=70?'hi':'mid')}">현재 PBR ${r2.cur.toFixed(2)}배 — 10년 중 백분위 ${p}% ${p<=30?'(역사적 하단)':(p>=70?'(역사적 상단)':'')}</span>`; }
   document.getElementById('posline').innerHTML=html;
   document.getElementById('posdesc').textContent=(desc[0]||'')+' · 기준일 '+(d.px[d.px.length-1][0])+' · 재무 갱신 '+(d.gen||'');
   if(!r1.c) document.getElementById('perBand').parentElement.innerHTML='<div class="loading">흑자 기간이 짧아 PER 밴드를 그릴 수 없습니다.</div>';

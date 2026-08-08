@@ -1,7 +1,7 @@
 name: 종목 PBR·PER 시계열 갱신
 on:
   schedule:
-    - cron: '30 21 * * 1-5'
+    - cron: '30 9,21 * * *'
   workflow_dispatch: {}
   push:
     paths: ['compare.py', 'compare_extra.json']

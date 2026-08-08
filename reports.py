@@ -150,6 +150,63 @@ GLOBAL_FEEDS = [
 def strip_tags(s):
     return re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', '', s or '')).strip()
 
+def gn_resolve(link):
+    """구글뉴스 리다이렉트 → 실제 기사 URL (batchexecute 해독)"""
+    try:
+        art_id = link.split('/articles/')[1].split('?')[0]
+        h = urllib.request.urlopen(urllib.request.Request(link, headers=UA), timeout=20).read().decode('utf-8', 'ignore')
+        sg = re.search(r'data-n-a-sg="([^"]+)"', h)
+        ts = re.search(r'data-n-a-ts="([^"]+)"', h)
+        if not (sg and ts):
+            return None
+        inner = json.dumps(["garturlreq", [["X", "X", ["X", "X"], None, None, 1, 1, "US:en", None, 1,
+                            None, None, None, None, None, 0, 1], "X", "X", 1, [1, 1, 1], 1, 1, None, 0, 0, None, 0],
+                            art_id, int(ts.group(1)), sg.group(1)])
+        freq = json.dumps([[["Fbv4je", inner, None, "generic"]]])
+        body = urllib.parse.urlencode({'f.req': freq}).encode()
+        req = urllib.request.Request('https://news.google.com/_/DotsSplashUi/data/batchexecute',
+                                     data=body, headers=dict(UA, **{'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'}))
+        r = urllib.request.urlopen(req, timeout=20).read().decode('utf-8', 'ignore')
+        seg = r.split('garturlres')[-1] if 'garturlres' in r else r
+        m = re.search(r'"(https?://[^"\\]+)', seg)
+        return m.group(1) if m else None
+    except Exception:
+        return None
+
+def fetch_body_ko(url):
+    """기사 본문 추출 → 한국어 번역 (문단 그룹 단위). 실패 시 None"""
+    try:
+        h = urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=25).read().decode('utf-8', 'ignore')
+    except Exception:
+        return None
+    ps = [re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', '', p)).strip()
+          for p in re.findall(r'<p[^>]*>([\s\S]*?)</p>', h)]
+    ps = [p for p in ps if len(p) > 80 and '.' in p and 'cookie' not in p.lower() and 'browser' not in p.lower()]
+    if not ps:
+        return None
+    ps = ps[:22]
+    # ~1600자 단위 청크로 묶어 번역
+    chunks, cur = [], ''
+    for p in ps:
+        if len(cur) + len(p) > 1600 and cur:
+            chunks.append(cur)
+            cur = p
+        else:
+            cur = (cur + ' ' + p).strip()
+    if cur:
+        chunks.append(cur)
+    out = []
+    for c in chunks[:6]:
+        try:
+            u = ('https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ko&dt=t&q='
+                 + urllib.parse.quote(c))
+            raw = urllib.request.urlopen(urllib.request.Request(u, headers=UA), timeout=25).read().decode('utf-8')
+            out.append(''.join(s[0] for s in json.loads(raw)[0]).strip())
+        except Exception:
+            break
+        time.sleep(0.3)
+    return '\n\n'.join(out) if out else None
+
 def scrape_global(prev_items):
     prev_tr = {x.get('link'): x for x in (prev_items or [])}
     out = []
@@ -179,14 +236,15 @@ def scrape_global(prev_items):
                 continue
             link = lk.group(1).strip()
             prev_x = prev_tr.get(link)
-            if prev_x and prev_x.get('t_en') == title:  # 이미 번역됨 → 재사용
+            if prev_x and prev_x.get('t_en') == title and prev_x.get('body'):  # 본문 번역까지 완료 → 재사용
                 out.append(prev_x)
                 n += 1
                 continue
             summ = strip_tags(ds.group(1))[:220] if ds else ''
-            item = {'src': src, 'd': d or TODAY.isoformat(), 'link': link,
-                    't_en': title, 't': translate_ko(title)}
-            if summ and src in ('ING THINK', 'McKinsey'):
+            item = prev_x if (prev_x and prev_x.get('t_en') == title) else {
+                'src': src, 'd': d or TODAY.isoformat(), 'link': link,
+                't_en': title, 't': translate_ko(title)}
+            if summ and src in ('ING THINK', 'McKinsey') and not item.get('s'):
                 item['s'] = translate_ko(summ)
             out.append(item)
             n += 1
@@ -194,6 +252,23 @@ def scrape_global(prev_items):
             if n >= 20:
                 break
         DEBUG.append('해외 %s %d건' % (src, n))
+    # 본문 통번역 (실행당 최대 25건 — 나머지는 다음 실행에서)
+    done_body = 0
+    for x in out:
+        if x.get('body') or done_body >= 25:
+            continue
+        real = x.get('url')
+        if not real:
+            real = x['link'] if 'news.google.com' not in x['link'] else gn_resolve(x['link'])
+            if real:
+                x['url'] = real
+        if real:
+            b = fetch_body_ko(real)
+            if b and len(b) > 300:
+                x['body'] = b[:7000]
+        done_body += 1
+        time.sleep(0.5)
+    DEBUG.append('해외 본문 번역 %d건 시도, 보유 %d건' % (done_body, sum(1 for x in out if x.get('body'))))
     out.sort(key=lambda x: x['d'], reverse=True)
     return out[:90]
 

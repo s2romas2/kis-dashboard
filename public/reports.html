@@ -61,7 +61,7 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
   <div class="panel">
     <div id="list"><div class="loading">불러오는 중…</div></div>
     <div class="hint" id="cnt"></div>
-    <div class="hint">파란 배지=페이지수(<b>진한 배지=50p 이상 심층</b>), ✍=애널리스트(PDF 표지에서 자동 추출·베타). 해외 리서치는 골드만삭스·모건스탠리·J.P.모건·UBS·ING·맥킨지의 <b>무료 공개 리서치</b>를 제목·요약만 한국어로 자동 번역한 것이며 원문 링크로 연결됩니다(IB 정식 리포트 PDF는 유료 고객 전용이라 제공 불가). 페이지수·애널리스트 미측정분은 다음 갱신 때 채워집니다. 정보 제공용이며 투자권유가 아닙니다.</div>
+    <div class="hint">파란 배지=페이지수(<b>진한 배지=50p 이상 심층</b>), ✍=애널리스트(PDF 표지에서 자동 추출·베타). 해외 리서치는 골드만삭스·모건스탠리·J.P.모건·UBS·ING·맥킨지의 <b>무료 공개 리서치 본문을 한국어로 통번역</b>해 사이트 안에서 바로 읽을 수 있습니다("번역 읽기" 버튼). 일부 본문 수집이 차단된 기사는 제목·요약 번역+원문 링크만 제공됩니다(IB 정식 리포트 PDF는 유료 고객 전용이라 제공 불가). 페이지수·애널리스트 미측정분은 다음 갱신 때 채워집니다. 정보 제공용이며 투자권유가 아닙니다.</div>
   </div>
 </div>
 <script>
@@ -74,6 +74,7 @@ function chips(el, items, cur, fn, cls){
 }
 window.setTab=function(t){ TAB=(t==='산업분석 리포트')?'industry':(t==='종목분석 리포트'?'company':'global'); FIL='전체'; draw(); };
 window.setFil=function(f){ FIL=f; draw(); };
+window.tgBody=function(i){ const el=document.getElementById('bd'+i); if(el) el.style.display=(el.style.display==='none')?'':'none'; };
 function matchQ(x, q){
   if(!q) return true;
   const hay=[x.t,x.t_en,x.b,x.src,x.name,x.code,x.cat,...(x.an||[])].filter(Boolean).join(' ').toLowerCase();
@@ -103,15 +104,20 @@ function draw(){
     return;
   }
   if(TAB==='global'){
-    document.getElementById('list').innerHTML=list.map(x=>`<div class="rp">
+    document.getElementById('list').innerHTML=list.map((x,i)=>`<div class="rp" style="align-items:flex-start">
       <div class="pg" style="min-width:86px;font-size:11px">${esc(x.src)}</div>
       <div class="rmain">
-        <div class="rt"><a href="${x.link}" target="_blank" rel="noopener">${esc(x.t)}</a></div>
+        <div class="rt">${x.body?`<a href="javascript:void(0)" onclick="tgBody(${i})">${esc(x.t)}</a>`:esc(x.t)}</div>
         <div class="rsub" style="color:#6b7280">${esc(x.t_en||'')}</div>
         ${x.s?`<div class="rsub">${esc(x.s)}</div>`:''}
-        <div class="rsub">${esc(x.src)} · ${x.d}</div>
+        <div class="rsub">${esc(x.src)} · ${x.d}${x.body?'':' · <span style="color:#c2410c">본문 번역 준비 중(원문만 제공)</span>'}</div>
+        ${x.body?`<div id="bd${i}" style="display:none;white-space:pre-wrap;font-size:13px;line-height:1.75;color:#374151;background:#fafbfd;border:1px solid #eef1f5;border-radius:10px;padding:12px 14px;margin-top:8px">${esc(x.body)}\n\n(자동 번역 · 정확한 내용은 원문 참조)</div>`:''}
       </div>
-      <a class="dl" href="${x.link}" target="_blank" rel="noopener">원문 보기</a></div>`).join('');
+      <div style="display:flex;flex-direction:column;gap:6px">
+        ${x.body?`<a class="dl" style="background:#2f6df6" href="javascript:void(0)" onclick="tgBody(${i})">번역 읽기</a>`:''}
+        <a class="dl" href="${x.url||x.link}" target="_blank" rel="noopener">원문</a>
+      </div></div>`).join('');
+    window._glist=list;
     return;
   }
   document.getElementById('list').innerHTML=list.map(x=>{

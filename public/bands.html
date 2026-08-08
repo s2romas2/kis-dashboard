@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PER·PBR 밴드 · 한국 대시보드</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin:0; background:#f6f7f9; color:#1a1f2e; font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; }
+.wrap { max-width:1140px; margin:0 auto; padding:20px 18px 48px; }
+header { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+h1 { font-size:20px; margin:0; font-weight:800; }
+.sub { color:#6b7280; font-size:12.5px; margin:3px 0 0; }
+a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
+.meta { font-size:12px; color:#8a93a2; }
+.panel { background:#fff; border:1px solid #eceef2; border-radius:14px; padding:16px 18px; margin:14px 0; box-shadow:0 1px 2px rgba(20,30,60,.04); }
+.panel h2 { font-size:14px; margin:0 0 10px; font-weight:700; }
+.chart-box { position:relative; height:340px; }
+.hint { font-size:11.5px; color:#8a93a2; margin-top:8px; line-height:1.6; }
+.hint b { color:#5b6472; }
+.loading { text-align:center; padding:40px; color:#6b7280; font-size:13px; line-height:1.8; }
+#stock { border:1px solid #d7dce4; border-radius:10px; padding:10px 14px; font-size:14px; width:min(360px,100%); }
+.pos { display:inline-block; font-weight:800; border-radius:9px; padding:4px 11px; font-size:13px; margin-right:8px; }
+.pos.lo { background:#e7f0ff; color:#2563d6; } .pos.mid { background:#f0f2f5; color:#5b6472; } .pos.hi { background:#fdeaec; color:#e5384d; }
+@media (max-width:720px){ .wrap{padding:14px 10px 40px;} .chart-box{height:260px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>📉 PER·PBR 밴드 <span style="display:inline-block;background:#f0f4fa;color:#5b6472;border-radius:8px;padding:2px 8px;font-size:11px;font-weight:600;vertical-align:3px">10개년 기준 · 매일 갱신</span></h1>
+      <div class="sub">종목을 검색하면 10년치 밸류에이션 밴드(주가 vs 이익·자산가치 배수선)를 보여줍니다</div>
+      <div style="margin-top:6px"><a class="back" href="/">← 섹터 대시보드</a> &nbsp; <a class="back" href="/valuefilter.html">🎯 밸류 필터</a></div>
+    </div>
+    <div class="meta" id="meta">불러오는 중…</div>
+  </header>
+
+  <div class="panel">
+    <input id="stock" list="stocks" placeholder="🔍 종목명 또는 코드 검색 (예: 삼성전자, 005930)" autocomplete="off">
+    <datalist id="stocks"></datalist>
+    <div class="hint" id="unihint"></div>
+  </div>
+
+  <div id="result" style="display:none">
+    <div class="panel"><div id="posline" style="margin-bottom:4px"></div><div class="hint" id="posdesc"></div></div>
+    <div class="panel"><h2 id="perTitle">PER 밴드</h2><div class="chart-box"><canvas id="perBand"></canvas></div>
+      <div class="hint"><b>검정 굵은 선=주가</b>, 색선=주당순이익(EPS)×과거 10년 PER 분위(최고·75%·중앙·25%·최저)로 계산한 가격선. 주가가 아래쪽 선에 가까울수록 이익 대비 역사적 저평가 구간. 적자 기간은 EPS가 없어 밴드가 비어 있습니다.</div></div>
+    <div class="panel"><h2 id="pbrTitle">PBR 밴드</h2><div class="chart-box"><canvas id="pbrBand"></canvas></div>
+      <div class="hint"><b>검정 굵은 선=주가</b>, 색선=주당순자산(BPS)×과거 10년 PBR 분위. 자산가치 대비 주가 위치를 보는 밴드입니다. 데이터: DART 공시 재무(연결 우선, 공시지연 반영)÷실제 주가 · 상장 10년 미만 종목은 상장 이후 구간만 표시.</div></div>
+  </div>
+  <div class="panel" id="empty"><div class="loading">위에서 종목을 검색해주세요.<br><span style="font-size:12px">지원 종목: 시가총액 상위 300 + 주요 108종목 (약 400개, 매주 자동 갱신 — 목록에 없는 종목은 순차 추가 중입니다)</span></div></div>
+</div>
+<script>
+let INDEX={}, perC=null, pbrC=null;
+const Q=[0,0.25,0.5,0.75,1];
+const QN=['최저','25%','중앙값','75%','최고'];
+const QC=['#2563d6','#0ea472','#8a93a2','#f59e0b','#e5384d'];
+function quantile(sorted,q){
+  const i=(sorted.length-1)*q, lo=Math.floor(i), hi=Math.ceil(i);
+  return sorted[lo]+(sorted[hi]-sorted[lo])*(i-lo);
+}
+function weekly(arr){ // [[d,v]] → 주 단위 마지막 값
+  const m=new Map();
+  for(const [d,v] of arr){ const dt=new Date(d); const wk=new Date(dt); wk.setDate(dt.getDate()-dt.getDay()); m.set(wk.toISOString().slice(0,10),[d,v]); }
+  return [...m.values()];
+}
+function mkBand(canvas, oldC, px, ratio, label){
+  // px: [[d,close]], ratio: [[d,pbr|per]] — 기반가치(t)=px/ratio, 밴드선=기반가치×분위
+  const rmap=new Map(ratio);
+  const rvals=ratio.map(x=>x[1]).filter(v=>v>0).sort((a,b)=>a-b);
+  if(rvals.length<30) return {c:null, qs:null};
+  const qs=Q.map(q=>quantile(rvals,q));
+  const wk=weekly(px);
+  const labels=wk.map(x=>x[0]);
+  const base=wk.map(([d,c])=>{ const r=rmap.get(d); return (r&&r>0)? c/r : null; });
+  const dsets=[{label:'주가',data:wk.map(x=>x[1]),borderColor:'#1a1f2e',borderWidth:2.2,pointRadius:0,tension:.15,spanGaps:true}];
+  qs.forEach((qv,i)=>{
+    dsets.push({label:label+' '+QN[i]+' ('+qv.toFixed(1)+'배)',
+      data:base.map(b=>b!=null?Math.round(b*qv):null),
+      borderColor:QC[i],borderWidth:1.2,borderDash:i===2?[]:[5,4],pointRadius:0,tension:.15,spanGaps:true});
+  });
+  if(oldC) oldC.destroy();
+  const c=new Chart(canvas,{type:'line',data:{labels,datasets:dsets},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{labels:{boxWidth:11,font:{size:10.5}}},
+        tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+(ctx.raw!=null?Number(ctx.raw).toLocaleString()+'원':'—')}}},
+      scales:{x:{ticks:{maxTicksLimit:10,font:{size:10}},grid:{display:false}},
+        y:{grid:{color:'#f0f2f5'},ticks:{font:{size:10},callback:v=>Number(v).toLocaleString()}}}}});
+  return {c, qs, cur: ratio.length?ratio[ratio.length-1][1]:null, rvals};
+}
+function pct(sorted,v){ let n=0; for(const x of sorted){ if(x<=v) n++; } return Math.round(n/sorted.length*100); }
+async function show(code){
+  let d;
+  try{ d=await (await fetch('/data/compare/'+code+'.json?t='+Date.now())).json(); }
+  catch(e){ document.getElementById('empty').innerHTML='<div class="loading">이 종목의 밴드 데이터가 아직 없습니다.<br>매일 순차 계산 중이니 1~2일 내 추가됩니다.</div>'; return; }
+  document.getElementById('result').style.display='';
+  document.getElementById('empty').style.display='none';
+  document.getElementById('perTitle').textContent=d.name+' — PER 밴드 ('+(d.px[0][0].slice(0,4))+'~)';
+  document.getElementById('pbrTitle').textContent=d.name+' — PBR 밴드';
+  const r1=mkBand(document.getElementById('perBand'), perC, d.px, d.per, 'PER'); perC=r1.c;
+  const r2=mkBand(document.getElementById('pbrBand'), pbrC, d.px, d.pbr, 'PBR'); pbrC=r2.c;
+  let html='', desc=[];
+  if(r1.cur&&r1.rvals){ const p=pct(r1.rvals,r1.cur);
+    html+=`<span class="pos ${p<=30?'lo':(p>=70?'hi':'mid')}">현재 PER ${r1.cur.toFixed(1)}배 — 10년 밴드 하위 ${p}%</span>`;
+    desc.push(p<=30?'이익 대비 역사적 저평가 구간':(p>=70?'이익 대비 역사적 고평가 구간':'이익 대비 중간 구간')); }
+  else html+='<span class="pos mid">PER — 적자 또는 데이터 부족</span>';
+  if(r2.cur&&r2.rvals){ const p=pct(r2.rvals,r2.cur);
+    html+=`<span class="pos ${p<=30?'lo':(p>=70?'hi':'mid')}">현재 PBR ${r2.cur.toFixed(2)}배 — 10년 밴드 하위 ${p}%</span>`; }
+  document.getElementById('posline').innerHTML=html;
+  document.getElementById('posdesc').textContent=(desc[0]||'')+' · 기준일 '+(d.px[d.px.length-1][0])+' · 재무 갱신 '+(d.gen||'');
+  if(!r1.c) document.getElementById('perBand').parentElement.innerHTML='<div class="loading">흑자 기간이 짧아 PER 밴드를 그릴 수 없습니다.</div>';
+}
+document.getElementById('stock').addEventListener('change', function(){
+  const v=this.value.trim();
+  const hit=Object.entries(INDEX).find(([c,n])=>c===v||n===v||(n+' ('+c+')')===v||v.includes(c));
+  if(hit) show(hit[0]);
+  else{
+    const part=Object.entries(INDEX).find(([c,n])=>n.includes(v));
+    if(part) show(part[0]);
+  }
+});
+(async function(){
+  try{
+    const idx=await (await fetch('/data/compare/index.json?t='+Date.now())).json();
+    INDEX=idx.codes||{};
+    document.getElementById('meta').textContent='지원 '+Object.keys(INDEX).length+'종목 · 갱신 '+(idx.updated||'');
+    document.getElementById('stocks').innerHTML=Object.entries(INDEX).map(([c,n])=>`<option value="${n} (${c})">`).join('');
+    document.getElementById('unihint').textContent='자동완성 목록에서 선택하거나 정확한 종목명/코드를 입력 후 Enter. 현재 '+Object.keys(INDEX).length+'종목 지원(시총 상위+주요 종목, 매일 확대 중).';
+  }catch(e){ document.getElementById('meta').textContent='인덱스 로드 실패'; }
+})();
+</script>
+</body>
+</html>

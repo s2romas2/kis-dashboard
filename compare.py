@@ -9,8 +9,8 @@ import os, io, sys, json, time, zipfile, urllib.request, re, datetime
 import xml.etree.ElementTree as ET
 
 DART_KEY = os.environ.get('DART_KEY', '')
-START = os.environ.get('START', '2020-01-02')
-YEARS = list(range(2019, datetime.date.today().year + 1))  # TTM 계산 위해 2019부터
+START = os.environ.get('START', '2016-01-02')  # 10개년 밴드 기준
+YEARS = list(range(2015, datetime.date.today().year + 1))  # TTM 계산 위해 2015부터
 REPRT = {1: '11013', 2: '11012', 3: '11014', 4: '11011'}
 QEND = {1: (3, 31), 2: (6, 30), 3: (9, 30), 4: (12, 31)}
 BASE = 'https://opendart.fss.or.kr/api'
@@ -51,7 +51,7 @@ def corp_map():
     return m
 
 def candles(code):
-    x = fetch('https://fchart.stock.naver.com/sise.nhn?symbol=%s&timeframe=day&count=1800&requestType=0' % code).decode('euc-kr', 'ignore')
+    x = fetch('https://fchart.stock.naver.com/sise.nhn?symbol=%s&timeframe=day&count=2700&requestType=0' % code).decode('euc-kr', 'ignore')
     out = []
     for item in re.findall(r'data="([^"]+)"', x):
         p = item.split('|')
@@ -166,7 +166,9 @@ def build_series(code, name, corp):
                 roe.append([d, round(cur_eps / cur_bps * 100, 2)])
     if len(pbr) < 50:
         return None
-    return {'code': code, 'name': name, 'pbr': pbr, 'per': per, 'roe': roe}
+    px_out = [[d, c] for d, c in px]
+    return {'code': code, 'name': name, 'pbr': pbr, 'per': per, 'roe': roe,
+            'px': px_out, 'v': 2, 'gen': datetime.date.today().isoformat()}
 
 def main():
     if not DART_KEY:
@@ -185,8 +187,22 @@ def main():
             targets[x['code']] = x.get('name', x['code'])
     except Exception:
         pass
+    # 시총 상위 300 추가 (stockvals 기반)
+    try:
+        sv = json.load(open('public/data/stockvals.json', encoding='utf-8'))['map']
+        pj = json.load(open('public/data/products.json', encoding='utf-8'))['map']
+        top = sorted(((c, v) for c, v in sv.items() if v and v[2]), key=lambda x: -x[1][2])[:300]
+        for c, _ in top:
+            if c not in targets:
+                e = pj.get(c)
+                nm = (e.get('n') if isinstance(e, dict) else None) or c
+                targets[c] = nm
+    except Exception as e:
+        print('top300 로드 실패:', e, file=sys.stderr)
     if LIMIT:
         targets = dict(list(targets.items())[:LIMIT])
+    MAXRUN = int(os.environ.get('MAXRUN', '70'))  # 실행당 신규/갱신 최대
+    cutoff_gen = (datetime.date.today() - datetime.timedelta(days=7)).isoformat()
     try:
         cmap = corp_map()
         DEBUG.append('corp_map %d개' % len(cmap))
@@ -194,12 +210,28 @@ def main():
         DEBUG.append('corp_map 실패: %r' % e)
         cmap = {}
     os.makedirs(OUTDIR, exist_ok=True)
-    index, ok, fail = {}, 0, 0
+    index, ok, fail, ran = {}, 0, 0, 0
     for code, name in targets.items():
+        # 최근 7일 내 계산본(v2)은 재사용
+        try:
+            old = json.load(open('%s/%s.json' % (OUTDIR, code), encoding='utf-8'))
+            if old.get('v') == 2 and (old.get('gen') or '') >= cutoff_gen:
+                index[code] = name
+                ok += 1
+                continue
+        except Exception:
+            pass
+        if ran >= MAXRUN:
+            # 이번 실행 한도 초과 — 기존 파일 있으면 인덱스만 유지
+            if os.path.exists('%s/%s.json' % (OUTDIR, code)):
+                index[code] = name
+                ok += 1
+            continue
         corp = cmap.get(code)
         if not corp:
             fail += 1
             continue
+        ran += 1
         try:
             r = build_series(code, name, corp)
         except Exception as e:
@@ -223,6 +255,7 @@ def main():
         else:
             fail += 1
         print('%s %s %s' % (code, name, 'OK' if r else 'SKIP'), file=sys.stderr)
+    DEBUG.append('이번 실행 계산 %d종목 (한도 %d)' % (ran, MAXRUN))
     with open('%s/index.json' % OUTDIR, 'w', encoding='utf-8') as f:
         json.dump({'updated': time.strftime('%Y-%m-%d %H:%M'), 'count': ok, 'codes': index, 'debug': DEBUG}, f, ensure_ascii=False)
     print('완료: %d성공 / %d실패' % (ok, fail))

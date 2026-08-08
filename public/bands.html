@@ -48,13 +48,21 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
     <div class="panel"><div id="posline" style="margin-bottom:4px"></div><div class="hint" id="posdesc"></div></div>
     <div class="panel"><h2 id="perTitle">PER 밴드</h2><div class="chart-box"><canvas id="perBand"></canvas></div>
       <div class="hint"><b>검정 굵은 선=주가</b>, 색선=주당순이익(EPS)×과거 10년 PER 분위(최고·75%·중앙·25%·최저)로 계산한 가격선. 주가가 아래쪽 선에 가까울수록 이익 대비 역사적 저평가 구간. 적자 기간은 EPS가 없어 밴드가 비어 있습니다.</div></div>
+    <div class="panel" id="costPanel">
+      <h2 id="costTitle">비용구조 (5개년)</h2>
+      <div id="costType" style="margin-bottom:8px"></div>
+      <div class="chart-box" style="height:300px"><canvas id="costChart"></canvas></div>
+      <div class="chart-box" style="height:200px;margin-top:12px"><canvas id="costRatio"></canvas></div>
+      <div id="costDriver" style="margin-top:12px;font-size:13px;line-height:1.75;color:#374151;background:#fafbfd;border:1px solid #eef1f5;border-radius:10px;padding:12px 14px"></div>
+      <div class="hint">막대=매출액·매출원가·고정성비용(판관비+감가상각), 선=영업이익·순이익 (연간, 억원). 아래 차트=매출 대비 비율 추이. <b>변동비형</b>=원가가 매출과 함께 움직여 마진이 안정적(원자재 가격이 변수), <b>고정비형</b>=비용이 고정돼 매출 증가 시 이익이 크게 튐(가동률·판가가 변수). 판별은 5개년 원가율·고정비 비중·영업레버리지 기반 자동 추정입니다. DART 사업보고서 연결 기준.</div>
+    </div>
     <div class="panel"><h2 id="pbrTitle">PBR 밴드</h2><div class="chart-box"><canvas id="pbrBand"></canvas></div>
       <div class="hint"><b>검정 굵은 선=주가</b>, 색선=주당순자산(BPS)×과거 10년 PBR 분위. 자산가치 대비 주가 위치를 보는 밴드입니다. 데이터: DART 공시 재무(연결 우선, 공시지연 반영)÷실제 주가. <b>주가·배수선은 평일 매일 아침 갱신</b>, 재무(EPS·BPS)는 분기 공시 주기라 주 1회 재계산. 상장 10년 미만 종목은 상장 이후 구간만 표시.</div></div>
   </div>
   <div class="panel" id="empty"><div class="loading">위에서 종목을 검색해주세요.<br><span style="font-size:12px">지원 종목: 시가총액 상위 300 + 주요 108종목 (약 400개, 매주 자동 갱신 — 목록에 없는 종목은 순차 추가 중입니다)</span></div></div>
 </div>
 <script>
-let INDEX={}, perC=null, pbrC=null;
+let INDEX={}, perC=null, pbrC=null, costC=null, ratioC=null, DRV=null;
 const Q=[0,0.25,0.5,0.75,1];
 const QN=['최저','25%','중앙값','75%','최고'];
 const QC=['#2563d6','#0ea472','#8a93a2','#f59e0b','#e5384d'];
@@ -92,7 +100,59 @@ function mkBand(canvas, oldC, px, ratio, label){
   return {c, qs, cur: ratio.length?ratio[ratio.length-1][1]:null, rvals};
 }
 function pct(sorted,v){ let n=0; for(const x of sorted){ if(x<=v) n++; } return Math.round(n/sorted.length*100); }
+async function showCost(code){
+  const p=document.getElementById('costPanel');
+  let c=null;
+  try{ c=await (await fetch('/data/cost/'+code+'.json?t='+Date.now())).json(); }catch(e){}
+  if(!c||!c.rows){ p.style.display='none'; return; }
+  p.style.display='';
+  document.getElementById('costTitle').textContent=c.name+' — 비용구조 ('+c.rows[0].y+'~'+c.rows[c.rows.length-1].y+')';
+  const t=c.cls||{};
+  const col=t.type==='변동비형'?'#0ea472':(t.type==='고정비형'?'#7c3aed':'#5b6472');
+  document.getElementById('costType').innerHTML=
+    `<span style="display:inline-block;font-weight:800;color:#fff;background:${col};border-radius:9px;padding:5px 14px;font-size:14px">${t.type||'—'}</span>
+     <span style="font-size:12px;color:#5b6472;margin-left:8px">${t.why||''}</span>`;
+  const eok=v=>v==null?null:Math.round(v/1e8);
+  const ys=c.rows.map(r=>r.y);
+  if(costC) costC.destroy();
+  costC=new Chart(document.getElementById('costChart'),{data:{labels:ys,datasets:[
+    {type:'bar',label:'매출액',data:c.rows.map(r=>eok(r.rev)),backgroundColor:'rgba(47,109,246,.7)',borderRadius:3},
+    {type:'bar',label:'매출원가',data:c.rows.map(r=>eok(r.cogs)),backgroundColor:'rgba(14,164,114,.65)',borderRadius:3},
+    {type:'bar',label:'고정성비용(판관비+상각)',data:c.rows.map(r=>eok((r.sga||0)+(r.dep||0))||null),backgroundColor:'rgba(124,58,237,.6)',borderRadius:3},
+    {type:'line',label:'영업이익',data:c.rows.map(r=>eok(r.op)),borderColor:'#e5384d',backgroundColor:'transparent',borderWidth:2.2,pointRadius:3.5,tension:.2},
+    {type:'line',label:'순이익',data:c.rows.map(r=>eok(r.ni)),borderColor:'#f59e0b',backgroundColor:'transparent',borderWidth:1.8,pointRadius:3,tension:.2}
+  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{labels:{boxWidth:11,font:{size:11}}},
+      tooltip:{callbacks:{label:x=>x.dataset.label+': '+(x.raw!=null?Number(x.raw).toLocaleString()+'억':'—')}}},
+    scales:{x:{grid:{display:false}},y:{grid:{color:'#f0f2f5'},ticks:{font:{size:10},callback:v=>Number(v).toLocaleString()}}}}});
+  if(ratioC) ratioC.destroy();
+  const pctOf=(a,b)=>(a!=null&&b)?Math.round(a/b*1000)/10:null;
+  ratioC=new Chart(document.getElementById('costRatio'),{type:'line',data:{labels:ys,datasets:[
+    {label:'매출원가율%',data:c.rows.map(r=>pctOf(r.cogs,r.rev)),borderColor:'#0ea472',backgroundColor:'transparent',borderWidth:1.8,pointRadius:3,tension:.2},
+    {label:'고정성비용/매출%',data:c.rows.map(r=>pctOf((r.sga||0)+(r.dep||0),r.rev)),borderColor:'#7c3aed',backgroundColor:'transparent',borderWidth:1.8,pointRadius:3,tension:.2},
+    {label:'영업이익률%',data:c.rows.map(r=>pctOf(r.op,r.rev)),borderColor:'#e5384d',backgroundColor:'transparent',borderWidth:1.8,pointRadius:3,tension:.2}
+  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{labels:{boxWidth:11,font:{size:11}}}},
+    scales:{x:{grid:{display:false}},y:{grid:{color:'#f0f2f5'},ticks:{font:{size:10},callback:v=>v+'%'}}}}});
+  // 비용 드라이버 해설
+  try{
+    if(!DRV) DRV=await (await fetch('/costdrivers.json?t='+Date.now())).json();
+    const e=pentryB(code);
+    const hay=((e.p||'')+' '+(e.n||'')).toLowerCase();
+    let hit=(DRV.keywords||[]).find(k=>k.k.some(w=>hay.includes(w.toLowerCase())));
+    const secTxt=(DRV.sectors||{})[e.s||''];
+    let html='<b style="color:#1a2a4a">💡 이 업종의 비용 드라이버</b><br>';
+    if(hit) html+='<b>'+hit.t+':</b> '+hit.d;
+    if(secTxt) html+=(hit?'<br><br>':'')+'<b>'+(e.s||'섹터')+' 일반:</b> '+secTxt;
+    if(!hit&&!secTxt) html+='해당 업종 해설 준비 중';
+    document.getElementById('costDriver').innerHTML=html;
+  }catch(e){}
+}
+let PRODMAP2=null;
+function pentryB(c){ const e=(PRODMAP2||{})[c]; return typeof e==='string'? {p:e} : (e||{}); }
 async function show(code){
+  if(!PRODMAP2){ try{ PRODMAP2=(await (await fetch('/data/products.json?t='+Date.now())).json()).map||{}; }catch(e){ PRODMAP2={}; } }
+  showCost(code);
   let d;
   try{ d=await (await fetch('/data/compare/'+code+'.json?t='+Date.now())).json(); }
   catch(e){ document.getElementById('empty').innerHTML='<div class="loading">이 종목의 밴드 데이터가 아직 없습니다.<br>매일 순차 계산 중이니 1~2일 내 추가됩니다.</div>'; return; }

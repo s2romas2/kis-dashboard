@@ -1,0 +1,31 @@
+name: 비용구조 수집
+on:
+  schedule:
+    - cron: '50 22 * * 1-5'
+  workflow_dispatch: {}
+  push:
+    paths: ['cost.py']
+permissions:
+  contents: write
+jobs:
+  cost:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 수집
+        env:
+          DART_KEY: ${{ secrets.DART_KEY }}
+        run: python cost.py
+      - name: 결과 커밋
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/cost 2>/dev/null || true
+          git commit -m "비용구조 갱신" || echo "변경 없음"
+          git pull --rebase -X theirs origin main || true
+          git push || true

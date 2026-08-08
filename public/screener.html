@@ -84,7 +84,9 @@ async function loadData() {
     const r = await fetch('/data/screener.json?t=' + Date.now());
     DATA = await r.json();
   } catch (e) { document.getElementById('grid').innerHTML = '<div class="loading">screener.json을 아직 못 찾았습니다. GitHub Actions를 1회 실행하면 생성됩니다.</div>'; return; }
-  document.getElementById('meta').textContent = DATA.period + ' 기준(잠정실적 선반영) · ' + DATA.count + '종목 통과 · 갱신 ' + DATA.updated;
+  const fmtKst=s=>{const m=String(s||'').match(/(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
+    return m? `${m[1]}년 ${+m[2]}월 ${+m[3]}일 ${m[4]}:${m[5]}` : s;};
+  document.getElementById('meta').innerHTML = DATA.period + ' 기준(잠정실적 선반영) · ' + DATA.count + '종목 통과<br><b style="color:#2f6df6">갱신: ' + fmtKst(DATA.updated) + ' (한국시간)</b>';
   drawSec();
   render();
   enrich();

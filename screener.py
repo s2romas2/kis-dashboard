@@ -238,7 +238,8 @@ def main():
             m['rceptDt'] = lst[0].get('rcept_dt', '') if lst else ''
             time.sleep(0.03)
     matches.sort(key=lambda m: (m['opQoQ'] if m['opQoQ'] is not None else -9999), reverse=True)
-    out = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'period': '%dQ%d' % (LATEST_YEAR, LATEST_Q),
+    kst = time.strftime('%Y-%m-%d %H:%M', time.gmtime(time.time() + 9 * 3600))
+    out = {'updated': kst, 'period': '%dQ%d' % (LATEST_YEAR, LATEST_Q),
            'universe': len(corps), 'count': len(matches), 'list': matches}
     os.makedirs('public/data', exist_ok=True)
     with open('public/data/screener.json', 'w', encoding='utf-8') as f:

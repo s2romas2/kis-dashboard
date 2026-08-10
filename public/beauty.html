@@ -116,9 +116,20 @@ function baseOpts(){
     scales:{x:{ticks:{maxTicksLimit:9,font:{size:10}},grid:{display:false}},
       y:{min:0,grid:{color:'#f0f2f5'},ticks:{font:{size:10}}}}};
 }
-window.setBig=function(b){ BIG=b; MID=Object.keys(KEYS[b])[0]; BRAND=null; draw(); };
+function midList(){ // 현재 지역과 맞는 중분류만 (미국 토글 → 국내 TOP10 숨김, 한국 토글 → 미국 TOP10 숨김)
+  const hide=GEO==='US'?'국내 인기 TOP10':'미국 인기 TOP10';
+  return Object.keys(KEYS[BIG]).filter(m=>m!==hide);
+}
+function fixMid(){ // 지역 전환 등으로 현재 중분류가 숨겨졌으면 대응 분류로 교체
+  const list=midList();
+  if(list.includes(MID)) return;
+  const swap=GEO==='US'?'미국 인기 TOP10':'국내 인기 TOP10';
+  MID=list.includes(swap)?swap:list[0];
+  BRAND=null;
+}
+window.setBig=function(b){ BIG=b; MID=midList()[0]; BRAND=null; draw(); };
 window.setMid=function(m){ MID=m; BRAND=null; draw(); };
-window.setGeo=function(g){ GEO=(g==='한국')?'KR':'US'; draw(); };
+window.setGeo=function(g){ GEO=(g==='한국')?'KR':'US'; fixMid(); draw(); };
 window.setBrand=function(b){ BRAND=(BRAND===b)?null:b; drawCards(); drawDetail(); };
 function brandKey(b){ // 현재 지역에서 이 브랜드의 GT 키워드
   const v=KEYS[BIG][MID][b];
@@ -127,7 +138,7 @@ function brandKey(b){ // 현재 지역에서 이 브랜드의 GT 키워드
 function draw(){
   chips('bigbar', Object.keys(KEYS), BIG, 'setBig', 'big');
   chips('geobar', ['한국','미국'], GEO==='KR'?'한국':'미국', 'setGeo', 'geo');
-  chips('midbar', Object.keys(KEYS[BIG]), MID, 'setMid');
+  chips('midbar', midList(), MID, 'setMid');
   drawCmp(); drawCards(); drawDetail();
 }
 function drawCmp(){
@@ -226,7 +237,7 @@ function drawReddit(){
   try{ D=await (await fetch('/data/beauty.json?t='+Date.now())).json(); }catch(e){ D={}; }
   D=D||{};
   document.getElementById('meta').textContent=D.updated?('갱신 '+D.updated):'첫 수집 대기 중';
-  BIG=Object.keys(KEYS)[0]; MID=Object.keys(KEYS[BIG])[0];
+  BIG=Object.keys(KEYS)[0]; MID=midList()[0];
   draw();
   drawReddit();
   drawEurope();

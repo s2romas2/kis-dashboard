@@ -54,6 +54,15 @@ for big, mids in bk.items():
                 if any(k not in B['gt']['KR'] and alive(k) for k in chunk):
                     jobs.append(('bt_kr', 'KR', [b] + chunk, None))
 
+EU_GEOS = ['GB', 'DE', 'FR', 'PL', 'NL']
+EU_KW_GROUPS = [['Douglas', 'Sephora', 'Notino', 'Lookfantastic', 'Zalando'],
+                ['Allegro', 'bol.com', 'TikTok Shop']]
+for geo in EU_GEOS:
+    B['gt'].setdefault(geo, {})
+    for grp in EU_KW_GROUPS:
+        if any(k not in B['gt'][geo] and alive(geo + ':' + k) for k in grp):
+            jobs.append(('bt_eu', geo, grp, None))
+
 print('결측 작업 %d개' % len(jobs), file=sys.stderr)
 done = 0
 changedT = changedB = False
@@ -73,7 +82,8 @@ try:
                 # 요청은 성공했는데 결과가 없는 키워드 = 검색량 미달(죽은 키워드) 카운트
                 for k in kws:
                     if k not in df.columns:
-                        DEAD[k] = DEAD.get(k, 0) + 1
+                        dk = (geo + ':' + k) if kind == 'bt_eu' else k
+                        DEAD[dk] = DEAD.get(dk, 0) + 1
                 if ser:
                     ok = True
                     if kind == 'us_google':
@@ -84,6 +94,8 @@ try:
                         changedT = True
                     elif kind == 'bt_kr':
                         B['gt']['KR'].update(ser); changedB = True
+                    elif kind == 'bt_eu':
+                        B['gt'].setdefault(geo, {}).update(ser); changedB = True
                     else:
                         B['gt']['US'].update(ser); changedB = True
                     done += 1

@@ -71,6 +71,14 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
   </div>
 
   <div class="panel">
+    <h2>🇪🇺 유럽 온라인 뷰티 채널 <span style="color:#8a93a2;font-weight:400;font-size:12px">— 국가별 검색 관심도 (주간·5년) + 유럽 종합</span></h2>
+    <div id="eubar"></div>
+    <div class="chart-box" style="height:280px;margin-top:10px"><canvas id="euChart"></canvas></div>
+    <div id="euEmpty"></div>
+    <div class="hint">더글라스·세포라·노티노·룩판타스틱·잘란도·알레그로·볼닷컴·틱톡샵의 구글 검색 관심도. <b>유럽 종합=영국·독일·프랑스·폴란드·네덜란드 5개국 지수의 평균</b>(각국 지수가 자체 정규화된 상대값이라 근사 지표입니다). 틱톡샵은 미국 지수를 트렌드 페이지 구글트렌드(미국)에서도 볼 수 있습니다. 수집 전인 국가는 매시간 자동 채워집니다.</div>
+  </div>
+
+  <div class="panel">
     <h2>👽 레딧 뷰티 커뮤니티 <span style="color:#8a93a2;font-weight:400;font-size:12px">— 주간 인기글 한국어 번역 · 매일 갱신</span></h2>
     <div id="rdbar"></div>
     <div id="rdlist" style="margin-top:8px"><div class="loading">수집 대기 중…</div></div>
@@ -93,7 +101,7 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
   </div>
 </div>
 <script>
-let KEYS=null, D=null, BIG=null, MID=null, GEO='KR', BRAND=null, RSUB=null;
+let KEYS=null, D=null, BIG=null, MID=null, GEO='KR', BRAND=null, RSUB=null, EUGEO='EU';
 let cmpC=null, dC=null;
 const COLORS=['#2f6df6','#e5384d','#0ea472','#f59e0b','#7c3aed','#0891b2','#be185d','#65a30d'];
 const esc=s=>s.replace(/'/g,"\\'");
@@ -175,6 +183,32 @@ function drawDetail(){
   p.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 window.setRsub=function(s){ RSUB=s; drawReddit(); };
+let euC=null;
+const EUNAMES={EU:'유럽 종합',GB:'영국',DE:'독일',FR:'프랑스',PL:'폴란드',NL:'네덜란드'};
+window.setEu=function(g){ EUGEO=g; drawEurope(); };
+function drawEurope(){
+  const bar=document.getElementById('eubar'), box=document.getElementById('euChart').parentElement, empty=document.getElementById('euEmpty');
+  const gtAll=(D&&D.gt)||{};
+  const geos=Object.keys(EUNAMES).filter(g=>gtAll[g]&&Object.keys(gtAll[g]).length);
+  if(!geos.length){ box.style.display='none'; empty.innerHTML='<div class="loading">유럽 데이터 첫 수집 중입니다. 매시간 자동으로 채워집니다.</div>'; bar.innerHTML=''; return; }
+  if(!geos.includes(EUGEO)) EUGEO=geos[0];
+  bar.innerHTML=Object.keys(EUNAMES).map(g=>{
+    const has=geos.includes(g);
+    return `<span class="chip ${EUGEO===g?'on':''}" ${has?`onclick="setEu('${g}')"`:'style="opacity:.4"'}>${EUNAMES[g]}</span>`;
+  }).join('');
+  const src=gtAll[EUGEO];
+  const kws=Object.keys(src);
+  box.style.display=''; empty.innerHTML='';
+  const labels=(src[kws[0]]||[]).map(x=>x[0]);
+  if(euC) euC.destroy();
+  euC=new Chart(document.getElementById('euChart'),{type:'line',data:{labels,
+    datasets:kws.map((k,i)=>({label:k,data:src[k].map(x=>x[1]),borderColor:COLORS[i%COLORS.length],
+      backgroundColor:'transparent',borderWidth:1.6,pointRadius:0,tension:.25}))},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{labels:{boxWidth:12,font:{size:10.5}}}},
+      scales:{x:{ticks:{maxTicksLimit:9,font:{size:10}},grid:{display:false}},
+        y:{min:0,grid:{color:'#f0f2f5'},ticks:{font:{size:10}}}}}});
+}
 function drawReddit(){
   const rd=(D&&D.reddit)||{};
   const subs=Object.keys(rd).filter(s=>rd[s]&&rd[s].length);
@@ -195,6 +229,7 @@ function drawReddit(){
   BIG=Object.keys(KEYS)[0]; MID=Object.keys(KEYS[BIG])[0];
   draw();
   drawReddit();
+  drawEurope();
 })();
 </script>
 </body>

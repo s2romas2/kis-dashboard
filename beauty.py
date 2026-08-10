@@ -30,6 +30,9 @@ def amazon_sug(brand_us):
     return [s.get('value') for s in d.get('suggestions', []) if s.get('value')]
 
 REDDIT_SUBS = ['AsianBeauty', 'KoreanBeauty', 'SkincareAddiction', '30PlusSkinCare']
+EU_GEOS = ['GB', 'DE', 'FR', 'PL', 'NL']  # 영국·독일·프랑스·폴란드·네덜란드
+EU_KW_GROUPS = [['Douglas', 'Sephora', 'Notino', 'Lookfantastic', 'Zalando'],
+                ['Allegro', 'bol.com', 'TikTok Shop']]  # 유럽 온라인 뷰티 채널 검색어
 
 def translate_ko(text):
     """구글 번역 gtx (무키). 실패 시 원문 유지. 반드시 UTF-8 디코드."""
@@ -81,6 +84,8 @@ def main():
     keys = json.load(open('public/beautykeys.json', encoding='utf-8'))
     pv = prev()
     gt = {'KR': dict((pv.get('gt') or {}).get('KR') or {}), 'US': dict((pv.get('gt') or {}).get('US') or {})}
+    for g in EU_GEOS:
+        gt[g] = dict((pv.get('gt') or {}).get(g) or {})
     amazon = dict(pv.get('amazon') or {})
 
     # ---- 수집 작업 목록 구성 ----
@@ -97,6 +102,9 @@ def main():
                 prods = v.get('products') or []
                 for ci in range(0, len(prods), 4):
                     jobs.append(('KR', [b] + prods[ci:ci + 4]))
+    for g in EU_GEOS:  # 유럽 국가별 온라인 채널 검색어
+        for grp in EU_KW_GROUPS:
+            jobs.append((g, grp))
 
     # ---- 구글트렌드 ----
     ok = skip = 0
@@ -154,6 +162,17 @@ def main():
     DEBUG.append('아마존 %d개 브랜드' % a_ok)
 
     rd = reddit_posts(pv.get('reddit'))
+    # 유럽 종합(5개국 평균 — 각국 지수가 자체 정규화라 근사치)
+    eu_avg = {}
+    all_eu_kws = [k for grp in EU_KW_GROUPS for k in grp]
+    for kw in all_eu_kws:
+        series_list = [dict(gt[g][kw]) for g in EU_GEOS if kw in gt.get(g, {})]
+        if len(series_list) >= 3:
+            dates = sorted(set(d for sm in series_list for d in sm))
+            eu_avg[kw] = [[d, round(sum(sm[d] for sm in series_list if d in sm)
+                                    / max(1, sum(1 for sm in series_list if d in sm)), 1)] for d in dates]
+    gt['EU'] = eu_avg
+    DEBUG.append('유럽 종합 %d개 키워드 (국가 데이터 3개국 이상 기준)' % len(eu_avg))
     out = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'debug': DEBUG, 'gt': gt, 'amazon': amazon, 'reddit': rd}
     os.makedirs('public/data', exist_ok=True)
     with open(OUT, 'w', encoding='utf-8') as f:

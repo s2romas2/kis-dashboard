@@ -68,10 +68,17 @@ table.q td.l, table.q th.l { text-align:left; }
 let DATA = null, FILTER = 'all', quoteCache = {}, PRODMAP = {};
 const SECLIST=['정보기술','커뮤니케이션','금융','헬스케어','임의소비재','필수소비재','산업재','소재','에너지','유틸리티','부동산','기타'];
 let SEC='all';
+// 뷰티 테마 필터: 화장품 브랜드·ODM/용기·미용 시술/기기 상장사 (섹터와 무관한 횡단 테마)
+const BEAUTY_CODES=new Set(['090430','002790','051900','003350','123690','192820','161890','024720','200130',
+  '241710','352480','237880','114840','018290','439090','278470','214420','078520','226320','018250','092730',
+  '257720','027050','251970','115960','950140','086710','052260','214450','145020','214150','086900','069620',
+  '336570','335890','287410','290650','200670','214370','099430','217480']);
+const BEAUTY_NM=/달바|뷰티|화장품|코스메틱/;
+const isBeautyCo=m=>BEAUTY_CODES.has(m.code)||BEAUTY_NM.test(m.name);
 function pentry(c){ const e=PRODMAP[c]; return typeof e==='string'? {p:e,s:'기타'} : (e||{}); }
 function secOf(c){ return pentry(c).s || '기타'; }
 function drawSec(){ const el=document.getElementById('secbar2'); if(!el) return;
-  el.innerHTML=['all',...SECLIST].map(s=>`<span class="chip ${SEC===s?'on':''}" onclick="setSec('${s}')">${s==='all'?'섹터 전체':s}</span>`).join(''); }
+  el.innerHTML=['all','뷰티',...SECLIST].map(s=>`<span class="chip ${SEC===s?'on':''}" onclick="setSec('${s}')">${s==='all'?'섹터 전체':(s==='뷰티'?'💄 뷰티':s)}</span>`).join(''); }
 window.setSec=function(s){ SEC=s; drawSec(); render(); };
 
 const cls = v => v == null ? 'flat' : (v > 0 ? 'up' : (v < 0 ? 'down' : 'flat'));
@@ -120,7 +127,7 @@ function card(m, i) {
 function filtered() {
   if (!DATA) return [];
   const kw = (document.getElementById('q').value || '').trim();
-  return DATA.list.filter(m => (FILTER === 'all' || m.conds.includes(+FILTER)) && ((SEC==='all')||secOf(m.code)===SEC) && (!kw || m.name.includes(kw) || m.code.includes(kw)));
+  return DATA.list.filter(m => (FILTER === 'all' || m.conds.includes(+FILTER)) && ((SEC==='all')||(SEC==='뷰티'?isBeautyCo(m):secOf(m.code)===SEC)) && (!kw || m.name.includes(kw) || m.code.includes(kw)));
 }
 function render() {
   const list = filtered();

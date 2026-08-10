@@ -449,7 +449,8 @@ function drawGt(){
   let series=[];
   if(!isBeauty()){
     const gt=T.google||{};
-    series=Object.keys(gt).map(k=>({label:k,data:gt[k]}));
+    const HIDE=['HBM memory','TikTok Shop']; // 차트에서 제외(수집은 유지 — 틱톡샵은 채널별 순위에서 사용)
+    series=Object.keys(gt).filter(k=>!HIDE.includes(k)).map(k=>({label:k,data:gt[k]}));
   } else if(SUB){
     const brands=K[CAT][SUB];
     if(BRAND){

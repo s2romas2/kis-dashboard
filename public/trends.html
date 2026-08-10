@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>트렌드 지표 · 한국 대시보드</title>
+<title>트렌드 · 뷰티 · 한국 대시보드</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
 <style>
 :root { color-scheme: light; }
@@ -34,16 +34,24 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
 ol.amzlist { margin:6px 0 0; padding:0 0 0 4px; list-style:none; font-size:13.5px; }
 ol.amzlist li { padding:6px 8px; border-bottom:1px solid #f0f2f5; }
 ol.amzlist li b { color:#c2410c; font-size:11.5px; margin-right:9px; }
-@media (max-width:720px){ .wrap{padding:14px 10px 40px;} .chart-box{height:240px;} .chart-sm{height:200px;} }
+.two { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+.rk-h { font-size:12.5px; font-weight:800; color:#5b6472; margin-bottom:4px; }
+.rkrow { display:flex; align-items:center; gap:8px; padding:6px 6px; border-bottom:1px solid #f0f2f5; font-size:13px; cursor:pointer; border-radius:6px; }
+.rkrow:hover { background:#f4f7fd; }
+.rkrow .no { font-weight:800; color:#c2410c; font-size:11.5px; width:30px; flex:none; }
+.rkrow .nm { font-weight:700; flex:1; min-width:0; }
+.rkrow .sc { color:#2f6df6; font-weight:800; }
+.rkrow .df { font-size:11.5px; width:52px; text-align:right; flex:none; }
+@media (max-width:720px){ .wrap{padding:14px 10px 40px;} .chart-box{height:240px;} .chart-sm{height:200px;} .two{grid-template-columns:1fr;} }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <div>
-      <h1>📈 트렌드 지표</h1>
-      <div class="sub">검색트렌드 · 뉴스 버즈 · 구글트렌드(미국) · 관세청 수출 — 아래 카테고리를 고르면 모든 지표가 함께 바뀝니다</div>
-      <div style="margin-top:6px"><a class="back" href="/">← 섹터 대시보드</a> &nbsp; <a class="back" href="/beauty.html">💄 뷰티 상세(아마존·제품별)</a></div>
+      <h1>📈 트렌드 · 뷰티</h1>
+      <div class="sub">검색트렌드 · 뉴스 버즈 · 구글트렌드(미국) · 브랜드 순위 · 아마존 · 유럽 · 레딧 · 수출 — 카테고리를 고르면 모든 지표가 함께 바뀝니다</div>
+      <div style="margin-top:6px"><a class="back" href="/">← 섹터 대시보드</a></div>
     </div>
     <div class="meta" id="meta">불러오는 중…</div>
   </header>
@@ -52,6 +60,15 @@ ol.amzlist li b { color:#c2410c; font-size:11.5px; margin-right:9px; }
     <div id="catbar"></div>
     <div id="subbar" style="margin-top:8px"></div>
     <div id="brandbar" style="margin-top:8px"></div>
+  </div>
+
+  <div class="panel" id="rankPanel" style="display:none">
+    <h2>🏆 브랜드 순위 <span class="lead">구글 검색 관심도 · 최근 4주 평균 vs 직전 4주</span></h2>
+    <div class="two">
+      <div><div class="rk-h">🇰🇷 한국 검색 순위</div><div id="rankKR"></div></div>
+      <div><div class="rk-h">🇺🇸 미국 검색 순위</div><div id="rankUS"></div></div>
+    </div>
+    <div class="hint">선택한 대분류의 <b>전체 브랜드</b>를 최근 4주 구글 검색 관심도 평균으로 줄 세운 순위입니다(중복 제거). 화살표는 직전 4주 대비 증감. 각 지수는 브랜드별 자체 정규화 상대값이라 <b>순위·추세 참고용</b>이며 절대 검색량 비교는 아닙니다. 행을 클릭하면 그 브랜드의 상세 지표로 이동합니다.</div>
   </div>
 
   <div class="panel">
@@ -73,13 +90,28 @@ ol.amzlist li b { color:#c2410c; font-size:11.5px; margin-right:9px; }
     <h2>🌎 구글트렌드 (미국) <span class="lead">매일 저녁 7시 수집 · 구글 반영지연 2~3일 · 주간 단위</span></h2>
     <div class="chart-box"><canvas id="gtChart"></canvas></div>
     <div id="gtEmpty"></div>
-    <div class="hint" id="gtHint">미국 지역 상대 검색지수. 아마존 점유율은 비공개라 미국 검색 관심도가 <b>미국 수요의 대용 지표</b>이며, 아마존 실검색 수요는 <a href="/beauty.html" style="color:#2f6df6">뷰티 상세</a>의 인기 검색어에서 확인. 구글 차단 시 이전 데이터 유지·매일 누적.</div>
+    <div class="hint" id="gtHint">미국 지역 상대 검색지수. 아마존 점유율은 비공개라 미국 검색 관심도가 <b>미국 수요의 대용 지표</b>이며, 아마존 실검색 수요는 아래 <b>아마존 USA 인기 검색어</b> 패널에서 확인. 구글 차단 시 이전 데이터 유지·매일 누적.</div>
   </div>
 
   <div class="panel" id="amzPanel" style="display:none">
     <h2>🛒 아마존 USA 인기 검색어 <span class="lead">매일 수집 · 아마존 자동완성 순위 = 실제 구매 검색 수요</span></h2>
     <div id="amzBody"></div>
     <div class="hint">아마존 미국 검색창의 자동완성 순위를 그대로 수집한 것으로, 미국 소비자가 이 브랜드에서 <b>실제로 무엇을 검색하는지</b>의 순위입니다. 검색량 수치는 아마존이 비공개(순위만 제공). 미국 미판매(한국 전용) 브랜드는 제외됩니다.</div>
+  </div>
+
+  <div class="panel" id="euPanel" style="display:none">
+    <h2>🇪🇺 유럽 온라인 뷰티 채널 <span class="lead">국가별 검색 관심도 (주간·5년) + 유럽 종합</span></h2>
+    <div id="eubar"></div>
+    <div class="chart-box" style="height:280px;margin-top:10px"><canvas id="euChart"></canvas></div>
+    <div id="euEmpty"></div>
+    <div class="hint">더글라스·세포라·노티노·룩판타스틱·잘란도·알레그로·볼닷컴·틱톡샵의 구글 검색 관심도. <b>유럽 종합=영국·독일·프랑스·폴란드·네덜란드 5개국 지수의 평균</b>(각국 지수가 자체 정규화된 상대값이라 근사 지표입니다). 수집 전인 국가는 매시간 자동 채워집니다.</div>
+  </div>
+
+  <div class="panel" id="rdPanel" style="display:none">
+    <h2>👽 레딧 뷰티 커뮤니티 <span class="lead">주간 인기글 한국어 번역 · 매일 갱신</span></h2>
+    <div id="rdbar"></div>
+    <div id="rdlist" style="margin-top:8px"><div class="loading">수집 대기 중…</div></div>
+    <div class="hint">미국 레딧의 K뷰티·스킨케어 커뮤니티(r/AsianBeauty, r/KoreanBeauty, r/SkincareAddiction, r/30PlusSkinCare) 주간 인기글입니다. 제목 클릭 시 원문(영어)으로 이동. 해외 소비자들이 실제로 이야기하는 브랜드·제품을 보는 정성 지표입니다.</div>
   </div>
 
   <div class="panel">
@@ -125,7 +157,92 @@ function draw(){
   chips('subbar', subs, SUB, 'setSub');
   if(isBeauty()&&SUB){ chips('brandbar', ['브랜드 비교', ...Object.keys(K[CAT][SUB])], BRAND||'브랜드 비교', 'setBrand2'); }
   else document.getElementById('brandbar').innerHTML='';
+  const bt=isBeauty();
+  document.getElementById('rankPanel').style.display=bt?'':'none';
+  document.getElementById('euPanel').style.display=bt?'':'none';
+  document.getElementById('rdPanel').style.display=bt?'':'none';
+  if(bt){ drawRank(); drawEurope(); drawReddit(); }
   drawDL(); drawBz(); drawGt(); drawAmz(); drawEx();
+}
+// ---- 브랜드 순위 (대분류 전체 브랜드, 최근 4주 평균 관심도 기준) ----
+function avgSeg(s, a, b){ const seg=s.slice(a, b===0?undefined:b); if(!seg||!seg.length) return null;
+  return seg.reduce((t,x)=>t+x[1],0)/seg.length; }
+function catBrands(){ // 현재 대분류의 브랜드 중복 제거 (TOP10 그룹보다 원 분류의 소속을 우선 기억)
+  const out={};
+  for(const mid of Object.keys(K[CAT]||{})){
+    for(const b of Object.keys(K[CAT][mid])){
+      if(!out[b] || (out[b].mid.includes('TOP10') && !mid.includes('TOP10')))
+        out[b]={v:K[CAT][mid][b], mid};
+    }
+  }
+  return out;
+}
+window.pickBrand=function(b){
+  const info=catBrands()[b];
+  if(!info) return;
+  SUB=info.mid; BRAND=b; draw();
+  document.getElementById('dlChart').scrollIntoView({behavior:'smooth',block:'center'});
+};
+function rankHtml(rows){
+  if(!rows.length) return '<div class="loading" style="padding:20px">수집된 데이터가 아직 없습니다.</div>';
+  return rows.map((r,i)=>{
+    const d=r.prev!=null?Math.round(r.cur-r.prev):null;
+    const df=d==null?'':(d>0?`<span style="color:#e5384d">▲${d}</span>`:(d<0?`<span style="color:#2563d6">▼${-d}</span>`:'<span style="color:#8a93a2">–</span>'));
+    return `<div class="rkrow" onclick="pickBrand('${esc(r.b)}')"><span class="no">${i+1}위</span><span class="nm">${r.b}${r.us?' <span style="color:#8a93a2;font-weight:400;font-size:11px">'+r.us+'</span>':''}</span><span class="sc">${Math.round(r.cur)}</span><span class="df">${df}</span></div>`;
+  }).join('');
+}
+function drawRank(){
+  const all=catBrands();
+  const kr=[], us=[];
+  for(const b of Object.keys(all)){
+    const v=all[b].v;
+    const sk=gtKR(b);
+    if(sk&&sk.length>=4){ kr.push({b, us:null, cur:avgSeg(sk,-4,0), prev:avgSeg(sk,-8,-4)}); }
+    if(v.us){ const su=gtUS(v.us);
+      if(su&&su.length>=4){ us.push({b, us:v.us, cur:avgSeg(su,-4,0), prev:avgSeg(su,-8,-4)}); } }
+  }
+  kr.sort((a,b)=>b.cur-a.cur); us.sort((a,b)=>b.cur-a.cur);
+  document.getElementById('rankKR').innerHTML=rankHtml(kr.slice(0,15));
+  document.getElementById('rankUS').innerHTML=rankHtml(us.slice(0,15));
+}
+// ---- 유럽 온라인 뷰티 채널 ----
+let euC=null, EUGEO='EU';
+const EUNAMES={EU:'유럽 종합',GB:'영국',DE:'독일',FR:'프랑스',PL:'폴란드',NL:'네덜란드'};
+window.setEu=function(g){ EUGEO=g; drawEurope(); };
+function drawEurope(){
+  const bar=document.getElementById('eubar'), box=document.getElementById('euChart').parentElement, empty=document.getElementById('euEmpty');
+  const gtAll=(B&&B.gt)||{};
+  const geos=Object.keys(EUNAMES).filter(g=>gtAll[g]&&Object.keys(gtAll[g]).length);
+  if(!geos.length){ box.style.display='none'; empty.innerHTML='<div class="loading">유럽 데이터 첫 수집 중입니다. 매시간 자동으로 채워집니다.</div>'; bar.innerHTML=''; return; }
+  if(!geos.includes(EUGEO)) EUGEO=geos[0];
+  bar.innerHTML=Object.keys(EUNAMES).map(g=>{
+    const has=geos.includes(g);
+    return `<span class="chip ${EUGEO===g?'on':''}" ${has?`onclick="setEu('${g}')"`:'style="opacity:.4"'}>${EUNAMES[g]}</span>`;
+  }).join('');
+  const src=gtAll[EUGEO];
+  const kws=Object.keys(src);
+  box.style.display=''; empty.innerHTML='';
+  const labels=(src[kws[0]]||[]).map(x=>x[0]);
+  if(euC){ euC.destroy(); euC=null; }
+  euC=new Chart(document.getElementById('euChart'),{type:'line',data:{labels,
+    datasets:kws.map((k,i)=>({label:k,data:src[k].map(x=>x[1]),borderColor:COLORS[i%COLORS.length],
+      backgroundColor:'transparent',borderWidth:1.6,pointRadius:0,tension:.25}))},
+    options:baseOpts()});
+}
+// ---- 레딧 뷰티 커뮤니티 ----
+let RSUB=null;
+window.setRsub=function(s){ RSUB=s; drawReddit(); };
+function drawReddit(){
+  const rd=(B&&B.reddit)||{};
+  const subs=Object.keys(rd).filter(s=>rd[s]&&rd[s].length);
+  const bar=document.getElementById('rdbar'), list=document.getElementById('rdlist');
+  if(!subs.length){ list.innerHTML='<div class="loading">레딧 데이터가 아직 수집되지 않았습니다. 다음 자동 실행 때 채워집니다.</div>'; bar.innerHTML=''; return; }
+  if(!RSUB||!rd[RSUB]) RSUB=subs[0];
+  bar.innerHTML=subs.map(s=>`<span class="chip ${RSUB===s?'on':''}" onclick="setRsub('${s}')">r/${s}</span>`).join('');
+  list.innerHTML=rd[RSUB].map((p,i)=>`<div style="padding:9px 4px;border-bottom:1px solid #f0f2f5">
+    <div style="font-weight:700;font-size:13.5px"><a href="${p.link}" target="_blank" rel="noopener" style="color:#1a1f2e;text-decoration:none">${i+1}. ${esc(p.t)}</a></div>
+    <div style="font-size:11.5px;color:#8a93a2;margin-top:2px">${esc(p.t_en||'')} · ${p.d||''}</div>
+  </div>`).join('');
 }
 window.setBrand2=function(b){ BRAND=(b==='브랜드 비교')?null:b; draw(); };
 function drawAmz(){
@@ -169,7 +286,7 @@ function drawDL(){
     if(BRAND){
       const v=K[CAT][SUB][BRAND];
       series=[BRAND, ...(v.products||[])].filter(k=>gtKR(k)).map(k=>({label:k,data:gtKR(k)}));
-      hint='<b>'+BRAND+'</b>의 브랜드·제품 키워드 검색 추세(한국). 아마존 검색어는 <a href="/beauty.html" style="color:#2f6df6">뷰티 상세</a>에서.';
+      hint='<b>'+BRAND+'</b>의 브랜드·제품 키워드 검색 추세(한국). 아마존 검색어는 아래 아마존 패널에서.';
     } else {
       series=Object.keys(K[CAT][SUB]).filter(b=>gtKR(b)).slice(0,5).map(b=>({label:b,data:gtKR(b)}));
       hint=SUB+' 브랜드 비교(최대 5개 표시, 그룹 내 최대=100). 브랜드 칩을 누르면 제품별로 내려갑니다.';

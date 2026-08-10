@@ -21,10 +21,13 @@ T = load(TRENDS, {})
 B = load(BEAUTY, {})
 T.setdefault('google', {}); T.setdefault('datalab', {})
 B.setdefault('gt', {}); B['gt'].setdefault('KR', {}); B['gt'].setdefault('US', {})
+DEAD = load('public/data/gtdead.json', {})  # 키워드: 실패 누적(구글이 결과 없음으로 응답)
+def alive(k):
+    return DEAD.get(k, 0) < 3
 
 jobs = []  # (kind, geo, kws, meta)
 for batch in tk.get('google', []):
-    if any(k not in T['google'] for k in batch):
+    if any(k not in T['google'] and alive(k) for k in batch):
         jobs.append(('us_google', 'US', batch, None))
 for sec, themes in tk.get('datalab', {}).items():
     if sec not in T['datalab']:
@@ -35,18 +38,18 @@ for big, mids in bk.items():
         names = list(brands.keys())
         for i in range(0, len(names), 5):
             chunk = names[i:i + 5]
-            if any(b not in B['gt']['KR'] for b in chunk):
+            if any(b not in B['gt']['KR'] and alive(b) for b in chunk):
                 jobs.append(('bt_kr', 'KR', chunk, None))
         us = [v['us'] for v in brands.values() if v.get('us')]
         for i in range(0, len(us), 5):
             chunk = us[i:i + 5]
-            if any(k not in B['gt']['US'] for k in chunk):
+            if any(k not in B['gt']['US'] and alive(k) for k in chunk):
                 jobs.append(('bt_us', 'US', chunk, None))
 for big, mids in bk.items():
     for mid, brands in mids.items():
         for b, v in brands.items():
             kws = ([b] + (v.get('products') or []))[:5]
-            if len(kws) > 1 and any(k not in B['gt']['KR'] for k in kws[1:]):
+            if len(kws) > 1 and any(k not in B['gt']['KR'] and alive(k) for k in kws[1:]):
                 jobs.append(('bt_kr', 'KR', kws, None))
 
 print('결측 작업 %d개' % len(jobs), file=sys.stderr)
@@ -65,6 +68,10 @@ try:
                 df = pt.interest_over_time()
                 ser = {k: [[d.strftime('%Y-%m-%d'), int(v)] for d, v in df[k].items()]
                        for k in kws if k in df.columns}
+                # 요청은 성공했는데 결과가 없는 키워드 = 검색량 미달(죽은 키워드) 카운트
+                for k in kws:
+                    if k not in df.columns:
+                        DEAD[k] = DEAD.get(k, 0) + 1
                 if ser:
                     ok = True
                     if kind == 'us_google':
@@ -92,4 +99,5 @@ if changedT:
 if changedB:
     B['updated'] = time.strftime('%Y-%m-%d %H:%M')
     json.dump(B, open(BEAUTY, 'w', encoding='utf-8'), ensure_ascii=False)
-print('이번 실행 성공 %d개' % done)
+json.dump(DEAD, open('public/data/gtdead.json', 'w', encoding='utf-8'), ensure_ascii=False)
+print('이번 실행 성공 %d개 (제외 키워드 %d)' % (done, sum(1 for v in DEAD.values() if v >= 3)))

@@ -42,6 +42,14 @@ ol.amzlist li b { color:#c2410c; font-size:11.5px; margin-right:9px; }
 .rkrow .nm { font-weight:700; flex:1; min-width:0; }
 .rkrow .sc { color:#2f6df6; font-weight:800; }
 .rkrow .df { font-size:11.5px; width:52px; text-align:right; flex:none; }
+.chgrp { border:1px solid #eef0f4; border-radius:11px; padding:10px 12px; margin-top:10px; background:#fbfcfe; }
+.chrow { display:flex; align-items:baseline; gap:7px; padding:5px 2px; border-bottom:1px solid #f0f2f5; font-size:12.8px; flex-wrap:wrap; }
+.chrow:last-child { border-bottom:none; }
+.chrow .no { font-weight:800; color:#c2410c; font-size:11px; width:30px; flex:none; }
+.chrow .nm { font-weight:700; }
+.chrow .cat { background:#eef2f8; color:#5b6472; border-radius:6px; padding:1px 7px; font-size:10.5px; font-weight:700; }
+.chrow .corp { color:#0a7f4f; font-size:11px; font-weight:700; }
+.chrow .xtra { color:#8a93a2; font-size:11px; }
 @media (max-width:720px){ .wrap{padding:14px 10px 40px;} .chart-box{height:240px;} .chart-sm{height:200px;} .two{grid-template-columns:1fr;} }
 </style>
 </head>
@@ -63,7 +71,7 @@ ol.amzlist li b { color:#c2410c; font-size:11.5px; margin-right:9px; }
   </div>
 
   <div class="panel" id="rankPanel" style="display:none">
-    <h2>🏆 브랜드 순위 <span class="lead">구글 검색 관심도 · 최근 4주 평균 vs 직전 4주</span></h2>
+    <h2>🏆 브랜드 순위 <span class="lead">채널: 구글트렌드 검색 관심도 · 최근 4주 평균 vs 직전 4주 — 다른 채널 순위는 상단 '채널별 순위' 메뉴</span></h2>
     <div class="two">
       <div><div class="rk-h">🇰🇷 한국 검색 순위</div><div id="rankKR"></div></div>
       <div><div class="rk-h">🇺🇸 미국 검색 순위</div><div id="rankUS"></div></div>
@@ -71,14 +79,23 @@ ol.amzlist li b { color:#c2410c; font-size:11.5px; margin-right:9px; }
     <div class="hint">선택한 대분류의 <b>전체 브랜드</b>를 최근 4주 구글 검색 관심도 평균으로 줄 세운 순위입니다(중복 제거). 화살표는 직전 4주 대비 증감. 각 지수는 브랜드별 자체 정규화 상대값이라 <b>순위·추세 참고용</b>이며 절대 검색량 비교는 아닙니다. 행을 클릭하면 그 브랜드의 상세 지표로 이동합니다.</div>
   </div>
 
-  <div class="panel">
+  <div class="panel" id="chPanel" style="display:none">
+    <h2>🛒 채널별 검색량·순위 <span class="lead">채널마다 집계 방식이 달라 표기 기준을 함께 안내합니다</span></h2>
+    <div id="chbar"></div>
+    <div id="chNote" class="hint" style="margin-top:10px"></div>
+    <div id="chBody"></div>
+    <div class="chart-box" id="chChartBox" style="display:none;margin-top:10px"><canvas id="chChart"></canvas></div>
+    <div class="hint">표기 형식: <b>순위 · 제품명(브랜드명) · 카테고리 · 기업명</b>. 기업명이 없는 항목은 비상장이거나 아직 매핑 전입니다(brandmap.json에서 관리).</div>
+  </div>
+
+  <div class="panel" id="dlPanel">
     <h2>🔍 검색트렌드 (한국) <span class="lead">매일 저녁 7시 수집 · 구글 반영지연 2~3일 · 주간 단위</span></h2>
     <div class="chart-box"><canvas id="dlChart"></canvas></div>
     <div id="dlEmpty"></div>
     <div class="hint" id="dlHint"></div>
   </div>
 
-  <div class="panel">
+  <div class="panel" id="bzPanel">
     <h2>📰 뉴스 버즈 <span class="lead">매일 저녁 7시 수집 · 최근 7일 기사수 · 2026-08-04부터 누적</span></h2>
     <div class="chart-sm"><canvas id="bzBar"></canvas></div>
     <div class="chart-sm" style="margin-top:14px"><canvas id="bzHist"></canvas></div>
@@ -86,7 +103,7 @@ ol.amzlist li b { color:#c2410c; font-size:11.5px; margin-right:9px; }
     <div class="hint">위: 최근 7일 기사수 비교 · 아래: 선택 항목의 버즈 추이. 구글뉴스 기준(항목당 최대 약 100건×키워드수). <b>측정 시작일(8/4)부터 매일 1개씩 점이 쌓여 선이 됩니다</b> — 과거 기사수는 소급 수집이 불가능합니다.</div>
   </div>
 
-  <div class="panel">
+  <div class="panel" id="gtPanel">
     <h2>🌎 구글트렌드 (미국) <span class="lead">매일 저녁 7시 수집 · 구글 반영지연 2~3일 · 주간 단위</span></h2>
     <div class="chart-box"><canvas id="gtChart"></canvas></div>
     <div id="gtEmpty"></div>
@@ -114,7 +131,7 @@ ol.amzlist li b { color:#c2410c; font-size:11.5px; margin-right:9px; }
     <div class="hint">미국 레딧의 K뷰티·스킨케어 커뮤니티(r/AsianBeauty, r/KoreanBeauty, r/SkincareAddiction, r/30PlusSkinCare) 주간 인기글입니다. 제목 클릭 시 원문(영어)으로 이동. 해외 소비자들이 실제로 이야기하는 브랜드·제품을 보는 정성 지표입니다.</div>
   </div>
 
-  <div class="panel">
+  <div class="panel" id="exPanel">
     <h2>🚢 수출 데이터 <span class="lead">월 단위 관세청 확정치 · 확정까지 1~2개월 지연 · 매일 확인</span></h2>
     <div id="exbar"></div>
     <div class="chart-box" style="margin-top:10px"><canvas id="exChart"></canvas></div>
@@ -128,7 +145,8 @@ let CAT='산업 섹터', SUB=null, BRAND=null, EX=null;
 let dlC=null, bzB=null, bzH=null, gtC=null, exC=null;
 const COLORS=['#2f6df6','#e5384d','#0ea472','#f59e0b','#7c3aed','#0891b2','#be185d','#65a30d','#334155','#b45309'];
 const esc=s=>String(s).replace(/'/g,"\\'");
-const isBeauty=()=>CAT!=='산업 섹터';
+const CH_MENU='채널별 순위';
+const isBeauty=()=>CAT!=='산업 섹터'&&CAT!==CH_MENU;
 function chips(el, items, cur, fn, cls){
   const box=document.getElementById(el);
   if(!items||!items.length){ box.innerHTML=''; return; }
@@ -151,7 +169,21 @@ function subList(){
   return Object.keys(K[CAT]||{});
 }
 function draw(){
-  chips('catbar', ['산업 섹터', ...Object.keys(K)], CAT, 'setCat', 'big');
+  chips('catbar', ['산업 섹터', ...Object.keys(K), CH_MENU], CAT, 'setCat', 'big');
+  const chMode=CAT===CH_MENU;
+  document.getElementById('chPanel').style.display=chMode?'':'none';
+  for(const id of ['dlPanel','bzPanel','gtPanel','exPanel'])
+    document.getElementById(id).style.display=chMode?'none':'';
+  if(chMode){
+    document.getElementById('subbar').innerHTML='';
+    document.getElementById('brandbar').innerHTML='';
+    document.getElementById('rankPanel').style.display='none';
+    document.getElementById('euPanel').style.display='none';
+    document.getElementById('rdPanel').style.display='none';
+    document.getElementById('amzPanel').style.display='none';
+    drawCh();
+    return;
+  }
   const subs=subList();
   if(!SUB||!subs.includes(SUB)) SUB=subs[0]||null;
   chips('subbar', subs, SUB, 'setSub');
@@ -164,23 +196,117 @@ function draw(){
   if(bt){ drawRank(); drawEurope(); drawReddit(); }
   drawDL(); drawBz(); drawGt(); drawAmz(); drawEx();
 }
+// ---- 채널별 검색량·순위 ----
+let CD={}, CHSEL='올리브영 글로벌', chC=null;
+const CHDEF=[['oy_global','올리브영 글로벌'],['tiktok_us','틱톡 (미국)'],['amazon_us','아마존 USA'],
+  ['amazon_uk','아마존 UK'],['tiktok_eu','틱톡 (유럽)'],['google','구글트렌드'],
+  ['oy_kr','올리브영 한국'],['naver','네이버'],['hwagp','화해 · 글로우픽']];
+window.setCh=function(l){ CHSEL=l; drawCh(); };
+function chRow(it,i){
+  const b=it.b?` <span style="color:#5b6472;font-weight:400">(${it.b})</span>`:'';
+  const corp=it.corp?`<span class="corp">${it.corp}</span>`:'';
+  const x=it.x?`<span class="xtra">${it.x}</span>`:'';
+  return `<div class="chrow"><span class="no">${i+1}위</span><span class="nm">${it.n}${b}</span><span class="cat">${it.c||'기타'}</span>${corp}${x}</div>`;
+}
+function chGroups(ch){
+  if(!ch) return '<div class="loading">첫 수집 대기 중입니다. 자동 수집(하루 2회) 후 채워집니다.</div>';
+  if(ch.status!=='ok') return '<div class="loading">이 채널은 현재 수집이 차단되어 있습니다.<br><span style="font-size:12px">'+(ch.err||'')+'</span><br>다음 자동 실행에서 계속 재시도합니다.</div>';
+  const gs=ch.groups||[];
+  const html=gs.map(g=>`<div class="chgrp"><div class="rk-h">${g.t}</div>${g.items.map(chRow).join('')}</div>`).join('');
+  return gs.length>1?`<div class="two">${html}</div>`:html;
+}
+function chNote(ch, extra){
+  let s=extra||'';
+  if(ch&&ch.note) s=ch.note+(s?' · '+s:'');
+  if(ch&&ch.stale) s+=' <b style="color:#c2410c">(최근 수집 실패 — 이전 데이터 표시 중)</b>';
+  if(CD.updated) s+=' · 갱신 '+CD.updated;
+  return s;
+}
+function tiktokSeries(){
+  // 미국: trendkeys 구글 배치의 'TikTok Shop' / 유럽: beauty gt 국가별
+  return {US:(T.google||{})['TikTok Shop']||null, EU:((B.gt||{}).EU||{})['TikTok Shop']||null};
+}
+function drawCh(){
+  chips('chbar', CHDEF.map(x=>x[1]), CHSEL, 'setCh');
+  const key=(CHDEF.find(x=>x[1]===CHSEL)||CHDEF[0])[0];
+  const body=document.getElementById('chBody'), note=document.getElementById('chNote'),
+        cbox=document.getElementById('chChartBox');
+  cbox.style.display='none';
+  if(chC){ chC.destroy(); chC=null; }
+  if(key==='google'){
+    const rk=rankData('화장품');
+    body.innerHTML=`<div class="two">
+      <div class="chgrp"><div class="rk-h">🇰🇷 한국 검색 순위 (화장품 전체 브랜드)</div>${rankHtml(rk.kr.slice(0,15))}</div>
+      <div class="chgrp"><div class="rk-h">🇺🇸 미국 검색 순위 (화장품 전체 브랜드)</div>${rankHtml(rk.us.slice(0,15))}</div></div>`;
+    note.innerHTML=chNote(null,'구글트렌드 검색 관심도 기준 브랜드 순위(최근 4주 평균). 뷰티디바이스·시술 브랜드 순위는 해당 카테고리 탭의 🏆 패널에서 확인하세요.');
+    return;
+  }
+  if(key==='tiktok_us'||key==='tiktok_eu'){
+    const ts=tiktokSeries();
+    const msg='틱톡은 검색량·해시태그 공식 지표를 외부에 제공하지 않아(수집 차단 확인됨) <b>틱톡샵(TikTok Shop)에 대한 구글 검색 관심도</b>를 대체 지표로 보여드립니다.';
+    if(key==='tiktok_us'){
+      note.innerHTML=chNote(null,msg+' 미국 지역 기준.');
+      if(ts.US){ body.innerHTML=''; cbox.style.display='';
+        chC=lineChart('chChart',[{label:'TikTok Shop 검색 관심도 (미국)',data:ts.US}],null);
+      } else body.innerHTML='<div class="loading">TikTok Shop 미국 데이터 수집 대기 중입니다.</div>';
+    } else {
+      note.innerHTML=chNote(null,msg+' 유럽 5개국(영국·독일·프랑스·폴란드·네덜란드) 기준.');
+      const series=[];
+      const names={EU:'유럽 종합',GB:'영국',DE:'독일',FR:'프랑스',PL:'폴란드',NL:'네덜란드'};
+      for(const g of Object.keys(names)){
+        const s=((B.gt||{})[g]||{})['TikTok Shop'];
+        if(s) series.push({label:'틱톡샵 · '+names[g],data:s});
+      }
+      if(series.length){ body.innerHTML=''; cbox.style.display='';
+        chC=lineChart('chChart',series,null);
+      } else body.innerHTML='<div class="loading">TikTok Shop 유럽 데이터 수집 대기 중입니다(매시간 자동 채움).</div>';
+    }
+    return;
+  }
+  if(key==='hwagp'){
+    const hw=(CD.channels||{}).hwahae, gp=(CD.channels||{}).glowpick;
+    note.innerHTML=chNote(hw&&hw.status==='ok'?hw:gp, gp&&gp.note);
+    body.innerHTML=chGroups(hw)+chGroups(gp);
+    return;
+  }
+  const ch=(CD.channels||{})[key];
+  note.innerHTML=chNote(ch);
+  body.innerHTML=chGroups(ch);
+}
 // ---- 브랜드 순위 (대분류 전체 브랜드, 최근 4주 평균 관심도 기준) ----
 function avgSeg(s, a, b){ const seg=s.slice(a, b===0?undefined:b); if(!seg||!seg.length) return null;
   return seg.reduce((t,x)=>t+x[1],0)/seg.length; }
-function catBrands(){ // 현재 대분류의 브랜드 중복 제거 (TOP10 그룹보다 원 분류의 소속을 우선 기억)
+function catBrandsFor(cat){ // 대분류의 브랜드 중복 제거 (TOP10 그룹보다 원 분류의 소속을 우선 기억)
   const out={};
-  for(const mid of Object.keys(K[CAT]||{})){
-    for(const b of Object.keys(K[CAT][mid])){
+  for(const mid of Object.keys(K[cat]||{})){
+    for(const b of Object.keys(K[cat][mid])){
       if(!out[b] || (out[b].mid.includes('TOP10') && !mid.includes('TOP10')))
-        out[b]={v:K[CAT][mid][b], mid};
+        out[b]={v:K[cat][mid][b], mid};
     }
   }
   return out;
 }
+function catBrands(){ return catBrandsFor(CAT); }
+function rankData(cat){
+  const all=catBrandsFor(cat);
+  const kr=[], us=[];
+  for(const b of Object.keys(all)){
+    const v=all[b].v;
+    const sk=gtKR(b);
+    if(sk&&sk.length>=4){ kr.push({b, us:null, cur:avgSeg(sk,-4,0), prev:avgSeg(sk,-8,-4)}); }
+    if(v.us){ const su=gtUS(v.us);
+      if(su&&su.length>=4){ us.push({b, us:v.us, cur:avgSeg(su,-4,0), prev:avgSeg(su,-8,-4)}); } }
+  }
+  kr.sort((a,b)=>b.cur-a.cur); us.sort((a,b)=>b.cur-a.cur);
+  return {kr, us};
+}
 window.pickBrand=function(b){
-  const info=catBrands()[b];
+  let cat=CAT, info=catBrandsFor(cat)[b];
+  if(!info){ // 채널별 순위 화면 등에서 클릭 시 전체 카테고리에서 탐색
+    for(const c of Object.keys(K)){ if(catBrandsFor(c)[b]){ cat=c; info=catBrandsFor(c)[b]; break; } }
+  }
   if(!info) return;
-  SUB=info.mid; BRAND=b; draw();
+  CAT=cat; SUB=info.mid; BRAND=b; draw();
   document.getElementById('dlChart').scrollIntoView({behavior:'smooth',block:'center'});
 };
 function rankHtml(rows){
@@ -192,18 +318,9 @@ function rankHtml(rows){
   }).join('');
 }
 function drawRank(){
-  const all=catBrands();
-  const kr=[], us=[];
-  for(const b of Object.keys(all)){
-    const v=all[b].v;
-    const sk=gtKR(b);
-    if(sk&&sk.length>=4){ kr.push({b, us:null, cur:avgSeg(sk,-4,0), prev:avgSeg(sk,-8,-4)}); }
-    if(v.us){ const su=gtUS(v.us);
-      if(su&&su.length>=4){ us.push({b, us:v.us, cur:avgSeg(su,-4,0), prev:avgSeg(su,-8,-4)}); } }
-  }
-  kr.sort((a,b)=>b.cur-a.cur); us.sort((a,b)=>b.cur-a.cur);
-  document.getElementById('rankKR').innerHTML=rankHtml(kr.slice(0,15));
-  document.getElementById('rankUS').innerHTML=rankHtml(us.slice(0,15));
+  const rk=rankData(CAT);
+  document.getElementById('rankKR').innerHTML=rankHtml(rk.kr.slice(0,15));
+  document.getElementById('rankUS').innerHTML=rankHtml(rk.us.slice(0,15));
 }
 // ---- 유럽 온라인 뷰티 채널 ----
 let euC=null, EUGEO='EU';
@@ -391,6 +508,7 @@ function drawEx(){
   try{ B=await (await fetch('/data/beauty.json?t='+ts)).json(); }catch(e){ B={}; }
   try{ K=await (await fetch('/beautykeys.json?t='+ts)).json(); }catch(e){ K={}; }
   try{ TK=await (await fetch('/trendkeys.json?t='+ts)).json(); }catch(e){ TK=null; }
+  try{ CD=await (await fetch('/data/channels.json?t='+ts)).json(); }catch(e){ CD={}; }
   document.getElementById('meta').textContent=T.updated?('갱신 '+T.updated+' (매일 저녁 자동)'):'첫 수집 대기 중';
   draw();
 })();

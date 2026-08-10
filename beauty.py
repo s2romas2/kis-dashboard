@@ -93,10 +93,10 @@ def main():
             us_names = [v['us'] for v in brands.values() if v.get('us')]
             for i in range(0, len(us_names), 5):  # US 중분류 브랜드 비교
                 jobs.append(('US', us_names[i:i+5]))
-            for b, v in brands.items():          # KR 브랜드+제품
-                kws = ([b] + (v.get('products') or []))[:5]
-                if len(kws) > 1:
-                    jobs.append(('KR', kws))
+            for b, v in brands.items():          # KR 브랜드+제품 (제품 4개씩 묶음, 개수 제한 없음)
+                prods = v.get('products') or []
+                for ci in range(0, len(prods), 4):
+                    jobs.append(('KR', [b] + prods[ci:ci + 4]))
 
     # ---- 구글트렌드 ----
     ok = skip = 0

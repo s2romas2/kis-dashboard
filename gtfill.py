@@ -48,9 +48,11 @@ for big, mids in bk.items():
 for big, mids in bk.items():
     for mid, brands in mids.items():
         for b, v in brands.items():
-            kws = ([b] + (v.get('products') or []))[:5]
-            if len(kws) > 1 and any(k not in B['gt']['KR'] and alive(k) for k in kws[1:]):
-                jobs.append(('bt_kr', 'KR', kws, None))
+            prods = v.get('products') or []
+            for ci in range(0, len(prods), 4):
+                chunk = prods[ci:ci + 4]
+                if any(k not in B['gt']['KR'] and alive(k) for k in chunk):
+                    jobs.append(('bt_kr', 'KR', [b] + chunk, None))
 
 print('결측 작업 %d개' % len(jobs), file=sys.stderr)
 done = 0

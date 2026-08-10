@@ -254,7 +254,9 @@ def run(key, fn):
     except Exception as e:
         DEBUG.append('%s 실패: %s' % (key, str(e)[:80]))
         pv = (prev().get('channels') or {}).get(key)
-        if pv and pv.get('status') == 'ok':
+        if pv and pv.get('manual'):
+            CH[key] = pv  # 수동(브라우저) 수집 데이터는 stale 표시 없이 유지
+        elif pv and pv.get('status') == 'ok':
             CH[key] = pv
             CH[key]['stale'] = True
         else:

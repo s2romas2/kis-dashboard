@@ -35,6 +35,11 @@ table.qt td { padding:3px 4px; border-bottom:1px solid #f0f2f5; text-align:right
 table.qt .l { text-align:left; }
 .note { white-space:pre-wrap; line-height:1.7; font-size:13px; color:#1f2937; }
 .note.empty { color:#a7aeba; }
+.note .good { color:#0a7f4f; font-weight:800; }
+.note .risk { color:#c92a2a; font-weight:800; }
+.note .mix { display:inline-block; background:#f4f7fd; border-radius:8px; padding:1px 8px; font-weight:800; color:#1a2a4a; }
+.note .src { font-size:11px; color:#8a93a2; }
+.note a { color:#2f6df6; text-decoration:none; }
 .tools { margin-top:8px; }
 .tools button { border:1px solid #d7dce4; background:#fff; color:#5b6472; border-radius:8px; padding:3px 10px; font-size:11.5px; font-weight:700; cursor:pointer; }
 .tools button:hover { border-color:#2f6df6; color:#2f6df6; }
@@ -107,9 +112,22 @@ function merged(){
   return out;
 }
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+function noteHtml(t){
+  // 이스케이프 → [텍스트](URL) 링크 → 줄 단위 스타일(강점=초록, 리스크=빨강, 매출비중=헤더, 출처=작게)
+  let h=esc(t).replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+  return h.split('\n').map(l=>{
+    const s=l.trim();
+    if(/^강점/.test(s)) return '<span class="good">'+l+'</span>';
+    if(/^리스크/.test(s)) return '<span class="risk">'+l+'</span>';
+    if(/^📊/.test(s)) return '<span class="mix">'+l+'</span>';
+    if(/^출처/.test(s)) return '<span class="src">'+l+'</span>';
+    return l;
+  }).join('\n');
+}
 function perfScore(m){ if(!m) return -1e9; return (m.opYoY!=null?m.opYoY:(m.revYoY!=null?m.revYoY:-1e8)); }
-function perfCell(m,code){
-  if(!m) return '<span style="color:#a7aeba">최근 분기 스크리닝 조건 미충족<br>(성장·연속증가·흑자전환 어디에도 해당 없음)</span>';
+function perfCell(m,code,name){
+  if(!m) return `<span style="color:#a7aeba">최근 분기 스크리닝 조건 미충족<br>(성장·연속증가·흑자전환 어디에도 해당 없음)</span>
+    <div style="margin-top:8px;font-size:11.5px"><a href="https://dart.fss.or.kr/dsab007/main.do?option=corp&textCrpNm=${encodeURIComponent(name||'')}" target="_blank" rel="noopener" style="color:#2f6df6;font-weight:700">DART 공시 검색 →</a></div>`;
   const pf=v=>v==null?'—':(v>0?'+':'')+v.toFixed(1)+'%';
   const cl=v=>v==null?'':(v>0?'pos':'neg');
   const bn={1:'① 성장',2:'② 연속증가',3:'③ 흑자전환'};
@@ -150,18 +168,18 @@ function render(){
   document.getElementById('list').innerHTML=list.length?list.map(x=>{
     const q=quotes[x.code];
     const cap=q?(q.mktcapEok>=10000?(q.mktcapEok/10000).toFixed(2)+'조':q.mktcapEok.toLocaleString()+'억'):'—';
-    const noteHtml = editing===x.code
+    const noteCell = editing===x.code
       ? `<textarea class="ed" id="ed_${x.code}">${esc(x.note)}</textarea>
          <div class="tools"><button class="btn-b" onclick="saveNote('${x.code}')">저장</button>
          <button onclick="editing=null;render()">취소</button></div>`
-      : `<div class="note ${x.note?'':'empty'}">${x.note?esc(x.note):'(아직 작성 전 — ✏️ 수정을 눌러 적어보세요)'}</div>
+      : `<div class="note ${x.note?'':'empty'}">${x.note?noteHtml(x.note):'(아직 작성 전 — ✏️ 수정을 눌러 적어보세요)'}</div>
          <div class="tools"><button onclick="editing='${x.code}';render()">✏️ 수정</button>
          <button onclick="delStock('${x.code}')">🗑 삭제</button></div>`;
     return `<div class="row">
       <div class="cell"><div class="snm">${esc(x.name)}</div><div class="scd">${x.code}</div>
         <div class="cap">시총 ${cap}</div><div class="ind-tag">${esc(x.ind)}</div>${x.ai?'<div class="ind-tag" style="background:#eef7f0;color:#0a7f4f">🤖 Claude 작성 — 수정 가능</div>':''}</div>
-      <div class="cell"><div class="perf">${perfCell(SCR[x.code],x.code)}</div></div>
-      <div class="cell">${noteHtml}</div>
+      <div class="cell"><div class="perf">${perfCell(SCR[x.code],x.code,x.name)}</div></div>
+      <div class="cell">${noteCell}</div>
     </div>`;
   }).join(''):'<div class="loading">해당 조건의 종목이 없습니다. "＋ 종목 추가"로 등록하세요.</div>';
 }

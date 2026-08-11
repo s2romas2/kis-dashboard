@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # 주도 업종(섹터 로테이션) 수집 — KIS 업종지수 기간별 시세
+# v2: 커밋 단계 수정 재트리거
 # 일/주/월/연 등락률 순위 + 연도별 상위 업종 히스토리(책 표 1-3 스타일)
 # 필요 시크릿: KIS_APPKEY, KIS_APPSECRET
 import os, sys, json, time, urllib.request

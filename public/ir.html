@@ -34,14 +34,24 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
 .it-t { font-weight:700; font-size:13.5px; }
 .it-t a { color:#1a1f2e; text-decoration:none; }
 .it-t a:hover { color:#2f6df6; }
-.it-s { font-size:12.5px; color:#4b5563; line-height:1.7; margin-top:4px; white-space:pre-wrap; }
+.it-body { font-size:12.8px; color:#374151; line-height:1.75; margin-top:4px; white-space:pre-wrap; position:relative; word-break:break-word; }
+.it-body img { max-height:180px; max-width:280px; border:1px solid #e5e8ee; border-radius:8px; cursor:zoom-in; object-fit:contain; vertical-align:top; margin:3px 4px 3px 0; }
+.it-body.clamp { max-height:120px; overflow:hidden; cursor:pointer; }
+.it-body.clamp::after { content:''; position:absolute; bottom:0; left:0; right:0; height:48px; background:linear-gradient(rgba(255,255,255,0),#fff 85%); }
+.fold { display:inline-block; margin-top:4px; color:#2f6df6; font-size:11.5px; font-weight:800; cursor:pointer; user-select:none; }
 .imgs { display:flex; gap:8px; flex-wrap:wrap; margin-top:7px; }
 .imgs img { max-height:140px; max-width:220px; border:1px solid #e5e8ee; border-radius:8px; cursor:zoom-in; object-fit:cover; }
 .tools button { border:1px solid #d7dce4; background:#fff; color:#5b6472; border-radius:8px; padding:3px 10px; font-size:11.5px; font-weight:700; cursor:pointer; margin-right:4px; }
 .tools button:hover { border-color:#2f6df6; color:#2f6df6; }
 .btn-b { background:#2f6df6; color:#fff; border:none; border-radius:8px; padding:7px 14px; font-size:12.5px; font-weight:700; cursor:pointer; }
 .addbox input, .addbox select { padding:7px 10px; border:1px solid #d7dce4; border-radius:8px; font-size:13px; margin:3px 4px 3px 0; }
-.addbox textarea { width:100%; min-height:110px; border:1px solid #d7dce4; border-radius:8px; padding:8px; font-size:13px; font-family:inherit; margin-top:6px; }
+.rich { width:100%; min-height:140px; max-height:420px; overflow:auto; border:1px solid #d7dce4; border-radius:8px; padding:10px; font-size:13px; line-height:1.7; background:#fff; margin-top:4px; }
+.rich:focus { outline:2px solid #9db4e8; }
+.rich img { max-height:160px; max-width:240px; border-radius:6px; border:1px solid #e5e8ee; margin:3px 4px 3px 0; }
+.tb { margin-top:8px; display:flex; gap:4px; flex-wrap:wrap; align-items:center; }
+.tb button { border:1px solid #d7dce4; background:#fff; border-radius:7px; min-width:30px; height:28px; font-size:12.5px; cursor:pointer; font-weight:800; }
+.tb button:hover { border-color:#2f6df6; }
+.tb .sw { width:22px; height:22px; min-width:22px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px #d7dce4; }
 .hint { font-size:11.5px; color:#8a93a2; margin-top:8px; line-height:1.6; }
 .hint b { color:#5b6472; }
 .loading { text-align:center; padding:40px; color:#6b7280; font-size:13px; }
@@ -56,7 +66,7 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
   <header>
     <div>
       <h1>🎤 IR 노트</h1>
-      <div class="sub">종목별 IR 탐방 보고서 · 경영진 인터뷰 · 컨퍼런스콜 + 내가 직접 쓰는 IR 메모(이미지 첨부 가능)</div>
+      <div class="sub">종목별 IR 탐방 · 인터뷰 · 컨콜 + 내가 쓰는 IR 메모 (서식·이미지 지원)</div>
       <div style="margin-top:6px"><a class="back" href="/">← 섹터 대시보드</a> &nbsp; <a class="back" href="/notes.html">📝 종목 특장점</a></div>
     </div>
     <div class="meta" id="meta">불러오는 중…</div>
@@ -79,34 +89,85 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
       <select id="a_type"><option>메모</option><option>탐방</option><option>인터뷰</option><option>IR</option></select>
       <input id="a_t" placeholder="제목" style="width:100%;max-width:520px">
       <input id="a_u" placeholder="링크 URL (선택)" style="width:100%;max-width:520px">
-      <textarea id="a_s" placeholder="내용 — 탐방/미팅에서 들은 것, 핵심 수치, 느낀 점 등"></textarea>
+      <div class="tb">
+        <button onclick="fmt('bold')" title="굵게"><b>B</b></button>
+        <button onclick="fmt('underline')" title="밑줄"><u>U</u></button>
+        <button class="sw" style="background:#c92a2a" onclick="fmt('foreColor','#c92a2a')" title="빨강"></button>
+        <button class="sw" style="background:#0a7f4f" onclick="fmt('foreColor','#0a7f4f')" title="초록"></button>
+        <button class="sw" style="background:#2f6df6" onclick="fmt('foreColor','#2f6df6')" title="파랑"></button>
+        <button class="sw" style="background:#b45309" onclick="fmt('foreColor','#b45309')" title="주황"></button>
+        <button class="sw" style="background:#1a1f2e" onclick="fmt('foreColor','#1a1f2e')" title="검정"></button>
+        <span style="font-size:10.5px;color:#8a93a2;font-weight:700;margin-left:4px">배경</span>
+        <button class="sw" style="background:#fff3b0;border-radius:4px" onclick="fmt('hiliteColor','#fff3b0')" title="노랑 배경"></button>
+        <button class="sw" style="background:#d9f5e0;border-radius:4px" onclick="fmt('hiliteColor','#d9f5e0')" title="연두 배경"></button>
+        <button class="sw" style="background:#dbeafe;border-radius:4px" onclick="fmt('hiliteColor','#dbeafe')" title="하늘 배경"></button>
+        <button class="sw" style="background:#fde2e7;border-radius:4px" onclick="fmt('hiliteColor','#fde2e7')" title="분홍 배경"></button>
+        <button class="sw" style="background:#e5e7eb;border-radius:4px" onclick="fmt('hiliteColor','#e5e7eb')" title="회색 배경"></button>
+        <button onclick="fmt('hiliteColor','transparent')" title="배경 지우기" style="font-size:10.5px">배경✕</button>
+        <button onclick="fmt('removeFormat')" title="서식 전체 지우기">지우기</button>
+        <label style="font-size:11.5px;color:#5b6472;font-weight:700;cursor:pointer;border:1px solid #d7dce4;border-radius:7px;padding:5px 8px;background:#fff">
+          🖼 본문에 이미지<input type="file" accept="image/*" multiple style="display:none" onchange="insertImgs(this)"></label>
+        <span style="font-size:11px;color:#8a93a2">· 다른 곳에서 복사해 붙여넣으면 굵기·색상·이미지가 유지됩니다</span>
+      </div>
+      <div id="a_s" class="rich" contenteditable="true"></div>
       <div style="margin-top:6px;font-size:12px">
-        📷 이미지 첨부: <input id="a_imgs" type="file" accept="image/*" multiple onchange="loadImgs(this)">
+        📷 별도 이미지 첨부: <input id="a_imgs" type="file" accept="image/*" multiple onchange="loadImgs(this)">
         <span id="imgMsg" style="color:#8a93a2;font-size:11px"></span>
         <div class="imgs" id="imgPrev"></div>
       </div>
       <div style="margin-top:8px"><button class="btn-b" onclick="saveItem()">저장</button>
-        <button class="tools-btn" style="border:1px solid #d7dce4;background:#fff;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer" onclick="closeAdd()">취소</button></div>
+        <button style="border:1px solid #d7dce4;background:#fff;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer" onclick="closeAdd()">취소</button></div>
     </div>
   </div>
 
   <div id="list"><div class="loading">불러오는 중…</div></div>
-  <div class="hint">🟢 탐방 · 🩷 인터뷰 · 🔵 IR(컨콜·설명회) · 🟡 메모(직접 작성). ✏️ 수정·＋추가·이미지는 <b>이 브라우저에 먼저 저장</b>되고(다른 기기와 자동 동기화 안 됨), <b>"수정사항 내보내기"로 복사한 내용을 Claude 대화에 붙여넣으면</b> 사이트 원본에 반영되어 모든 기기에서 보입니다(이미지 포함). 새 탐방기·인터뷰 수집은 "IR 노트 업데이트해줘"라고 요청하세요.</div>
+  <div class="hint">🟢 탐방 · 🩷 인터뷰 · 🔵 IR · 🟡 메모(직접 작성). 긴 내용은 자동으로 접혀요 — <b>본문이나 "펼치기"를 클릭하면 전체가 보이고, 다시 클릭하면 접힙니다</b>. 메모 작성 시 굵게·색상·형광펜 서식과 본문 속 이미지 삽입이 가능하고, 다른 문서에서 복사해 붙여넣으면 서식·이미지가 그대로 들어옵니다. ✏️ 수정·추가분은 이 브라우저에 먼저 저장되며, <b>"수정사항 내보내기" 내용을 Claude 대화에 붙여넣으면</b> 사이트 원본에 반영됩니다.</div>
 </div>
 <div id="viewer" onclick="this.style.display='none'"><img id="viewerImg"></div>
 <script>
 let D=null, IND='전체', EDIT_ID=null, FORM_IMGS=[];
 const OV_KEY='irnotes_override_v1';
+const OPEN=new Set(); // 펼침 상태 유지 (항목 id/fp)
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
 function loadOv(){ try{ return JSON.parse(localStorage.getItem(OV_KEY))||{add:[],del:[]}; }catch(e){ return {add:[],del:[]}; } }
-function saveOv(o){ try{ localStorage.setItem(OV_KEY, JSON.stringify(o)); }catch(e){ alert('브라우저 저장공간이 가득 찼습니다. 이미지 수를 줄이거나 "내보내기"로 반영 후 초기화하세요.'); } }
-const fp=it=>(it.t||'')+'|'+(it.d||'');
+function saveOv(o){ try{ localStorage.setItem(OV_KEY, JSON.stringify(o)); }catch(e){ alert('브라우저 저장공간이 가득 찼습니다. 이미지 수를 줄이거나 "내보내기"로 반영 후 정리하세요.'); } }
+const fp=it=>it.id||((it.t||'')+'|'+(it.d||''));
+// ---- HTML 정화(허용: 굵게·색·밑줄·형광·이미지·링크·줄바꿈) ----
+function sanitize(html){
+  const t=document.createElement('div'); t.innerHTML=html;
+  const ALLOW=new Set(['B','STRONG','I','EM','U','BR','DIV','P','SPAN','IMG','A','UL','OL','LI','FONT','MARK','H1','H2','H3','H4','TABLE','TR','TD','TH','TBODY','THEAD']);
+  (function walk(n){
+    for(const c of [...n.childNodes]){
+      if(c.nodeType===8){ c.remove(); continue; }
+      if(c.nodeType!==1) continue;
+      if(c.tagName==='SCRIPT'||c.tagName==='STYLE'||c.tagName==='IFRAME'){ c.remove(); continue; }
+      if(!ALLOW.has(c.tagName)){ while(c.firstChild) n.insertBefore(c.firstChild,c); n.removeChild(c); continue; }
+      const keep={};
+      if(c.tagName==='IMG'){ const src=c.getAttribute('src')||'';
+        if(!/^(data:image|https?:|\/)/.test(src)){ c.remove(); continue; } keep.src=src; }
+      if(c.tagName==='A'){ keep.href=c.getAttribute('href')||'#'; keep.target='_blank'; keep.rel='noopener'; }
+      if(c.tagName==='FONT'&&c.getAttribute('color')) keep.color=c.getAttribute('color');
+      const st=c.getAttribute('style');
+      [...c.attributes].forEach(a=>c.removeAttribute(a.name));
+      if(st){ const m=[];
+        st.split(';').forEach(kv=>{ const i=kv.indexOf(':'); if(i<0)return;
+          const k=kv.slice(0,i).trim().toLowerCase(), v=kv.slice(i+1).trim();
+          if(['color','background-color','font-weight','text-decoration','font-style','font-size'].includes(k)) m.push(k+':'+v); });
+        if(m.length) c.setAttribute('style',m.join(';')); }
+      for(const k in keep) c.setAttribute(k,keep[k]);
+      walk(c);
+    }
+  })(t);
+  return t.innerHTML;
+}
+function bodyHtml(it){ return it.html?sanitize(it.html):esc(it.s||''); }
+function textOf(it){ if(it.s) return it.s; const t=document.createElement('div'); t.innerHTML=it.html||''; return t.textContent||''; }
 function merged(){
   const ov=loadOv();
   const del=new Set(ov.del||[]);
   const stocks={};
   for(const s of ((D&&D.stocks)||[])){
-    const items=s.items.filter(it=>!del.has(fp(it)));
+    const items=s.items.filter(it=>!del.has((it.t||'')+'|'+(it.d||'')));
     stocks[s.code]={code:s.code,name:s.name,ind:s.ind,items:[...items]};
   }
   for(const a of (ov.add||[])){
@@ -119,16 +180,23 @@ function merged(){
 }
 window.setInd=function(i){ IND=i; render(); };
 window.zoom=function(src){ document.getElementById('viewerImg').src=src; document.getElementById('viewer').style.display='flex'; };
-function itemHtml(it){
+window.toggleFold=function(key){
+  if(OPEN.has(key)) OPEN.delete(key); else OPEN.add(key);
+  render();
+};
+function itemHtml(it,key){
   const title=it.u?`<a href="${it.u}" target="_blank" rel="noopener">${esc(it.t)} ↗</a>`:esc(it.t);
-  const imgs=(it.imgs&&it.imgs.length)?`<div class="imgs">${it.imgs.map(im=>`<img src="${im}" onclick="zoom(this.src)">`).join('')}</div>`:'';
+  const imgs=(it.imgs&&it.imgs.length)?`<div class="imgs">${it.imgs.map(im=>`<img src="${im}" data-zoom="1">`).join('')}</div>`:'';
   const btns=it.mine
-    ? `<div class="tools" style="margin-top:5px"><button onclick="editItem('${it.id}')">✏️ 수정</button><button onclick="delMine('${it.id}')">🗑 삭제</button></div>`
-    : `<div class="tools" style="margin-top:5px"><button onclick="hideItem('${esc(fp(it))}')">🗑 숨기기</button></div>`;
+    ? `<div class="tools" style="margin-top:5px"><button data-act="edit" data-id="${it.id}">✏️ 수정</button><button data-act="del" data-id="${it.id}">🗑 삭제</button></div>`
+    : `<div class="tools" style="margin-top:5px"><button data-act="hide" data-fp="${encodeURIComponent((it.t||'')+'|'+(it.d||''))}">🗑 숨기기</button></div>`;
+  const open=OPEN.has(key);
   return `<div class="item">
     <div class="it-head"><span class="dt">${it.d||''}</span><span class="ty ${it.type}">${it.type}</span>
       ${it.mine?'<span class="mine-tag">내 메모</span>':''}<span class="it-t">${title}</span></div>
-    <div class="it-s">${esc(it.s||'')}</div>${imgs}${btns}</div>`;
+    <div class="it-body ${open?'':'clamp'}" data-key="${key}">${bodyHtml(it)}</div>
+    <span class="fold" data-fold="${key}" style="display:none">${open?'▴ 접기':'▾ 펼치기'}</span>
+    ${imgs}${btns}</div>`;
 }
 function render(){
   const stocks=merged();
@@ -138,44 +206,62 @@ function render(){
   document.getElementById('indlist').innerHTML=inds.map(i=>`<option value="${esc(i)}">`).join('');
   const kw=(document.getElementById('q').value||'').trim().toLowerCase();
   const list=stocks.filter(s=>(IND==='전체'||s.ind===IND)&&(!kw||s.name.toLowerCase().includes(kw)||s.code.includes(kw)
-    ||s.items.some(it=>((it.t||'')+(it.s||'')).toLowerCase().includes(kw))));
+    ||s.items.some(it=>((it.t||'')+textOf(it)).toLowerCase().includes(kw))));
   document.getElementById('list').innerHTML=list.length?list.map(s=>`
     <div class="scard">
       <div><span class="snm">${esc(s.name)}</span><span class="scd">${s.code}</span><span class="ind-tag">${esc(s.ind)}</span></div>
-      ${s.items.map(itemHtml).join('')}
+      ${s.items.map((it,i)=>itemHtml(it, s.code+'#'+i)).join('')}
     </div>`).join(''):'<div class="loading">해당 조건의 IR 자료가 없습니다. "＋ IR 메모 추가"로 직접 기록할 수 있습니다.</div>';
+  // 넘치는 항목에만 접기/펼치기 표시 + 이벤트 바인딩(제목의 따옴표 등에 안전)
+  for(const el of document.querySelectorAll('.it-body')){
+    const key=el.dataset.key;
+    const btn=document.querySelector(`.fold[data-fold="${CSS.escape(key)}"]`);
+    el.onclick=()=>{ if(el.classList.contains('clamp')) toggleFold(key); };
+    if(btn){
+      btn.onclick=()=>toggleFold(key);
+      if(OPEN.has(key)) btn.style.display='';
+      else if(el.scrollHeight>el.clientHeight+8) btn.style.display='';
+      else el.classList.remove('clamp');
+    }
+  }
+  for(const b of document.querySelectorAll('[data-act]')){
+    b.onclick=e=>{ e.stopPropagation();
+      if(b.dataset.act==='edit') editItem(b.dataset.id);
+      else if(b.dataset.act==='del') delMine(b.dataset.id);
+      else if(b.dataset.act==='hide') hideItem(decodeURIComponent(b.dataset.fp));
+    };
+  }
+  for(const im of document.querySelectorAll('.it-body img, .imgs img')){
+    im.onclick=e=>{ e.stopPropagation(); zoom(im.src); };
+  }
 }
-// ---- 추가/수정 ----
-window.openAdd=function(){ EDIT_ID=null; FORM_IMGS=[];
-  for(const id of ['a_code','a_name','a_ind','a_t','a_u','a_s']) document.getElementById(id).value='';
-  document.getElementById('a_d').value=new Date().toISOString().slice(0,7);
-  document.getElementById('a_type').value='메모';
-  document.getElementById('imgPrev').innerHTML=''; document.getElementById('imgMsg').textContent='';
-  document.getElementById('formTitle').textContent='새 IR 메모';
-  document.getElementById('addbox').style.display='';
+// ---- 서식/이미지 편집 ----
+window.fmt=function(cmd,val){
+  document.getElementById('a_s').focus();
+  document.execCommand(cmd,false,val||null);
 };
-window.closeAdd=function(){ document.getElementById('addbox').style.display='none'; };
-window.autoName=function(){
-  const c=document.getElementById('a_code').value.trim();
-  const s=merged().find(x=>x.code===c);
-  if(s){ document.getElementById('a_name').value=s.name; document.getElementById('a_ind').value=s.ind; }
-};
-window.loadImgs=async function(inp){
-  const msg=document.getElementById('imgMsg');
+async function fileToImg(f){
+  const url=await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(f); });
+  const img=new Image();
+  await new Promise((res,rej)=>{ img.onload=res; img.onerror=rej; img.src=url; });
+  const M=1400, sc=Math.min(1, M/Math.max(img.width,img.height));
+  const cv=document.createElement('canvas');
+  cv.width=Math.round(img.width*sc); cv.height=Math.round(img.height*sc);
+  cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+  return cv.toDataURL('image/jpeg',0.82);
+}
+window.insertImgs=async function(inp){
+  const ed=document.getElementById('a_s'); ed.focus();
   for(const f of inp.files){
-    try{
-      const url=await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(f); });
-      const img=new Image();
-      await new Promise((res,rej)=>{ img.onload=res; img.onerror=rej; img.src=url; });
-      const M=1400, sc=Math.min(1, M/Math.max(img.width,img.height));
-      const cv=document.createElement('canvas');
-      cv.width=Math.round(img.width*sc); cv.height=Math.round(img.height*sc);
-      cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
-      FORM_IMGS.push(cv.toDataURL('image/jpeg',0.82));
-    }catch(e){ msg.textContent='이미지 읽기 실패: '+f.name; }
+    try{ const u=await fileToImg(f); document.execCommand('insertHTML',false,`<img src="${u}"><br>`); }catch(e){}
   }
   inp.value='';
-  drawImgPrev();
+};
+window.loadImgs=async function(inp){
+  for(const f of inp.files){
+    try{ FORM_IMGS.push(await fileToImg(f)); }catch(e){ document.getElementById('imgMsg').textContent='이미지 읽기 실패: '+f.name; }
+  }
+  inp.value=''; drawImgPrev();
 };
 function drawImgPrev(){
   document.getElementById('imgPrev').innerHTML=FORM_IMGS.map((im,i)=>
@@ -184,10 +270,41 @@ function drawImgPrev(){
   const kb=Math.round(FORM_IMGS.join('').length*0.75/1024);
   document.getElementById('imgMsg').textContent=FORM_IMGS.length?`${FORM_IMGS.length}장 · 약 ${kb}KB`:'';
 }
+// 붙여넣기: 이미지 파일이면 리사이즈해서 삽입(서식 텍스트는 브라우저 기본 동작으로 유지)
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('a_s').addEventListener('paste', async e=>{
+    const files=[...(e.clipboardData?.items||[])].filter(x=>x.kind==='file'&&x.type.startsWith('image/'));
+    if(files.length){
+      e.preventDefault();
+      for(const it of files){
+        try{ const u=await fileToImg(it.getAsFile()); document.execCommand('insertHTML',false,`<img src="${u}"><br>`); }catch(err){}
+      }
+    }
+  });
+});
+// ---- 추가/수정 ----
+window.openAdd=function(){ EDIT_ID=null; FORM_IMGS=[];
+  for(const id of ['a_code','a_name','a_ind','a_t','a_u']) document.getElementById(id).value='';
+  document.getElementById('a_s').innerHTML='';
+  document.getElementById('a_d').value=new Date().toISOString().slice(0,7);
+  document.getElementById('a_type').value='메모';
+  document.getElementById('imgPrev').innerHTML=''; document.getElementById('imgMsg').textContent='';
+  document.getElementById('formTitle').textContent='새 IR 메모';
+  document.getElementById('addbox').style.display='';
+  document.getElementById('addbox').scrollIntoView({behavior:'smooth',block:'center'});
+};
+window.closeAdd=function(){ document.getElementById('addbox').style.display='none'; };
+window.autoName=function(){
+  const c=document.getElementById('a_code').value.trim();
+  const s=merged().find(x=>x.code===c);
+  if(s){ document.getElementById('a_name').value=s.name; document.getElementById('a_ind').value=s.ind; }
+};
 window.saveItem=function(){
   const code=document.getElementById('a_code').value.trim();
   const t=document.getElementById('a_t').value.trim();
   if(!/^\d{6}$/.test(code)||!t){ document.getElementById('imgMsg').textContent='종목코드 6자리와 제목은 필수입니다.'; return; }
+  const ed=document.getElementById('a_s');
+  const html=sanitize(ed.innerHTML);
   const ov=loadOv();
   if(EDIT_ID) ov.add=(ov.add||[]).filter(x=>x.id!==EDIT_ID);
   ov.add=ov.add||[];
@@ -195,7 +312,7 @@ window.saveItem=function(){
     name:document.getElementById('a_name').value.trim()||code,
     ind:document.getElementById('a_ind').value.trim()||'기타',
     d:document.getElementById('a_d').value||'', type:document.getElementById('a_type').value,
-    t, u:document.getElementById('a_u').value.trim(), s:document.getElementById('a_s').value,
+    t, u:document.getElementById('a_u').value.trim(), html, s:ed.textContent||'',
     imgs:FORM_IMGS.slice()});
   saveOv(ov); closeAdd(); render();
 };
@@ -207,15 +324,18 @@ window.editItem=function(id){
   document.getElementById('a_code').value=it.code; document.getElementById('a_name').value=it.name;
   document.getElementById('a_ind').value=it.ind; document.getElementById('a_d').value=it.d;
   document.getElementById('a_type').value=it.type; document.getElementById('a_t').value=it.t;
-  document.getElementById('a_u').value=it.u||''; document.getElementById('a_s').value=it.s||'';
+  document.getElementById('a_u').value=it.u||'';
+  document.getElementById('a_s').innerHTML=it.html?sanitize(it.html):esc(it.s||'').replace(/\n/g,'<br>');
   FORM_IMGS=(it.imgs||[]).slice(); drawImgPrev();
+  document.getElementById('addbox').scrollIntoView({behavior:'smooth',block:'center'});
+  document.getElementById('a_t').focus();
 };
 window.delMine=function(id){ const ov=loadOv(); ov.add=(ov.add||[]).filter(x=>x.id!==id); saveOv(ov); render(); };
 window.hideItem=function(f){ const ov=loadOv(); ov.del=ov.del||[]; if(!ov.del.includes(f)) ov.del.push(f); saveOv(ov); render(); };
 window.exportJson=function(){
   const j=JSON.stringify({updated:new Date().toISOString().slice(0,10), stocks:merged()});
   navigator.clipboard.writeText('IR 노트 반영해줘:\n'+j).then(()=>{
-    document.getElementById('copyMsg').textContent='복사됨! Claude 대화에 붙여넣으면 원본에 반영됩니다(이미지 포함).';
+    document.getElementById('copyMsg').textContent='복사됨! Claude 대화에 붙여넣으면 원본에 반영됩니다(서식·이미지 포함).';
     setTimeout(()=>document.getElementById('copyMsg').textContent='',6000);
   });
 };

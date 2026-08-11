@@ -119,9 +119,62 @@ def oy_kr():
     return {'name': '올리브영 한국', 'status': 'ok',
             'note': '올리브영 국내몰 판매 랭킹입니다.', 'groups': [{'t': '판매 랭킹 TOP 30', 'items': items}]}
 
-# ---- 3·4) 아마존 US/UK 자동완성 (시드 키워드별 검색어 순위) ----
+# ---- 3·4) 아마존 US/UK 자동완성 ----
 AMZ_SEEDS = ['korean skincare', 'k-beauty', 'snail mucin', 'sunscreen', 'serum', 'toner',
              'moisturizer', 'cleanser', 'sheet mask', 'lip tint']
+
+def amazon_us_brands():
+    """추적 뷰티 브랜드별 아마존 미국 자동완성 — 브랜드에 대해 미국 소비자가 실제 검색하는 키워드"""
+    keys = json.load(open('public/beautykeys.json', encoding='utf-8'))
+    try:
+        gtus = (json.load(open('public/data/beauty.json', encoding='utf-8')).get('gt') or {}).get('US') or {}
+    except Exception:
+        gtus = {}
+    def interest(usname):
+        s = gtus.get(usname)
+        if not s:
+            return -1
+        seg = s[-4:]
+        return sum(v for _, v in seg) / max(1, len(seg))
+    brands, seen = [], set()
+    for big, mids in keys.items():
+        for mid, bs in mids.items():
+            for b, v in bs.items():
+                if v.get('us') and b not in seen:
+                    seen.add(b)
+                    brands.append((b, v['us'], big))
+    groups = {}
+    ok = 0
+    for b, us, big in brands:
+        try:
+            u = ('https://completion.amazon.com/api/2017/suggestions?limit=6&prefix=%s'
+                 '&suggestion-type=KEYWORD&alias=aps&site-variant=desktop&version=3'
+                 '&event=onKeyPress&wc=&lop=en_US&mid=ATVPDKIKX0DER&plain-mid=1&client-info=amazon-search-ui'
+                 % urllib.parse.quote(us.lower()))
+            d = json.loads(get(u, timeout=15).decode('utf-8'))
+            sugs = [s.get('value') for s in d.get('suggestions', []) if s.get('value')][:5]
+        except Exception:
+            sugs = []
+        time.sleep(0.45)
+        if not sugs:
+            continue
+        it = {'n': b, 'c': big, 'x': ' · '.join(sugs)}
+        corp = corp_of(b)
+        if corp:
+            it['corp'] = corp
+        groups.setdefault(big, []).append((interest(us), it))
+        ok += 1
+    if ok < 5:
+        raise RuntimeError('브랜드 자동완성 %d개뿐' % ok)
+    gs = []
+    for big in ['화장품', '뷰티디바이스·시술']:
+        arr = groups.get(big)
+        if arr:
+            arr.sort(key=lambda x: -x[0])
+            gs.append({'t': '%s — 브랜드별 인기 검색어 (미국 구글 관심도 순)' % big, 'items': [a[1] for a in arr]})
+    return {'name': '아마존 USA', 'status': 'ok',
+            'note': '<b>추적 뷰티 브랜드별</b> 아마존 미국 검색창 자동완성입니다 — 각 줄의 회색 검색어가 그 브랜드에 대해 미국 소비자가 실제로 입력하는 검색어 순위(왼쪽이 1순위). 브랜드 정렬은 구글트렌드 미국 관심도 순.',
+            'groups': gs}
 
 def amazon(dom, mid, lop):
     groups = []
@@ -146,10 +199,7 @@ def amazon(dom, mid, lop):
     return groups
 
 def amazon_us():
-    g = amazon('amazon.com', 'ATVPDKIKX0DER', 'en_US')
-    return {'name': '아마존 USA', 'status': 'ok',
-            'note': '아마존 미국 검색창 자동완성 순위 = 미국 소비자의 실제 검색 수요 순서입니다(검색량 수치는 아마존 비공개).',
-            'groups': g}
+    return amazon_us_brands()  # 뷰티 브랜드별 검색어 (사용자 요청으로 일반 시드 방식에서 교체)
 
 def amazon_uk():
     g = amazon('amazon.co.uk', 'A1F83G8C2ARO7P', 'en_GB')

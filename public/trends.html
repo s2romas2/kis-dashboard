@@ -49,7 +49,7 @@ ol.amzlist li b { color:#c2410c; font-size:11.5px; margin-right:9px; }
 .chrow .nm { font-weight:700; }
 .chrow .cat { background:#eef2f8; color:#5b6472; border-radius:6px; padding:1px 7px; font-size:10.5px; font-weight:700; }
 .chrow .corp { color:#0a7f4f; font-size:11px; font-weight:700; }
-.chrow .xtra { color:#8a93a2; font-size:11px; }
+.chrow .xtra { color:#4b5563; font-size:11.5px; flex-basis:100%; padding-left:37px; }
 @media (max-width:720px){ .wrap{padding:14px 10px 40px;} .chart-box{height:240px;} .chart-sm{height:200px;} .two{grid-template-columns:1fr;} }
 </style>
 </head>
@@ -244,11 +244,11 @@ function drawCh(){
   }
   if(key==='tiktok_us'||key==='tiktok_eu'){
     const ts=tiktokSeries();
-    const msg='틱톡은 검색량·해시태그 공식 지표를 외부에 제공하지 않아(수집 차단 확인됨) <b>틱톡샵(TikTok Shop)에 대한 구글 검색 관심도</b>를 대체 지표로 보여드립니다.';
+    const msg='<b>정확한 의미:</b> 아래 차트는 틱톡 앱 안의 검색량이 아니라, <b>"TikTok Shop(틱톡 쇼핑 서비스)"라는 단어를 구글에서 검색한 관심도</b>입니다 — 틱톡 커머스가 소비자 사이에서 얼마나 화제인지를 보는 간접 지표. 틱톡 내부의 뷰티 브랜드 검색어·연령대별 데이터는 틱톡이 외부에 공개하지 않으며(수집 차단 직접 확인), <b>틱톡 비즈니스 계정으로 크롬에 로그인해두면 크리에이티브 센터의 뷰티 해시태그 순위·연령 분포를 수동 수집으로 가져올 수 있습니다.</b>';
     if(key==='tiktok_us'){
-      note.innerHTML=chNote(null,msg+' 미국 지역 기준.');
+      note.innerHTML=chNote(null,msg+' (미국 지역 기준)');
       if(ts.US){ body.innerHTML=''; cbox.style.display='';
-        chC=lineChart('chChart',[{label:'TikTok Shop 검색 관심도 (미국)',data:ts.US}],null);
+        chC=lineChart('chChart',[{label:'"TikTok Shop" 구글 검색 관심도 (미국 지역)',data:ts.US}],null);
       } else body.innerHTML='<div class="loading">TikTok Shop 미국 데이터 수집 대기 중입니다.</div>';
     } else {
       note.innerHTML=chNote(null,msg+' 유럽 5개국(영국·독일·프랑스·폴란드·네덜란드) 기준.');

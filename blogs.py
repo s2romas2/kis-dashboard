@@ -25,8 +25,11 @@ def fetch_body(link):
         try:
             d = json.loads(html.unescape(m))
             src = d.get('src')
-            if src and src.startswith('http') and src not in imgs:
-                imgs.append(src)
+            if src and src.startswith('http'):
+                if 'pstatic.net' in src and 'type=' not in src:
+                    src += '?type=w966'  # 네이버 이미지 서버는 type 파라미터 필수
+                if src not in imgs:
+                    imgs.append(src)
         except Exception:
             pass
     return body, imgs[:12]

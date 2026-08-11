@@ -1,6 +1,13 @@
 {
   "bloggers": [
-    { "id": "ranto28" },
-    { "id": "engineerinvestor" }
+    {
+      "id": "ranto28"
+    },
+    {
+      "id": "engineerinvestor"
+    },
+    {
+      "id": "tosoha1"
+    }
   ]
 }

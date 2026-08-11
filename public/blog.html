@@ -88,8 +88,10 @@ function render(){
     const key=p.u;
     const open=OPEN.has(key);
     const tags=(p.tags||[]).map(t=>`<span class="tag" data-tag="${esc(t)}">${t}</span>`).join('');
-    const imgs=(p.imgs&&p.imgs.length)?`<div class="imgs">${p.imgs.map(u=>
-      `<img src="${u}" referrerpolicy="no-referrer" loading="lazy">`).join('')}</div>`:'';
+    const imgs=(p.imgs&&p.imgs.length)?`<div class="imgs">${p.imgs.map(u=>{
+      const fixed=(u.includes('pstatic.net')&&!u.includes('type='))?u+'?type=w966':u; // 네이버 이미지는 type 필수
+      return `<img src="${fixed}" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none'">`;
+    }).join('')}</div>`:'';
     return `<div class="post">
       <div class="p-head"><span class="dt">${p.d}</span><span class="who">${esc(p.who)}</span>
         ${p.cat?`<span class="cat">${esc(p.cat)}</span>`:''}

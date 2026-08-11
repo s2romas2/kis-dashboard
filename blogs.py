@@ -13,26 +13,75 @@ DEBUG = []
 def get(url, timeout=20):
     return urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=timeout).read().decode('utf-8', 'ignore')
 
+ALLOWED_STYLE = ('color', 'background-color', 'font-weight', 'font-style', 'text-decoration')
+
+def clean_par(p_html):
+    """문단 HTML에서 서식(색·굵기·크기·배경)만 남기고 정화 — se-fs-fsNN 클래스는 font-size로 변환"""
+    def span_repl(m):
+        attrs = m.group(1)
+        styles = []
+        cm = re.search(r'se-fs-fs(\d+)', attrs)
+        if cm:
+            styles.append('font-size:%spx' % min(int(cm.group(1)), 34))
+        sm = re.search(r'style="([^"]*)"', attrs)
+        if sm:
+            for kv in html.unescape(sm.group(1)).split(';'):
+                if ':' in kv:
+                    k, v = kv.split(':', 1)
+                    if k.strip().lower() in ALLOWED_STYLE:
+                        styles.append(k.strip().lower() + ':' + v.strip())
+        return '<span style="%s">' % ';'.join(styles) if styles else '<span>'
+    s = re.sub(r'<!--[\s\S]*?-->', '', p_html)  # 주석 제거
+    s = re.sub(r'<span([^>]*)>', span_repl, s)
+    # 허용 태그(b·strong·i·em·u·span·br) 외 전부 제거
+    s = re.sub(r'</?(?!(?:b|strong|i|em|u|span|br)\b)[a-zA-Z][^>]*/?>', '', s)
+    for _ in range(3):  # 빈 span 제거(중첩 대비 반복)
+        s = re.sub(r'<span[^>]*>\s*</span>', '', s)
+    s = re.sub(r'<span>([\s\S]*?)</span>', r'\1', s)  # 스타일 없는 span 벗기기
+    return s.replace('​', '').strip()
+
 def fetch_body(link):
-    """모바일 PostView에서 본문 문단 + 이미지 URL 추출"""
+    """모바일 PostView를 문서 순서대로 파싱 → blocks(문단·이미지 원래 순서, 서식 보존), body(검색용), imgs"""
     u = link.split('?')[0].replace('blog.naver.com', 'm.blog.naver.com')
     h = get(u)
-    paras = re.findall(r'se-text-paragraph[^>]*>([\s\S]*?)</p>', h)
-    body = '\n'.join(html.unescape(re.sub(r'<[^>]+>', '', p)).replace('​', '').strip() for p in paras)
-    body = re.sub(r'\n{3,}', '\n\n', body).strip()[:BODY_CAP]
-    imgs = []
-    for m in re.findall(r"data-linkdata='([^']+)'", h) + re.findall(r'data-linkdata="([^"]+)"', h):
-        try:
-            d = json.loads(html.unescape(m))
-            src = d.get('src')
-            if src and src.startswith('http'):
+    blocks = []  # {'t':'p','x':텍스트,'h':서식HTML} | {'t':'img','u':URL}
+    pat = re.compile(r"se-text-paragraph[^>]*>([\s\S]*?)</p>|data-linkdata='([^']+)'|data-linkdata=\"([^\"]+)\"")
+    n_img = 0
+    for m in pat.finditer(h):
+        if m.group(1) is not None:
+            txt = html.unescape(re.sub(r'<[^>]+>', '', m.group(1))).replace('​', '').strip()
+            blocks.append({'t': 'p', 'x': txt, 'h': clean_par(m.group(1))})
+        else:
+            try:
+                d = json.loads(html.unescape(m.group(2) or m.group(3)))
+                src = d.get('src')
+            except Exception:
+                src = None
+            if src and src.startswith('http') and n_img < 12:
                 if 'pstatic.net' in src and 'type=' not in src:
                     src += '?type=w966'  # 네이버 이미지 서버는 type 파라미터 필수
-                if src not in imgs:
-                    imgs.append(src)
-        except Exception:
-            pass
-    return body, imgs[:12]
+                if not (blocks and blocks[-1].get('u') == src):
+                    blocks.append({'t': 'img', 'u': src}); n_img += 1
+    # 연속 문단 병합(텍스트는 \n, 서식 HTML은 <br>) + 빈 줄 정리 + 길이 캡
+    merged, bx, bh, total = [], [], [], 0
+    def flush():
+        nonlocal bx, bh, total
+        if bx:
+            t = re.sub(r'\n{3,}', '\n\n', '\n'.join(bx)).strip()
+            hh = re.sub(r'(<br>\s*){3,}', '<br><br>', '<br>'.join(bh)).strip()
+            hh = re.sub(r'^(<br>\s*)+|(<br>\s*)+$', '', hh)
+            if t and total < BODY_CAP:
+                merged.append({'t': 'p', 'x': t[:BODY_CAP - total], 'h': hh[:BODY_CAP * 2 - total]})
+            bx, bh = [], []
+    for b in blocks:
+        if b['t'] == 'p':
+            bx.append(b['x']); bh.append(b.get('h') or ''); total += len(b['x'])
+        else:
+            flush(); merged.append(b)
+    flush()
+    body = '\n'.join(b['x'] for b in merged if b['t'] == 'p')[:BODY_CAP]
+    imgs = [b['u'] for b in merged if b['t'] == 'img']
+    return body, imgs, merged
 
 def main():
     keys = json.load(open('public/blogkeys.json', encoding='utf-8'))
@@ -76,7 +125,7 @@ def main():
             if new_cnt >= NEW_FETCH_CAP:
                 break
             try:
-                body, imgs = fetch_body(link)
+                body, imgs, blocks = fetch_body(link)
             except Exception as e:
                 DEBUG.append('%s 본문 실패 %s: %s' % (bid, link[-12:], str(e)[:40]))
                 continue
@@ -93,7 +142,7 @@ def main():
                            if name_ in t.group(1) or name_ in body[:4000]})[:6]
             fresh.append({'t': html.unescape(t.group(1)).strip(), 'u': link, 'd': date,
                           'cat': html.unescape(c.group(1)).strip() if c else '',
-                          'body': body, 'imgs': imgs, 'tags': tags})
+                          'body': body, 'imgs': imgs, 'blocks': blocks, 'tags': tags})
             new_cnt += 1
             time.sleep(0.6)
         cur['posts'] = sorted(fresh + cur['posts'], key=lambda p: p['d'], reverse=True)[:MAX_POSTS]

@@ -54,6 +54,7 @@ ol.amzlist li b { color:#c2410c; font-size:11.5px; margin-right:9px; }
 </style>
 </head>
 <body>
+<script src="/nav.js"></script>
 <div class="wrap">
   <header>
     <div>
@@ -511,6 +512,7 @@ function drawEx(){
   try{ TK=await (await fetch('/trendkeys.json?t='+ts)).json(); }catch(e){ TK=null; }
   try{ CD=await (await fetch('/data/channels.json?t='+ts)).json(); }catch(e){ CD={}; }
   document.getElementById('meta').textContent=T.updated?('갱신 '+T.updated+' (매일 저녁 자동)'):'첫 수집 대기 중';
+  if(location.hash==='#channels') CAT=CH_MENU;  // 상단 메뉴 '채널별 순위' 바로가기
   draw();
 })();
 </script>

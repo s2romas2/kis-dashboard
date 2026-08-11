@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IR 노트 · 한국 대시보드</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin:0; background:#f6f7f9; color:#1a1f2e; font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; }
+.wrap { max-width:1140px; margin:0 auto; padding:20px 18px 48px; }
+header { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+h1 { font-size:20px; margin:0; font-weight:800; }
+.sub { color:#6b7280; font-size:12.5px; margin:3px 0 0; }
+a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
+.meta { font-size:12px; color:#8a93a2; }
+.panel { background:#fff; border:1px solid #eceef2; border-radius:14px; padding:16px 18px; margin:14px 0; box-shadow:0 1px 2px rgba(20,30,60,.04); }
+.chip { border:1px solid #d7dce4; background:#fff; color:#374151; border-radius:20px; padding:5px 12px; font-size:12.5px; font-weight:700; cursor:pointer; display:inline-block; margin:2px 3px 0 0; }
+.chip.on { background:#1a2a4a; color:#fff; border-color:#1a2a4a; }
+#q { width:100%; max-width:340px; padding:8px 12px; border:1px solid #d7dce4; border-radius:10px; font-size:13px; margin-top:8px; }
+.scard { background:#fff; border:1px solid #e5e8ee; border-radius:12px; padding:14px 16px; margin-top:10px; }
+.snm { font-weight:800; font-size:15px; }
+.scd { color:#8a93a2; font-size:11.5px; margin-left:6px; }
+.ind-tag { display:inline-block; background:#eef2f8; color:#5b6472; border-radius:6px; padding:1px 7px; font-size:10.5px; font-weight:700; margin-left:8px; vertical-align:1px; }
+.item { padding:10px 2px; border-top:1px solid #f0f2f5; }
+.item:first-of-type { border-top:none; margin-top:6px; }
+.it-head { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+.dt { color:#8a93a2; font-size:11.5px; font-weight:700; flex:none; }
+.ty { border-radius:6px; padding:1px 7px; font-size:10.5px; font-weight:800; flex:none; }
+.ty.탐방 { background:#eef7f0; color:#0a7f4f; }
+.ty.인터뷰 { background:#fdf0f3; color:#be185d; }
+.ty.IR { background:#eef2fd; color:#2f56c6; }
+.it-t { font-weight:700; font-size:13.5px; }
+.it-t a { color:#1a1f2e; text-decoration:none; }
+.it-t a:hover { color:#2f6df6; }
+.it-s { font-size:12.5px; color:#4b5563; line-height:1.7; margin-top:4px; }
+.hint { font-size:11.5px; color:#8a93a2; margin-top:8px; line-height:1.6; }
+.hint b { color:#5b6472; }
+.loading { text-align:center; padding:40px; color:#6b7280; font-size:13px; }
+@media (max-width:720px){ .wrap{padding:14px 10px 40px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>🎤 IR 노트</h1>
+      <div class="sub">종목별 IR 탐방 보고서 · 경영진 인터뷰 · 컨퍼런스콜 핵심 발언 모음</div>
+      <div style="margin-top:6px"><a class="back" href="/">← 섹터 대시보드</a> &nbsp; <a class="back" href="/notes.html">📝 종목 특장점</a></div>
+    </div>
+    <div class="meta" id="meta">불러오는 중…</div>
+  </header>
+
+  <div class="panel">
+    <div id="indbar"></div>
+    <input id="q" placeholder="종목명 · 코드 · 내용 검색" oninput="render()">
+  </div>
+
+  <div id="list"><div class="loading">불러오는 중…</div></div>
+  <div class="hint">🟢 탐방 = 증권사·독립리서치 기업탐방 보고서 · 🩷 인터뷰 = 경영진 언론 인터뷰 · 🔵 IR = 실적 컨퍼런스콜·기업설명회·인베스터데이. 제목을 클릭하면 원문으로 이동합니다. 새 탐방기·인터뷰가 나오면 대화에서 "IR 노트 업데이트해줘"라고 요청하면 조사해서 추가합니다. 직접 참석한 IR 메모를 넣고 싶으면 내용을 채팅으로 보내주세요.</div>
+</div>
+<script>
+let D=null, IND='전체';
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+window.setInd=function(i){ IND=i; render(); };
+function render(){
+  const stocks=(D&&D.stocks)||[];
+  const inds=[...new Set(stocks.map(s=>s.ind))];
+  document.getElementById('indbar').innerHTML=['전체',...inds].map(i=>
+    `<span class="chip ${IND===i?'on':''}" onclick="setInd('${i}')">${i}</span>`).join('');
+  const kw=(document.getElementById('q').value||'').trim().toLowerCase();
+  const list=stocks.filter(s=>(IND==='전체'||s.ind===IND)&&(!kw||s.name.toLowerCase().includes(kw)||s.code.includes(kw)
+    ||s.items.some(it=>(it.t+it.s).toLowerCase().includes(kw))));
+  document.getElementById('list').innerHTML=list.length?list.map(s=>`
+    <div class="scard">
+      <div><span class="snm">${esc(s.name)}</span><span class="scd">${s.code}</span><span class="ind-tag">${esc(s.ind)}</span></div>
+      ${s.items.map(it=>`<div class="item">
+        <div class="it-head"><span class="dt">${it.d}</span><span class="ty ${it.type}">${it.type}</span>
+          <span class="it-t"><a href="${it.u}" target="_blank" rel="noopener">${esc(it.t)} ↗</a></span></div>
+        <div class="it-s">${esc(it.s)}</div>
+      </div>`).join('')}
+    </div>`).join(''):'<div class="loading">해당 조건의 IR 자료가 없습니다.</div>';
+}
+(async function(){
+  try{ D=await (await fetch('/irnotes.json?t='+Date.now())).json(); }catch(e){ D={stocks:[]}; }
+  document.getElementById('meta').textContent=D.updated?('수집 기준 '+D.updated+' · 요청 시 갱신'):'';
+  render();
+})();
+</script>
+</body>
+</html>

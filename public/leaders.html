@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>주도 업종 · 한국 대시보드</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin:0; background:#f6f7f9; color:#1a1f2e; font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; }
+.wrap { max-width:1140px; margin:0 auto; padding:20px 18px 48px; }
+header { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+h1 { font-size:20px; margin:0; font-weight:800; }
+.sub { color:#6b7280; font-size:12.5px; margin:3px 0 0; }
+a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
+.meta { font-size:12px; color:#8a93a2; }
+.panel { background:#fff; border:1px solid #eceef2; border-radius:14px; padding:16px 18px; margin:14px 0; box-shadow:0 1px 2px rgba(20,30,60,.04); }
+.panel h2 { font-size:14px; margin:0 0 10px; font-weight:700; }
+.chip { border:1px solid #d7dce4; background:#fff; color:#374151; border-radius:20px; padding:5px 12px; font-size:12.5px; font-weight:700; cursor:pointer; display:inline-block; margin:2px 3px 0 0; }
+.chip.on { background:#1a2a4a; color:#fff; border-color:#1a2a4a; }
+.chip.per.on { background:#2f6df6; border-color:#2f6df6; }
+.lead { display:inline-block; background:#f0f4fa; color:#5b6472; border-radius:8px; padding:2px 8px; font-size:11px; font-weight:600; margin-left:6px; }
+.rk { display:flex; align-items:center; gap:10px; padding:7px 6px; border-bottom:1px solid #f0f2f5; font-size:13.5px; }
+.rk .no { font-weight:800; color:#c2410c; font-size:11.5px; width:34px; flex:none; }
+.rk .nm { font-weight:800; flex:1; }
+.rk .mk { font-size:10.5px; font-weight:700; border-radius:6px; padding:1px 6px; flex:none; }
+.rk .mk.KOSPI { background:#eef2fd; color:#2f56c6; } .rk .mk.KOSDAQ { background:#eef7f0; color:#0a7f4f; }
+.rk .rt { font-weight:800; width:70px; text-align:right; }
+.up { color:#e5384d; } .down { color:#2563d6; }
+.bar { height:6px; border-radius:4px; background:#f0f2f5; flex:2; overflow:hidden; }
+.bar i { display:block; height:100%; border-radius:4px; }
+.two { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+table.hist { width:100%; border-collapse:collapse; font-size:12px; }
+table.hist th { background:#1a2a4a; color:#fff; padding:6px 6px; font-weight:700; white-space:nowrap; }
+table.hist td { padding:5px 6px; border-bottom:1px solid #eef0f4; text-align:center; white-space:nowrap; }
+table.hist td.yr { font-weight:800; background:#fbfcfe; }
+table.hist td.neg { color:#2563d6; }
+table.hist td.top1 { background:#e9f7ee; font-weight:700; }
+.scrollx { overflow-x:auto; }
+.hint { font-size:11.5px; color:#8a93a2; margin-top:8px; line-height:1.6; }
+.hint b { color:#5b6472; }
+.loading { text-align:center; padding:40px; color:#6b7280; font-size:13px; }
+@media (max-width:760px){ .wrap{padding:14px 10px 40px;} .two{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>🏆 주도 업종</h1>
+      <div class="sub">업종별 수익률 순위(섹터 로테이션) — 일 · 주 · 월 · 연 + 연도별 주도 업종 히스토리</div>
+      <div style="margin-top:6px"><a class="back" href="/">← 섹터 대시보드</a></div>
+    </div>
+    <div class="meta" id="meta">불러오는 중…</div>
+  </header>
+
+  <div class="panel">
+    <span class="chip per on" data-p="d" onclick="setP('d')">일간</span>
+    <span class="chip per" data-p="w" onclick="setP('w')">주간</span>
+    <span class="chip per" data-p="m" onclick="setP('m')">월간</span>
+    <span class="chip per" data-p="y" onclick="setP('y')">연간(YTD)</span>
+    <span style="display:inline-block;width:14px"></span>
+    <span class="chip on" data-m="all" onclick="setM('all')">전체</span>
+    <span class="chip" data-m="KOSPI" onclick="setM('KOSPI')">KOSPI</span>
+    <span class="chip" data-m="KOSDAQ" onclick="setM('KOSDAQ')">KOSDAQ</span>
+    <div id="rank" style="margin-top:10px"><div class="loading">불러오는 중…</div></div>
+    <div class="hint">KIS 업종지수 기준, 장중 매시간 자동 갱신. 막대는 해당 기간 수익률 상대 크기.</div>
+  </div>
+
+  <div class="panel">
+    <h2>📖 연도별 주도 업종 히스토리 <span class="lead">각 연도 지수 수익률 + 수익률 상위 5개 업종 (KOSPI·KOSDAQ 통합)</span></h2>
+    <div class="scrollx"><table class="hist" id="hist"></table></div>
+    <div class="hint">책 「주도주 사이클」 표 1-3과 같은 구성입니다. 상위 업종은 KOSPI·KOSDAQ 업종지수를 통합해 수익률 순으로 정렬했고, <b>1위 업종은 초록 배경</b>. 올해 행은 연초 이후(YTD) 기준으로 매일 갱신됩니다. 데이터는 KIS가 제공하는 범위(대략 2000년대 이후)부터 표시됩니다.</div>
+  </div>
+</div>
+<script>
+let D=null, P='d', M='all';
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+window.setP=function(p){ P=p; document.querySelectorAll('.chip.per').forEach(c=>c.classList.toggle('on',c.dataset.p===p)); draw(); };
+window.setM=function(m){ M=m; document.querySelectorAll('.chip[data-m]').forEach(c=>c.classList.toggle('on',c.dataset.m===m)); draw(); };
+function draw(){
+  const list=((D&&D.periods&&D.periods[P])||[]).filter(x=>M==='all'||x.mkt===M);
+  const box=document.getElementById('rank');
+  if(!list.length){ box.innerHTML='<div class="loading">데이터 수집 대기 중입니다. 첫 자동 수집 후 채워집니다.</div>'; return; }
+  const maxAbs=Math.max(...list.map(x=>Math.abs(x.r)),1);
+  box.innerHTML=list.map((x,i)=>{
+    const w=Math.round(Math.abs(x.r)/maxAbs*100);
+    const color=x.r>=0?'#e5384d':'#2563d6';
+    return `<div class="rk"><span class="no">${i+1}위</span><span class="nm">${esc(x.n)}</span>
+      <span class="mk ${x.mkt}">${x.mkt}</span>
+      <span class="bar"><i style="width:${w}%;background:${color}"></i></span>
+      <span class="rt ${x.r>=0?'up':'down'}">${x.r>0?'+':''}${x.r}%</span></div>`;
+  }).join('');
+}
+function drawHist(){
+  const h=(D&&D.history)||[];
+  const t=document.getElementById('hist');
+  if(!h.length){ t.innerHTML='<tr><td class="loading">히스토리 수집 대기 중</td></tr>'; return; }
+  const pf=v=>v==null?'—':(v>0?'+':'')+v+'%';
+  t.innerHTML='<tr><th>연도</th><th>KOSPI</th><th>KOSDAQ</th>'+[1,2,3,4,5].map(i=>`<th>${i}위 업종</th>`).join('')+'</tr>'
+    + [...h].reverse().map(row=>{
+      const cells=[0,1,2,3,4].map(i=>{
+        const s=row.top[i];
+        if(!s) return '<td>—</td>';
+        return `<td class="${i===0?'top1':''}">${esc(s.n)}<br><span class="${s.r<0?'neg':''}" style="font-weight:800">${pf(s.r)}</span></td>`;
+      }).join('');
+      return `<tr><td class="yr">${row.year}${row.ytd?' (YTD)':''}</td>
+        <td class="${(row.kospi||0)<0?'neg':''}">${pf(row.kospi)}</td>
+        <td class="${(row.kosdaq||0)<0?'neg':''}">${pf(row.kosdaq)}</td>${cells}</tr>`;
+    }).join('');
+}
+(async function(){
+  try{ D=await (await fetch('/data/leaders.json?t='+Date.now())).json(); }catch(e){ D=null; }
+  document.getElementById('meta').textContent=(D&&D.updated)?('갱신 '+D.updated+' · 장중 매시간'):'첫 수집 대기 중';
+  draw(); drawHist();
+})();
+</script>
+</body>
+</html>

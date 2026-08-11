@@ -31,6 +31,8 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
 .body .plain { white-space:pre-wrap; }
 .body .par { margin:0 0 7px; }
 .body .bimg { display:block; max-width:min(100%,560px); max-height:440px; object-fit:contain; border:1px solid #e5e8ee; border-radius:8px; margin:9px 0; cursor:zoom-in; background:#fafbfc; }
+.body .bfile { display:inline-block; background:#f0f4fa; border:1px solid #c9d4e8; border-radius:9px; padding:6px 12px; font-size:12.5px; font-weight:800; color:#2f6df6; margin:7px 6px 7px 0; text-decoration:none; }
+.body .bfile:hover { background:#e4edfb; }
 .body.clamp { max-height:150px; overflow:hidden; cursor:pointer; }
 .body.clamp::after { content:''; position:absolute; bottom:0; left:0; right:0; height:52px; background:linear-gradient(rgba(255,255,255,0),#fff 85%); }
 .fold { display:inline-block; margin-top:5px; color:#2f6df6; font-size:11.5px; font-weight:800; cursor:pointer; user-select:none; }
@@ -94,9 +96,11 @@ function render(){
     const fix=u=>(u.includes('pstatic.net')&&!u.includes('type='))?u+'?type=w966':u; // 네이버 이미지는 type 필수
     let bodyHtml, imgs='';
     if(p.blocks&&p.blocks.length){ // 원문 순서 그대로: 문단(서식 보존)·이미지 교차 렌더
-      bodyHtml=p.blocks.map(b=> b.t==='img'
-        ? `<img class="bimg" src="${fix(b.u)}" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none'">`
-        : `<div class="par">${b.h||esc(b.x)}</div>`).join('');
+      bodyHtml=p.blocks.map(b=>{
+        if(b.t==='img') return `<img class="bimg" src="${fix(b.u)}" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none'">`;
+        if(b.t==='file') return `<a class="bfile" href="${b.u}" target="_blank" rel="noopener">📎 ${esc(b.nm||'첨부파일')}</a>`;
+        return `<div class="par">${b.h||esc(b.x)}</div>`;
+      }).join('');
     } else {
       bodyHtml=`<div class="plain">${esc(p.body)}</div>`;
       imgs=(p.imgs&&p.imgs.length)?`<div class="imgs">${p.imgs.map(u=>

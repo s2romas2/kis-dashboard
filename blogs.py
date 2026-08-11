@@ -44,16 +44,36 @@ def fetch_body(link):
     """모바일 PostView를 문서 순서대로 파싱 → blocks(문단·이미지 원래 순서, 서식 보존), body(검색용), imgs"""
     u = link.split('?')[0].replace('blog.naver.com', 'm.blog.naver.com')
     h = get(u)
-    blocks = []  # {'t':'p','x':텍스트,'h':서식HTML} | {'t':'img','u':URL}
-    pat = re.compile(r"se-text-paragraph[^>]*>([\s\S]*?)</p>|data-linkdata='([^']+)'|data-linkdata=\"([^\"]+)\"")
-    n_img = 0
-    for m in pat.finditer(h):
-        if m.group(1) is not None:
-            txt = html.unescape(re.sub(r'<[^>]+>', '', m.group(1))).replace('​', '').strip()
-            blocks.append({'t': 'p', 'x': txt, 'h': clean_par(m.group(1))})
+    blocks = []  # {'t':'p','x','h'} | {'t':'img','u'} | {'t':'file','u','nm'} — 문서 순서 유지
+    matches = []
+    for m in re.finditer(r"se-text-paragraph[^>]*>([\s\S]*?)</p>", h):
+        matches.append((m.start(), 'p', m.group(1)))
+    for m in re.finditer(r"data-linkdata='([^']+)'", h):
+        matches.append((m.start(), 'ld', m.group(1)))
+    for m in re.finditer(r'data-linkdata="([^"]+)"', h):
+        matches.append((m.start(), 'ld', m.group(1)))
+    # 첨부파일: 스마트에디터 se-file(파일명+저장링크) 또는 문서 확장자 다운로드 앵커
+    for m in re.finditer(r'class="se-file-name[^"]*"[^>]*>([^<]+)</\w+>[\s\S]{0,800}?href="([^"]+)"', h):
+        matches.append((m.start(), 'file', (m.group(2), html.unescape(m.group(1)).strip()[:80])))
+    for m in re.finditer(r'<a[^>]+href="(https?://[^"]+?(?:PostFileDownload\.naver[^"]*|\.(?:pdf|xlsx?|docx?|pptx?|hwpx?|zip|csv)(?:\?[^"]*)?))"[^>]*>([\s\S]{0,250}?)</a>', h):
+        nm = html.unescape(re.sub(r'<[^>]+>', '', m.group(2))).replace('​', '').strip()
+        matches.append((m.start(), 'file', (m.group(1), (nm or m.group(1).split('/')[-1].split('?')[0])[:80])))
+    matches.sort(key=lambda x: x[0])
+    n_img = n_file = 0
+    seen_files = set()
+    for _, kind, payload in matches:
+        if kind == 'p':
+            txt = html.unescape(re.sub(r'<[^>]+>', '', payload)).replace('​', '').strip()
+            blocks.append({'t': 'p', 'x': txt, 'h': clean_par(payload)})
+        elif kind == 'file':
+            url, nm = payload
+            url = html.unescape(url)
+            if url.startswith('http') and url not in seen_files and n_file < 6:
+                seen_files.add(url)
+                blocks.append({'t': 'file', 'u': url, 'nm': nm}); n_file += 1
         else:
             try:
-                d = json.loads(html.unescape(m.group(2) or m.group(3)))
+                d = json.loads(html.unescape(payload))
                 src = d.get('src')
             except Exception:
                 src = None
@@ -77,7 +97,7 @@ def fetch_body(link):
         if b['t'] == 'p':
             bx.append(b['x']); bh.append(b.get('h') or ''); total += len(b['x'])
         else:
-            flush(); merged.append(b)
+            flush(); merged.append(b)  # img·file은 그대로 순서 유지
     flush()
     body = '\n'.join(b['x'] for b in merged if b['t'] == 'p')[:BODY_CAP]
     imgs = [b['u'] for b in merged if b['t'] == 'img']

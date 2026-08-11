@@ -103,7 +103,8 @@ function drawHist(){
       const cells=[0,1,2,3,4].map(i=>{
         const s=row.top[i];
         if(!s) return '<td>—</td>';
-        return `<td class="${i===0?'top1':''}">${esc(s.n)}<br><span class="${s.r<0?'neg':''}" style="font-weight:800">${pf(s.r)}</span></td>`;
+        const kq=s.mkt==='KOSDAQ'?' <span style="font-size:9px;color:#0a7f4f;font-weight:800">KQ</span>':'';
+        return `<td class="${i===0?'top1':''}">${esc(s.n)}${kq}<br><span class="${s.r<0?'neg':''}" style="font-weight:800">${pf(s.r)}</span></td>`;
       }).join('');
       return `<tr><td class="yr">${row.year}${row.ytd?' (YTD)':''}</td>
         <td class="${(row.kospi||0)<0?'neg':''}">${pf(row.kospi)}</td>

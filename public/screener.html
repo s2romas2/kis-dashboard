@@ -127,7 +127,7 @@ function card(m, i) {
 function filtered() {
   if (!DATA) return [];
   const kw = (document.getElementById('q').value || '').trim();
-  return DATA.list.filter(m => (FILTER === 'all' || m.conds.includes(+FILTER)) && ((SEC==='all')||(SEC==='뷰티'?isBeautyCo(m):secOf(m.code)===SEC)) && (!kw || m.name.includes(kw) || m.code.includes(kw)));
+  return DATA.list.filter(m => m.conds.length > 0 && (FILTER === 'all' || m.conds.includes(+FILTER)) && ((SEC==='all')||(SEC==='뷰티'?isBeautyCo(m):secOf(m.code)===SEC)) && (!kw || m.name.includes(kw) || m.code.includes(kw)));
 }
 function render() {
   const list = filtered();

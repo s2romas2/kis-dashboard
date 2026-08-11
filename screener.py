@@ -7,6 +7,7 @@
 import os, io, sys, json, time, zipfile, urllib.request, datetime, xml.etree.ElementTree as ET
 
 DART_KEY = os.environ.get('DART_KEY', '')
+NOTE_CODES = set()  # 특장점 노트 종목(조건 미충족이어도 실적 포함) — main()에서 로드
 UNIVERSE_LIMIT = int(os.environ.get('UNIVERSE_LIMIT', '0'))
 UNIVERSE_OFFSET = int(os.environ.get('UNIVERSE_OFFSET', '0'))
 CHUNK = int(os.environ.get('CHUNK', '50'))
@@ -96,8 +97,14 @@ def eok(v):
     return None if v is None else round(v / EOK)
 
 def main():
+    global NOTE_CODES
     if not DART_KEY:
         print('DART_KEY 필요'); sys.exit(1)
+    try:  # 특장점 노트 종목: 조건 미충족이어도 실적 데이터 포함
+        _sn = json.load(open('public/stocknotes.json', encoding='utf-8'))
+        NOTE_CODES = {s['code'] for g in _sn.get('industries', []) for s in g.get('stocks', [])}
+    except Exception:
+        NOTE_CODES = set()
     corps = get_listed_corps()
     if UNIVERSE_OFFSET: corps = corps[UNIVERSE_OFFSET:]
     if UNIVERSE_LIMIT: corps = corps[:UNIVERSE_LIMIT]
@@ -149,8 +156,8 @@ def main():
             conds.append(2)
         if pop is not None and lop > 0 and pop < 0:
             conds.append(3)
-        if not conds:
-            continue
+        if not conds and c['stock_code'] not in NOTE_CODES:
+            continue  # 특장점 노트 종목은 조건 미충족이어도 실적 표기용으로 포함(conds=[])
         validops = [o for o in ops if o is not None]
         year_high = bool(validops) and lop == max(validops)
         opq_series = [{'q': labels[i], 'op': eok(ops[i]), 'qoq': growth(ops[i], ops[i-1])} for i in range(1, len(ops))]
@@ -240,7 +247,7 @@ def main():
     matches.sort(key=lambda m: (m['opQoQ'] if m['opQoQ'] is not None else -9999), reverse=True)
     kst = time.strftime('%Y-%m-%d %H:%M', time.gmtime(time.time() + 9 * 3600))
     out = {'updated': kst, 'period': '%dQ%d' % (LATEST_YEAR, LATEST_Q),
-           'universe': len(corps), 'count': len(matches), 'list': matches}
+           'universe': len(corps), 'count': sum(1 for m in matches if m['conds']), 'list': matches}
     os.makedirs('public/data', exist_ok=True)
     with open('public/data/screener.json', 'w', encoding='utf-8') as f:
         json.dump(out, f, ensure_ascii=False)

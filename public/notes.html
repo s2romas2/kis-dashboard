@@ -29,6 +29,10 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
 .perf { font-size:12.3px; line-height:1.75; color:#374151; }
 .perf b.pos { color:#e5384d; } .perf b.neg { color:#2563d6; }
 .perf .bdg { display:inline-block; background:#fff3e8; color:#c2410c; border-radius:6px; padding:0 6px; font-size:10.5px; font-weight:700; margin-right:3px; }
+table.qt { width:100%; border-collapse:collapse; margin-top:7px; font-size:11.5px; }
+table.qt th { color:#8a93a2; font-weight:700; padding:3px 4px; border-bottom:1px solid #e5e8ee; text-align:right; }
+table.qt td { padding:3px 4px; border-bottom:1px solid #f0f2f5; text-align:right; }
+table.qt .l { text-align:left; }
 .note { white-space:pre-wrap; line-height:1.7; font-size:13px; color:#1f2937; }
 .note.empty { color:#a7aeba; }
 .tools { margin-top:8px; }
@@ -93,7 +97,7 @@ function merged(){
     for(const s of g.stocks){
       const o=ov[s.code]||{};
       if(o.del) continue;
-      out.push({code:s.code, name:o.name||s.name, ind:o.ind||g.name, note:(o.note!=null?o.note:s.note)||''});
+      out.push({code:s.code, name:o.name||s.name, ind:o.ind||g.name, note:(o.note!=null?o.note:s.note)||'', ai:!!s.ai&&o.note==null});
       seen.add(s.code);
     }
   }
@@ -104,16 +108,29 @@ function merged(){
 }
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
 function perfScore(m){ if(!m) return -1e9; return (m.opYoY!=null?m.opYoY:(m.revYoY!=null?m.revYoY:-1e8)); }
-function perfCell(m){
+function perfCell(m,code){
   if(!m) return '<span style="color:#a7aeba">최근 분기 스크리닝 조건 미충족<br>(성장·연속증가·흑자전환 어디에도 해당 없음)</span>';
   const pf=v=>v==null?'—':(v>0?'+':'')+v.toFixed(1)+'%';
   const cl=v=>v==null?'':(v>0?'pos':'neg');
   const bn={1:'① 성장',2:'② 연속증가',3:'③ 흑자전환'};
   const badges=(m.conds||[]).map(c=>'<span class="bdg">'+bn[c]+'</span>').join('');
-  return `${badges}<br><span style="color:#8a93a2;font-size:11px">${m.period}${m.basis==='잠정'?' <b style="color:#c2410c">잠정</b>':''}</span><br>
-    매출 ${m.rev.toLocaleString()}억 <b class="${cl(m.revYoY)}">${pf(m.revYoY)}</b><br>
-    영업 ${m.op.toLocaleString()}억 <b class="${cl(m.opYoY)}">${pf(m.opYoY)}</b> · OPM ${m.opm}%<br>
-    순익 ${m.ni.toLocaleString()}억 <b class="${cl(m.niYoY)}">${pf(m.niYoY)}</b>`;
+  const basis=m.basis==='CFS'?'(연결)':(m.basis==='잠정'?'<b style="color:#c2410c">(잠정)</b>':'(별도)');
+  const trend=(m.opqSeries||[]).map(x=>`${x.q.slice(2)} ${x.op}억<span class="${cl(x.qoq)}" style="font-weight:700">(${pf(x.qoq)})</span>`).join(' → ');
+  const rows=(m.table||[]).map(r=>`<tr><td class="l">${r.q.slice(2)}</td><td>${r.rev}</td><td>${r.op}</td><td>${r.ni}</td></tr>`).join('');
+  const q=quotes[code];
+  const perOp=(q&&m.opAnnual>0)?(q.mktcapEok/m.opAnnual).toFixed(1):'—';
+  const perNi=(q&&m.niAnnual>0)?(q.mktcapEok/m.niAnnual).toFixed(1):'—';
+  const price=q?q.price.toLocaleString()+'원':'—';
+  return `${badges}<br><span style="color:#8a93a2;font-size:11px">${m.rptNm||m.period+' 분기보고서'} ${basis}</span><br>
+    매출 <b>${m.rev.toLocaleString()}억</b> · YoY <b class="${cl(m.revYoY)}">${pf(m.revYoY)}</b> / QoQ <b class="${cl(m.revQoQ)}">${pf(m.revQoQ)}</b><br>
+    영업 <b>${m.op.toLocaleString()}억</b> · YoY <b class="${cl(m.opYoY)}">${pf(m.opYoY)}</b> / QoQ <b class="${cl(m.opQoQ)}">${pf(m.opQoQ)}</b><br>
+    순익 <b>${m.ni.toLocaleString()}억</b> · YoY <b class="${cl(m.niYoY)}">${pf(m.niYoY)}</b> / QoQ <b class="${cl(m.niQoQ)}">${pf(m.niQoQ)}</b>
+    ${trend?`<div style="font-size:11px;color:#5b6472;background:#f4f6fa;border-radius:7px;padding:5px 8px;margin:6px 0">영업이익 추이 · ${trend}</div>`:''}
+    OPM ${m.opm}% · NPM ${m.npm}% · PER(영업) ${perOp} · PER(순익) ${perNi}<br>
+    현재가 ${price} <span style="color:#8a93a2;font-size:10.5px">(KIS 실시간)</span>
+    <table class="qt"><thead><tr><th class="l">분기</th><th>매출</th><th>영업</th><th>순익</th></tr></thead><tbody>${rows}</tbody></table>
+    <div style="margin-top:6px;font-size:11.5px"><span style="color:#8a93a2">${m.rceptDt?m.rceptDt.replace(/(\d{4})(\d{2})(\d{2})/,'$1.$2.$3'):''}</span>
+    <a href="${m.link||'https://dart.fss.or.kr'}" target="_blank" rel="noopener" style="color:#2f6df6;font-weight:700;float:right">공시 원문 →</a></div>`;
 }
 window.setInd=function(i){ IND=i; render(); };
 window.setSort=function(s){ SORT=s;
@@ -132,7 +149,7 @@ function render(){
   else list.sort((a,b)=>perfScore(SCR[b.code])-perfScore(SCR[a.code]));
   document.getElementById('list').innerHTML=list.length?list.map(x=>{
     const q=quotes[x.code];
-    const cap=q?(q.mktcapEok>=10000?(q.mktcapEok/10000).toFixed(1)+'조':q.mktcapEok.toLocaleString()+'억'):'…';
+    const cap=q?(q.mktcapEok>=10000?(q.mktcapEok/10000).toFixed(2)+'조':q.mktcapEok.toLocaleString()+'억'):'—';
     const noteHtml = editing===x.code
       ? `<textarea class="ed" id="ed_${x.code}">${esc(x.note)}</textarea>
          <div class="tools"><button class="btn-b" onclick="saveNote('${x.code}')">저장</button>
@@ -142,8 +159,8 @@ function render(){
          <button onclick="delStock('${x.code}')">🗑 삭제</button></div>`;
     return `<div class="row">
       <div class="cell"><div class="snm">${esc(x.name)}</div><div class="scd">${x.code}</div>
-        <div class="cap">시총 ${cap}</div><div class="ind-tag">${esc(x.ind)}</div></div>
-      <div class="cell"><div class="perf">${perfCell(SCR[x.code])}</div></div>
+        <div class="cap">시총 ${cap}</div><div class="ind-tag">${esc(x.ind)}</div>${x.ai?'<div class="ind-tag" style="background:#eef7f0;color:#0a7f4f">🤖 Claude 작성 — 수정 가능</div>':''}</div>
+      <div class="cell"><div class="perf">${perfCell(SCR[x.code],x.code)}</div></div>
       <div class="cell">${noteHtml}</div>
     </div>`;
   }).join(''):'<div class="loading">해당 조건의 종목이 없습니다. "＋ 종목 추가"로 등록하세요.</div>';
@@ -178,7 +195,7 @@ async function fetchQuotes(codes){
   for(let i=0;i<codes.length;i+=20){
     try{
       const d=await (await fetch('/api/quotes?codes='+codes.slice(i,i+20).join(','))).json();
-      d.forEach(q=>{ if(!q.error) quotes[q.code]=q; });
+      (d.data||d||[]).forEach(q=>{ if(!q.error) quotes[q.code]=q; });
     }catch(e){}
   }
   render();

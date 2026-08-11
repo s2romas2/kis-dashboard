@@ -79,7 +79,7 @@ function pentry(c){ const e=PRODMAP[c]; return typeof e==='string'? {p:e,s:'기�
 function secOf(c){ return pentry(c).s || '기타'; }
 function drawSec(){ const el=document.getElementById('secbar2'); if(!el) return;
   el.innerHTML=['all','뷰티',...SECLIST].map(s=>`<span class="chip ${SEC===s?'on':''}" onclick="setSec('${s}')">${s==='all'?'섹터 전체':(s==='뷰티'?'💄 뷰티':s)}</span>`).join(''); }
-window.setSec=function(s){ SEC=s; drawSec(); render(); };
+window.setSec=function(s){ SEC=s; drawSec(); render(); enrich(); };
 
 const cls = v => v == null ? 'flat' : (v > 0 ? 'up' : (v < 0 ? 'down' : 'flat'));
 const pf = v => v == null ? '—' : ((v >= 0 ? '+' : '') + v + '%');
@@ -133,12 +133,12 @@ function render() {
   const list = filtered();
   document.getElementById('grid').innerHTML = list.length ? list.map((m, i) => card(m, i)).join('') : '<div class="loading">조건에 맞는 종목이 없습니다.</div>';
 }
-window.setF = f => { FILTER = f; document.querySelectorAll('.chip[data-f]').forEach(c => c.classList.toggle('on', c.dataset.f === f)); render(); };
+window.setF = f => { FILTER = f; document.querySelectorAll('.chip[data-f]').forEach(c => c.classList.toggle('on', c.dataset.f === f)); render(); enrich(); };
 
-// KIS 실시간 시총·현재가 채우기 (상위 60종목, 20개씩)
+// KIS 실시간 시총·현재가 채우기 (현재 필터 기준 상위 60종목, 20개씩)
 async function enrich() {
   if (!DATA) return;
-  const codes = DATA.list.slice(0, 60).map(m => m.code).filter(c => !quoteCache[c]);
+  const codes = filtered().slice(0, 60).map(m => m.code).filter(c => !quoteCache[c]);
   for (let i = 0; i < codes.length; i += 20) {
     const batch = codes.slice(i, i + 20);
     try {

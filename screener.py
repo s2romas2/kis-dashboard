@@ -258,4 +258,17 @@ def main():
             m['op'], m['opYoY'], m['opQoQ'], ' [연중최고]' if m['yearHigh'] else ''))
 
 if __name__ == '__main__':
-    main()
+    # 실패 시 원격 로그를 볼 수 없으므로 트레이스백을 JSON으로 커밋해 진단
+    try:
+        main()
+        import os as _os
+        if _os.path.exists('public/data/screener_error.json'):
+            _os.remove('public/data/screener_error.json')
+    except SystemExit:
+        raise
+    except Exception:
+        import traceback, time as _t, os as _os
+        _os.makedirs('public/data', exist_ok=True)
+        json.dump({'at': _t.strftime('%Y-%m-%d %H:%M'), 'trace': traceback.format_exc()[-3000:]},
+                  open('public/data/screener_error.json', 'w', encoding='utf-8'), ensure_ascii=False)
+        raise

@@ -1,26 +1,32 @@
 {
   "bloggers": [
     {
-      "id": "ranto28"
+      "id": "ranto28",
+      "sec": "종합"
     },
     {
-      "id": "engineerinvestor"
+      "id": "engineerinvestor",
+      "sec": "종합"
     },
     {
       "id": "tosoha1",
-      "name": "농구천재"
+      "name": "농구천재",
+      "sec": "종합"
     },
     {
       "id": "crush212121",
-      "name": "체리형부"
+      "name": "체리형부",
+      "sec": "매크로"
     },
     {
       "id": "hodolry",
-      "name": "호돌이"
+      "name": "호돌이",
+      "sec": "반도체·IT"
     },
     {
       "id": "egzion",
-      "name": "이그전"
+      "name": "이그전",
+      "sec": "매크로"
     }
   ]
 }

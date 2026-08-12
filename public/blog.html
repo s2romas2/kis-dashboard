@@ -60,6 +60,7 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
 
   <div class="panel">
     <div id="whobar"></div>
+    <div id="secbar" style="margin-top:6px"></div>
     <input id="q" placeholder="제목 · 본문 · 종목명 검색" oninput="render()">
   </div>
 
@@ -68,17 +69,23 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
 </div>
 <div id="viewer" onclick="this.style.display='none'"><img id="viewerImg"></div>
 <script>
-let D=null, WHO='전체';
+let D=null, WHO='전체', SEC='전체', IND_MAP={};
 const OPEN=new Set();
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
 window.setWho=function(w){ WHO=w; render(); };
+window.setSec=function(s){ SEC=s; render(); };
+function postSecs(p){ // 글의 산업 = 블로거 주력 분야 + 종목 태그의 산업들
+  const out=new Set([p.sec||'종합']);
+  for(const t of (p.tags||[])) if(IND_MAP[t]) out.add(IND_MAP[t]);
+  return out;
+}
 window.zoom=function(src){ document.getElementById('viewerImg').src=src; document.getElementById('viewer').style.display='flex'; };
 window.tagSearch=function(t){ document.getElementById('q').value=t; render(); };
 window.toggleFold=function(key){ if(OPEN.has(key)) OPEN.delete(key); else OPEN.add(key); render(); };
 function allPosts(){
   const out=[];
   for(const [bid,b] of Object.entries((D&&D.bloggers)||{}))
-    for(const p of b.posts) out.push({...p, who:b.name, bid});
+    for(const p of b.posts) out.push({...p, who:b.name, sec:b.sec||'종합', bid});
   out.sort((a,b)=>(b.d||'').localeCompare(a.d||''));
   return out;
 }
@@ -87,8 +94,14 @@ function render(){
   const whos=[...new Set(posts.map(p=>p.who))];
   document.getElementById('whobar').innerHTML=['전체',...whos].map(w=>
     `<span class="chip ${WHO===w?'on':''}" onclick="setWho('${esc(w)}')">${w}</span>`).join('');
+  // 산업 필터 칩: 블로거 주력 분야 + 종목 태그로 유추된 산업(특장점 노트 분류 기준)
+  const secSet=new Set();
+  for(const p of posts) for(const s of postSecs(p)) secSet.add(s);
+  const secs=['전체',...[...secSet].sort((a,b)=>a==='종합'?-1:b==='종합'?1:a.localeCompare(b))];
+  document.getElementById('secbar').innerHTML=secs.map(s=>
+    `<span class="chip" style="${SEC===s?'background:#2f6df6;border-color:#2f6df6;color:#fff':''}" onclick="setSec('${esc(s)}')">${s}</span>`).join('');
   const kw=(document.getElementById('q').value||'').trim().toLowerCase();
-  const list=posts.filter(p=>(WHO==='전체'||p.who===WHO)&&(!kw||(p.t+p.body+(p.tags||[]).join(' ')).toLowerCase().includes(kw)));
+  const list=posts.filter(p=>(WHO==='전체'||p.who===WHO)&&(SEC==='전체'||postSecs(p).has(SEC))&&(!kw||(p.t+p.body+(p.tags||[]).join(' ')).toLowerCase().includes(kw)));
   document.getElementById('list').innerHTML=list.length?list.map((p,i)=>{
     const key=p.u;
     const open=OPEN.has(key);
@@ -131,6 +144,8 @@ function render(){
 }
 (async function(){
   try{ D=await (await fetch('/data/blogs.json?t='+Date.now())).json(); }catch(e){ D={bloggers:{}}; }
+  try{ const sn=await (await fetch('/stocknotes.json?t='+Date.now())).json();
+    for(const g of sn.industries) for(const s of g.stocks) IND_MAP[s.name]=g.name; }catch(e){}
   document.getElementById('meta').textContent=D.updated?('수집 '+D.updated+' · 하루 3회 자동'):'첫 수집 대기 중';
   render();
 })();

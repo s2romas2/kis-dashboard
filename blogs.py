@@ -128,6 +128,7 @@ def main():
         name = b.get('name') or (nm.group(1).strip() if nm else bid)
         cur = bloggers.get(bid) or {'name': name, 'posts': []}
         cur['name'] = name
+        cur['sec'] = b.get('sec', '종합')  # 블로거 주력 분야(산업 필터용)
         known = {p['u'] for p in cur['posts']}
         items = re.findall(r'<item>([\s\S]*?)</item>', x)
         new_cnt = 0

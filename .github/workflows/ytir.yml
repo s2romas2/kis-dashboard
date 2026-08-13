@@ -1,0 +1,29 @@
+name: 그로쓰리서치 영상 수집
+on:
+  schedule:
+    - cron: '40 0,9 * * *'
+  workflow_dispatch: {}
+  push:
+    paths: ['ytir.py']
+permissions:
+  contents: write
+jobs:
+  ytir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 수집
+        run: python ytir.py
+      - name: 결과 커밋
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/ytir.json 2>/dev/null || true
+          git commit -m "그로쓰리서치 영상 갱신" || echo "변경 없음"
+          git pull --rebase -X theirs origin main || true
+          git push || true

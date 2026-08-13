@@ -121,6 +121,13 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
     </div>
   </div>
 
+  <div class="panel" id="ytPanel" style="display:none;background:#fff;border:1px solid #eceef2;border-radius:14px;padding:16px 18px;margin:14px 0">
+    <h2 style="font-size:14px;margin:0 0 8px;font-weight:700">🎬 그로쓰리서치 기업탐방 영상 <span id="ytMeta" style="font-weight:400;color:#8a93a2;font-size:11px"></span></h2>
+    <input id="ytq" placeholder="🔍 영상 제목·종목 검색" style="width:100%;max-width:320px;padding:7px 11px;border:1px solid #d7dce4;border-radius:9px;font-size:12.5px;margin-bottom:8px" oninput="ytRender()">
+    <div id="ytList"></div>
+    <div class="hint">독립리서치 <b>그로쓰리서치</b>의 유튜브 기업탐방·산업분석 방송 목록입니다(하루 2회 자동 수집). 제목을 클릭하면 유튜브에서 재생되고, 파란 태그는 영상에 언급된 상장사입니다. 날짜 앞 <b>~</b>는 근사 날짜(정확한 게시일·설명은 다음 수집에서 보강).</div>
+  </div>
+
   <div id="list"><div class="loading">불러오는 중…</div></div>
   <div class="hint">🟢 탐방 · 🩷 인터뷰 · 🔵 IR · 🟡 메모(직접 작성). 긴 내용은 자동으로 접혀요 — <b>본문이나 "펼치기"를 클릭하면 전체가 보이고, 다시 클릭하면 접힙니다</b>. 메모 작성 시 굵게·색상·형광펜 서식과 본문 속 이미지 삽입이 가능하고, 다른 문서에서 복사해 붙여넣으면 서식·이미지가 그대로 들어옵니다. ✏️ 수정·추가분은 이 브라우저에 먼저 저장되며, <b>"수정사항 내보내기" 내용을 Claude 대화에 붙여넣으면</b> 사이트 원본에 반영됩니다.</div>
 </div>
@@ -340,10 +347,33 @@ window.exportJson=function(){
     setTimeout(()=>document.getElementById('copyMsg').textContent='',6000);
   });
 };
+// 🎬 그로쓰리서치 영상 섹션
+let YT=null, YT_ALL=false;
+window.ytRender=function(){
+  if(!YT||!YT.videos||!YT.videos.length) return;
+  document.getElementById('ytPanel').style.display='';
+  document.getElementById('ytMeta').textContent='수집 '+(YT.updated||'')+' · '+YT.videos.length+'편';
+  const kw=(document.getElementById('ytq').value||'').trim().toLowerCase();
+  let list=YT.videos.filter(v=>!kw||((v.t+' '+(v.desc||'')+' '+(v.tags||[]).map(t=>t[0]).join(' ')).toLowerCase().includes(kw)));
+  const total=list.length;
+  if(!YT_ALL&&!kw) list=list.slice(0,8);
+  document.getElementById('ytList').innerHTML=list.map(v=>{
+    const tags=(v.tags||[]).map(t=>`<span style="background:#e8f0ff;color:#2f5fd0;border-radius:6px;padding:1px 7px;font-size:10.5px;font-weight:800;margin-right:3px;cursor:pointer" onclick="document.getElementById('ytq').value='${t[0].replace(/'/g,'')}';ytRender()">${t[0]}</span>`).join('');
+    const desc=(v.desc||'').trim();
+    return `<div style="border-top:1px solid #f0f2f5;padding:9px 0">
+      <span style="color:#8a93a2;font-size:11.5px;font-weight:700">${v.approx?'~':''}${v.d||''}</span>
+      <a href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener" style="color:#1a1f2e;text-decoration:none;font-weight:800;font-size:13.5px;margin-left:6px">▶ ${v.t} ↗</a>
+      <span style="color:#8a93a2;font-size:11px;margin-left:6px">${v.views||''}</span>
+      ${tags?`<div style="margin-top:4px">${tags}</div>`:''}
+      ${desc?`<div style="font-size:12px;color:#5b6472;line-height:1.7;margin-top:4px;white-space:pre-wrap">${desc.length>220?desc.slice(0,220)+'…':desc}</div>`:''}
+    </div>`;
+  }).join('')+(!YT_ALL&&!kw&&total>8?`<div style="text-align:center;margin-top:8px"><span style="color:#2f6df6;font-size:12px;font-weight:800;cursor:pointer" onclick="YT_ALL=true;ytRender()">▾ 전체 ${total}편 보기</span></div>`:'');
+};
 (async function(){
   try{ D=await (await fetch('/irnotes.json?t='+Date.now())).json(); }catch(e){ D={stocks:[]}; }
   document.getElementById('meta').textContent=D.updated?('수집 기준 '+D.updated+' · 요청 시 갱신'):'';
   render();
+  try{ YT=await (await fetch('/data/ytir.json?t='+Date.now())).json(); ytRender(); }catch(e){}
 })();
 </script>
 </body>

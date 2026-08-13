@@ -54,6 +54,7 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
       <div id="costType" style="margin-bottom:8px"></div>
       <div class="chart-box" style="height:300px"><canvas id="costChart"></canvas></div>
       <div class="chart-box" style="height:200px;margin-top:12px"><canvas id="costRatio"></canvas></div>
+      <div id="costDetail" style="margin-top:12px;font-size:13px;line-height:1.75;color:#374151;background:#fbfaf6;border:1px solid #efe9d8;border-radius:10px;padding:12px 14px;display:none"></div>
       <div id="costDriver" style="margin-top:12px;font-size:13px;line-height:1.75;color:#374151;background:#fafbfd;border:1px solid #eef1f5;border-radius:10px;padding:12px 14px"></div>
       <div class="hint">막대=매출액·매출원가·고정성비용(판관비+감가상각), 선=영업이익·순이익 (연간, 억원). 아래 차트=매출 대비 비율 추이. <b>변동비형</b>=원가가 매출과 함께 움직여 마진이 안정적(원자재 가격이 변수), <b>고정비형</b>=비용이 고정돼 매출 증가 시 이익이 크게 튐(가동률·판가가 변수). 판별은 5개년 원가율·고정비 비중·영업레버리지 기반 자동 추정입니다. DART 사업보고서 연결 기준.</div>
     </div>
@@ -165,7 +166,17 @@ async function showCost(code){
   if(!c||!c.rows){ p.style.display='none'; return; }
   p.style.display='';
   document.getElementById('costTitle').textContent=c.name+' — 비용구조 ('+c.rows[0].y+'~'+c.rows[c.rows.length-1].y+')';
-  const t=c.cls||{};
+  // 분류 재계산(70% 규칙): 총비용(원가+판관비+상각) 중 매출원가 비중 5개년 평균이 70%↑=변동비형, 고정성(판관비+상각) 70%↑=고정비형, 그 외 혼합형
+  let t=c.cls||{};
+  {
+    const vs=c.rows.map(r=>{ const cg=r.cogs||0, fx=(r.sga||0)+(r.dep||0), tot=cg+fx; return tot>0? cg/tot : null; }).filter(v=>v!=null);
+    if(vs.length>=2){
+      const vShare=vs.reduce((a,b)=>a+b,0)/vs.length, fShare=1-vShare;
+      const type=vShare>=0.7?'변동비형':(fShare>=0.7?'고정비형':'혼합형');
+      t={type, why:'총비용 중 매출원가(변동성) '+Math.round(vShare*100)+'% vs 고정성비용(판관비+상각) '+Math.round(fShare*100)+'% — 5개년 평균'
+        +(c.cls&&c.cls.lev?' · 영업레버리지 '+c.cls.lev+'배':'')};
+    }
+  }
   const col=t.type==='변동비형'?'#0ea472':(t.type==='고정비형'?'#7c3aed':'#5b6472');
   document.getElementById('costType').innerHTML=
     `<span style="display:inline-block;font-weight:800;color:#fff;background:${col};border-radius:9px;padding:5px 14px;font-size:14px">${t.type||'—'}</span>
@@ -192,6 +203,41 @@ async function showCost(code){
   ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
     plugins:{legend:{labels:{boxWidth:11,font:{size:11}}}},
     scales:{x:{grid:{display:false}},y:{grid:{color:'#f0f2f5'},ticks:{font:{size:10},callback:v=>v+'%'}}}}});
+  // 비용 세부(공시 기반): 원재료 구성·고정비 순위·개발비 자산화
+  try{
+    if(!window.CDET){ try{ window.CDET=(await (await fetch('/data/costdetail.json?t='+Date.now())).json()).map||{}; }catch(e){ window.CDET={}; } }
+    const cd=window.CDET[code];
+    const el=document.getElementById('costDetail');
+    if(cd&&(cd.raw||cd.labor||cd.rnd!=null||cd.dev)){
+      const last=c.rows[c.rows.length-1]||{};
+      const rev=last.rev||0;
+      let h='<b style="color:#7a5b12">🧾 비용 세부 (사업보고서 '+(cd.y||'')+' 기준)</b><br>';
+      if(cd.raw&&cd.raw.length){
+        h+='<b>매출원가 주요 구성(원재료 — 공시 원문 발췌):</b><br><span style="font-size:12px;color:#5b6472">'
+          +cd.raw.map(r=>'· '+r).join('<br>')+'</span><br>';
+      }
+      // 고정비 순위: 매출 대비 % 내림차순
+      const items=[];
+      if(cd.labor&&rev) items.push(['인건비(전사 급여총액)', cd.labor, cd.labor/(rev/1e8)*100]);
+      if(last.dep&&rev) items.push(['감가상각·무형상각', Math.round(last.dep/1e8), last.dep/rev*100]);
+      if(cd.rnd!=null&&rev) items.push(['연구개발비', Math.round(rev/1e8*cd.rnd/100), cd.rnd]);
+      if(last.sga&&rev) items.push(['판관비 전체', Math.round(last.sga/1e8), last.sga/rev*100]);
+      if(items.length){
+        items.sort((a,b)=>b[2]-a[2]);
+        h+='<b>비용 항목별 크기(매출 대비, 최근 연도):</b> '
+          +items.map(x=>x[0]+' '+Number(x[1]).toLocaleString()+'억('+x[2].toFixed(1)+'%)').join(' → ')
+          +'<br><span style="font-size:11.5px;color:#8a93a2">※ 인건비·연구개발비는 제조원가와 판관비에 나뉘어 들어가므로 판관비 전체와 일부 겹칠 수 있습니다.</span><br>';
+      }
+      if(cd.dev){
+        h+='<b style="color:#b45309">🧪 연구개발비 일부 무형자산화</b> — 재무상태표 개발비 잔액 <b>'+Number(cd.dev).toLocaleString()+'억</b>. '
+          +'K-IFRS(기업회계기준서 1038)상 개발 단계 지출이 기술적 실현가능성 등 요건을 충족하면 비용이 아닌 자산으로 잡을 수 있습니다. '
+          +'자산화 비중이 크면 당기 이익이 실제 현금 지출보다 좋아 보이므로(비용 이연) 이익의 질을 함께 확인하세요.';
+      } else if(cd.rnd!=null){
+        h+='<span style="font-size:12px;color:#5b6472">연구개발비는 전액 비용 처리(개발비 자산화 없음 또는 미미) — 이익에 보수적으로 반영되는 구조입니다.</span>';
+      }
+      el.innerHTML=h; el.style.display='';
+    } else el.style.display='none';
+  }catch(e){}
   // 비용 드라이버 해설
   try{
     if(!DRV) DRV=await (await fetch('/costdrivers.json?t='+Date.now())).json();

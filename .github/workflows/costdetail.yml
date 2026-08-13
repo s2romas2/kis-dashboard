@@ -2,6 +2,7 @@ name: 비용 세부 분석 수집
 on:
   schedule:
     - cron: '20 21 * * 1-5'
+    - cron: '20 3 * * 2-6'
   workflow_dispatch: {}
   push:
     paths: ['costdetail.py']

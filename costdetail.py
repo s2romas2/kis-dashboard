@@ -13,6 +13,7 @@ BASE = 'https://opendart.fss.or.kr/api'
 OUT = 'public/data/costdetail.json'
 MAXRUN = int(os.environ.get('MAXRUN', '40'))
 REFRESH_DAYS = 90  # 사업보고서는 연 1회 — 분기마다 재확인
+PV = 2  # 파서 버전 — 올리면 기존 수집분도 재수집
 DEBUG = []
 
 def fetch(url, timeout=60):
@@ -48,7 +49,9 @@ def corp_map():
     return m
 
 def latest_annual_rcp(corp):
-    d = jget('%s/list.json?crtfc_key=%s&corp_code=%s&pblntf_detail_ty=A001&page_count=10&last_reprt_at=Y' % (BASE, KEY, corp))
+    # list.json은 기본 조회기간이 최근 3개월 → 사업보고서(3월 제출)를 놓치므로 bgn_de 필수
+    bgn = (datetime.date.today() - datetime.timedelta(days=540)).strftime('%Y%m%d')
+    d = jget('%s/list.json?crtfc_key=%s&corp_code=%s&pblntf_detail_ty=A001&bgn_de=%s&page_count=20&last_reprt_at=Y' % (BASE, KEY, corp, bgn))
     for it in (d.get('list') or []):
         if '사업보고서' in (it.get('report_nm') or ''):
             return it.get('rcept_no'), (it.get('report_nm') or '')
@@ -190,7 +193,7 @@ def main():
     ran = 0
     for code, name in targets.items():
         old = pmap.get(code)
-        if old and (old.get('gen') or '') >= cutoff:
+        if old and old.get('pv') == PV and (old.get('gen') or '') >= cutoff:
             continue
         if ran >= MAXRUN:
             break
@@ -198,7 +201,7 @@ def main():
         if not corp:
             continue
         ran += 1
-        ent = {'gen': datetime.date.today().isoformat()}
+        ent = {'gen': datetime.date.today().isoformat(), 'pv': PV}
         try:
             rcp, rnm = latest_annual_rcp(corp)
             year = datetime.date.today().year - 1

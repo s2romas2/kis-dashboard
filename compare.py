@@ -289,6 +289,20 @@ def main():
         print('LIMIT 모드 — index.json 미갱신', file=sys.stderr)
         print('완료: %d성공 / %d실패' % (ok, fail))
         return
+    # 인덱스 축소 방지: 기존 인덱스에 있고 데이터 파일이 남아 있는 종목은 유지
+    # (stockvals 일시 실패 등으로 targets가 쪼그라들어도 검색 목록이 줄지 않게)
+    try:
+        oldidx = json.load(open('%s/index.json' % OUTDIR, encoding='utf-8')).get('codes') or {}
+        kept = 0
+        for c, n in oldidx.items():
+            if c not in index and os.path.exists('%s/%s.json' % (OUTDIR, c)):
+                index[c] = n
+                ok += 1
+                kept += 1
+        if kept:
+            DEBUG.append('기존 인덱스 %d종목 유지(파일 존재)' % kept)
+    except Exception:
+        pass
     with open('%s/index.json' % OUTDIR, 'w', encoding='utf-8') as f:
         json.dump({'updated': time.strftime('%Y-%m-%d %H:%M'), 'count': ok, 'codes': index, 'debug': DEBUG}, f, ensure_ascii=False)
     print('완료: %d성공 / %d실패' % (ok, fail))

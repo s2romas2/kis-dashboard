@@ -100,12 +100,24 @@ def main():
     _dump(m, fail)
 
 def _dump(m, fail):
-    out = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'count': len(m), 'fail': fail,
-           'debug': DEBUG, 'map': m}
+    # 덮어쓰기 방지: 이번 수집이 기존 데이터의 절반에도 못 미치면(토큰 실패·API 장애 등)
+    # 기존 map을 유지하고 debug에만 기록한다 — 빈 파일로 다른 배치(compare 등)를 무너뜨리지 않기 위함
+    try:
+        prev = json.load(open(OUT, encoding='utf-8'))
+    except Exception:
+        prev = {}
+    pm = prev.get('map') or {}
+    if len(m) < max(50, len(pm) // 2):
+        DEBUG.append('이번 수집 %d건 < 기존 %d건의 절반 — 기존 데이터 유지(덮어쓰기 방지)' % (len(m), len(pm)))
+        out = {'updated': prev.get('updated', ''), 'count': len(pm), 'fail': fail,
+               'debug': DEBUG, 'map': pm}
+    else:
+        out = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'count': len(m), 'fail': fail,
+               'debug': DEBUG, 'map': m}
     os.makedirs('public/data', exist_ok=True)
     with open(OUT, 'w', encoding='utf-8') as f:
         json.dump(out, f, ensure_ascii=False)
-    print('저장: %d종목 (실패 %d) %s' % (len(m), fail, DEBUG[:3]))
+    print('저장: %d종목 (실패 %d) %s' % (out['count'], fail, DEBUG[:3]))
 
 if __name__ == '__main__':
     main()

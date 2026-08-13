@@ -231,8 +231,9 @@ def main():
         # 최근 7일 내 계산본(v2)은 재사용
         try:
             old = json.load(open('%s/%s.json' % (OUTDIR, code), encoding='utf-8'))
-            if old.get('v') in (3, 4) and (old.get('gen') or '') >= cutoff_gen:
-                # 가벼운 일일 갱신: 최신 주가만 이어붙임 (재무 재계산은 주 1회 — v3→v4(PSR 추가)도 그때 전환)
+            # v3(PSR·V차트 없음)는 실행당 MAXRUN까지 우선 재계산해 v4로 전환, 한도 초과분만 주가 이어붙임으로 유지
+            if (old.get('v') == 4 or (old.get('v') == 3 and ran >= MAXRUN)) and (old.get('gen') or '') >= cutoff_gen:
+                # 가벼운 일일 갱신: 최신 주가만 이어붙임 (재무 재계산은 주 1회)
                 try:
                     if old.get('px'):
                         pxmap = dict(old['px'][-90:])

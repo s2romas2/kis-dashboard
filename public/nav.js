@@ -13,7 +13,7 @@
     ]},
     { t: '종목분석', items: [
       ['/valuefilter.html', '🎯 밸류 필터', 'PBR·PER·배당 조건 검색 + 엑셀'],
-      ['/bands.html', '📉 PER·PBR 밴드', '10개년 밴드 + 비용구조 분석'],
+      ['/bands.html', '📉 밴드·V차트', 'PER·PBR·PSR 밴드 + V차트 + 비용구조'],
       ['/notes.html', '📝 종목 특장점', '산업별 강점·매출비중 노트'],
       ['/ir.html', '🎤 IR 노트', '탐방·컨콜·인터뷰 + 내 메모'],
     ]},

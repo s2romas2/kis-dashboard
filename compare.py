@@ -62,7 +62,7 @@ def candles(code, n=2700):
     return [x for x in sorted(out) if x[0] >= START]
 
 def fin_quarters(corp):
-    """분기별 {(y,q): {'eq': 자본총계, 'ni': 단일분기 순이익}}"""
+    """분기별 {(y,q): {'eq': 자본총계, 'ni': 단일분기 순이익, 'rv': 단일분기 매출액}}"""
     raw = {}
     for y in YEARS:
         for q, rc in REPRT.items():
@@ -76,7 +76,9 @@ def fin_quarters(corp):
                 cum = tonum(it.get('thstrm_add_amount'))
                 if cur is None:
                     continue
-                key = 'eq' if nm == '자본총계' else ('ni' if nm in ('당기순이익', '당기순이익(손실)') else None)
+                key = ('eq' if nm == '자본총계'
+                       else 'ni' if nm in ('당기순이익', '당기순이익(손실)')
+                       else 'rv' if nm in ('매출액', '수익(매출액)', '영업수익') else None)
                 if not key:
                     continue
                 pref = slot.get(key + '_fs')
@@ -90,17 +92,16 @@ def fin_quarters(corp):
     out = {}
     for (y, q), s in raw.items():
         eq = s.get('eq', {}).get('cur')
-        ni = None
-        if 'ni' in s:
+        def single(key):  # 손익 항목: Q1~3=단일분기, Q4=연간-3Q누적
+            if key not in s:
+                return None
             if q in (1, 2, 3):
-                ni = s['ni']['cur']
-            else:  # Q4 = 연간 - 3Q누적
-                fy = s['ni']['cur']
-                n3 = raw.get((y, 3), {}).get('ni', {})
-                nine = n3.get('cum', n3.get('cur'))
-                if fy is not None and nine is not None:
-                    ni = fy - nine
-        out[(y, q)] = {'eq': eq, 'ni': ni}
+                return s[key]['cur']
+            fy = s[key]['cur']
+            p3 = raw.get((y, 3), {}).get(key, {})
+            nine = p3.get('cum', p3.get('cur'))
+            return (fy - nine) if (fy is not None and nine is not None) else None
+        out[(y, q)] = {'eq': eq, 'ni': single('ni'), 'rv': single('rv')}
     return out
 
 def shares_by_year(corp):
@@ -133,7 +134,7 @@ def build_series(code, name, corp):
     sh = shares_by_year(corp)
     if not fq or not sh:
         return None
-    # 분기 스냅샷: 반영일(eff) 기준 정렬 [(eff, bps, eps_ttm)]
+    # 분기 스냅샷: 반영일(eff) 기준 정렬 [(eff, bps, eps_ttm, sps_ttm)]
     snaps = []
     for (y, q), v in sorted(fq.items()):
         qe = datetime.date(y, QEND[q][0], QEND[q][1])
@@ -142,33 +143,37 @@ def build_series(code, name, corp):
         if not shares:
             continue
         bps = (v['eq'] / shares) if v.get('eq') else None
-        # TTM 순이익: 해당 분기 포함 직전 4개 단일분기
+        # TTM: 해당 분기 포함 직전 4개 단일분기 합
         seq = sorted(fq.items())
         idx = seq.index(((y, q), v))
-        last4 = [x[1].get('ni') for x in seq[max(0, idx - 3): idx + 1]]
-        eps = (sum(last4) / shares) if (len(last4) == 4 and all(n is not None for n in last4)) else None
-        snaps.append((eff.isoformat(), bps, eps))
+        def ttm(key):
+            last4 = [x[1].get(key) for x in seq[max(0, idx - 3): idx + 1]]
+            return (sum(last4) / shares) if (len(last4) == 4 and all(n is not None for n in last4)) else None
+        snaps.append((eff.isoformat(), bps, ttm('ni'), ttm('rv')))
     if not snaps:
         return None
-    pbr, per, roe = [], [], []
+    pbr, per, psr, roe = [], [], [], []
     si = -1
-    cur_bps = cur_eps = None
+    cur_bps = cur_eps = cur_sps = None
     for d, close in px:
         while si + 1 < len(snaps) and snaps[si + 1][0] <= d:
             si += 1
             cur_bps = snaps[si][1] or cur_bps
             cur_eps = snaps[si][2] if snaps[si][2] is not None else cur_eps
+            cur_sps = snaps[si][3] if snaps[si][3] is not None else cur_sps
         if cur_bps and cur_bps > 0:
             pbr.append([d, round(close / cur_bps, 4)])
         if cur_eps and cur_eps > 0:
             per.append([d, round(close / cur_eps, 4)])
             if cur_bps and cur_bps > 0:
                 roe.append([d, round(cur_eps / cur_bps * 100, 2)])
+        if cur_sps and cur_sps > 0:
+            psr.append([d, round(close / cur_sps, 4)])
     if len(pbr) < 50:
         return None
     px_out = [[d, c] for d, c in px]
-    return {'code': code, 'name': name, 'pbr': pbr, 'per': per, 'roe': roe,
-            'px': px_out, 'v': 3, 'gen': datetime.date.today().isoformat()}
+    return {'code': code, 'name': name, 'pbr': pbr, 'per': per, 'psr': psr, 'roe': roe,
+            'px': px_out, 'v': 4, 'gen': datetime.date.today().isoformat()}
 
 def main():
     if not DART_KEY:
@@ -215,12 +220,12 @@ def main():
         # 최근 7일 내 계산본(v2)은 재사용
         try:
             old = json.load(open('%s/%s.json' % (OUTDIR, code), encoding='utf-8'))
-            if old.get('v') == 3 and (old.get('gen') or '') >= cutoff_gen:
-                # 가벼운 일일 갱신: 최신 주가만 이어붙임 (재무 재계산은 주 1회)
+            if old.get('v') in (3, 4) and (old.get('gen') or '') >= cutoff_gen:
+                # 가벼운 일일 갱신: 최신 주가만 이어붙임 (재무 재계산은 주 1회 — v3→v4(PSR 추가)도 그때 전환)
                 try:
                     if old.get('px'):
                         pxmap = dict(old['px'][-90:])
-                        bps = eps = None
+                        bps = eps = sps = None
                         if old.get('pbr'):
                             d0, r0 = old['pbr'][-1]
                             if pxmap.get(d0):
@@ -229,6 +234,10 @@ def main():
                             d0, r0 = old['per'][-1]
                             if pxmap.get(d0):
                                 eps = pxmap[d0] / r0
+                        if old.get('psr'):
+                            d0, r0 = old['psr'][-1]
+                            if pxmap.get(d0):
+                                sps = pxmap[d0] / r0
                         last_d = old['px'][-1][0]
                         added = False
                         for d2, c2 in candles(code, 40):
@@ -238,6 +247,8 @@ def main():
                                     old['pbr'].append([d2, round(c2 / bps, 4)])
                                 if eps and eps > 0:
                                     old['per'].append([d2, round(c2 / eps, 4)])
+                                if sps and sps > 0:
+                                    old['psr'].append([d2, round(c2 / sps, 4)])
                                 added = True
                         if added:
                             with open('%s/%s.json' % (OUTDIR, code), 'w', encoding='utf-8') as f:

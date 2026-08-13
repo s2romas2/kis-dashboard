@@ -57,13 +57,15 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
       <div id="costDriver" style="margin-top:12px;font-size:13px;line-height:1.75;color:#374151;background:#fafbfd;border:1px solid #eef1f5;border-radius:10px;padding:12px 14px"></div>
       <div class="hint">막대=매출액·매출원가·고정성비용(판관비+감가상각), 선=영업이익·순이익 (연간, 억원). 아래 차트=매출 대비 비율 추이. <b>변동비형</b>=원가가 매출과 함께 움직여 마진이 안정적(원자재 가격이 변수), <b>고정비형</b>=비용이 고정돼 매출 증가 시 이익이 크게 튐(가동률·판가가 변수). 판별은 5개년 원가율·고정비 비중·영업레버리지 기반 자동 추정입니다. DART 사업보고서 연결 기준.</div>
     </div>
+    <div class="panel" id="psrPanel"><h2 id="psrTitle">PSR 밴드</h2><div class="chart-box"><canvas id="psrBand"></canvas></div>
+      <div class="hint"><b>파란 굵은 선=수정주가</b>, 회색 실선=그 시점 주당매출(SPS TTM, 최근 4개 분기 매출 합)×<b>고정 PSR 배수 6개</b>(최근 10년 min–max 균등 6단계). 이익이 적자여도 매출은 있어서 PER 밴드가 비는 구간에도 밴드가 이어지는 게 장점입니다. 금융사 등 매출액 계정이 없는 종목은 표시되지 않습니다.</div></div>
     <div class="panel"><h2 id="pbrTitle">PBR 밴드</h2><div class="chart-box"><canvas id="pbrBand"></canvas></div>
       <div class="hint"><b>파란 굵은 선=수정주가</b>, 회색 실선=그 시점 주당순자산(BPS)×<b>고정 PBR 배수 6개</b>(최근 10년 PBR 최소~최대 균등 6단계, 10년 내내 고정). 데이터: DART 공시 재무(IFRS 연결 우선, 분기말+50일/사업보고서+90일 공시지연 반영 — 미래 실적을 과거에 적용하지 않음)÷네이버 수정주가. <b>주가는 평일 매일 갱신</b>, 재무(EPS·BPS)는 분기 공시 주기라 주 1회 재계산. 상장 10년 미만 종목은 상장 이후 구간만 표시.</div></div>
   </div>
   <div class="panel" id="empty"><div class="loading">위에서 종목을 검색해주세요.<br><span style="font-size:12px">지원 종목: 시가총액 상위 300 + 주요 108종목 (약 400개, 매주 자동 갱신 — 목록에 없는 종목은 순차 추가 중입니다)</span></div></div>
 </div>
 <script>
-let INDEX={}, perC=null, pbrC=null, costC=null, ratioC=null, DRV=null;
+let INDEX={}, perC=null, pbrC=null, psrC=null, costC=null, ratioC=null, DRV=null;
 let MODE='minmax', LASTCODE=null; // minmax(기본) | pct(5~95% 이상치 제거)
 const QC=['#c9ced7','#98a1b0','#626c7c','#3d4552','#98a1b0','#c9ced7']; // 6밴드: 양끝 옅게·중앙 진하게 (NICE 스타일)
 function quantile(sorted,q){
@@ -184,6 +186,12 @@ async function show(code){
   document.getElementById('pbrTitle').textContent=d.name+' — Trailing PBR Band Chart (연결 우선)';
   const r1=mkBand(document.getElementById('perBand'), perC, d.px, d.per, 'PER'); perC=r1.c;
   const r2=mkBand(document.getElementById('pbrBand'), pbrC, d.px, d.pbr, 'PBR'); pbrC=r2.c;
+  let r3={c:null};
+  if(d.psr&&d.psr.length>=30){
+    document.getElementById('psrPanel').style.display='';
+    document.getElementById('psrTitle').textContent=d.name+' — Trailing PSR Band Chart (연결 우선)';
+    r3=mkBand(document.getElementById('psrBand'), psrC, d.px, d.psr, 'PSR'); psrC=r3.c;
+  } else { document.getElementById('psrPanel').style.display='none'; if(psrC){psrC.destroy();psrC=null;} }
   let html='', desc=[];
   if(r1.cur&&r1.rvals){ const p=pct(r1.rvals,r1.cur);
     html+=`<span class="pos ${p<=30?'lo':(p>=70?'hi':'mid')}">현재 PER ${r1.cur.toFixed(1)}배 — 10년 중 백분위 ${p}% ${p<=30?'(역사적 하단)':(p>=70?'(역사적 상단)':'')}</span>`;
@@ -191,13 +199,15 @@ async function show(code){
   else html+='<span class="pos mid">PER — 적자 또는 데이터 부족</span>';
   if(r2.cur&&r2.rvals){ const p=pct(r2.rvals,r2.cur);
     html+=`<span class="pos ${p<=30?'lo':(p>=70?'hi':'mid')}">현재 PBR ${r2.cur.toFixed(2)}배 — 10년 중 백분위 ${p}% ${p<=30?'(역사적 하단)':(p>=70?'(역사적 상단)':'')}</span>`; }
+  if(r3.cur&&r3.rvals){ const p=pct(r3.rvals,r3.cur);
+    html+=`<span class="pos ${p<=30?'lo':(p>=70?'hi':'mid')}">현재 PSR ${r3.cur.toFixed(2)}배 — 백분위 ${p}%</span>`; }
   // 밴드 배수·모드 표시
   const modeBtn=(m,t)=>`<span class="pos ${MODE===m?'hi':'mid'}" style="cursor:pointer;${MODE===m?'background:#1a2a4a;color:#fff':''}" onclick="setMode('${m}')">${t}</span>`;
   html+='<span style="margin-left:6px">'+modeBtn('minmax','10년 min–max (기본)')+modeBtn('pct','이상치 제거 (5~95%)')+'</span>';
   document.getElementById('posline').innerHTML=html;
   const fmt=r=>r&&r.qs? r.qs.map(v=>v.toFixed(r.prec)).join(' · ') : '—';
-  let extra='PER 밴드 '+fmt(r1)+' | PBR 밴드 '+fmt(r2)+' (최근 10년 유효 배수 min–max 균등 6단계, 배수 고정)';
-  if(MODE==='minmax'&&((r1&&r1.warn)||(r2&&r2.warn))) extra+=' — ⚠️ 극단 배수(이익 급감기 등)로 밴드 간격이 벌어질 수 있어요. 위 "이상치 제거" 모드로 비교해보세요.';
+  let extra='PER 밴드 '+fmt(r1)+' | PBR 밴드 '+fmt(r2)+(r3.qs?' | PSR 밴드 '+fmt(r3):'')+' (최근 10년 유효 배수 min–max 균등 6단계, 배수 고정)';
+  if(MODE==='minmax'&&((r1&&r1.warn)||(r2&&r2.warn)||(r3&&r3.warn))) extra+=' — ⚠️ 극단 배수(이익 급감기 등)로 밴드 간격이 벌어질 수 있어요. 위 "이상치 제거" 모드로 비교해보세요.';
   document.getElementById('posdesc').textContent=(desc[0]?desc[0]+' · ':'')+extra+' · 기준일 '+(d.px[d.px.length-1][0])+' · 재무 갱신 '+(d.gen||'');
   if(!r1.c) document.getElementById('perBand').parentElement.innerHTML='<div class="loading">흑자 기간이 짧아 PER 밴드를 그릴 수 없습니다.</div>';
 }

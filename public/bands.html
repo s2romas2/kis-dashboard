@@ -169,12 +169,15 @@ async function showCost(code){
   // 분류 재계산(70% 규칙): 총비용(원가+판관비+상각) 중 매출원가 비중 5개년 평균이 70%↑=변동비형, 고정성(판관비+상각) 70%↑=고정비형, 그 외 혼합형
   let t=c.cls||{};
   {
-    const vs=c.rows.map(r=>{ const cg=r.cogs||0, fx=(r.sga||0)+(r.dep||0), tot=cg+fx; return tot>0? cg/tot : null; }).filter(v=>v!=null);
+    // 매출원가·판관비가 모두 공시된 연도만 사용 (구분 미공시 기업은 기존 레버리지 판정 유지)
+    const vs=c.rows.map(r=>{ const cg=r.cogs||0, fx=(r.sga||0)+(r.dep||0); return (cg>0&&fx>0)? cg/(cg+fx) : null; }).filter(v=>v!=null);
     if(vs.length>=2){
       const vShare=vs.reduce((a,b)=>a+b,0)/vs.length, fShare=1-vShare;
       const type=vShare>=0.7?'변동비형':(fShare>=0.7?'고정비형':'혼합형');
       t={type, why:'총비용 중 매출원가(변동성) '+Math.round(vShare*100)+'% vs 고정성비용(판관비+상각) '+Math.round(fShare*100)+'% — 5개년 평균'
         +(c.cls&&c.cls.lev?' · 영업레버리지 '+c.cls.lev+'배':'')};
+    } else if(t&&t.type){
+      t={...t, why:'매출원가·판관비 구분 미공시(영업비용 일괄) — 영업레버리지 기반 추정: '+(t.why||'')};
     }
   }
   const col=t.type==='변동비형'?'#0ea472':(t.type==='고정비형'?'#7c3aed':'#5b6472');

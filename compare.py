@@ -78,7 +78,8 @@ def fin_quarters(corp):
                     continue
                 key = ('eq' if nm == '자본총계'
                        else 'ni' if nm in ('당기순이익', '당기순이익(손실)')
-                       else 'rv' if nm in ('매출액', '수익(매출액)', '영업수익') else None)
+                       else 'rv' if nm in ('매출액', '수익(매출액)', '영업수익')
+                       else 'op' if nm in ('영업이익', '영업이익(손실)') else None)
                 if not key:
                     continue
                 pref = slot.get(key + '_fs')
@@ -101,7 +102,7 @@ def fin_quarters(corp):
             p3 = raw.get((y, 3), {}).get(key, {})
             nine = p3.get('cum', p3.get('cur'))
             return (fy - nine) if (fy is not None and nine is not None) else None
-        out[(y, q)] = {'eq': eq, 'ni': single('ni'), 'rv': single('rv')}
+        out[(y, q)] = {'eq': eq, 'ni': single('ni'), 'rv': single('rv'), 'op': single('op')}
     return out
 
 def shares_by_year(corp):
@@ -171,8 +172,18 @@ def build_series(code, name, corp):
             psr.append([d, round(close / cur_sps, 4)])
     if len(pbr) < 50:
         return None
+    # V차트: 분기별 4분기 합산(TTM) 매출·영업이익·순이익 (억원) — 계절성 상쇄 실적 흐름
+    seq = sorted(fq.items())
+    vq = []
+    for i2, ((y, q), _v) in enumerate(seq):
+        def t4(key):
+            last4 = [x[1].get(key) for x in seq[max(0, i2 - 3): i2 + 1]]
+            return round(sum(last4) / 1e8) if (len(last4) == 4 and all(n is not None for n in last4)) else None
+        row = ['%dQ%d' % (y, q), t4('rv'), t4('op'), t4('ni')]
+        if any(x is not None for x in row[1:]):
+            vq.append(row)
     px_out = [[d, c] for d, c in px]
-    return {'code': code, 'name': name, 'pbr': pbr, 'per': per, 'psr': psr, 'roe': roe,
+    return {'code': code, 'name': name, 'pbr': pbr, 'per': per, 'psr': psr, 'roe': roe, 'vq': vq,
             'px': px_out, 'v': 4, 'gen': datetime.date.today().isoformat()}
 
 def main():

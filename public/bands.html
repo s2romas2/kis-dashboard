@@ -48,7 +48,7 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
   <div id="result" style="display:none">
     <div class="panel"><div id="posline" style="margin-bottom:4px"></div><div class="hint" id="posdesc"></div></div>
     <div class="panel"><h2 id="perTitle">PER 밴드</h2><div class="chart-box"><canvas id="perBand"></canvas></div>
-      <div class="hint"><b>파란 굵은 선=주가</b>, 회색 실선=주당순이익(EPS)×과거 10년 PER 분위(과거 10년 <b>전체</b> 배수의 10~85% 구간 균등 5단계 — 단, 일회성 이익 급감기 등 비정상 구간은 평균 계산에서 제외)로 계산한 가격선. 주가가 아래쪽 선에 가까울수록 이익 대비 역사적 저평가 구간. 적자 기간은 EPS가 없어 밴드가 비어 있습니다.</div></div>
+      <div class="hint"><b>파란 굵은 선=수정주가</b>, 회색 실선=그 시점 주당순이익(EPS TTM, 최근 4개 분기 합)×<b>고정 PER 배수 6개</b>(최근 10년 유효 PER의 최소~최대를 균등 6단계로 나눠 10년 내내 고정). 밴드 가격은 EPS 변화에 따라 움직이고 배수는 바뀌지 않아서, 주가가 역사적 상단을 넘으면 밴드 위로, 하단보다 싸지면 밴드 아래로 그대로 벗어나 보입니다. 적자(EPS≤0) 기간은 유효 PER 산정에서 제외되고 밴드가 비어 있습니다.</div></div>
     <div class="panel" id="costPanel">
       <h2 id="costTitle">비용구조 (5개년)</h2>
       <div id="costType" style="margin-bottom:8px"></div>
@@ -58,15 +58,14 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
       <div class="hint">막대=매출액·매출원가·고정성비용(판관비+감가상각), 선=영업이익·순이익 (연간, 억원). 아래 차트=매출 대비 비율 추이. <b>변동비형</b>=원가가 매출과 함께 움직여 마진이 안정적(원자재 가격이 변수), <b>고정비형</b>=비용이 고정돼 매출 증가 시 이익이 크게 튐(가동률·판가가 변수). 판별은 5개년 원가율·고정비 비중·영업레버리지 기반 자동 추정입니다. DART 사업보고서 연결 기준.</div>
     </div>
     <div class="panel"><h2 id="pbrTitle">PBR 밴드</h2><div class="chart-box"><canvas id="pbrBand"></canvas></div>
-      <div class="hint"><b>파란 굵은 선=주가</b>, 회색 실선=주당순자산(BPS)×과거 10년 PBR 분위(10년 전체 기준 균등 5단계(비정상 구간 제외)). 자산가치 대비 주가 위치를 보는 밴드입니다. 데이터: DART 공시 재무(연결 우선, 공시지연 반영)÷실제 주가. <b>주가·배수선은 평일 매일 아침 갱신</b>, 재무(EPS·BPS)는 분기 공시 주기라 주 1회 재계산. 상장 10년 미만 종목은 상장 이후 구간만 표시.</div></div>
+      <div class="hint"><b>파란 굵은 선=수정주가</b>, 회색 실선=그 시점 주당순자산(BPS)×<b>고정 PBR 배수 6개</b>(최근 10년 PBR 최소~최대 균등 6단계, 10년 내내 고정). 데이터: DART 공시 재무(IFRS 연결 우선, 분기말+50일/사업보고서+90일 공시지연 반영 — 미래 실적을 과거에 적용하지 않음)÷네이버 수정주가. <b>주가는 평일 매일 갱신</b>, 재무(EPS·BPS)는 분기 공시 주기라 주 1회 재계산. 상장 10년 미만 종목은 상장 이후 구간만 표시.</div></div>
   </div>
   <div class="panel" id="empty"><div class="loading">위에서 종목을 검색해주세요.<br><span style="font-size:12px">지원 종목: 시가총액 상위 300 + 주요 108종목 (약 400개, 매주 자동 갱신 — 목록에 없는 종목은 순차 추가 중입니다)</span></div></div>
 </div>
 <script>
 let INDEX={}, perC=null, pbrC=null, costC=null, ratioC=null, DRV=null;
-const Q=[0.05,0.25,0.5,0.75,0.95];  // 극단값 제외한 분위
-const QN=['5%','25%','중앙값','75%','95%'];
-const QC=['#c3c9d3','#a5adba','#848d9c','#636d7d','#3f4856'];  // 회색 농도 실선 (옅음→진함)
+let MODE='minmax', LASTCODE=null; // minmax(기본) | pct(5~95% 이상치 제거)
+const QC=['#c9ced7','#98a1b0','#626c7c','#3d4552','#98a1b0','#c9ced7']; // 6밴드: 양끝 옅게·중앙 진하게 (NICE 스타일)
 function quantile(sorted,q){
   const i=(sorted.length-1)*q, lo=Math.floor(i), hi=Math.ceil(i);
   return sorted[lo]+(sorted[hi]-sorted[lo])*(i-lo);
@@ -76,47 +75,42 @@ function weekly(arr){ // [[d,v]] → 주 단위 마지막 값
   for(const [d,v] of arr){ const dt=new Date(d); const wk=new Date(dt); wk.setDate(dt.getDate()-dt.getDay()); m.set(wk.toISOString().slice(0,10),[d,v]); }
   return [...m.values()];
 }
-function rollMed(arr, win){
-  // 이동 중앙값(결측 무시) — 이익 급변 평활화
+function medSmooth(arr, win){
+  // 아주 짧은 이동 중앙값(±2주) — 저장 반올림 잡음만 제거하고 분기 스텝은 유지
   const half=Math.floor(win/2), out=[];
   for(let i=0;i<arr.length;i++){
-    const seg=arr.slice(Math.max(0,i-half), i+half+1).filter(v=>v!=null&&v>0).sort((a,b)=>a-b);
-    out.push(seg.length>=5? seg[Math.floor(seg.length/2)] : null);
+    if(arr[i]==null){ out.push(null); continue; }
+    const seg=[];
+    for(let j=Math.max(0,i-half); j<Math.min(arr.length,i+half+1); j++) if(arr[j]!=null) seg.push(arr[j]);
+    seg.sort((a,b)=>a-b);
+    out.push(seg[Math.floor(seg.length/2)]);
   }
   return out;
 }
 function mkBand(canvas, oldC, px, ratio, label){
-  // 기반가치(EPS·BPS)를 1년 이동중앙값으로 평활화 → 밴드선=평활 기반가치×균등 배수
+  // NICE식 고정배수 밴드: 최근 10년 유효 PER/PBR의 min~max를 균등 6단계로 고정,
+  // 각 날짜의 밴드가격 = 그 시점 EPS_TTM/BPS × 고정 배수. (주가에 맞춰 밴드를 조정하지 않음)
   const rmap=new Map(ratio);
-  const rvals=ratio.map(x=>x[1]).filter(v=>v>0).sort((a,b)=>a-b);
-  if(rvals.length<30) return {c:null, qs:null};
   const wk=weekly(px);
   const labels=wk.map(x=>x[0]);
-  const rawBase=wk.map(([d,c])=>{ const r=rmap.get(d); return (r&&r>0)? c/r : null; });
-  const base=rollMed(rawBase, 53);
-  // 배수 범위: 전체 10년 평균 중심 — 단, 이익 비정상기(일회성 급감 등)는 기준에서 제외
-  // 비정상기 판정: 기반가치(EPS·BPS)가 전후 3년 내 정점의 50% 미만인 시기
-  const rAll=wk.map((x,i)=>base[i]? x[1]/base[i] : null);
-  const peak=base.map((_,i)=>{
-    let m=null;
-    for(let j=Math.max(0,i-156); j<Math.min(base.length,i+157); j++)
-      if(base[j]!=null && (m==null||base[j]>m)) m=base[j];
-    return m;
-  });
-  let r2=rAll.filter((v,i)=>v!=null&&v>0&&base[i]&&peak[i]&&base[i]>=0.5*peak[i]).sort((a,b)=>a-b);
-  if(r2.length<30) r2=rAll.filter(v=>v!=null&&v>0).sort((a,b)=>a-b);
-  if(r2.length<30) return {c:null, qs:null};
-  const lo=quantile(r2,0.10), hi=quantile(r2,0.85);
-  const step=(hi-lo)/4;
-  const prec = hi>=20?0:(hi>=4?1:2);
-  const qs=[0,1,2,3,4].map(i=>Number((lo+step*i).toFixed(prec)));
-  const dsets=[];
-  qs.forEach((qv,i)=>{
-    dsets.push({label:qv.toFixed(1)+'배',
-      data:base.map(b=>b!=null?Math.round(b*qv):null),
-      borderColor:QC[i],borderWidth:1.1,pointRadius:0,tension:.3,spanGaps:true});
-  });
-  dsets.push({label:'주가',data:wk.map(x=>x[1]),borderColor:'#1d4ed8',borderWidth:2.6,pointRadius:0,tension:.1,spanGaps:true});
+  const rawBase=wk.map(([d,c])=>{ const r=rmap.get(d); return (r&&r>0)? c/r : null; }); // 기반가치(EPS·BPS) 복원
+  const base=medSmooth(rawBase, 5);
+  // 유효 배수 범위: 최근 10년, 양수(PER은 흑자 기간만)
+  const last=px[px.length-1][0];
+  const from=new Date(new Date(last).getTime()-10*365.25*864e5).toISOString().slice(0,10);
+  const rvals=ratio.filter(x=>x[0]>=from&&x[1]>0).map(x=>x[1]).sort((a,b)=>a-b);
+  if(rvals.length<30) return {c:null, qs:null};
+  const p5=quantile(rvals,0.05), p95=quantile(rvals,0.95);
+  let lo, hi, warn=false;
+  if(MODE==='pct'){ lo=p5; hi=p95; }
+  else { lo=rvals[0]; hi=rvals[rvals.length-1]; if(hi>2*p95||lo<0.5*p5) warn=true; }
+  const step=(hi-lo)/5;
+  const prec = hi>=100?0:(hi>=10?1:2);
+  const qs=[0,1,2,3,4,5].map(i=>Number((lo+step*i).toFixed(prec)));
+  const dsets=qs.map((qv,i)=>({label:label+' '+qv.toFixed(prec),
+    data:base.map(b=>b!=null?Math.round(b*qv):null),
+    borderColor:QC[i],borderWidth:1.2,pointRadius:0,tension:0,spanGaps:true}));
+  dsets.push({label:'Stock Price (Adj.)',data:wk.map(x=>x[1]),borderColor:'#1d4ed8',borderWidth:2.6,pointRadius:0,tension:.1,spanGaps:true});
   if(oldC) oldC.destroy();
   const c=new Chart(canvas,{type:'line',data:{labels,datasets:dsets},
     options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
@@ -124,7 +118,7 @@ function mkBand(canvas, oldC, px, ratio, label){
         tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+(ctx.raw!=null?Number(ctx.raw).toLocaleString()+'원':'—')}}},
       scales:{x:{ticks:{maxTicksLimit:10,font:{size:10}},grid:{display:false}},
         y:{grid:{color:'#f0f2f5'},ticks:{font:{size:10},callback:v=>Number(v).toLocaleString()}}}}});
-  return {c, qs, cur: ratio.length?ratio[ratio.length-1][1]:null, rvals};
+  return {c, qs, warn, prec, lo, hi, cur: ratio.length?ratio[ratio.length-1][1]:null, rvals};
 }
 function pct(sorted,v){ let n=0; for(const x of sorted){ if(x<=v) n++; } return Math.round(n/sorted.length*100); }
 async function showCost(code){
@@ -185,8 +179,9 @@ async function show(code){
   catch(e){ document.getElementById('empty').innerHTML='<div class="loading">이 종목의 밴드 데이터가 아직 없습니다.<br>매일 순차 계산 중이니 1~2일 내 추가됩니다.</div>'; return; }
   document.getElementById('result').style.display='';
   document.getElementById('empty').style.display='none';
-  document.getElementById('perTitle').textContent=d.name+' — PER 밴드 ('+(d.px[0][0].slice(0,4))+'~)';
-  document.getElementById('pbrTitle').textContent=d.name+' — PBR 밴드';
+  LASTCODE=code;
+  document.getElementById('perTitle').textContent=d.name+' — Trailing PER Band Chart (연결 우선, '+(d.px[0][0].slice(0,4))+'~)';
+  document.getElementById('pbrTitle').textContent=d.name+' — Trailing PBR Band Chart (연결 우선)';
   const r1=mkBand(document.getElementById('perBand'), perC, d.px, d.per, 'PER'); perC=r1.c;
   const r2=mkBand(document.getElementById('pbrBand'), pbrC, d.px, d.pbr, 'PBR'); pbrC=r2.c;
   let html='', desc=[];
@@ -196,10 +191,17 @@ async function show(code){
   else html+='<span class="pos mid">PER — 적자 또는 데이터 부족</span>';
   if(r2.cur&&r2.rvals){ const p=pct(r2.rvals,r2.cur);
     html+=`<span class="pos ${p<=30?'lo':(p>=70?'hi':'mid')}">현재 PBR ${r2.cur.toFixed(2)}배 — 10년 중 백분위 ${p}% ${p<=30?'(역사적 하단)':(p>=70?'(역사적 상단)':'')}</span>`; }
+  // 밴드 배수·모드 표시
+  const modeBtn=(m,t)=>`<span class="pos ${MODE===m?'hi':'mid'}" style="cursor:pointer;${MODE===m?'background:#1a2a4a;color:#fff':''}" onclick="setMode('${m}')">${t}</span>`;
+  html+='<span style="margin-left:6px">'+modeBtn('minmax','10년 min–max (기본)')+modeBtn('pct','이상치 제거 (5~95%)')+'</span>';
   document.getElementById('posline').innerHTML=html;
-  document.getElementById('posdesc').textContent=(desc[0]||'')+' · 기준일 '+(d.px[d.px.length-1][0])+' · 재무 갱신 '+(d.gen||'');
+  const fmt=r=>r&&r.qs? r.qs.map(v=>v.toFixed(r.prec)).join(' · ') : '—';
+  let extra='PER 밴드 '+fmt(r1)+' | PBR 밴드 '+fmt(r2)+' (최근 10년 유효 배수 min–max 균등 6단계, 배수 고정)';
+  if(MODE==='minmax'&&((r1&&r1.warn)||(r2&&r2.warn))) extra+=' — ⚠️ 극단 배수(이익 급감기 등)로 밴드 간격이 벌어질 수 있어요. 위 "이상치 제거" 모드로 비교해보세요.';
+  document.getElementById('posdesc').textContent=(desc[0]?desc[0]+' · ':'')+extra+' · 기준일 '+(d.px[d.px.length-1][0])+' · 재무 갱신 '+(d.gen||'');
   if(!r1.c) document.getElementById('perBand').parentElement.innerHTML='<div class="loading">흑자 기간이 짧아 PER 밴드를 그릴 수 없습니다.</div>';
 }
+window.setMode=function(m){ if(MODE!==m){ MODE=m; if(LASTCODE) show(LASTCODE); } };
 document.getElementById('stock').addEventListener('change', function(){
   const v=this.value.trim();
   const hit=Object.entries(INDEX).find(([c,n])=>c===v||n===v||(n+' ('+c+')')===v||v.includes(c));

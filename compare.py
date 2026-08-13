@@ -159,9 +159,9 @@ def build_series(code, name, corp):
             cur_bps = snaps[si][1] or cur_bps
             cur_eps = snaps[si][2] if snaps[si][2] is not None else cur_eps
         if cur_bps and cur_bps > 0:
-            pbr.append([d, round(close / cur_bps, 2)])
+            pbr.append([d, round(close / cur_bps, 4)])
         if cur_eps and cur_eps > 0:
-            per.append([d, round(close / cur_eps, 2)])
+            per.append([d, round(close / cur_eps, 4)])
             if cur_bps and cur_bps > 0:
                 roe.append([d, round(cur_eps / cur_bps * 100, 2)])
     if len(pbr) < 50:
@@ -235,9 +235,9 @@ def main():
                             if d2 > last_d:
                                 old['px'].append([d2, c2])
                                 if bps:
-                                    old['pbr'].append([d2, round(c2 / bps, 2)])
+                                    old['pbr'].append([d2, round(c2 / bps, 4)])
                                 if eps and eps > 0:
-                                    old['per'].append([d2, round(c2 / eps, 2)])
+                                    old['per'].append([d2, round(c2 / eps, 4)])
                                 added = True
                         if added:
                             with open('%s/%s.json' % (OUTDIR, code), 'w', encoding='utf-8') as f:

@@ -12,7 +12,7 @@ BASE = 'https://opendart.fss.or.kr/api'
 OUTDIR = 'public/data/qdeep'
 MAXRUN = int(os.environ.get('MAXRUN', '10'))
 REFRESH_DAYS = 25  # 분기마다 새 보고서 반영
-PV = 1
+PV = 2  # 파서 버전 — 올리면 기존 수집분 재수집
 START_YEAR = 2021
 UA = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36'}
 DEBUG = []
@@ -118,34 +118,69 @@ def unit_mult(h, pos):
         return 1e3
     return 1.0
 
+TYPE_WORDS = {'제품', '상품', '용역', '기타', '제품기타', '상품기타', '제품등', '상품등', '임대', '서비스',
+              '수출', '내수', '국내', '해외', '합계', '계', '총계', '소계', '매출', '제상품'}
+
+def _is_numlike(c):
+    cc = c.replace(' ', '')
+    return cc in ('-', '') or tonum(cc) is not None
+
 def parse_sales(h):
-    """품목별 매출 누적: {품목: 원} — '매출유형/내수/수출/계' 형태 표"""
+    """품목별 매출 누적: {품목: 원} — 내수/수출/계 중첩·단순 나열 서식 모두 지원"""
     out = {}
     for m in re.finditer(r'<TABLE[\s\S]*?</TABLE>', h, re.I):
         t = tables(m.group(0))[0]
+        if not t:
+            continue
         flat = ' '.join(' '.join(r) for r in t[:2])
-        if not (('매출유형' in flat or '매출액' in flat) and any('품' in c for c in (t[0] if t else []))):
+        if not (('매출유형' in flat or '매출실적' in flat or '매출액' in flat) and any('품' in c or '부문' in c for c in t[0])):
             continue
         mult = unit_mult(h, m.start())
+        has_types = any(c.replace(' ', '') in ('수출', '내수') for r in t for c in r[:4])
         cur_item = None
+        res = {}
         for r in t[1:]:
             if not r:
                 continue
-            first = r[0].replace(' ', '')
-            joined = [c.replace(' ', '') for c in r]
-            if first.startswith(('합계', '총계', '총합계')):
-                cur_item = None  # 전사 합계 구간 — 품목으로 오귀속 방지
-                continue
-            if len(r) >= 3 and not re.fullmatch(r'[\d,.\-△() ]*', r[0]) and first not in ('내수', '수출', '계'):
-                cur_item = r[0].strip()
-            # '계' 행: 품목 합계 누적값(첫 숫자)
-            if '계' in joined[:3] and cur_item:
-                nums = [tonum(c) for c in r if tonum(c) is not None]
-                if nums:
-                    key = cur_item[:20]
-                    if '합' not in key:
-                        out[key] = nums[0] * mult
-        if out:
+            # 선행 텍스트 셀들(첫 숫자 전까지) / 첫 숫자값
+            lead, val = [], None
+            for c in r:
+                if _is_numlike(c):
+                    v = tonum(c.replace(' ', ''))
+                    if v is not None:
+                        val = v
+                    break
+                lead.append(c.strip())
+            norm = [c.replace(' ', '') for c in lead]
+            # 품목 후보 = 유형·합계 단어가 아닌 마지막 텍스트 셀
+            cand = [c for c, n in zip(lead, norm) if n not in TYPE_WORDS]
+            if has_types:
+                is_total_row = bool(norm) and norm[-1] in ('합계', '계', '소계')
+                tail_is_type = bool(norm) and norm[-1] in ('수출', '내수', '국내', '해외', '합계', '계', '소계')
+                SALE_TYPES = ('제품', '상품', '용역', '제상품', '제품기타', '상품기타', '제품등', '상품등', '임대', '서비스')
+                if tail_is_type and len(lead) >= 2:
+                    prevn = norm[-2]
+                    if prevn in ('합계', '총계'):
+                        cur_item = None  # 전사 합계 구간
+                    elif prevn in SALE_TYPES:
+                        c2 = [c for c, n in zip(lead[:-1], norm[:-1]) if n not in TYPE_WORDS]
+                        if c2:
+                            cur_item = c2[-1][:20]
+                    else:
+                        cur_item = lead[-2][:20]  # 유형 바로 앞 셀 = 품목 ('기타' 같은 품목명 허용)
+                elif not tail_is_type and cand:
+                    cur_item = cand[-1][:20]
+                if is_total_row and cur_item and val is not None:
+                    res[cur_item] = val * mult
+            else:
+                if cand and val is not None:
+                    key = cand[-1][:20]
+                    if not key.replace(' ', '').startswith(('합계', '총계')):
+                        res[key] = val * mult
+        # 전사 합계로 의심되는 키 제거
+        res = {k: v for k, v in res.items() if k.replace(' ', '') not in ('합계', '총계', '소계')}
+        if res:
+            out = res
             break
     return out
 
@@ -475,12 +510,14 @@ def main():
         except Exception as e:
             DEBUG.append('%s 예외: %r' % (code, str(e)[:60]))
             r = None
-        if r and r.get('items'):
+        has_any = r and (r.get('items') or any(x is not None for x in r.get('backlog') or []) or r.get('contracts'))
+        if has_any:
             json.dump(r, open(fp, 'w', encoding='utf-8'), ensure_ascii=False)
             index[code] = name
-            print('%s %s OK 품목%d 분기%d' % (code, name, len(r['items']), len(r['quarters'])), file=sys.stderr)
+            print('%s %s OK 품목%d 분기%d 수주표%s 계약%d' % (code, name, len(r['items']), len(r['quarters']),
+                  'Y' if any(x is not None for x in r.get('backlog') or []) else 'N', len(r.get('contracts') or [])), file=sys.stderr)
         else:
-            DEBUG.append('%s 품목 없음' % code)
+            DEBUG.append('%s 품목·수주 없음' % code)
     DEBUG.append('이번 실행 %d (한도 %d, 대상 %d)' % (ran, MAXRUN, len(targets)))
     json.dump({'updated': time.strftime('%Y-%m-%d %H:%M'), 'debug': DEBUG, 'codes': index},
               open('%s/index.json' % OUTDIR, 'w', encoding='utf-8'), ensure_ascii=False)

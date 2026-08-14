@@ -12,7 +12,7 @@ BASE = 'https://opendart.fss.or.kr/api'
 OUTDIR = 'public/data/qdeep'
 MAXRUN = int(os.environ.get('MAXRUN', '10'))
 REFRESH_DAYS = 25  # 분기마다 새 보고서 반영
-PV = 2  # 파서 버전 — 올리면 기존 수집분 재수집
+PV = 3  # 파서 버전 — 올리면 기존 수집분 재수집 (v3: 주요 고객 10%↑ 추가)
 START_YEAR = 2021
 UA = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36'}
 DEBUG = []
@@ -253,6 +253,30 @@ def parse_prod(h):
             break
     return res
 
+def parse_customers(h):
+    """재무제표 주석 '매출 10% 이상 외부고객' 표: {고객명(A사 등): 원(당기 누적/단일 — 보고서 기재값)}"""
+    for m in re.finditer(r'매출[^<]{0,40}10%[^<]{0,80}?(?:외부\s*고객|고객)', h):
+        seg = h[m.start(): m.start() + 10000]
+        mult = 1e3 if '천원' in seg[:1200] else (1e6 if '백만원' in seg[:1200] else 1e3)
+        for tm in re.finditer(r'<TABLE[\s\S]*?</TABLE>', seg, re.I):
+            t = tables(tm.group(0))[0]
+            out = {}
+            for r in t:
+                if len(r) >= 2 and not _is_numlike(r[0]):
+                    nm = r[0].strip()
+                    if nm.replace(' ', '') in ('구분', '합계', '계', '(단위:천원)', '(단위:백만원)') or '고객' in nm or '단위' in nm:
+                        continue
+                    v = None
+                    for c in r[1:]:
+                        v = tonum(c.replace(' ', ''))
+                        if v is not None:
+                            break
+                    if v is not None and v > 0:
+                        out[nm[:16]] = v * mult
+            if out:
+                return out
+    return {}
+
 def parse_backlog(h):
     """수주잔고 합계(원): 수주상황 표의 '합계' 행 마지막 금액"""
     for m in re.finditer(r'<TABLE[\s\S]*?</TABLE>', h, re.I):
@@ -361,6 +385,10 @@ def collect(code, name, corp):
                 sec['fac'] = (dcm, ele, off, ln)
             elif '매출및수주' in tt or ('수주상황' in tt) or (tt.startswith('4.매출') if tt else False):
                 sec['sal'] = (dcm, ele, off, ln)
+            elif tt.endswith('연결재무제표주석'):
+                sec['nt'] = (dcm, ele, off, ln)
+            elif tt.endswith('재무제표주석'):
+                sec['nt2'] = (dcm, ele, off, ln)
         if biz and ('sal' not in sec or 'prd' not in sec or 'fac' not in sec):
             # 구서식: 사업의 내용이 단일 섹션 — 전체를 각 파서에 사용
             for k in ('sal', 'prd', 'fac'):
@@ -378,6 +406,10 @@ def collect(code, name, corp):
         if 'fac' in sec:
             h = viewer(rcp, *sec['fac'])
             slot['prod'] = parse_prod(h)
+        for k in ('nt', 'nt2'):  # 주요 고객(10%↑) — 연결 주석 우선, 없으면 별도 주석
+            if k in sec and not slot.get('cust'):
+                h = viewer(rcp, *sec[k])
+                slot['cust'] = parse_customers(h)
         cum[label] = slot
         time.sleep(0.4)
     if not cum:
@@ -389,11 +421,13 @@ def collect(code, name, corp):
         return '%02dQ%d' % (y, q - 1) if q > 1 else None
     items = sorted({it for lb in labels for it in (cum[lb].get('sales') or {})})
     pitems = sorted({it for lb in labels for it in (cum[lb].get('prod') or {})})
+    citems = sorted({it for lb in labels for it in (cum[lb].get('cust') or {})})
     quarters = []
     sales_q = {i: [] for i in items}
     price_q = {i: [] for i in items}
     vol_q = {i: [] for i in items}
     util_q = {i: [] for i in pitems}
+    cust_q = {i: [] for i in citems}
     backlog = []
     for lb in labels:
         quarters.append('%s.%sQ' % (lb[:2], lb[-1]))
@@ -414,6 +448,18 @@ def collect(code, name, corp):
             price_q[it].append(round(pq, 1) if pq is not None else None)
         bl = cum[lb].get('backlog')
         backlog.append(round(bl / 1e8, 1) if bl else None)
+        # 주요 고객: 보고서 기재값을 누적으로 보고 연내 차감 (분기보고서가 3개월 단일 기재인 회사는 Q1·Q3에 오차 가능 — [산출] 표기)
+        for it in citems:
+            c1 = (cum[lb].get('cust') or {}).get(it)
+            c0 = (cum.get(pl, {}).get('cust') or {}).get(it) if pl else 0
+            cv = None
+            if c1 is not None and c0 is not None:
+                cv = c1 - c0
+                if cv < 0 and lb.endswith(('3',)):  # 3Q 보고서가 단일분기 기재인 케이스 추정
+                    cv = c1
+            elif c1 is not None and lb.endswith('1'):
+                cv = c1
+            cust_q[it].append(round(cv / 1e8, 2) if cv is not None else None)
         # 가동률: 누적 생산실적/능력 차감 → 분기 가동률
         for it in pitems:
             g1 = (cum[lb].get('prod') or {}).get(it) or {}
@@ -460,7 +506,8 @@ def collect(code, name, corp):
             break
     return {'code': code, 'name': name, 'quarters': quarters, 'items': items,
             'sales': sales_q, 'price': price_q, 'vol': vol_q, 'backlog': backlog, 'util': util_q,
-            'contracts': contracts(corp), 'punit': punit, 'pv': PV, 'gen': datetime.date.today().isoformat()}
+            'cust': cust_q, 'contracts': contracts(corp), 'punit': punit, 'pv': PV,
+            'gen': datetime.date.today().isoformat()}
 
 def main():
     if not KEY:
@@ -510,7 +557,8 @@ def main():
         except Exception as e:
             DEBUG.append('%s 예외: %r' % (code, str(e)[:60]))
             r = None
-        has_any = r and (r.get('items') or any(x is not None for x in r.get('backlog') or []) or r.get('contracts'))
+        has_any = r and (r.get('items') or any(x is not None for x in r.get('backlog') or [])
+                         or r.get('contracts') or r.get('cust'))
         if has_any:
             json.dump(r, open(fp, 'w', encoding='utf-8'), ensure_ascii=False)
             index[code] = name

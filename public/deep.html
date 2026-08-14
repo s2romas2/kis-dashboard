@@ -64,6 +64,8 @@ table.con a { color:#2f6df6; text-decoration:none; font-weight:700; }
       <div class="hint">분기 가동률 = (누적 생산실적 차감) ÷ (누적 생산능력 차감) ×100. 보고서 '생산설비' 표 기반 — 서식이 다른 기업은 비어 있을 수 있습니다.</div></div>
     <div class="panel" id="backP"><h2 id="backTitle">수주잔고 대 매출액</h2><div class="chart-box"><canvas id="backC"></canvas></div>
       <div class="hint">노란 선=분기말 수주잔고(억원, 보고서 '수주상황' 표), 파란 선=분기 매출액. 잔고가 매출을 선행하는지 보는 차트입니다. 수주 표가 없는 기업(대부분 B2C·소재)은 표시되지 않습니다.</div></div>
+    <div class="panel" id="custP"><h2 id="custTitle">주요 고객 매출 & 집중도</h2><div class="chart-box"><canvas id="custC"></canvas></div>
+      <div class="hint" id="custHint">재무제표 주석 "매출의 10% 이상 외부고객" 표 기반 — 누적값을 분기 차감 [산출]. 막대=고객별 분기 매출(억원), 선=전사 매출 대비 비중(우축 %). 공시에 A사·B사로 익명 표기된 고객은 리포트·뉴스로 확인된 실명을 (추정) 표기로 치환합니다.</div></div>
     <div class="panel" id="conP"><h2>📢 수주(공급계약) 공시 — 최근 3년</h2><div id="conList"></div>
       <div class="hint">단일판매ㆍ공급계약체결 공시 원문에서 계약금액·매출대비·상대방·기간을 추출. 제목 클릭 시 DART 원문.</div></div>
   </div>
@@ -167,6 +169,30 @@ async function show(code){
         lineSet('매출액',rev,0)]},
         options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{boxWidth:11,font:{size:11}}}},
         scales:{x:{grid:{display:false},ticks:{font:{size:10},maxTicksLimit:14}},y:{grid:{color:'#f0f2f5'},ticks:{font:{size:10}}}}}}); }
+    // 주요 고객(10%↑) — custmap으로 익명 고객 실명 치환
+    const cit=Object.keys(q.cust||{}).filter(it=>(q.cust[it]||[]).some(v=>v!=null));
+    P('custP',cit.length>0);
+    if(cit.length){
+      if(!window.CUSTMAP){ try{ window.CUSTMAP=await jget('/custmap.json')||{}; }catch(e){ window.CUSTMAP={}; } }
+      const cm=(window.CUSTMAP[code]||{}).map||{};
+      const src=(window.CUSTMAP[code]||{}).src||'';
+      const disp=it=>cm[it]? cm[it]+'('+it+'·추정)' : it;
+      const revq=labels.map(lb=>{ const k='20'+lb.slice(0,2)+'Q'+lb.slice(3,4);
+        const r=(cmp&&cmp.qs||[]).find(x=>x[0]===k); return r?r[1]:null; });
+      const main=cit[0];
+      const share=labels.map((_,i)=>{ const c=q.cust[main][i], rv=revq[i]; return (c!=null&&rv)?Math.round(c/rv*1000)/10:null; });
+      document.getElementById('custTitle').textContent=name+' — 주요 고객 매출(주석 10%↑) & '+disp(main)+' 비중';
+      const ds=cit.map((it,i)=>({type:'bar',label:disp(it),data:q.cust[it],
+        backgroundColor:['rgba(21,72,100,.85)','rgba(64,124,153,.8)','rgba(150,166,185,.8)'][i%3],borderRadius:2,yAxisID:'y'}));
+      ds.push({type:'line',label:disp(main)+' 비중%',data:share,borderColor:'#dc2626',backgroundColor:'transparent',borderWidth:2,pointRadius:2.6,tension:.2,yAxisID:'y2'});
+      mk('custC',{data:{labels,datasets:ds},
+        options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+          plugins:{legend:{labels:{boxWidth:11,font:{size:11}}}},
+          scales:{x:{grid:{display:false},ticks:{font:{size:10},maxTicksLimit:14}},
+            y:{grid:{color:'#f0f2f5'},ticks:{font:{size:10}}},
+            y2:{position:'right',grid:{display:false},ticks:{font:{size:10},callback:v=>v+'%'}}}}});
+      if(src) document.getElementById('custHint').innerHTML='재무제표 주석 "매출의 10% 이상 외부고객" 표 기반 — 누적값을 분기 차감 [산출]. 막대=고객별 분기 매출(억원), 선=전사 매출 대비 비중(우축 %). <b>실명 매핑 출처: '+src+'</b>';
+    }
     const cons=q.contracts||[];
     P('conP',cons.length>0);
     if(cons.length){

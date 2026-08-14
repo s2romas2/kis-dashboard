@@ -182,8 +182,17 @@ def build_series(code, name, corp):
         row = ['%dQ%d' % (y, q), t4('rv'), t4('op'), t4('ni')]
         if any(x is not None for x in row[1:]):
             vq.append(row)
+    # 분기 단독 실적 (억원): 매출·영업이익·순이익 — 딥다이브 차트용
+    qs = []
+    for (y, q), v in seq:
+        row = ['%dQ%d' % (y, q),
+               round(v['rv'] / 1e8) if v.get('rv') is not None else None,
+               round(v['op'] / 1e8) if v.get('op') is not None else None,
+               round(v['ni'] / 1e8) if v.get('ni') is not None else None]
+        if any(x is not None for x in row[1:]):
+            qs.append(row)
     px_out = [[d, c] for d, c in px]
-    return {'code': code, 'name': name, 'pbr': pbr, 'per': per, 'psr': psr, 'roe': roe, 'vq': vq,
+    return {'code': code, 'name': name, 'pbr': pbr, 'per': per, 'psr': psr, 'roe': roe, 'vq': vq, 'qs': qs,
             'px': px_out, 'v': 4, 'gen': datetime.date.today().isoformat()}
 
 def main():

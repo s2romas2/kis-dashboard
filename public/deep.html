@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>종목 딥다이브 · 한국 대시보드</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin:0; background:#f6f7f9; color:#1a1f2e; font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; }
+.wrap { max-width:1140px; margin:0 auto; padding:20px 18px 48px; }
+header { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+h1 { font-size:20px; margin:0; font-weight:800; }
+.sub { color:#6b7280; font-size:12.5px; margin:3px 0 0; }
+.meta { font-size:12px; color:#8a93a2; }
+.panel { background:#fff; border:1px solid #eceef2; border-radius:14px; padding:16px 18px; margin:14px 0; box-shadow:0 1px 2px rgba(20,30,60,.04); }
+.panel h2 { font-size:14px; margin:0 0 10px; font-weight:700; }
+.chart-box { position:relative; height:300px; }
+.hint { font-size:11.5px; color:#8a93a2; margin-top:8px; line-height:1.6; }
+.hint b { color:#5b6472; }
+.loading { text-align:center; padding:40px; color:#6b7280; font-size:13px; line-height:1.8; }
+#stock { border:1px solid #d7dce4; border-radius:10px; padding:10px 14px; font-size:14px; width:min(360px,100%); }
+table.con { width:100%; border-collapse:collapse; font-size:12.5px; }
+table.con th { background:#f4f6f9; color:#5b6472; font-size:11.5px; padding:6px 8px; text-align:left; }
+table.con td { border-top:1px solid #f0f2f5; padding:6px 8px; }
+table.con a { color:#2f6df6; text-decoration:none; font-weight:700; }
+@media (max-width:720px){ .wrap{padding:14px 10px 40px;} .chart-box{height:240px;} }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>🔬 종목 딥다이브 <span style="display:inline-block;background:#f0f4fa;color:#5b6472;border-radius:8px;padding:2px 8px;font-size:11px;font-weight:600;vertical-align:3px">분기·반기·사업보고서 원문 기반</span></h1>
+      <div class="sub">품목별 매출·판가(P)·물량(Q)·가동률·수주잔고·수주공시를 분기 시계열로 — 21.1Q부터</div>
+      <div style="margin-top:6px"><a style="font-size:12.5px;color:#2f6df6;text-decoration:none" href="/">← 섹터 대시보드</a> &nbsp; <a style="font-size:12.5px;color:#2f6df6;text-decoration:none" href="/bands.html">📉 밴드·V차트</a></div>
+    </div>
+    <div class="meta" id="meta">불러오는 중…</div>
+  </header>
+
+  <div class="panel">
+    <input id="stock" list="stocks" placeholder="🔍 종목명 또는 코드 검색 (예: 미원화학)" autocomplete="off">
+    <datalist id="stocks"></datalist>
+    <div class="hint" id="unihint"></div>
+  </div>
+
+  <div id="result" style="display:none">
+    <div class="panel"><h2 id="finTitle">매출·영업이익·영업이익률</h2><div class="chart-box"><canvas id="finC"></canvas></div>
+      <div class="hint">막대=분기 매출액·영업이익(억원), 빨간 선=영업이익률(우축 %). DART 분기·반기·사업보고서 재무(연결 우선, 분기 단독 환산). 최신 분기가 잠정실적 공시만 나온 상태면 아직 반영 전이며 아래 잠정공시 링크로 확인하세요. <span id="flashLink"></span></div></div>
+    <div class="panel" id="salesP"><h2 id="salesTitle">품목별 분기 매출</h2><div class="chart-box"><canvas id="salesC"></canvas></div>
+      <div class="hint">품목별 매출(억원) — 보고서 '매출 및 수주상황' 누적값을 분기 차감. 4분기는 사업보고서(연간)−3분기 누적.</div></div>
+    <div class="panel" id="priceP"><h2 id="priceTitle">품목별 판가 (P)</h2><div class="chart-box"><canvas id="priceC"></canvas></div>
+      <div class="hint" id="priceHint">보고서 기재 기간 평균가격(누적)을 분기 환산 [산출]. 1분기는 기재값 그대로.</div></div>
+    <div class="panel" id="volP"><h2 id="volTitle">품목별 물량 지수 (Q)</h2><div class="chart-box"><canvas id="volC"></canvas></div>
+      <div class="hint">물량 지수 = 품목 누적매출 ÷ 누적평균 판가, 분기 차감 [산출]. 판가 단위가 원/Kg인 경우 천톤 스케일.</div></div>
+    <div class="panel" id="utilP"><h2 id="utilTitle">생산 가동률</h2><div class="chart-box"><canvas id="utilC"></canvas></div>
+      <div class="hint">분기 가동률 = (누적 생산실적 차감) ÷ (누적 생산능력 차감) ×100. 보고서 '생산설비' 표 기반 — 서식이 다른 기업은 비어 있을 수 있습니다.</div></div>
+    <div class="panel" id="backP"><h2 id="backTitle">수주잔고 대 매출액</h2><div class="chart-box"><canvas id="backC"></canvas></div>
+      <div class="hint">노란 선=분기말 수주잔고(억원, 보고서 '수주상황' 표), 파란 선=분기 매출액. 잔고가 매출을 선행하는지 보는 차트입니다. 수주 표가 없는 기업(대부분 B2C·소재)은 표시되지 않습니다.</div></div>
+    <div class="panel" id="conP"><h2>📢 수주(공급계약) 공시 — 최근 3년</h2><div id="conList"></div>
+      <div class="hint">단일판매ㆍ공급계약체결 공시 원문에서 계약금액·매출대비·상대방·기간을 추출. 제목 클릭 시 DART 원문.</div></div>
+  </div>
+  <div class="panel" id="empty"><div class="loading">위에서 종목을 검색해주세요.<br><span style="font-size:12px" id="cover"></span></div></div>
+</div>
+<script>
+let IDX={}, CIDX={}, charts={};
+const COLS=['#1d4ed8','#dc2626','#d97706','#059669','#7c3aed','#0891b2'];
+function mk(id, cfg){ if(charts[id]) charts[id].destroy(); charts[id]=new Chart(document.getElementById(id),cfg); }
+function lineSet(name,data,i,extra){ return Object.assign({label:name,data,borderColor:COLS[i%COLS.length],backgroundColor:'transparent',borderWidth:2,pointRadius:2.2,tension:.25,spanGaps:false},extra||{}); }
+async function jget(u){ try{ return await (await fetch(u+'?t='+Date.now())).json(); }catch(e){ return null; } }
+async function show(code){
+  const d=await jget('/data/qdeep/'+code);  // may be null
+  const dd=d&&d.quarters? d : await jget('/data/qdeep/'+code+'.json');
+  const q=dd&&dd.quarters? dd : null;
+  const cmp=await jget('/data/compare/'+code+'.json');
+  if(!q&&!(cmp&&cmp.qs&&cmp.qs.length)){
+    document.getElementById('empty').innerHTML='<div class="loading">이 종목의 딥다이브 데이터가 아직 없습니다.<br>우선 수집 대상부터 순차 계산 중입니다 — 특정 종목이 급하면 대화로 요청해주세요.</div>';
+    document.getElementById('result').style.display='none';
+    document.getElementById('empty').style.display='';
+    return;
+  }
+  document.getElementById('result').style.display='';
+  document.getElementById('empty').style.display='none';
+  const name=(q&&q.name)||(cmp&&cmp.name)||code;
+  // 1) 매출·영업이익·OPM (compare qs — 분기 단독)
+  if(cmp&&cmp.qs&&cmp.qs.length){
+    const qs=cmp.qs.filter(r=>r[0]>='2021Q1');
+    const labels=qs.map(r=>r[0].slice(2).replace('Q','.')+'Q');
+    const opm=qs.map(r=>(r[1]&&r[2]!=null)?Math.round(r[2]/r[1]*1000)/10:null);
+    document.getElementById('finTitle').textContent=name+' — 매출·영업이익·영업이익률 (분기, 억원)';
+    mk('finC',{data:{labels,datasets:[
+      {type:'bar',label:'매출액',data:qs.map(r=>r[1]),backgroundColor:'rgba(29,78,216,.7)',borderRadius:2,yAxisID:'y'},
+      {type:'bar',label:'영업이익',data:qs.map(r=>r[2]),backgroundColor:'rgba(5,150,105,.7)',borderRadius:2,yAxisID:'y'},
+      {type:'line',label:'영업이익률%',data:opm,borderColor:'#dc2626',backgroundColor:'transparent',borderWidth:2,pointRadius:2.5,tension:.2,yAxisID:'y2'}
+    ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{labels:{boxWidth:11,font:{size:11}}}},
+      scales:{x:{grid:{display:false},ticks:{font:{size:10},maxTicksLimit:14}},
+        y:{grid:{color:'#f0f2f5'},ticks:{font:{size:10}}},
+        y2:{position:'right',grid:{display:false},ticks:{font:{size:10},callback:v=>v+'%'}}}}});
+    // 잠정실적 공시 링크
+    const fl=await jget('/data/flash.json');
+    const hit=fl&&(fl.list||[]).find(x=>x.code===code);
+    document.getElementById('flashLink').innerHTML=hit?`<a href="${hit.link}" target="_blank" style="color:#e5384d;font-weight:800">📢 ${hit.date.slice(4,6)}/${hit.date.slice(6,8)} 잠정실적 공시 ↗</a>`:'';
+  } else { document.getElementById('finTitle').textContent=name+' — 분기 실적 (데이터 준비 중 — 주간 재계산에서 추가)'; if(charts.finC){charts.finC.destroy();charts.finC=null;} }
+  // 2~5) qdeep
+  const P=(id,on)=>{ document.getElementById(id).style.display=on?'':'none'; };
+  if(q){
+    const labels=q.quarters;
+    const items=q.items||[];
+    P('salesP',items.length>0);
+    if(items.length){ document.getElementById('salesTitle').textContent=name+' 품목별 분기 매출  '+labels[0]+'~'+labels[labels.length-1];
+      mk('salesC',{type:'line',data:{labels,datasets:items.map((it,i)=>lineSet(it,q.sales[it],i))},
+        options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{boxWidth:11,font:{size:11}}}},
+        scales:{x:{grid:{display:false},ticks:{font:{size:10},maxTicksLimit:14}},y:{grid:{color:'#f0f2f5'},ticks:{font:{size:10}}}}}}); }
+    const pit=items.filter(it=>(q.price[it]||[]).some(v=>v!=null));
+    P('priceP',pit.length>0);
+    if(pit.length){ document.getElementById('priceTitle').textContent=name+' 품목별 판가(P)'+(q.punit?' — '+q.punit:'');
+      mk('priceC',{type:'line',data:{labels,datasets:pit.map((it,i)=>lineSet(it+' 판가',q.price[it],i))},
+        options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{boxWidth:11,font:{size:11}}}},
+        scales:{x:{grid:{display:false},ticks:{font:{size:10},maxTicksLimit:14}},y:{grid:{color:'#f0f2f5'},ticks:{font:{size:10}}}}}}); }
+    const vit=items.filter(it=>(q.vol[it]||[]).some(v=>v!=null));
+    P('volP',vit.length>0);
+    if(vit.length){ document.getElementById('volTitle').textContent=name+' 품목별 물량 지수(Q)'+(q.punit&&q.punit.includes('Kg')?' — 천톤':'');
+      mk('volC',{type:'line',data:{labels,datasets:vit.map((it,i)=>lineSet(it+' 물량',q.vol[it],i))},
+        options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{boxWidth:11,font:{size:11}}}},
+        scales:{x:{grid:{display:false},ticks:{font:{size:10},maxTicksLimit:14}},y:{grid:{color:'#f0f2f5'},ticks:{font:{size:10}}}}}}); }
+    const uit=Object.keys(q.util||{}).filter(it=>(q.util[it]||[]).some(v=>v!=null));
+    P('utilP',uit.length>0);
+    if(uit.length){ document.getElementById('utilTitle').textContent=name+' 생산 가동률 (%)';
+      mk('utilC',{type:'line',data:{labels,datasets:uit.map((it,i)=>lineSet(it,q.util[it],i))},
+        options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{boxWidth:11,font:{size:11}}}},
+        scales:{x:{grid:{display:false},ticks:{font:{size:10},maxTicksLimit:14}},y:{grid:{color:'#f0f2f5'},ticks:{font:{size:10},callback:v=>v+'%'}}}}}); }
+    const hasBack=(q.backlog||[]).some(v=>v!=null);
+    P('backP',hasBack);
+    if(hasBack){
+      const rev=labels.map(lb=>{ // '21.1Q' → '2021Q1'
+        const k='20'+lb.slice(0,2)+'Q'+lb.slice(3,4);
+        const r=(cmp&&cmp.qs||[]).find(x=>x[0]===k); return r?r[1]:null; });
+      document.getElementById('backTitle').textContent=name+' 수주잔고 대 매출액';
+      mk('backC',{type:'line',data:{labels,datasets:[
+        lineSet('수주잔고(분기말)',q.backlog,2),
+        lineSet('매출액',rev,0)]},
+        options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{boxWidth:11,font:{size:11}}}},
+        scales:{x:{grid:{display:false},ticks:{font:{size:10},maxTicksLimit:14}},y:{grid:{color:'#f0f2f5'},ticks:{font:{size:10}}}}}}); }
+    const cons=q.contracts||[];
+    P('conP',cons.length>0);
+    if(cons.length){
+      document.getElementById('conList').innerHTML='<table class="con"><tr><th>공시일</th><th>내용</th><th style="text-align:right">계약금액</th><th style="text-align:right">매출대비</th><th>상대방</th><th>종료일</th></tr>'
+        +cons.map(c=>`<tr><td style="white-space:nowrap">${c.d}</td><td><a href="https://dart.fss.or.kr/dsaf001/main.do?rcpNo=${c.rcp}" target="_blank" rel="noopener">${c.t} ↗</a></td>
+          <td style="text-align:right;font-weight:700">${c.amt!=null?Number(c.amt).toLocaleString()+'억':'—'}</td>
+          <td style="text-align:right">${c.ratio!=null?c.ratio+'%':'—'}</td><td>${c.party||'—'}</td><td>${c.until||'—'}</td></tr>`).join('')+'</table>';
+    }
+  } else { ['salesP','priceP','volP','utilP','backP','conP'].forEach(id=>P(id,false)); }
+}
+document.getElementById('stock').addEventListener('change', function(){
+  const v=this.value.trim();
+  const all={...CIDX,...IDX};
+  const hit=Object.entries(all).find(([c,n])=>c===v||n===v||(n+' ('+c+')')===v||v.includes(c));
+  if(hit) show(hit[0]);
+  else{ const part=Object.entries(all).find(([c,n])=>n.includes(v)); if(part) show(part[0]); }
+});
+(async function(){
+  const idx=await jget('/data/qdeep/index.json');
+  IDX=(idx&&idx.codes)||{};
+  const c=await jget('/data/compare/index.json');
+  CIDX=(c&&c.codes)||{};
+  document.getElementById('meta').textContent='딥다이브 '+Object.keys(IDX).length+'종목 · 실적차트 '+Object.keys(CIDX).length+'종목'+(idx&&idx.updated?' · 갱신 '+idx.updated:'');
+  const all={...CIDX,...IDX};
+  document.getElementById('stocks').innerHTML=Object.entries(all).map(([cd,n])=>`<option value="${n} (${cd})">`).join('');
+  document.getElementById('cover').textContent='품목별 P·Q·가동률·수주 딥다이브: '+Object.keys(IDX).length+'종목(특장점 노트 순 확대 중) · 분기 실적 차트: '+Object.keys(CIDX).length+'종목';
+  document.getElementById('unihint').textContent='딥다이브 데이터가 있는 종목: '+Object.values(IDX).slice(0,10).join(', ')+(Object.keys(IDX).length>10?' 외':'');
+})();
+</script>
+</body>
+</html>

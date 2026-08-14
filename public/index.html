@@ -84,20 +84,28 @@ tbody tr:hover { background:#fafbfc; }
   <div style="position:relative;overflow:hidden;background:linear-gradient(135deg,#0b1220 0%,#16233f 55%,#1d2f54 100%);border-radius:18px;padding:34px 30px 30px;margin:0 0 18px;box-shadow:0 8px 28px rgba(10,18,40,.25)">
     <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 80% -20%,rgba(212,175,55,.22),transparent 55%)"></div>
     <div style="position:absolute;right:-30px;bottom:-46px;font-size:150px;font-weight:900;color:rgba(212,175,55,.06);letter-spacing:-6px;user-select:none">1000</div>
-    <div style="position:relative">
-      <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
-        <span style="font-family:Georgia,'Times New Roman',serif;font-size:30px;font-weight:700;color:#f4f6fb;letter-spacing:2.5px">TAEWOO&nbsp;CORP</span>
-        <span style="color:#d4af37;font-size:14px;font-weight:800;letter-spacing:3px">태우 코퍼레이션</span>
+    <div style="position:relative;display:flex;align-items:center;gap:26px;flex-wrap:wrap">
+      <div style="flex:1;min-width:280px">
+        <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
+          <span style="font-family:Georgia,'Times New Roman',serif;font-size:30px;font-weight:700;color:#f4f6fb;letter-spacing:2.5px">TAEWOO&nbsp;CORP</span>
+          <span style="color:#d4af37;font-size:14px;font-weight:800;letter-spacing:3px">태우 코퍼레이션</span>
+        </div>
+        <div style="height:2px;width:76px;background:linear-gradient(90deg,#d4af37,transparent);margin:12px 0 14px"></div>
+        <div style="font-size:19px;font-weight:800;color:#fff;line-height:1.5;letter-spacing:.3px">
+          네 자릿수를 향한, 결코 꺾이지 않는 <span style="color:#d4af37">Iron&nbsp;Will</span>
+        </div>
+        <div style="margin-top:9px;font-size:12.5px;color:#9fb0cf;line-height:1.8;max-width:640px">
+          더 크고 담대한 미래로 — <span style="color:#c8d5ee;font-style:italic">A Grand and Bold Future</span>.<br>
+          시장은 흔들려도 원칙은 흔들리지 않는다. 공시로 검증하고, 데이터로 무장하고, 복리로 증명한다.<br>
+          <span style="color:#c8d5ee;font-weight:700;font-family:Georgia,serif;letter-spacing:1.2px">FOUR&nbsp;DIGITS&nbsp;·&nbsp;IRON&nbsp;WILL&nbsp;·&nbsp;NO&nbsp;SURRENDER</span>
+        </div>
       </div>
-      <div style="height:2px;width:76px;background:linear-gradient(90deg,#d4af37,transparent);margin:12px 0 14px"></div>
-      <div style="font-size:19px;font-weight:800;color:#fff;line-height:1.5;letter-spacing:.3px">
-        네 자릿수를 향한, 결코 꺾이지 않는 <span style="color:#d4af37">Iron&nbsp;Will</span>
-      </div>
-      <div style="margin-top:9px;font-size:12.5px;color:#9fb0cf;line-height:1.8;max-width:640px">
-        시장은 흔들려도 원칙은 흔들리지 않는다. 공시로 검증하고, 데이터로 무장하고, 복리로 증명한다.<br>
-        <span style="color:#c8d5ee;font-weight:700;font-family:Georgia,serif;letter-spacing:1.2px">FOUR&nbsp;DIGITS&nbsp;·&nbsp;IRON&nbsp;WILL&nbsp;·&nbsp;NO&nbsp;SURRENDER</span>
-      </div>
+      <img src="/taewoo.png" alt="TAEWOO CORP — 네자리 달성" onclick="var v=document.getElementById('twview');v.style.display='flex'"
+        style="width:210px;height:210px;object-fit:cover;object-position:top;border-radius:14px;border:2px solid rgba(212,175,55,.55);box-shadow:0 6px 22px rgba(0,0,0,.45);cursor:zoom-in;flex:none">
     </div>
+  </div>
+  <div id="twview" onclick="this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(8,12,24,.88);z-index:60;align-items:center;justify-content:center;cursor:zoom-out">
+    <img src="/taewoo.png" style="max-width:92vw;max-height:90vh;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.6)">
   </div>
   <header>
     <div>

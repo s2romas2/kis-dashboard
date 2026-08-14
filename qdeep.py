@@ -393,6 +393,27 @@ def collect(code, name, corp):
             if u is None and lb.endswith('1'):
                 u = g1.get('util')
             util_q[it].append(u)
+    # 단위 교차검증(DartV22Builder 기법): 품목 매출 합 ≈ 재무제표 분기 매출인지 — 1000배 오류 자동 보정
+    try:
+        cq = json.load(open('public/data/compare/%s.json' % code, encoding='utf-8')).get('qs') or []
+        fin = {r[0][2:].replace('Q', '.') + 'Q': r[1] for r in cq if r[1]}
+        ratios = []
+        for qi, lb in enumerate(quarters):
+            ssum = sum(v for it in items for v in [sales_q[it][qi]] if v)
+            fv = fin.get(lb)
+            if ssum and fv and ssum > 0:
+                ratios.append(fv / ssum)
+        if ratios:
+            ratios.sort()
+            med = ratios[len(ratios) // 2]
+            scale = 1000 if 300 < med < 3000 else (0.001 if 0.0003 < med < 0.003 else 1)
+            if scale != 1:
+                DEBUG.append('%s 매출 단위 보정 ×%s (중앙 배율 %.1f)' % (code, scale, med))
+                for it in items:
+                    sales_q[it] = [round(v * scale, 1) if v is not None else None for v in sales_q[it]]
+                    vol_q[it] = [round(v * scale, 1) if v is not None else None for v in vol_q[it]]
+    except Exception:
+        pass
     # 판가 단위 표기
     punit = ''
     for lb in reversed(labels):

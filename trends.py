@@ -188,6 +188,8 @@ def main():
     bz = buzz(keys.get('buzz', {}), pv.get('buzz'))
     bb = buzz_brands(pv.get('buzz_brand'))
     gt = dict(pv.get('google', {}))  # 성공한 키워드만 갱신(부분 차단 시 이전값 유지)
+    allowed = {kw for batch in keys.get('google', []) for kw in batch}
+    gt = {kk: vv for kk, vv in gt.items() if kk in allowed}  # 시드에서 빠진 키워드는 정리
     gt.update(gtrends(keys.get('google', [])))
     ex = exports(keys.get('export', {}), pv.get('export'))
     out = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'debug': DEBUG,

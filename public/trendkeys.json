@@ -1,15 +1,9 @@
 {
  "datalab": {
   "정보기술": {
-   "반도체": [
-    "반도체",
-    "HBM",
-    "파운드리"
-   ],
    "AI": [
     "인공지능",
-    "챗GPT",
-    "AI반도체"
+    "챗GPT"
    ],
    "IT기기": [
     "갤럭시",
@@ -158,8 +152,7 @@
  },
  "buzz": {
   "정보기술": [
-   "반도체 수출",
-   "HBM"
+   "AI 데이터센터"
   ],
   "커뮤니케이션": [
    "게임 신작",
@@ -202,24 +195,18 @@
  },
  "google": [
   [
-   "korean skincare",
-   "skin booster",
-   "Rejuran"
-  ],
-  [
+   "Rejuran",
    "Letybo",
-   "K-beauty",
-   "korean sunscreen"
+   "Medicube"
   ],
   [
-   "buldak",
+   "Sculptra",
+   "Skinvive",
+   "buldak"
+  ],
+  [
    "RE2O",
-   "Medicube",
    "TikTok Shop"
-  ],
-  [
-   "HBM memory",
-   "K-pop"
   ]
  ],
  "export": {

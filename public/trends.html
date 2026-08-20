@@ -207,7 +207,8 @@ function chRow(it,i){
   const b=it.b?` <span style="color:#5b6472;font-weight:400">(${it.b})</span>`:'';
   const corp=it.corp?`<span class="corp">${it.corp}</span>`:'';
   const x=it.x?`<span class="xtra">${it.x}</span>`:'';
-  return `<div class="chrow"><span class="no">${i+1}위</span><span class="nm">${it.n}${b}</span><span class="cat">${it.c||'기타'}</span>${corp}${x}</div>`;
+  const cat=it.c!==''?`<span class="cat">${it.c||'기타'}</span>`:'';
+  return `<div class="chrow"><span class="no">${it.rk||((i+1)+'위')}</span><span class="nm">${it.n}${b}</span>${cat}${corp}${x}</div>`;
 }
 function chGroups(ch){
   if(!ch) return '<div class="loading">첫 수집 대기 중입니다. 자동 수집(하루 2회) 후 채워집니다.</div>';

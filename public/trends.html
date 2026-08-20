@@ -228,7 +228,7 @@ function tiktokSeries(){
   // 미국: trendkeys 구글 배치의 'TikTok Shop' / 유럽: beauty gt 국가별
   return {US:(T.google||{})['TikTok Shop']||null, EU:((B.gt||{}).EU||{})['TikTok Shop']||null};
 }
-function drawCh(){
+async function drawCh(){
   chips('chbar', CHDEF.map(x=>x[1]), CHSEL, 'setCh');
   const key=(CHDEF.find(x=>x[1]===CHSEL)||CHDEF[0])[0];
   const body=document.getElementById('chBody'), note=document.getElementById('chNote'),

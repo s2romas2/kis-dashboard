@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>반도체 소부장 맵 — 8대공정</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; background:#f4f6fa; color:#1a1f2e; }
+.wrap { max-width:1140px; margin:0 auto; padding:18px 14px 60px; }
+h1 { font-size:22px; margin:10px 0 4px; }
+.sub { color:#667085; font-size:13px; margin-bottom:14px; }
+.note { background:#fff7e8; border:1px solid #f5d9a8; border-radius:10px; padding:10px 14px; font-size:12.5px; color:#7a5b1e; margin-bottom:14px; line-height:1.6; }
+.flow { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; }
+.flow button { border:1.5px solid #d7dce6; background:#fff; border-radius:20px; padding:7px 13px; font:inherit; font-size:12.5px; font-weight:700; color:#475467; cursor:pointer; }
+.flow button.on { background:#1a2a4a; border-color:#1a2a4a; color:#fff; }
+.flow button.pre.on { background:#2f6df6; border-color:#2f6df6; }
+.flow button.post.on { background:#d92d20; border-color:#d92d20; }
+.flow .divider { width:100%; height:0; }
+.grpbar { display:flex; gap:6px; margin-bottom:14px; }
+.grpbar button { border:1.5px solid #d7dce6; background:#fff; border-radius:8px; padding:6px 12px; font:inherit; font-size:12px; font-weight:800; cursor:pointer; color:#475467; }
+.grpbar button.on { background:#eef4ff; border-color:#2f6df6; color:#2f6df6; }
+.cnt { font-size:12px; color:#8a93a2; margin:0 0 10px 2px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(255px,1fr)); gap:12px; }
+.card { background:#fff; border:1px solid #e6e9f0; border-radius:14px; overflow:hidden; box-shadow:0 1px 4px rgba(20,30,60,.05); display:flex; flex-direction:column; }
+.ph { height:140px; background:#fff; display:flex; align-items:center; justify-content:center; border-bottom:1px solid #eef0f5; position:relative; }
+.ph img { max-width:100%; max-height:100%; object-fit:contain; }
+.ph.noimg { background:linear-gradient(135deg,#eef2f9,#e3e9f5); font-size:38px; }
+.ph .srcTag { position:absolute; right:6px; bottom:4px; font-size:9.5px; color:#98a2b3; background:rgba(255,255,255,.85); padding:1px 6px; border-radius:6px; }
+.bd { padding:10px 12px 12px; display:flex; flex-direction:column; gap:6px; flex:1; }
+.nm { font-size:14.5px; font-weight:900; }
+.nm .code { font-weight:600; color:#98a2b3; font-size:11.5px; margin-left:4px; }
+.tags { display:flex; flex-wrap:wrap; gap:4px; }
+.tag { font-size:10.5px; font-weight:800; padding:2px 7px; border-radius:10px; }
+.tag.pre { background:#eef4ff; color:#2f6df6; }
+.tag.post { background:#fee4e2; color:#d92d20; }
+.tag.infra { background:#f2f4f7; color:#667085; }
+.tag.cat { background:#1a2a4a; color:#fff; }
+.prod { font-size:12.5px; font-weight:700; color:#344054; }
+.use { font-size:12px; color:#475467; line-height:1.55; }
+.use b { color:#1a2a4a; }
+.edge { font-size:11.5px; color:#7a5b1e; background:#fffaf0; border-radius:8px; padding:5px 8px; line-height:1.5; }
+.val { display:flex; gap:10px; font-size:11.5px; color:#475467; flex-wrap:wrap; }
+.val b { color:#1a1f2e; }
+.links { display:flex; gap:6px; margin-top:auto; padding-top:4px; }
+.links a { font-size:11.5px; font-weight:700; text-decoration:none; color:#2f6df6; background:#eef4ff; border-radius:8px; padding:4px 9px; }
+.links a:hover { background:#dbe8ff; }
+.loading { text-align:center; color:#98a2b3; padding:40px 0; }
+@media (max-width:600px){ .grid{ grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); } .ph{height:110px;} }
+</style>
+</head>
+<body>
+<script src="/nav.js" defer></script>
+<div class="wrap">
+  <h1>💠 반도체 소부장 맵 — 8대공정</h1>
+  <div class="sub">웨이퍼 제조 → 산화 → 포토 → 식각 → 증착·이온주입 → 금속배선 → EDS 테스트 → 패키징 — 어떤 기업의 제품이 어느 공정 어디에 쓰이는지 (2026-08 전수조사 기준)</div>
+  <div class="note">⚠️ <b>한 기업이 여러 공정에 걸치는 경우가 많습니다.</b> 예: 예스티는 전공정(열처리)·EDS(퍼니스)·패키징(가압 큐어)을 모두 공급 → 카드에 공정 배지가 여러 개 붙고, 어느 공정 필터에서도 나타납니다. 제품 사진은 각 기업 공식 홈페이지·언론 보도에서 발췌(카드 우하단 출처).</div>
+  <div class="flow" id="flow"></div>
+  <div class="grpbar" id="grpbar"></div>
+  <div class="cnt" id="cnt"></div>
+  <div class="grid" id="grid"><div class="loading">불러오는 중…</div></div>
+</div>
+<script>
+let DATA=null, VALS=null, PROC='all', GRP='all';
+const PRE=['w','o','f','e','d','m'], POST=['t','k'];
+
+function badge(p, procs){
+  const lbl = Object.fromEntries(DATA.procs.map(x=>[x[0], x[1].replace(/^[①-⑧]\s*/,'')]));
+  return procs.map(x=>{
+    const cls = x==='i' ? 'infra' : (PRE.includes(x) ? 'pre' : 'post');
+    return `<span class="tag ${cls}">${lbl[x]||x}</span>`;
+  }).join('');
+}
+function fmtV(v){
+  if(!v||!v.length) return '';
+  const pbr=v[0], per=v[1], cap=v[2];
+  const parts=[];
+  if(per) parts.push(`PER <b>${per}배</b>`);
+  if(pbr) parts.push(`PBR <b>${pbr}배</b>`);
+  if(cap) parts.push(`시총 <b>${cap>=10000?(cap/10000).toFixed(1)+'조':Number(cap).toLocaleString()+'억'}</b>`);
+  return parts.join(' · ');
+}
+function card(e){
+  const img = e.img
+    ? `<div class="ph"><img src="/img/semi/${e.c}.jpg" alt="${e.n} 제품" loading="lazy">${e.src?`<span class="srcTag">출처: ${e.src}</span>`:''}</div>`
+    : `<div class="ph noimg">${e.g==='후'?'📦':(e.cat==='소재'?'🧪':e.cat==='파츠'?'⚙️':'🏭')}</div>`;
+  const v = VALS && VALS[e.c] ? fmtV(VALS[e.c]) : '';
+  return `<div class="card">${img}<div class="bd">
+    <div class="nm">${e.n}<span class="code">${e.c}</span></div>
+    <div class="tags"><span class="tag cat">${e.cat}</span>${badge(e.p[0], e.p)}</div>
+    <div class="prod">${e.prod}</div>
+    ${e.use?`<div class="use">└ <b>쓰임:</b> ${e.use}</div>`:''}
+    ${e.edge?`<div class="edge">💡 ${e.edge}</div>`:''}
+    ${v?`<div class="val">${v}</div>`:''}
+    <div class="links"><a href="/bands.html#${e.c}">📉 밴드</a><a href="/deep.html#${e.c}">🔬 딥다이브</a></div>
+  </div></div>`;
+}
+function draw(){
+  const grid=document.getElementById('grid');
+  let items=DATA.items;
+  if(PROC!=='all') items=items.filter(e=>e.p.includes(PROC));
+  if(GRP==='pre') items=items.filter(e=>e.g==='전'||e.g==='양');
+  else if(GRP==='post') items=items.filter(e=>e.g==='후'||e.g==='양');
+  else if(GRP==='multi') items=items.filter(e=>e.g==='양'||e.p.length>=3);
+  document.getElementById('cnt').textContent=`${items.length}개 기업 표시 중 (전체 ${DATA.items.length}개 · 갱신 ${DATA.updated})`;
+  grid.innerHTML=items.map(card).join('')||'<div class="loading">해당 조건 기업 없음</div>';
+}
+function drawBars(){
+  const flow=document.getElementById('flow');
+  const btns=[['all','전체']].concat(DATA.procs);
+  flow.innerHTML=btns.map(([k,l])=>{
+    const cls = k==='all'?'':(k==='i'?'':(PRE.includes(k)?'pre':'post'));
+    return `<button data-p="${k}" class="${cls} ${PROC===k?'on':''}">${l}</button>`;
+  }).join('');
+  flow.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{PROC=b.dataset.p;drawBars();draw();}));
+  const gb=document.getElementById('grpbar');
+  gb.innerHTML=[['all','전체'],['pre','🔵 전공정 기업'],['post','🔴 후공정 기업'],['multi','🔀 복수 공정 걸침']]
+    .map(([k,l])=>`<button data-g="${k}" class="${GRP===k?'on':''}">${l}</button>`).join('');
+  gb.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{GRP=b.dataset.g;drawBars();draw();}));
+}
+async function init(){
+  try{
+    DATA=await (await fetch('/data/semimap.json?t='+Date.now())).json();
+  }catch(e){ document.getElementById('grid').innerHTML='<div class="loading">데이터 로드 실패</div>'; return; }
+  try{
+    const sv=await (await fetch('/data/stockvals.json?t='+Date.now())).json();
+    VALS=sv.map||null;
+  }catch(e){ VALS=null; }
+  drawBars(); draw();
+}
+init();
+</script>
+</body>
+</html>

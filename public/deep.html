@@ -220,6 +220,8 @@ document.getElementById('stock').addEventListener('change', function(){
   document.getElementById('stocks').innerHTML=Object.entries(all).map(([cd,n])=>`<option value="${n} (${cd})">`).join('');
   document.getElementById('cover').textContent='품목별 P·Q·가동률·수주 딥다이브: '+Object.keys(IDX).length+'종목(특장점 노트 순 확대 중) · 분기 실적 차트: '+Object.keys(CIDX).length+'종목';
   document.getElementById('unihint').textContent='딥다이브 데이터가 있는 종목: '+Object.values(IDX).slice(0,10).join(', ')+(Object.keys(IDX).length>10?' 외':'');
+  const h=(location.hash||'').replace('#','');
+  if(/^[0-9A-Z]{6}$/.test(h)) show(h);
 })();
 </script>
 </body>

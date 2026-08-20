@@ -314,6 +314,8 @@ document.getElementById('stock').addEventListener('change', function(){
     document.getElementById('stocks').innerHTML=Object.entries(INDEX).map(([c,n])=>`<option value="${n} (${c})">`).join('');
     document.getElementById('unihint').textContent='자동완성 목록에서 선택하거나 정확한 종목명/코드를 입력 후 Enter. 현재 '+Object.keys(INDEX).length+'종목 지원(시총 상위+주요 종목, 매일 확대 중).';
   }catch(e){ document.getElementById('meta').textContent='인덱스 로드 실패'; }
+  const h=(location.hash||'').replace('#','');
+  if(/^[0-9A-Z]{6}$/.test(h)) show(h);
 })();
 </script>
 </body>

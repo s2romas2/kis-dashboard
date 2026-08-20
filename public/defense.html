@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>K-방산 맵 · 한국 대시보드</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin:0; background:#f6f7f9; color:#1a1f2e; font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; }
+.wrap { max-width:1140px; margin:0 auto; padding:20px 18px 48px; }
+h1 { font-size:20px; margin:0; font-weight:800; }
+.sub { color:#6b7280; font-size:12.5px; margin:3px 0 0; }
+.panel { background:#fff; border:1px solid #eceef2; border-radius:14px; padding:16px 18px; margin:14px 0; box-shadow:0 1px 2px rgba(20,30,60,.04); }
+.panel h2 { font-size:14.5px; margin:0 0 10px; font-weight:800; }
+.chip { border:1px solid #d7dce4; background:#fff; color:#374151; border-radius:20px; padding:6px 14px; font-size:13px; font-weight:800; cursor:pointer; display:inline-block; margin:2px 4px 2px 0; }
+.chip.on { background:#1a2a4a; color:#fff; border-color:#1a2a4a; }
+.alert { background:#fff8f0; border:1px solid #f3d9b7; border-radius:12px; padding:10px 14px; font-size:12.5px; color:#7a5b12; line-height:1.7; margin:12px 0; }
+/* 밸류체인 */
+.chain { display:flex; flex-direction:column; align-items:center; gap:0; }
+.prime { background:linear-gradient(135deg,#16233f,#1d2f54); color:#fff; border-radius:14px; padding:14px 22px; text-align:center; min-width:300px; box-shadow:0 4px 14px rgba(20,35,70,.25); }
+.prime .nm { font-size:16px; font-weight:800; }
+.prime .code { color:#d4af37; font-size:11px; font-weight:700; margin-left:6px; }
+.prime .what { font-size:11.5px; color:#c8d5ee; margin-top:4px; }
+.vline { width:2px; height:22px; background:#c3cbd9; }
+.parts { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:0; }
+.part { background:#fff; border:1.5px solid #d7dce4; border-radius:12px; padding:10px 13px; min-width:158px; max-width:190px; position:relative; }
+.part .role { position:absolute; top:-9px; left:10px; background:#eef3fc; color:#2f5fd0; font-size:10px; font-weight:800; padding:1px 8px; border-radius:8px; border:1px solid #d5e2f7; }
+.part .nm { font-weight:800; font-size:13px; margin-top:3px; }
+.part .code { color:#8a93a2; font-size:10.5px; }
+.part .what { font-size:11px; color:#5b6472; margin-top:3px; line-height:1.5; }
+.part.exp { border-color:#d4af37; background:#fffdf4; }
+.buyers { margin-top:12px; font-size:12px; color:#5b6472; text-align:center; }
+.buyers b { color:#0e7a46; }
+/* 기업 카드 */
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:10px; }
+.card { background:#fff; border:1px solid #e5e8ee; border-radius:12px; padding:12px 14px; }
+.card .top { display:flex; align-items:baseline; gap:7px; flex-wrap:wrap; }
+.card .nm { font-weight:800; font-size:14px; }
+.card .nm a { color:#1a1f2e; text-decoration:none; }
+.card .nm a:hover { color:#2f6df6; }
+.card .code { color:#8a93a2; font-size:11px; }
+.badge { font-size:10px; font-weight:800; border-radius:7px; padding:2px 7px; }
+.b-pure { background:#e7f6ee; color:#0e7a46; }
+.b-mid { background:#fdf6e8; color:#b45309; }
+.b-low { background:#f0f2f5; color:#6b7280; }
+.b-new { background:#efe7fd; color:#6d28d9; }
+.card .what { font-size:12px; color:#374151; margin-top:5px; line-height:1.65; }
+.gauge { height:6px; background:#eef1f5; border-radius:4px; margin-top:8px; overflow:hidden; }
+.gauge i { display:block; height:100%; background:linear-gradient(90deg,#2f6df6,#1a2a4a); border-radius:4px; }
+.meta { display:flex; justify-content:space-between; font-size:10.5px; color:#8a93a2; margin-top:3px; }
+.easy { font-size:11.5px; color:#5b6472; background:#fafbfd; border:1px solid #eef1f5; border-radius:9px; padding:8px 10px; margin-top:8px; line-height:1.7; display:none; }
+.easy.open { display:block; }
+.morebtn { font-size:11px; font-weight:800; color:#2f6df6; cursor:pointer; margin-top:6px; display:inline-block; }
+.hint { font-size:11.5px; color:#8a93a2; margin-top:8px; line-height:1.6; }
+@media (max-width:720px){ .wrap{padding:14px 10px 40px;} .grid{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+<div class="wrap">
+  <header>
+    <h1>🛡️ K-방산 맵</h1>
+    <div class="sub">누가 무엇을 만들고, 수주가 어디서 어디로 흐르는지 — 무기체계 밸류체인과 기업 지도 (2026-08 검증)</div>
+  </header>
+
+  <div class="alert">⚠️ <b>구조 변동:</b> 현대위아 포신사업 → 2026년 말 현대로템에 매각 · 풍산 방산부 매각 추진 · HD현대미포는 HD현대중공업에 흡수합병(상폐) · 🆕 니어스랩(요격드론) 8/24 상장</div>
+
+  <div class="panel">
+    <h2>🔗 무기체계 밸류체인 — 무기를 고르면 수주 흐름이 보입니다</h2>
+    <div id="wbar"></div>
+    <div style="margin-top:16px" class="chain" id="chain"></div>
+    <div class="hint">위 큰 카드=체계종합(정부·해외와 직접 계약), 아래 카드=부품 납품사(체계사에서 수주). <b style="color:#b8860b">금색 테두리</b>=독자 수출 실적 보유 부품사. 기업명 클릭 시 종목 딥다이브(수주잔고·가동률·부문별 매출 차트)로 이동.</div>
+  </div>
+
+  <div class="panel">
+    <h2>🗂️ 카테고리별 기업 지도 <span style="font-weight:400;font-size:11px;color:#8a93a2">— 게이지=방산 매출 비중</span></h2>
+    <div id="cbar"></div>
+    <div class="grid" id="cards" style="margin-top:10px"></div>
+    <div class="hint">🟢 순수방산(70%↑) · 🟡 겸업(10~70%) · ⚪ 일부(10%↓) · 🟣 신규상장. "쉽게 보기"를 누르면 무엇을 만들어 누구에게 납품하는지 풀어서 설명합니다. 🚫 테마성(실질 방산 매출 미입증): 현대에버다임·광명전기·모트렉스·하이즈항공·코콤·디티앤씨·STX·한빛소프트·스맥·스페코·에이럭스</div>
+  </div>
+</div>
+<script>
+const CHAINS={
+ 'K9 자주포 체인':{prime:{nm:'한화에어로스페이스',code:'012450',what:'K9 자주포 체계종합 — 폴란드·노르웨이·이집트·인도 수출'},
+  parts:[
+   {role:'변속기',nm:'SNT다이내믹스',code:'003570',what:'47톤 차체를 움직이는 기어박스',exp:'튀르키예 직수출'},
+   {role:'포신(주포)',nm:'현대위아',code:'011210',what:'155mm 포신 독점 → 26년말 로템으로 이관'},
+   {role:'구동장치',nm:'엠앤씨솔루션',code:'484870',what:'포탑·포신을 정밀하게 움직이는 장치'},
+   {role:'탑재 컴퓨터',nm:'코츠테크놀로지',code:'448710',what:'사격 계산용 군용 컴퓨터'},
+   {role:'정밀부품',nm:'이엠코리아',code:'095190',what:'정밀가공 부품'},
+   {role:'포탄',nm:'풍산',code:'103140',what:'155mm 포탄 (국내 유일 종합탄약)'},
+   {role:'탄두 단조',nm:'한일단조',code:'024740',what:'포탄 몸통 쇳덩이(단조)'}],
+  buyers:'구매자: 대한민국 육군 · <b>폴란드</b> · 노르웨이 · 이집트 · 인도 · 호주(레드백 연계)'},
+ 'K2 전차 체인':{prime:{nm:'현대로템',code:'064350',what:'K2 흑표 전차 체계종합 — 폴란드 1·2차 계약(8.8조), 3차 협상'},
+  parts:[
+   {role:'변속기·파워팩',nm:'SNT다이내믹스',code:'003570',what:'전차 변속기',exp:'알타이 전차 직수출'},
+   {role:'주포(120mm)',nm:'현대위아',code:'011210',what:'K2 주포 독점 → 로템에 매각 예정'},
+   {role:'특수장갑',nm:'삼양컴텍',code:'484590',what:'방탄 세라믹 장갑판 독점 (25.8 상장)'},
+   {role:'구동장치',nm:'엠앤씨솔루션',code:'484870',what:'포탑 회전·안정화 구동'},
+   {role:'탑재 컴퓨터',nm:'코츠테크놀로지',code:'448710',what:'K2 3차 양산분 탑재'},
+   {role:'조준경 센서',nm:'아이쓰리시스템',code:'214430',what:'야간 표적을 보는 적외선 눈'},
+   {role:'엔진',nm:'HD건설기계',code:'267270',what:'DV27K 1,500마력 엔진(구 인프라코어)'}],
+  buyers:'구매자: 대한민국 육군 · <b>폴란드</b>(180대+180대, 3차 협상 중)'},
+ '천궁-II 미사일 체인':{prime:{nm:'LIG D&A',code:'079550',what:'천궁-II 요격미사일 체계종합 — 중동 3국 약 11조'},
+  parts:[
+   {role:'다기능 레이더',nm:'한화시스템',code:'272210',what:'표적을 잡는 눈 — 수출 동반 수혜'},
+   {role:'발사대 구동',nm:'엠앤씨솔루션',code:'484870',what:'발사대를 세우는 유압 구동'},
+   {role:'시커(적외선)',nm:'아이쓰리시스템',code:'214430',what:'미사일이 표적을 쫓는 눈'},
+   {role:'구동·발사통제',nm:'퍼스텍',code:'010820',what:'미사일 날개 근육·발사통제'},
+   {role:'탑재 컴퓨터',nm:'코츠테크놀로지',code:'448710',what:'매출 44%가 LIG向'},
+   {role:'탄두 구조체',nm:'한일단조',code:'024740',what:'현무·천궁 탄두 골격'}],
+  buyers:'구매자: 대한민국 공군 · <b>UAE 3.5조</b> · <b>사우디 4.2조</b> · <b>이라크 3.7조</b>'},
+ 'KF-21·FA-50 항공 체인':{prime:{nm:'한국항공우주 KAI',code:'047810',what:'전투기 체계종합 — 폴란드·말레이시아 FA-50 수출'},
+  parts:[
+   {role:'AESA 레이더',nm:'한화시스템',code:'272210',what:'KF-21의 눈'},
+   {role:'엔진',nm:'한화에어로스페이스',code:'012450',what:'전투기 엔진 독점'},
+   {role:'항공전자',nm:'제노코',code:'361390',what:'혼선방지기 등 (KAI 계열)'},
+   {role:'배선·부품',nm:'휴니드',code:'005870',what:'군용기 와이어하네스'},
+   {role:'소재·구조물',nm:'켄코아에어로',code:'274090',what:'항공 원소재·구조물'}],
+  buyers:'구매자: 대한민국 공군 · <b>폴란드</b>(FA-50 48대) · 말레이시아 · 필리핀 · 이라크'},
+ '함정·잠수함 체인':{prime:{nm:'한화오션 · HD현대중공업',code:'042660 · 329180',what:'잠수함·이지스함·KDDX 구축함(8조)'},
+  parts:[
+   {role:'전투체계',nm:'한화시스템',code:'272210',what:'함정의 두뇌(전투지휘체계)'},
+   {role:'함대함 미사일',nm:'LIG D&A',code:'079550',what:'해성 미사일'},
+   {role:'근접방어무기',nm:'현대위아',code:'011210',what:'CIWS-II 참여'},
+   {role:'무인수상정',nm:'LIG D&A · 한화시스템',code:'',what:'해검·해령 무인보트'}],
+  buyers:'구매자: 대한민국 해군 · 페루 · 필리핀 · 인도네시아 · 미 해군(정비 MRO)'},
+ '드론·대드론 체인':{prime:{nm:'LIG D&A · 한화시스템',code:'079550 · 272210',what:'레이저 대공무기·통합 대드론 체계 (본류)'},
+  parts:[
+   {role:'요격드론',nm:'니어스랩',code:'417030',what:'드론 잡는 드론 — 8/24 상장',exp:'🆕'},
+   {role:'표적 무인기',nm:'네온테크',code:'306620',what:'해군 표적기 납품'},
+   {role:'정찰드론',nm:'유콘시스템(비상장)',code:'퍼스텍 자회사',what:'군단급 리모아이'},
+   {role:'로봇개',nm:'레인보우로보틱스',code:'277810',what:'육군 최초 납품'},
+   {role:'항재밍 GPS',nm:'덕산하이메탈',code:'077360',what:'전파방해 무력화 항법'}],
+  buyers:'구매자: 대한민국 육·해군 (재머 전문 담스테크·삼정솔루션은 비상장)'}};
+const CATS={
+ '전체':null,
+ '체계종합':[
+  {nm:'한화에어로스페이스',code:'012450',pct:31,tag:'mid',what:'K9 자주포·천무·레드백·항공엔진·누리호',ex:'폴란드·노르웨이·호주 외',easy:'K-방산 수출 간판. 부품사들에게 발주를 내리는 밸류체인의 정점 — 이 회사 수주가 늘면 부품사 수주가 몇 분기 시차로 따라온다.'},
+  {nm:'한국항공우주 KAI',code:'047810',pct:85,tag:'pure',what:'FA-50·KF-21 전투기·수리온 헬기',ex:'폴란드·말레이시아·필리핀',easy:'국내 유일 항공기 완성업체. 정부에서 전투기 사업을 수주하고 FA-50을 완제기 수출. 제노코·휴니드·켄코아가 납품 협력사.'},
+  {nm:'LIG D&A',code:'079550',pct:100,tag:'pure',what:'천궁-II·현궁·신궁·해성 미사일',ex:'UAE·사우디·이라크 11조',easy:'하늘로 쏘는 건 거의 다 이 회사. 눈(아이쓰리)·두뇌(코츠)·근육(엠앤씨·퍼스텍)을 부품사에서 받아 미사일로 완성. 매출 100% 방산 — 가장 순수한 방산주.'},
+  {nm:'현대로템',code:'064350',pct:55,tag:'mid',what:'K2 전차·K808 장갑차·무인차량 (+철도)',ex:'폴란드 8.8조+3차 협상',easy:'26년 말 현대위아 포신사업까지 인수하면 차체+주포 일관 체제. 무인 전투차량도 군 최초 납품.'},
+  {nm:'한화시스템',code:'272210',pct:66,tag:'mid',what:'천궁·KF-21 레이더·군 통신망·함정 전투체계',ex:'중동(천궁 연동)·미국',easy:'무기의 눈(레이더)과 신경(통신). LIG 천궁이 수출될 때마다 레이더는 이 회사 몫 — 천궁 수출 동반 수혜주.'},
+  {nm:'한화오션',code:'042660',pct:10,tag:'low',what:'잠수함·KDDX 구축함 (주력 LNG선)',ex:'인도네시아·폴란드 추진',easy:'물속 무기 담당. KDDX 8조를 수주했지만 매출 90%는 상선 — 방산 옵션이 붙은 조선주.'},
+  {nm:'HD현대중공업',code:'329180',pct:5,tag:'low',what:'이지스함·호위함 (주력 상선)',ex:'페루·필리핀·미 MRO',easy:'한국 이지스함의 산실이지만 함정은 매출 한 자릿수% — 조선이 본업.'},
+  {nm:'풍산',code:'103140',pct:27,tag:'mid',what:'155mm 포탄·소총탄 (국내 유일 종합탄약)',ex:'미국 대량 구매',easy:'우크라전 이후 포탄 품귀의 수혜. 포탄 몸통은 한일단조에서 조달. ⚠️방산부 매각 추진 중.'},
+  {nm:'기아',code:'000270',pct:2,tag:'low',what:'KLTV 한국형 험비·군 트럭 독점',ex:'폴란드 표준차 선정',easy:'군용차 독점이지만 회사 전체에선 미미.'},
+  {nm:'대한항공',code:'003490',pct:5,tag:'low',what:'군용기 창정비(MRO)·스텔스 무인기',ex:'주한미군 정비',easy:'군용기 정비와 무인편대기 개발. 항공우주 비중 ~5%.'}],
+ '화력·기동 부품':[
+  {nm:'SNT다이내믹스',code:'003570',pct:50,tag:'mid',what:'K9·알타이 전차 변속기',ex:'튀르키예 직수출 2,671억',easy:'전차의 기어박스. K9 수출에 연동되며, 부품사인데도 튀르키예에 직접 수출하는 드문 케이스.'},
+  {nm:'엠앤씨솔루션',code:'484870',pct:100,tag:'pure',what:'포탑·발사대 구동장치 (구 두산모트롤)',ex:'체계사 경유 수출 연동',easy:'포탑이 돌고 발사대가 서는 움직임을 만드는 장치. 한화에어로·로템·LIG 모두가 고객 — 지상무기 수출 총량 베팅.'},
+  {nm:'현대위아',code:'011210',pct:8,tag:'low',what:'K9 포신·K2 주포 독점',ex:'수출 물량 연동',easy:'대포의 총열 독점. ⚠️단 이 사업이 26년 말 현대로템으로 매각 — 포신 스토리는 로템에서 볼 것.'},
+  {nm:'SNT모티브',code:'064960',pct:15,tag:'mid',what:'K1/K2 소총·기관총 (군 제식 총기 전담)',ex:'중동·미국',easy:'군 총기 전담이지만 본업은 자동차 모터(방산 10%대).'},
+  {nm:'한일단조',code:'024740',pct:50,tag:'mid',what:'박격포탄·155mm·현무 탄두 단조',ex:'태국·브라질 등 14개국',easy:'포탄의 쇳덩이 몸통을 두들겨 만드는 회사. 풍산·한화 화력체계 납품 + 155mm 특수로 증설 중.'},
+  {nm:'삼양컴텍',code:'484590',pct:95,tag:'new',what:'K2 특수장갑 독점·방탄복 (25.8 상장)',ex:'—',easy:'총알·파편 막는 세라믹판. K2 수출량에 정비례하는 순수 방산 신입.'},
+  {nm:'이엠코리아',code:'095190',pct:20,tag:'low',what:'K2·K9·T-50 정밀가공 부품',ex:'—',easy:'현대위아·한화에어로·KAI에 납품하는 가공 협력사. 공작기계 겸업.'}],
+ '전자·통신·센서':[
+  {nm:'아이쓰리시스템',code:'214430',pct:93,tag:'pure',what:'군용 적외선 센서 (국내 유일 양산)',ex:'—',easy:'밤에도 적 전차의 열이 보이게 하는 눈. 전차 조준경과 현궁·신궁 시커에 탑재 — 미사일이 팔릴수록 눈알도 팔린다.'},
+  {nm:'빅텍',code:'065450',pct:95,tag:'pure',what:'전자전 방향탐지·피아식별기',ex:'—',easy:'적 레이더 위치를 전파로 잡아내는 장비. 한화시스템·LIG 경유 납품.'},
+  {nm:'코츠테크놀로지',code:'448710',pct:74,tag:'pure',what:'무기 탑재 군용 컴퓨터·전시기',ex:'—',easy:'전차·미사일 속 조준 계산 컴퓨터. 매출 44% LIG·19% 한화시스템·14% 로템 — 고객사 수주가 곧 이 회사 수주.'},
+  {nm:'휴니드',code:'005870',pct:80,tag:'pure',what:'군 무전기·TICN 독점·보잉 군용기 배선',ex:'미국(보잉 1,800억)',easy:'야전 무전기와 군 전술인터넷. 보잉 치누크 배선 직거래가 특이점.'},
+  {nm:'퍼스텍',code:'010820',pct:100,tag:'pure',what:'미사일 구동장치·발사통제',ex:'—',easy:'미사일 날개 근육. 자회사 유콘시스템(군 정찰드론)이 비상장 — IPO 시 재평가 포인트.'},
+  {nm:'제노코',code:'361390',pct:86,tag:'pure',what:'위성 송신기·KF-21 항공전자',ex:'—',easy:'KAI가 최대주주라 KAI 물량과 연동.'},
+  {nm:'덕산하이메탈',code:'077360',pct:15,tag:'low',what:'항재밍 GPS (자회사)',ex:'—',easy:'적 전파방해를 뚫는 군용 내비게이션 — 부분 노출.'}],
+ '드론·무인·AI':[
+  {nm:'니어스랩',code:'417030',pct:90,tag:'new',what:'AI 요격드론 카이든 (8/24 상장)',ex:'—',easy:'드론 잡는 드론 — 적 드론에 스스로 부딪혀 격추. 방산 발주서 공개로 실계약 입증, 26상반기 매출 7배·첫 흑자.'},
+  {nm:'네온테크',code:'306620',pct:30,tag:'mid',what:'해군 표적 무인기·공격드론',ex:'—',easy:'실납품 있으나 입찰 의혹 이력 유의.'},
+  {nm:'레인보우로보틱스',code:'277810',pct:5,tag:'low',what:'로봇개 — 육군 최초 납품',ex:'—',easy:'방산은 아직 소규모, 본업은 협동로봇.'},
+  {nm:'코난테크놀로지',code:'402030',pct:30,tag:'mid',what:'군 특화 LLM·국방 AI 수주',ex:'—',easy:'국방 AI 계약 다수이나 전사 적자 지속.'},
+  {nm:'슈어소프트테크',code:'298830',pct:40,tag:'mid',what:'무기 소프트웨어 오류 검증',ex:'—',easy:'무기체계 SW의 품질 검사관.'}],
+ '우주·위성':[
+  {nm:'쎄트렉아이',code:'099320',pct:80,tag:'pure',what:'정찰위성 완제기·위성 카메라',ex:'UAE·싱가포르',easy:'군 정찰위성의 핵심. 한화에어로가 최대주주.'},
+  {nm:'AP위성',code:'211270',pct:60,tag:'mid',what:'위성통신 단말·위성 본체',ex:'중동(투라야)',easy:'정부 위성사업 실적 보유.'},
+  {nm:'루미르',code:'474170',pct:70,tag:'new',what:'SAR 레이더 위성 (24.10 상장)',ex:'—',easy:'밤·구름 속을 보는 레이더 위성.'},
+  {nm:'나라스페이스',code:'478340',pct:60,tag:'new',what:'초소형 큐브위성 (25.12 상장)',ex:'—',easy:'2031년 위성 84기 군집 목표.'},
+  {nm:'에이치브이엠',code:'295310',pct:70,tag:'mid',what:'로켓·미사일용 특수합금',ex:'미국(스페이스X 승인)',easy:'우주 56%+방산 14% — 초내열 합금 소재.'},
+  {nm:'켄코아에어로',code:'274090',pct:45,tag:'mid',what:'군용기 정비·항공우주 소재',ex:'미국',easy:'미 공군 MRO와 스페이스X 소재 공급.'}]};
+let W=Object.keys(CHAINS)[0], C='전체', SV={};
+fetch('/data/stockvals.json?t='+Date.now()).then(r=>r.json()).then(d=>{SV=d.map||{};draw();}).catch(()=>{});
+const esc=s=>String(s).replace(/</g,'&lt;');
+function chips(id,list,sel,fn){document.getElementById(id).innerHTML=list.map(x=>`<span class="chip ${x===sel?'on':''}" onclick="${fn}('${x.replace(/'/g,'')}')">${x}</span>`).join('');}
+window.setW=w=>{W=w;draw();};
+window.setC=c=>{C=c;draw();};
+window.tg=el=>{el.previousElementSibling.classList.toggle('open'); el.textContent=el.previousElementSibling.classList.contains('open')?'▴ 접기':'▾ 쉽게 보기';};
+function draw(){
+  chips('wbar',Object.keys(CHAINS),W,'setW');
+  const ch=CHAINS[W];
+  document.getElementById('chain').innerHTML=`
+    <div class="prime"><span class="nm">${ch.prime.nm}</span><span class="code">${ch.prime.code}</span><div class="what">${ch.prime.what}</div></div>
+    <div class="vline"></div>
+    <div class="parts">${ch.parts.map(p=>`<div class="part ${p.exp?'exp':''}"><span class="role">${p.role}</span>
+      <div class="nm"><a href="/deep.html#${(p.code.match(/^\d{6}/)||[''])[0]}" style="color:inherit;text-decoration:none">${p.nm}</a></div><div class="code">${p.code}${p.exp?' · <b style="color:#b8860b">'+p.exp+'</b>':''}</div>
+      <div class="what">${p.what}</div></div>`).join('')}</div>
+    <div class="buyers">${ch.buyers}</div>`;
+  chips('cbar',Object.keys(CATS),C,'setC');
+  const cats=C==='전체'?Object.keys(CATS).filter(k=>CATS[k]):[C];
+  const items=cats.flatMap(k=>CATS[k]||[]);
+  const tb={pure:['b-pure','🟢 순수방산'],mid:['b-mid','🟡 겸업'],low:['b-low','⚪ 일부'],new:['b-new','🟣 신규상장']};
+  document.getElementById('cards').innerHTML=items.map(x=>{
+    const v=SV[x.code]||[];
+    const pbr=v[0], per=v[1], cap=v[2];
+    const val=(per||pbr||cap)?`<div style="display:flex;gap:10px;font-size:11px;margin-top:6px;color:#374151">
+      ${per?`<span><b>PER</b> ${per}배</span>`:''}${pbr?`<span><b>PBR</b> ${pbr}배</span>`:''}${cap?`<span style="color:#8a93a2">시총 ${cap>=10000?(cap/10000).toFixed(1)+'조':Number(cap).toLocaleString()+'억'}</span>`:''}
+      <a href="/bands.html#${x.code}" style="margin-left:auto;color:#2f6df6;font-weight:800;text-decoration:none">📉 밴드</a>
+      <a href="/deep.html#${x.code}" style="color:#2f6df6;font-weight:800;text-decoration:none">🔬 딥다이브</a></div>`
+      :`<div style="font-size:11px;margin-top:6px"><a href="/bands.html#${x.code}" style="color:#2f6df6;font-weight:800;text-decoration:none">📉 밴드</a> · <a href="/deep.html#${x.code}" style="color:#2f6df6;font-weight:800;text-decoration:none">🔬 딥다이브</a></div>`;
+    return `<div class="card">
+    <div class="top"><span class="nm"><a href="/deep.html#${x.code}">${x.nm}</a></span><span class="code">${x.code}</span>
+      <span class="badge ${tb[x.tag][0]}">${tb[x.tag][1]}</span></div>
+    <div class="what">${x.what}${x.ex&&x.ex!=='—'?` · <b style="color:#0e7a46">수출: ${x.ex}</b>`:''}</div>
+    <div class="gauge"><i style="width:${Math.min(100,x.pct)}%"></i></div>
+    <div class="meta"><span>방산 매출 비중(추정)</span><span>${x.pct>=95?'~100%':'~'+x.pct+'%'}</span></div>
+    ${val}
+    <div class="easy">${esc(x.easy)}</div><span class="morebtn" onclick="tg(this)">▾ 쉽게 보기</span></div>`;}).join('');
+}
+draw();
+</script>
+</body>
+</html>

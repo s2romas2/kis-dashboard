@@ -320,6 +320,10 @@ def main():
     run('naver', naver)
     run('hwahae', hwahae)
     run('glowpick', glowpick)
+    # 수집 목록에 없는 수동(브라우저) 채널은 보존 — 예: tiktok_us(크리에이티브 센터)
+    for k, v in (prev().get('channels') or {}).items():
+        if k not in CH and isinstance(v, dict) and v.get('manual'):
+            CH[k] = v
     out = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'debug': DEBUG, 'channels': CH}
     json.dump(out, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False)
     print('완료:', DEBUG)

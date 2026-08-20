@@ -12,7 +12,7 @@ BASE = 'https://opendart.fss.or.kr/api'
 OUTDIR = 'public/data/qdeep'
 MAXRUN = int(os.environ.get('MAXRUN', '10'))
 REFRESH_DAYS = 25  # 분기마다 새 보고서 반영
-PV = 3  # 파서 버전 — 올리면 기존 수집분 재수집 (v3: 주요 고객 10%↑ 추가)
+PV = 4  # 파서 버전 — 올리면 기존 수집분 재수집 (v4: 수주잔고 잔액·잔량·억원·KAI형, 고객 표 계정과목 오염 배제)
 START_YEAR = 2021
 UA = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36'}
 DEBUG = []
@@ -255,18 +255,33 @@ def parse_prod(h):
             break
     return res
 
+FINW = re.compile(r'자산|부채|자본|손익|이익|비용|원가|충당|차입|사채|리스|공정가치|법인세|배당|환율|외화'
+                  r'|현금|인식|측정|평가|보증|예수|미수|미지급|선급|선수|재고|미착|반제품|누적|기말|기초'
+                  r'|미성공사|공사수익|공사원가|상각|급여|수수료|보험료|판관비|복리|공과|선전비|운반|소모품|대손|접대|유동'
+                  r'|주식수|주당|신주|액면|증자|조달|거래처수|매출액|이전대가|취득|처분|소계'
+                  r'|상여|판매비|관리비|수익에대한|합계$'
+                  r'|^[IVXⅠⅡⅢⅣ]+\.|USD|JPY|EUR|CNY|비$|료$')
+
 def parse_customers(h):
-    """재무제표 주석 '매출 10% 이상 외부고객' 표: {고객명(A사 등): 원(당기 누적/단일 — 보고서 기재값)}"""
+    """재무제표 주석 '매출 10% 이상 외부고객' 표: {고객명(A사 등): 원(당기 누적/단일 — 보고서 기재값)}
+    검증: 고객 표는 행 수가 적고(≤10) 행 이름이 재무제표 계정과목이 아니어야 함 —
+    앵커 뒤 창에 잡힌 비용·재무상태 주석 표를 배제."""
     for m in re.finditer(r'매출[^<]{0,40}10%[^<]{0,80}?(?:외부\s*고객|고객)', h):
         seg = h[m.start(): m.start() + 10000]
         mult = 1e3 if '천원' in seg[:1200] else (1e6 if '백만원' in seg[:1200] else 1e3)
         for tm in re.finditer(r'<TABLE[\s\S]*?</TABLE>', seg, re.I):
             t = tables(tm.group(0))[0]
             out = {}
+            fin = tot = 0
             for r in t:
                 if len(r) >= 2 and not _is_numlike(r[0]):
                     nm = r[0].strip()
-                    if nm.replace(' ', '') in ('구분', '합계', '계', '(단위:천원)', '(단위:백만원)') or '고객' in nm or '단위' in nm:
+                    key = nm.replace(' ', '')
+                    if key in ('구분', '합계', '계', '총계', '(단위:천원)', '(단위:백만원)') or '고객' in nm or '단위' in nm:
+                        continue
+                    tot += 1
+                    if FINW.search(key):
+                        fin += 1
                         continue
                     v = None
                     for c in r[1:]:
@@ -275,7 +290,7 @@ def parse_customers(h):
                             break
                     if v is not None and v > 0:
                         out[nm[:16]] = v * mult
-            if out:
+            if out and len(out) <= 10 and (tot == 0 or fin / tot <= 0.5):
                 return out
     return {}
 

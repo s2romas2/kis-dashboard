@@ -114,6 +114,8 @@ def unit_mult(h, pos):
     seg = h[max(0, pos - 3000):pos]
     if '백만원' in seg[-600:]:
         return 1e6
+    if '억원' in seg[-600:]:
+        return 1e8
     if '천원' in seg[-600:]:
         return 1e3
     return 1.0
@@ -277,14 +279,19 @@ def parse_customers(h):
                 return out
     return {}
 
+BL_KEYS = ('수주잔고', '수주잔액', '수주잔량', '수주총액')
+
 def parse_backlog(h):
-    """수주잔고 합계(원): 수주상황 표의 '합계' 행 마지막 금액"""
+    """수주잔고 합계(원): 수주상황 표의 '합계' 행 마지막 금액.
+    방산 대형사 대응: 표 헤더에 키워드가 없고 표 직전 서술문에만 있는 경우(KAI),
+    '수주잔액' 표기(LIG), 기(期)별 행 표(합계 없이 당기 1행)도 인식."""
     for m in re.finditer(r'<TABLE[\s\S]*?</TABLE>', h, re.I):
         t = tables(m.group(0))[0]
         if not t:
             continue
-        flat = ' '.join(' '.join(r) for r in t[:2])
-        if '수주잔고' not in flat and '수주총액' not in flat:
+        flat = ' '.join(' '.join(r) for r in t[:2]).replace(' ', '')
+        prose = re.sub(r'<[^>]+>', ' ', h[max(0, m.start() - 500):m.start()]).replace(' ', '')
+        if not any(k in flat for k in BL_KEYS) and not any(k in prose for k in BL_KEYS):
             continue
         mult = unit_mult(h, m.start())
         best = None
@@ -293,13 +300,19 @@ def parse_backlog(h):
             nums = [tonum(c) for c in r if tonum(c) is not None]
             if nums and any(j in ('합계', '계', '총계') for j in joined[:2]):
                 best = nums[-1] * mult
-        if best is None:  # 합계행 없으면 모든 행 마지막 값 합
-            s = 0
+        if best is None:  # 합계행 없음
+            rows = []
             for r in t[1:]:
                 nums = [tonum(c) for c in r if tonum(c) is not None]
                 if nums:
-                    s += nums[-1]
-            best = s * mult if s else None
+                    rows.append((r[0].replace(' ', ''), nums))
+            if not rows:
+                continue
+            if all(re.search(r'제?\d+기|20\d\d', lb) for lb, _ in rows):
+                # 기(期)별 행 표(LIG형): 첫 행=당기 잔액 — 합산하면 전기와 중복
+                best = rows[0][1][-1] * mult
+            else:  # 부문별 행 표(KAI형): 부문 합
+                best = sum(ns[-1] for _, ns in rows) * mult
         if best:
             return best
     return None

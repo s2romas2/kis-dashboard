@@ -248,8 +248,23 @@ function drawCh(){
     const msg='<b>정확한 의미:</b> 아래 차트는 틱톡 앱 안의 검색량이 아니라, <b>"TikTok Shop(틱톡 쇼핑 서비스)"라는 단어를 구글에서 검색한 관심도</b>입니다 — 틱톡 커머스가 소비자 사이에서 얼마나 화제인지를 보는 간접 지표. 틱톡 내부의 뷰티 브랜드 검색어·연령대별 데이터는 틱톡이 외부에 공개하지 않으며(수집 차단 직접 확인), <b>틱톡 비즈니스 계정으로 크롬에 로그인해두면 크리에이티브 센터의 뷰티 해시태그 순위·연령 분포를 수동 수집으로 가져올 수 있습니다.</b>';
     if(key==='tiktok_us'){
       const ch=(CD.channels||{})['tiktok_us'];
-      if(ch&&ch.status==='ok'){ // 크리에이티브 센터 수동 수집분 우선 표시 + 보조로 GT 차트
-        body.innerHTML=chGroups(ch);
+      if(ch&&ch.status==='ok'){ // 틱톡샵 자동 수집(에코틱) + 크리에이티브 센터 수동 수집분 + 보조 GT 차트
+        let shopHtml='';
+        try{
+          if(!window.TSHOP) window.TSHOP=await (await fetch('/data/tiktokshop.json?t='+Date.now())).json();
+          const S=window.TSHOP;
+          const mk=(items,krOnly)=>items.filter(x=>krOnly?x.kr:('Beauty'+'').length&&x.cat.includes('Beauty'))
+            .map(x=>({rk:x.rk+'위',n:x.n.slice(0,60)+(x.kr?' 🇰🇷':''),b:x.brand||undefined,c:x.cat.includes('Beauty')?'뷰티':x.cat.slice(0,10),corp:x.corp||undefined,
+              x:[x.sale?('일판매 '+x.sale):'',x.gmv?('GMV $'+x.gmv):''].filter(Boolean).join(' · ')||undefined}));
+          if(S&&S.daily){
+            const g=[{t:'🇰🇷 틱톡샵 실판매 — 한국 브랜드 (미국 전체 일간 TOP 20 내, 매일 자동)',items:mk(S.daily,true)},
+                     {t:'🛒 틱톡샵 실판매 — 뷰티 전체 (일간 TOP 20 내)',items:mk(S.daily,false)},
+                     {t:'🇰🇷 주간 TOP 20 내 한국 브랜드',items:mk(S.weekly||[],true)}].filter(g=>g.items.length);
+            shopHtml=`<div class="two">${g.map(x=>`<div class="chgrp"><div class="rk-h">${x.t}</div>${x.items.map(chRow).join('')}</div>`).join('')}</div>
+              <div class="hint">틱톡샵 순위는 EchoTik 공개 데이터로 <b>매일 자동 갱신</b>(비로그인 한도=전체 TOP 20, 판매수·GMV 수치는 미제공 — 수치까지 필요하면 크롬 로그인 수집 요청). 갱신 ${S.updated||''}</div>`;
+          }
+        }catch(e){}
+        body.innerHTML=shopHtml+chGroups(ch);
         note.innerHTML=chNote(ch,'보조 지표: 아래 차트는 "TikTok Shop" 구글 검색 관심도(미국). 갱신은 크롬이 열려 있을 때 "틱톡 순위 수집해줘"라고 요청.');
         if(ts.US){ cbox.style.display='';
           chC=lineChart('chChart',[{label:'"TikTok Shop" 구글 검색 관심도 (미국 지역)',data:ts.US}],null); }

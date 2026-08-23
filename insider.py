@@ -96,12 +96,15 @@ def parse_doc(rcept):
             if re.search(r'장내매수|장외매수|장내매도|신규선임|신규보고|주식배당|무상신주|유상신주|수증|증여|상속|전환|행사|취득|처분', v):
                 return v
         return ''
+    limit = rcept[:8]  # 접수일 — 매수일이 접수일보다 늦을 수 없음(각주의 상장예정일 등 오염 배제)
     def rowdate(vals):
         # 변동일(실제 매수일): "2026.08.01" / "2026-08-01" / "2026년 08월 01일" → YYYYMMDD
         for v in vals:
             m = re.search(r'(20\d{2})\s*[.\-/년]\s*(\d{1,2})\s*[.\-/월]\s*(\d{1,2})', v)
             if m:
-                return '%s%02d%02d' % (m.group(1), int(m.group(2)), int(m.group(3)))
+                d = '%s%02d%02d' % (m.group(1), int(m.group(2)), int(m.group(3)))
+                if d <= limit:
+                    return d
         return None
     qty, amt, reasons, bdates = 0, 0, set(), set()
     for row in rows:

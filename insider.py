@@ -96,7 +96,14 @@ def parse_doc(rcept):
             if re.search(r'장내매수|장외매수|장내매도|신규선임|신규보고|주식배당|무상신주|유상신주|수증|증여|상속|전환|행사|취득|처분', v):
                 return v
         return ''
-    qty, amt, reasons = 0, 0, set()
+    def rowdate(vals):
+        # 변동일(실제 매수일): "2026.08.01" / "2026-08-01" / "2026년 08월 01일" → YYYYMMDD
+        for v in vals:
+            m = re.search(r'(20\d{2})\s*[.\-/년]\s*(\d{1,2})\s*[.\-/월]\s*(\d{1,2})', v)
+            if m:
+                return '%s%02d%02d' % (m.group(1), int(m.group(2)), int(m.group(3)))
+        return None
+    qty, amt, reasons, bdates = 0, 0, set(), set()
     for row in rows:
         cm, cells = cellmap(row)
         if 'MDF_STK_SUM' in cm:
@@ -125,10 +132,14 @@ def parse_doc(rcept):
             amt += chg * price
             if reason:
                 reasons.add(re.sub(r'\([+\-]\)\s*$', '', reason).strip())
+            bd = rowdate(cells)
+            if bd:
+                bdates.add(bd)
     if amt < MIN_AMT:
         return None
     avg_price = round(amt / qty) if qty else None
     return {'name': name, 'position': position, 'qty': qty, 'amount': amt, 'price': avg_price,
+            'bfrom': min(bdates) if bdates else None, 'bto': max(bdates) if bdates else None,
             'reason': ', '.join(sorted(reasons)) if reasons else ('장내매수' if BUY_ONLY else '취득')}
 
 def main():
@@ -150,7 +161,8 @@ def main():
             'code': scode, 'name': cname, 'corp_code': corp,
             'insider': r['name'], 'position': r['position'],
             'qty': r['qty'], 'amount': r['amount'], 'amountEok': round(r['amount'] / 1e8, 1),
-            'price': r['price'], 'date': dt, 'reason': r.get('reason', ''),
+            'price': r['price'], 'date': dt, 'buyFrom': r.get('bfrom'), 'buyTo': r.get('bto'),
+            'reason': r.get('reason', ''),
             'link': 'https://dart.fss.or.kr/dsaf001/main.do?rcpNo=' + rcept,
             'src': '공시원문 취득단가'
         })

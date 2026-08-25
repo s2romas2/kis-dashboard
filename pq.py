@@ -25,6 +25,7 @@ GROUPS = [
     ('OSAT·테스트 (Q 1차)', [('172670', '에이엘티'), ('131970', '두산테스나'), ('330860', '네패스아크'), ('061970', '엘비세미콘')]),
     ('팹 인프라 (Q 2차)', [('045100', '한양이엔지'), ('011560', '세보엠이씨'), ('029460', '케이씨'), ('396470', '워트'), ('445180', '퓨릿'), ('083450', 'GST'), ('417840', '저스템')]),
     ('전공정 장비 (Q 3차)', [('240810', '원익IPS'), ('084370', '유진테크'), ('095610', '테스')]),
+    ('메모리 제조 (P 최종 수혜)', [('005930', '삼성전자'), ('000660', 'SK하이닉스')]),
 ]
 # 계약부채(선수금) 추적 — 장비 발주 선행
 CL_CODES = [('240810', '원익IPS'), ('084370', '유진테크'), ('095610', '테스'),
@@ -237,6 +238,60 @@ def g_news(query, prev, pat=None):
         DEBUG.append('news(%s) 실패 %r' % (query[:20], str(e)[:40]))
     return items[-20:]
 
+DXI_ITEMS = {'DDR5 16Gb (2Gx8) 4800/5600': 'DDR5 16Gb', 'DDR4 16Gb (2Gx8) 3200': 'DDR4 16Gb',
+             'DDR4 8Gb (1Gx8) 3200': 'DDR4 8Gb', 'DDR3 4Gb 512Mx8 1600/1866': 'DDR3 4Gb'}
+
+def g_dramspot(prev):
+    """DRAMeXchange 일간 현물가(Daily Avg) → {date: {품목: avg}}"""
+    out = dict(prev or {})
+    try:
+        h = html('https://www.dramexchange.com/', 40)
+        today = time.strftime('%Y-%m-%d')
+        row = {}
+        for tr in re.findall(r'<tr[^>]*>([\s\S]*?)</tr>', h, re.I):
+            cells = [re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', '', c)).strip()
+                     for c in re.findall(r'<td[^>]*>([\s\S]*?)</td>', tr, re.I)]
+            if len(cells) >= 6 and cells[0] in DXI_ITEMS:
+                v = tonum(cells[5])
+                if v:
+                    row[DXI_ITEMS[cells[0]]] = v
+        if row:
+            out[today] = row
+            DEBUG.append('DRAM현물 %d품목' % len(row))
+        # 400일 초과분 정리
+        ks = sorted(out)
+        if len(ks) > 400:
+            for k in ks[:-400]:
+                out.pop(k, None)
+    except Exception as e:
+        DEBUG.append('DRAM현물 실패 %r' % str(e)[:40])
+    return out
+
+def micron(prev):
+    """마이크론(MU) 분기 매출·영업이익 (백만$) — yfinance"""
+    try:
+        import yfinance as yf
+        t = yf.Ticker('MU')
+        df = t.quarterly_income_stmt
+        q = dict((prev or {}).get('q') or {})
+        for col in df.columns:
+            try:
+                rev = df.loc['Total Revenue', col]
+                op = df.loc['Operating Income', col]
+            except Exception:
+                continue
+            if rev != rev:  # NaN
+                continue
+            y, m = col.year, col.month
+            qn = (m - 1) // 3 + 1
+            q['%02dQ%d' % (y % 100, qn)] = [round(float(rev) / 1e6, 0), round(float(op) / 1e6, 0) if op == op else None]
+        if q:
+            DEBUG.append('MU %d분기' % len(q))
+            return {'n': '마이크론(MU)', 'q': q, 'unit': '백만$'}
+    except Exception as e:
+        DEBUG.append('MU 실패 %r' % str(e)[:50])
+    return prev
+
 def main():
     prev = {}
     if os.path.exists(OUT):
@@ -286,7 +341,9 @@ def main():
     g['semi'] = g_news('SEMI North America semiconductor equipment billings', g.get('semi'), r'billing')
     g['tsmc'] = g_news('TSMC monthly revenue', g.get('tsmc'), r'revenue')
     g['asml'] = g_news('ASML bookings orders quarterly', g.get('asml'), r'booking|order')
+    g['dxi'] = g_dramspot(g.get('dxi'))
     out['global'] = g
+    out['mu'] = micron(prev.get('mu'))
     out['debug'] = DEBUG[-20:]
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     # 빈 결과 덮어쓰기 방지: 이전보다 심하게 줄면 이전 유지

@@ -116,7 +116,7 @@ function drawKR(){
     const unit=k=>{const [d,w]=src[k]; return w?d/w:null;};
     const b0=base?unit(base):1;
     const ds=[{type:'line',label:'단가지수(P)',data:ks.map(k=>{const u=unit(k);return u&&b0?Math.round(u/b0*1000)/10:null;}),borderColor:'#d92d20',backgroundColor:'#d92d20',pointRadius:0,borderWidth:2,yAxisID:'y'},
-      {type:'bar',label:'물량 톤(Q)',data:ks.map(k=>src[k][1]),backgroundColor:'#a8c3f8',yAxisID:'y1'}];
+      {type:'bar',label:'물량 톤(Q·출하량 프록시)',data:ks.map(k=>src[k][1]),backgroundColor:'#a8c3f8',yAxisID:'y1'}];
     if(all&&mem){ const uk=Object.keys(all).sort(); const ab=uk.find(k=>all[k][1]>0);
       const au=k=>{const[d,w]=all[k];return w?d/w:null;}; const ab0=ab?au(ab):1;
       ds.push({type:'line',label:'반도체 전체 단가지수',data:ks.map(k=>{const u=all[k]?au(k):null;return u&&ab0?Math.round(u/ab0*1000)/10:null;}),borderColor:'#f2a33c',backgroundColor:'#f2a33c',pointRadius:0,borderWidth:1.5,borderDash:[4,3],yAxisID:'y'}); }
@@ -139,11 +139,27 @@ function drawKR(){
         {type:'line',label:'OPM%',data:ks.map(k=>{const [rv,op]=x.q[k];return rv&&op!=null?Math.round(op/rv*1000)/10:null;}),borderColor:'#d92d20',pointRadius:2,borderWidth:2,yAxisID:'y1'}],true);
     });
   });
-  // ③ 계약부채
-  const clRows=Object.entries(cl);
+  // 마이크론(해외) — 메모리 제조 그룹 뒤에 부착
+  if(PQ.mu && PQ.mu.q){
+    const div=document.createElement('div');
+    div.innerHTML=`<div class="gname">메모리 제조 — 해외 (마이크론, 단위 백만$)</div><div class="grid2">
+      <div><div style="font-size:12px;font-weight:700;margin-bottom:2px">${PQ.mu.n}</div>
+      <div class="cv" style="height:170px"><canvas id="gMU"></canvas></div></div></div>`;
+    gEl.appendChild(div);
+    const ks=Object.keys(PQ.mu.q).sort();
+    line('gMU',ks,[
+      {type:'bar',label:'매출(백만$)',data:ks.map(k=>PQ.mu.q[k][0]),backgroundColor:'#a8c3f8',yAxisID:'y'},
+      {type:'line',label:'OPM%',data:ks.map(k=>{const [rv,op]=PQ.mu.q[k];return rv&&op!=null?Math.round(op/rv*1000)/10:null;}),borderColor:'#d92d20',pointRadius:2,borderWidth:2,yAxisID:'y1'}],true);
+  }
+  // ③ 계약부채 — 데이터 3점 미만 종목은 제외(그래프 오염 방지)
+  const clRows=Object.entries(cl).filter(([c,x])=>Object.values(x.q).filter(v=>v!=null).length>=3);
   if(clRows.length){ const allQ=[...new Set(clRows.flatMap(([c,x])=>Object.keys(x.q)))].sort();
     const colors=['#d92d20','#2f6df6','#12b76a','#f2a33c','#7a5af8','#667085'];
-    line('cCL',allQ,clRows.map(([c,x],i)=>({type:'line',label:x.n,data:allQ.map(q=>x.q[q]??null),borderColor:colors[i%6],backgroundColor:colors[i%6],pointRadius:2,borderWidth:2,spanGaps:true}))); }
+    line('cCL',allQ,clRows.map(([c,x],i)=>({type:'line',label:x.n,data:allQ.map(q=>x.q[q]??null),borderColor:colors[i%6],backgroundColor:colors[i%6],pointRadius:2,borderWidth:2,spanGaps:true})));
+    const skipped=Object.values(cl).length-clRows.length;
+    if(skipped>0){ const el=document.querySelector('#cCL').closest('.card').querySelector('.d');
+      el.innerHTML+=` <span style="color:#98a2b3">(공시 데이터가 3분기 미만인 ${skipped}개사는 차트에서 제외)</span>`; } }
+  else { const c=document.getElementById('cCL'); if(c) c.closest('.card').style.display='none'; }
   // ④ 가동률 — qdeep 연동
   loadUtil();
 }
@@ -168,6 +184,16 @@ function drawGL(){
     <div class="glist">${(items&&items.length)?items.slice().reverse().slice(0,10).map(x=>
       `<a href="${x.u}" target="_blank">${x.t}<div class="gd">${x.d||''}${x.pct!=null?' · '+x.pct+'%':''}</div></a>`).join(''):'<div class="loading">수집 대기</div>'}</div></div>`;
   let h='';
+  // DRAM 현물가 일간 차트 (DRAMeXchange Daily Avg)
+  const dxi=g.dxi||{};
+  const dK=Object.keys(dxi).sort();
+  if(dK.length){
+    const items=[...new Set(dK.flatMap(d=>Object.keys(dxi[d])))];
+    const last=dxi[dK[dK.length-1]];
+    h+=`<div class="card"><h2>💾 DRAM 현물가 (달러, 매일 자동 수집)</h2>
+      <div class="d">DRAMeXchange 일평균 현물가. <b>P의 기울기를 매일 확인하는 최선행 지표.</b> 최신: ${items.map(i=>`${i} <b>$${last[i]??'—'}</b>`).join(' · ')} (${dK[dK.length-1]})</div>
+      <div class="cv" style="height:230px"><canvas id="cDXI"></canvas></div></div>`;
+  }
   const sia=g.sia||[];
   if(sia.some(x=>x.pct!=null)){
     h+=`<div class="card"><h2>WSTS/SIA 세계 반도체 매출 — 보도 수치</h2><div class="d">월간 발표(2개월 시차). 제목에서 추출한 증감률.</div><div class="cv" style="height:180px"><canvas id="cSIA"></canvas></div></div>`;
@@ -178,6 +204,12 @@ function drawGL(){
   h+=card('🏭 TSMC 월매출','파운드리 가동 온도계(매월 10일경).',g.tsmc);
   h+=card('📥 ASML 수주(bookings)','장비 발주의 글로벌 최선행 — 국내 장비주 계약부채의 원조 버전.',g.asml);
   document.getElementById('body').innerHTML=h;
+  if(dK.length){
+    const items=[...new Set(dK.flatMap(d=>Object.keys(dxi[d])))];
+    const colors=['#d92d20','#2f6df6','#12b76a','#f2a33c'];
+    line('cDXI',dK,items.map((it,i)=>({type:'line',label:it,data:dK.map(d=>dxi[d][it]??null),
+      borderColor:colors[i%4],backgroundColor:colors[i%4],pointRadius:1.5,borderWidth:2,spanGaps:true})));
+  }
   if(sia.some(x=>x.pct!=null)){
     const pts=sia.filter(x=>x.pct!=null);
     line('cSIA',pts.map(x=>x.d),[{type:'bar',label:'보도 증감률%',data:pts.map(x=>x.pct),backgroundColor:'#a8c3f8'}]);

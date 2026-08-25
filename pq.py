@@ -61,7 +61,7 @@ def customs(prev):
     endm = datetime.date.today().strftime('%Y%m')
     for name, hs in [('반도체', '8542'), ('메모리', '854232')]:
         try:
-            q = ('/1220000/itemtrade/getItemtradeList?serviceKey=%s&strtYymm=202001&endYymm=%s&hsSgn=%s'
+            q = ('/1220000/nitemtrade/getNitemtradeList?serviceKey=%s&strtYymm=202001&endYymm=%s&hsSgn=%s'
                  % (CUSTOMS_KEY, endm, hs))
             x = ''
             last = None
@@ -95,7 +95,15 @@ def customs(prev):
 
 # ── DART 공통 ──
 def corp_map():
-    b = fetch('%s/corpCode.xml?crtfc_key=%s' % (BASE, DART_KEY), 90)
+    b = b''
+    for i in range(4):
+        try:
+            b = urllib.request.urlopen('%s/corpCode.xml?crtfc_key=%s' % (BASE, DART_KEY), timeout=90).read()
+            if b[:2] == b'PK':
+                break
+        except Exception:
+            pass
+        time.sleep(5 * (i + 1))
     z = zipfile.ZipFile(io.BytesIO(b))
     root = ET.fromstring(z.read(z.namelist()[0]))
     m = {}
@@ -273,6 +281,8 @@ def main():
     g = dict(prev.get('global') or {})
     g['tf'] = g_trendforce(g.get('tf'))
     g['sia'] = g_sia(g.get('sia'))
+    if not g['sia']:  # 직접 파싱 실패(러너 IP 차단 등) → 구글뉴스 폴백
+        g['sia'] = g_news('SIA global semiconductor sales monthly', g.get('sia'), r'[Ss]ales')
     g['semi'] = g_news('SEMI North America semiconductor equipment billings', g.get('semi'), r'billing')
     g['tsmc'] = g_news('TSMC monthly revenue', g.get('tsmc'), r'revenue')
     g['asml'] = g_news('ASML bookings orders quarterly', g.get('asml'), r'booking|order')

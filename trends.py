@@ -147,7 +147,7 @@ def exports(hsmap, prev_exp):
     ok = 0
     for name, hs in hsmap.items():
         try:
-            q = ('/1220000/itemtrade/getItemtradeList?serviceKey=%s'
+            q = ('/1220000/nitemtrade/getNitemtradeList?serviceKey=%s'
                  '&strtYymm=202001&endYymm=%s&hsSgn=%s' % (CUSTOMS_KEY, endm, hs))
             x = ''
             last = None

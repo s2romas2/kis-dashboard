@@ -1,0 +1,31 @@
+name: pq
+on:
+  schedule:
+    - cron: '50 21 * * 1-6'
+  workflow_dispatch: {}
+  push:
+    paths: ['pq.py']
+permissions:
+  contents: write
+jobs:
+  pq:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: P→Q 수집
+        env:
+          DART_KEY: ${{ secrets.DART_KEY }}
+          CUSTOMS_KEY: ${{ secrets.CUSTOMS_KEY }}
+        run: python pq.py
+      - name: 결과 커밋
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase -X ours origin main || true
+          git add public/data/pq.json
+          git commit -m "P→Q 사이클 지표 갱신" || echo "변경 없음"
+          git push

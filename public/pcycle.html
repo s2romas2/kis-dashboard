@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>반도체 P→Q 사이클 추적</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; background:#f4f6fa; color:#1a1f2e; }
+.wrap { max-width:1140px; margin:0 auto; padding:18px 14px 60px; }
+h1 { font-size:22px; margin:10px 0 4px; }
+.sub { color:#667085; font-size:13px; margin-bottom:12px; line-height:1.6; }
+.tabs { display:flex; gap:8px; margin-bottom:14px; }
+.tabs button { border:1.5px solid #d7dce6; background:#fff; border-radius:10px; padding:9px 18px; font:inherit; font-size:13.5px; font-weight:800; color:#475467; cursor:pointer; }
+.tabs button.on { background:#1a2a4a; border-color:#1a2a4a; color:#fff; }
+.sig { background:#fff; border:1px solid #e6e9f0; border-radius:14px; padding:12px 14px; margin-bottom:14px; }
+.sig h2 { font-size:14px; margin-bottom:8px; }
+.sigrow { display:flex; flex-wrap:wrap; gap:8px; }
+.sigbox { flex:1 1 160px; background:#f8fafc; border-radius:10px; padding:8px 10px; font-size:11.5px; color:#475467; }
+.sigbox b { font-size:13px; display:block; margin-top:2px; }
+.up { color:#d92d20; } .dn { color:#2f6df6; } .fl { color:#667085; }
+.card { background:#fff; border:1px solid #e6e9f0; border-radius:14px; padding:14px; margin-bottom:14px; }
+.card h2 { font-size:15px; margin-bottom:4px; }
+.card .d { font-size:12px; color:#8a93a2; margin-bottom:10px; line-height:1.5; }
+.cv { position:relative; height:260px; }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+@media (max-width:760px){ .grid2{ grid-template-columns:1fr; } }
+.glist a { display:block; padding:8px 10px; border-radius:8px; text-decoration:none; color:#1a1f2e; font-size:12.5px; line-height:1.5; }
+.glist a:hover { background:#f2f6fe; }
+.glist .gd { color:#98a2b3; font-size:11px; }
+.loading { text-align:center; color:#98a2b3; padding:30px 0; }
+.note { background:#fff7e8; border:1px solid #f5d9a8; border-radius:10px; padding:9px 13px; font-size:12px; color:#7a5b1e; margin-bottom:14px; line-height:1.6; }
+.gname { font-size:13px; font-weight:900; color:#1a2a4a; margin:6px 0 6px; }
+.links a { font-size:11px; color:#2f6df6; text-decoration:none; font-weight:700; margin-right:8px; }
+</style>
+</head>
+<body>
+<script src="/nav.js" defer></script>
+<div class="wrap">
+  <h1>🔄 반도체 P→Q 사이클 추적</h1>
+  <div class="sub">P(판가) 사이클이 끝나고 Q(출하·증설) 사이클로 넘어가는지를 지표로 대조 — 유통사 마진은 P의 '기울기'에, OSAT 가동률·장비 계약부채는 Q에 붙습니다. 결론은 지표가 말하게: P가 다시 기울기를 세우면 'P 연장'으로도 읽어야 합니다.</div>
+  <div class="tabs" id="tabs"></div>
+  <div id="body"><div class="loading">불러오는 중…</div></div>
+</div>
+<script>
+let PQ=null, TAB='kr', CHARTS=[];
+const QK=q=>q; // '24Q1'
+function mkTabs(){ document.getElementById('tabs').innerHTML=[['kr','🇰🇷 국내판'],['gl','🌍 글로벌판']]
+  .map(([k,l])=>`<button class="${TAB===k?'on':''}" onclick="setTab('${k}')">${l}</button>`).join(''); }
+window.setTab=t=>{ TAB=t; mkTabs(); draw(); };
+function destroyCharts(){ CHARTS.forEach(c=>{try{c.destroy()}catch(e){}}); CHARTS=[]; }
+function line(id,labels,dss,y2){
+  const el=document.getElementById(id); if(!el||typeof Chart==='undefined') return;
+  const c=new Chart(el,{data:{labels,datasets:dss},options:{responsive:true,maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{boxWidth:10,font:{size:10}}}},
+    scales:Object.assign({x:{ticks:{font:{size:9},maxTicksLimit:14}},y:{ticks:{font:{size:9}}}},
+      y2?{y1:{position:'right',grid:{drawOnChartArea:false},ticks:{font:{size:9}}}}:{})}});
+  CHARTS.push(c);
+}
+function arrow(cur,prev){ if(cur==null||prev==null) return ['—','fl'];
+  const d=cur-prev; if(Math.abs(d)<1e-9) return ['→','fl']; return d>0?['▲','up']:['▼','dn']; }
+function pct(cur,prev){ if(cur==null||!prev) return ''; return ((cur-prev)/Math.abs(prev)*100).toFixed(1)+'%'; }
+
+function sigSummary(){
+  const s=[];
+  // 수출 단가·물량 MoM (메모리 우선)
+  const exp=(PQ.exp||{})['메모리']||(PQ.exp||{})['반도체'];
+  if(exp){ const ks=Object.keys(exp).sort(); const n=ks.length;
+    if(n>=2){ const [d1,w1]=exp[ks[n-1]], [d0,w0]=exp[ks[n-2]];
+      const p1=w1?d1/w1:null, p0=w0?d0/w0:null;
+      const [a,c]=arrow(p1,p0); s.push([`수출 단가(P) ${ks[n-1]}`,`${a} ${pct(p1,p0)}`,c]);
+      const [a2,c2]=arrow(w1,w0); s.push([`수출 물량(Q) ${ks[n-1]}`,`${a2} ${pct(w1,w0)}`,c2]); } }
+  // 유통사 OPM 최근 분기
+  const dist=(PQ.qs||{})['031330'];
+  if(dist){ const ks=Object.keys(dist.q).sort(); const n=ks.length;
+    if(n>=2){ const m1=dist.q[ks[n-1]], m0=dist.q[ks[n-2]];
+      const o1=m1[1]!=null&&m1[0]?m1[1]/m1[0]*100:null, o0=m0[1]!=null&&m0[0]?m0[1]/m0[0]*100:null;
+      const [a,c]=arrow(o1,o0); s.push([`유통사 OPM ${ks[n-1]}`,`${a} ${o1!=null?o1.toFixed(1)+'%':'—'}`,c==='up'?'up':c]); } }
+  // 계약부채 합계
+  const cl=PQ.cl||{};
+  const sum={};
+  Object.values(cl).forEach(x=>Object.entries(x.q).forEach(([q,v])=>{sum[q]=(sum[q]||0)+v;}));
+  const cks=Object.keys(sum).sort();
+  if(cks.length>=2){ const [a,c]=arrow(sum[cks[cks.length-1]],sum[cks[cks.length-2]]);
+    s.push([`장비 계약부채 ${cks[cks.length-1]}`,`${a} ${pct(sum[cks[cks.length-1]],sum[cks[cks.length-2]])}`,c]); }
+  // 글로벌 SIA 최신
+  const sia=((PQ.global||{}).sia||[]).slice(-1)[0];
+  if(sia&&sia.pct!=null) s.push(['WSTS 세계매출(최신 보도)',`${sia.pct}%`,'fl']);
+  return s;
+}
+
+function drawKR(){
+  const exp=PQ.exp||{}, qs=PQ.qs||{}, cl=PQ.cl||{};
+  let h=`<div class="sig"><h2>📟 지표 요약 (최신 vs 직전)</h2><div class="sigrow">`+
+    sigSummary().map(([t,v,c])=>`<div class="sigbox">${t}<b class="${c}">${v}</b></div>`).join('')+
+    `</div></div>`;
+  if(!Object.keys(exp).length && !Object.keys(qs).length)
+    h+=`<div class="note">데이터 수집 대기 중 — GitHub Actions(pq) 첫 실행 후 채워집니다.</div>`;
+  h+=`<div class="card"><h2>① 수출 단가(P) vs 물량(Q) — 관세청 월간</h2>
+    <div class="d">단가 = 수출금액÷수출중량(달러/kg 상대지수). <b>단가 기울기가 눕고 물량이 서면 P→Q 전환.</b> 메모리(HS 854232)와 반도체 전체(HS 8542).</div>
+    <div class="cv"><canvas id="cExp"></canvas></div></div>`;
+  h+=`<div class="card"><h2>② 사이클 단계별 분기 매출·영업이익률</h2>
+    <div class="d">유통사 OPM이 평소(2~3%)로 회귀하면 P 청산 완료 → OSAT·인프라·장비 순으로 Q 릴레이가 켜지는지 확인. 카드의 OPM은 우축(%).</div>
+    <div id="grpCharts"></div></div>`;
+  h+=`<div class="card"><h2>③ 장비주 계약부채(선수금) — Q의 선행 예약</h2>
+    <div class="d">장비 발주가 들어오면 매출보다 먼저 계약부채가 차오릅니다. 분기말 잔액(억원).</div>
+    <div class="cv"><canvas id="cCL"></canvas></div></div>`;
+  h+=`<div class="card"><h2>④ OSAT 가동률 (딥다이브 연동)</h2>
+    <div class="d">분기보고서 공시 가동률 — 상세는 각 종목 딥다이브에서. </div><div id="utilBox" class="glist"><div class="loading">가동률 로드 중…</div></div></div>`;
+  document.getElementById('body').innerHTML=h;
+  // ① 수출
+  const mem=exp['메모리'], all=exp['반도체'];
+  if(mem||all){ const src=mem||all; const ks=Object.keys(src).sort();
+    const base=ks.find(k=>src[k][1]>0);
+    const unit=k=>{const [d,w]=src[k]; return w?d/w:null;};
+    const b0=base?unit(base):1;
+    const ds=[{type:'line',label:'단가지수(P)',data:ks.map(k=>{const u=unit(k);return u&&b0?Math.round(u/b0*1000)/10:null;}),borderColor:'#d92d20',backgroundColor:'#d92d20',pointRadius:0,borderWidth:2,yAxisID:'y'},
+      {type:'bar',label:'물량 톤(Q)',data:ks.map(k=>src[k][1]),backgroundColor:'#a8c3f8',yAxisID:'y1'}];
+    if(all&&mem){ const uk=Object.keys(all).sort(); const ab=uk.find(k=>all[k][1]>0);
+      const au=k=>{const[d,w]=all[k];return w?d/w:null;}; const ab0=ab?au(ab):1;
+      ds.push({type:'line',label:'반도체 전체 단가지수',data:ks.map(k=>{const u=all[k]?au(k):null;return u&&ab0?Math.round(u/ab0*1000)/10:null;}),borderColor:'#f2a33c',backgroundColor:'#f2a33c',pointRadius:0,borderWidth:1.5,borderDash:[4,3],yAxisID:'y'}); }
+    line('cExp',ks,ds,true); }
+  // ② 그룹
+  const gEl=document.getElementById('grpCharts');
+  (PQ.groups||[]).forEach(([gname,codes],gi)=>{
+    const rows=codes.map(c=>qs[c]).filter(Boolean);
+    if(!rows.length) return;
+    const div=document.createElement('div');
+    div.innerHTML=`<div class="gname">${gname}</div><div class="grid2">`+rows.map((x,i)=>
+      `<div><div style="font-size:12px;font-weight:700;margin-bottom:2px">${x.n}
+        <span class="links"><a href="/bands.html#${codes[i]}">밴드</a><a href="/deep.html#${codes[i]}">딥다이브</a></span></div>
+        <div class="cv" style="height:170px"><canvas id="g${gi}_${i}"></canvas></div></div>`).join('')+`</div>`;
+    gEl.appendChild(div);
+    rows.forEach((x,i)=>{
+      const ks=Object.keys(x.q).sort();
+      line(`g${gi}_${i}`,ks,[
+        {type:'bar',label:'매출(억)',data:ks.map(k=>x.q[k][0]),backgroundColor:'#a8c3f8',yAxisID:'y'},
+        {type:'line',label:'OPM%',data:ks.map(k=>{const [rv,op]=x.q[k];return rv&&op!=null?Math.round(op/rv*1000)/10:null;}),borderColor:'#d92d20',pointRadius:2,borderWidth:2,yAxisID:'y1'}],true);
+    });
+  });
+  // ③ 계약부채
+  const clRows=Object.entries(cl);
+  if(clRows.length){ const allQ=[...new Set(clRows.flatMap(([c,x])=>Object.keys(x.q)))].sort();
+    const colors=['#d92d20','#2f6df6','#12b76a','#f2a33c','#7a5af8','#667085'];
+    line('cCL',allQ,clRows.map(([c,x],i)=>({type:'line',label:x.n,data:allQ.map(q=>x.q[q]??null),borderColor:colors[i%6],backgroundColor:colors[i%6],pointRadius:2,borderWidth:2,spanGaps:true}))); }
+  // ④ 가동률 — qdeep 연동
+  loadUtil();
+}
+async function loadUtil(){
+  const box=document.getElementById('utilBox'); if(!box) return;
+  const codes=[['172670','에이엘티'],['131970','두산테스나'],['330860','네패스아크'],['061970','엘비세미콘']];
+  const out=[];
+  for(const [c,n] of codes){
+    try{ const d=await (await fetch('/data/qdeep/'+c+'.json?t='+Date.now())).json();
+      const u=(d.util||{})['전체']||Object.values(d.util||{})[0];
+      if(u){ const last=[...u].reverse().findIndex(x=>x!=null);
+        const idx=last>=0?u.length-1-last:-1;
+        out.push(`<a href="/deep.html#${c}"><b>${n}</b> — 가동률 ${idx>=0?u[idx]+'% ('+d.quarters[idx]+')':'—'} <span class="gd">딥다이브에서 시계열 →</span></a>`); }
+      else out.push(`<a href="/deep.html#${c}"><b>${n}</b> — 수집 대기(다음 배치) <span class="gd">딥다이브 →</span></a>`);
+    }catch(e){ out.push(`<a href="/deep.html#${c}"><b>${n}</b> — 수집 대기(다음 배치)</a>`); }
+  }
+  box.innerHTML=out.join('');
+}
+function drawGL(){
+  const g=PQ.global||{};
+  const card=(t,d,items,extra)=>`<div class="card"><h2>${t}</h2><div class="d">${d}</div>${extra||''}
+    <div class="glist">${(items&&items.length)?items.slice().reverse().slice(0,10).map(x=>
+      `<a href="${x.u}" target="_blank">${x.t}<div class="gd">${x.d||''}${x.pct!=null?' · '+x.pct+'%':''}</div></a>`).join(''):'<div class="loading">수집 대기</div>'}</div></div>`;
+  let h='';
+  const sia=g.sia||[];
+  if(sia.some(x=>x.pct!=null)){
+    h+=`<div class="card"><h2>WSTS/SIA 세계 반도체 매출 — 보도 수치</h2><div class="d">월간 발표(2개월 시차). 제목에서 추출한 증감률.</div><div class="cv" style="height:180px"><canvas id="cSIA"></canvas></div></div>`;
+  }
+  h+=card('🇹🇼 DRAM·NAND 가격 동향 — 트렌드포스','주간 현물가·계약가 보도자료. P 기울기의 최선행.',g.tf);
+  h+=card('🌐 WSTS/SIA 월간 세계 매출','글로벌 출하(Q)의 표준 지표.',g.sia);
+  h+=card('🔧 SEMI 북미 장비 빌링','장비 출하액(월간) — Q 사이클의 직접 증거.',g.semi);
+  h+=card('🏭 TSMC 월매출','파운드리 가동 온도계(매월 10일경).',g.tsmc);
+  h+=card('📥 ASML 수주(bookings)','장비 발주의 글로벌 최선행 — 국내 장비주 계약부채의 원조 버전.',g.asml);
+  document.getElementById('body').innerHTML=h;
+  if(sia.some(x=>x.pct!=null)){
+    const pts=sia.filter(x=>x.pct!=null);
+    line('cSIA',pts.map(x=>x.d),[{type:'bar',label:'보도 증감률%',data:pts.map(x=>x.pct),backgroundColor:'#a8c3f8'}]);
+  }
+}
+function draw(){ destroyCharts(); if(!PQ){return;} (TAB==='kr'?drawKR:drawGL)(); }
+async function init(){
+  mkTabs();
+  try{ PQ=await (await fetch('/data/pq.json?t='+Date.now())).json(); }
+  catch(e){ PQ={exp:{},qs:{},cl:{},groups:[],global:{}};
+    document.getElementById('body').innerHTML='<div class="note">pq.json이 아직 없습니다 — GitHub Actions(pq) 첫 실행 후 지표가 채워집니다.</div>'; return; }
+  draw();
+}
+init();
+</script>
+</body>
+</html>

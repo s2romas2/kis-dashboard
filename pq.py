@@ -337,7 +337,7 @@ def main():
     g['tf'] = g_trendforce(g.get('tf'))
     g['sia'] = g_sia(g.get('sia'))
     if not g['sia']:  # 직접 파싱 실패(러너 IP 차단 등) → 구글뉴스 폴백
-        g['sia'] = g_news('SIA global semiconductor sales monthly', g.get('sia'), r'[Ss]ales')
+        g['sia'] = g_news('global semiconductor sales SIA WSTS billion', g.get('sia'), r'sales')
     g['semi'] = g_news('SEMI North America semiconductor equipment billings', g.get('semi'), r'billing')
     g['tsmc'] = g_news('TSMC monthly revenue', g.get('tsmc'), r'revenue')
     g['asml'] = g_news('ASML bookings orders quarterly', g.get('asml'), r'booking|order')

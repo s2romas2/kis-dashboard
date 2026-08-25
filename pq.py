@@ -63,12 +63,20 @@ def customs(prev):
         try:
             q = ('/1220000/itemtrade/getItemtradeList?serviceKey=%s&strtYymm=202001&endYymm=%s&hsSgn=%s'
                  % (CUSTOMS_KEY, endm, hs))
-            x = b''
-            for base in ('http://apis.data.go.kr', 'https://apis.data.go.kr'):
-                x = fetch(base + q, 110, 2)
-                if x:
-                    break
-            root = ET.fromstring(x.decode('utf-8', 'ignore'))
+            x = ''
+            last = None
+            # trends.py와 동일한 호출 방식(UA·SSL컨텍스트 없이) — data.go.kr는 기본 urlopen이 안정적
+            for base in ('http://apis.data.go.kr', 'https://apis.data.go.kr', 'http://apis.data.go.kr'):
+                try:
+                    x = urllib.request.urlopen(base + q, timeout=110).read().decode('utf-8', 'ignore')
+                    if x:
+                        break
+                except Exception as e2:
+                    last = e2
+                    time.sleep(3)
+            if not x:
+                raise last or Exception('빈 응답')
+            root = ET.fromstring(x)
             ser = dict(out.get(name) or {})
             for it in root.iter('item'):
                 ym = (it.findtext('year') or '').strip()
@@ -98,39 +106,46 @@ def corp_map():
     return m
 
 def q_financials(corp):
-    """분기 [매출, 영업이익] (누적 차감, 연결 우선) → {'23Q1':[rv,op], ...} (억원)"""
-    cum = {}
+    """분기 [매출, 영업이익] (억원). fnlttSinglAcnt: Q1~Q3(반기 포함) thstrm_amount=해당 3개월 단일분기,
+    사업보고서(Q4)만 연간 누적 → Q4 = 연간 - 3Q누적(thstrm_add_amount)."""
+    raw = {}
     for y in YEARS:
         for qn, rc in REPRT.items():
             d = jget('%s/fnlttSinglAcnt.json?crtfc_key=%s&corp_code=%s&bsns_year=%d&reprt_code=%s'
                      % (BASE, DART_KEY, corp, y, rc))
-            rows = d.get('list') or []
-            best = {}
-            for r in rows:
-                if r.get('fs_div') == 'CFS' or (r.get('fs_div') == 'OFS' and r.get('account_nm') not in best):
-                    nm = (r.get('account_nm') or '').replace(' ', '')
-                    if nm in ('매출액', '영업수익') and ('매출' not in best or r.get('fs_div') == 'CFS'):
-                        best['매출'] = (tonum(r.get('thstrm_amount')), r.get('fs_div'))
-                    if nm == '영업이익' and ('영업' not in best or r.get('fs_div') == 'CFS'):
-                        best['영업'] = (tonum(r.get('thstrm_amount')), r.get('fs_div'))
-            rv = best.get('매출', (None,))[0]
-            op = best.get('영업', (None,))[0]
-            if rv is not None:
-                cum[(y, qn)] = [rv, op]
-            time.sleep(0.15)
+            slot = {}
+            for r in (d.get('list') or []):
+                fs = r.get('fs_div')
+                nm = (r.get('account_nm') or '').replace(' ', '')
+                cur = tonum(r.get('thstrm_amount'))
+                cum = tonum(r.get('thstrm_add_amount'))
+                if cur is None:
+                    continue
+                key = ('rv' if nm in ('매출액', '수익(매출액)', '영업수익')
+                       else 'op' if nm in ('영업이익', '영업이익(손실)') else None)
+                if not key:
+                    continue
+                if slot.get(key + '_fs') == 'CFS' and fs != 'CFS':
+                    continue
+                slot[key] = {'cur': cur, 'cum': cum if cum is not None else cur}
+                slot[key + '_fs'] = fs
+            if slot:
+                raw[(y, qn)] = slot
+            time.sleep(0.1)
     out = {}
-    for (y, qn), (rv, op) in sorted(cum.items()):
-        if qn == 1:
-            prv = None
-        else:
-            prv = cum.get((y, qn - 1))
-        if qn == 1 or not prv:
-            qrv, qop = (rv, op) if qn == 1 else (None, None)
-        else:
-            qrv = rv - prv[0] if (rv is not None and prv[0] is not None) else None
-            qop = op - prv[1] if (op is not None and prv[1] is not None) else None
-        if qrv is not None:
-            out['%02dQ%d' % (y % 100, qn)] = [round(qrv / 1e8, 0), round(qop / 1e8, 0) if qop is not None else None]
+    for (y, qn), s in sorted(raw.items()):
+        def single(key):
+            if key not in s:
+                return None
+            if qn in (1, 2, 3):
+                return s[key]['cur']
+            fy = s[key]['cur']
+            p3 = raw.get((y, 3), {}).get(key, {})
+            nine = p3.get('cum', p3.get('cur'))
+            return (fy - nine) if (fy is not None and nine is not None) else None
+        rv, op = single('rv'), single('op')
+        if rv is not None:
+            out['%02dQ%d' % (y % 100, qn)] = [round(rv / 1e8, 0), round(op / 1e8, 0) if op is not None else None]
     return out
 
 def contract_liab(corp):
@@ -168,8 +183,9 @@ def g_trendforce(prev):
     seen = {x['u'] for x in items}
     try:
         h = html('https://www.trendforce.com/presscenter/news/')
-        for m in re.finditer(r'<a[^>]+href="(https://www\.trendforce\.com/presscenter/news/[^"]+)"[^>]*>\s*([^<]{15,160})</a>', h):
-            u, t = m.group(1), re.sub(r'\s+', ' ', m.group(2)).strip()
+        for m in re.finditer(r'href=["\'](/presscenter/news/\d{8}-\d+\.html)["\'][^>]*>([\s\S]{0,300}?)</a>', h):
+            u = 'https://www.trendforce.com' + m.group(1)
+            t = re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', '', m.group(2))).strip()
             if re.search(r'DRAM|NAND|Memory|HBM', t, re.I) and u not in seen:
                 items.append({'d': time.strftime('%Y-%m-%d'), 't': t, 'u': u})
                 seen.add(u)
@@ -183,8 +199,9 @@ def g_sia(prev):
     seen = {x['u'] for x in items}
     try:
         h = html('https://www.semiconductors.org/news-events/latest-news/')
-        for m in re.finditer(r'<a[^>]+href="(https://www\.semiconductors\.org/[^"]+)"[^>]*>\s*([^<]{15,180})</a>', h):
-            u, t = m.group(1), re.sub(r'\s+', ' ', m.group(2)).strip()
+        for m in re.finditer(r'<a[^>]+href=["\'](https://www\.semiconductors\.org/[^"\']+)["\'][^>]*>([\s\S]{0,300}?)</a>', h):
+            u = m.group(1)
+            t = re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', '', m.group(2))).strip()
             if re.search(r'Semiconductor Sales', t, re.I) and u not in seen:
                 pct = re.search(r'(\d+(?:\.\d+)?)%', t)
                 items.append({'d': time.strftime('%Y-%m-%d'), 't': t, 'u': u, 'pct': float(pct.group(1)) if pct else None})

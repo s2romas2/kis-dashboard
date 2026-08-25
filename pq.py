@@ -4,7 +4,7 @@
 #       ② 감시 종목군 분기 매출·영업이익(fnlttSinglAcnt, 연결 우선)
 #       ③ 장비주 계약부채(fnlttSinglAcntAll — Q의 선행)
 # 글로벌: 트렌드포스(DRAM 현물가)·SIA(WSTS 월간 매출)·구글뉴스(SEMI 빌링·TSMC 월매출·ASML 수주)
-# 결과: public/data/pq.json (히스토리 누적 — 기존 값 보존)
+# 결과: public/data/pq.json (히스토리 누적 — 기존 값 보존) [r2]
 import os, sys, json, time, re, io, zipfile, urllib.request, urllib.parse, ssl, datetime
 import xml.etree.ElementTree as ET
 

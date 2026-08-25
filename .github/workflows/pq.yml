@@ -23,12 +23,15 @@ jobs:
           DART_KEY: ${{ secrets.DART_KEY }}
           CUSTOMS_KEY: ${{ secrets.CUSTOMS_KEY }}
         run: python pq.py
+      - name: 섹터 뉴스 수집
+        run: python sectornews.py || true
       - name: 결과 커밋
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add public/data/pq.json 2>/dev/null || true
+          git add public/data/sectornews.json 2>/dev/null || true
           git commit -m "P→Q 사이클 지표 갱신" || echo "변경 없음"
           git pull --rebase -X theirs origin main || true
           git push || true

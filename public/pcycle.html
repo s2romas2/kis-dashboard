@@ -97,9 +97,10 @@ function drawKR(){
     `</div></div>`;
   if(!Object.keys(exp).length && !Object.keys(qs).length)
     h+=`<div class="note">데이터 수집 대기 중 — GitHub Actions(pq) 첫 실행 후 채워집니다.</div>`;
+  const hasExp=Object.keys(exp).some(k=>Object.keys(exp[k]||{}).length);
   h+=`<div class="card"><h2>① 수출 단가(P) vs 물량(Q) — 관세청 월간</h2>
     <div class="d">단가 = 수출금액÷수출중량(달러/kg 상대지수). <b>단가 기울기가 눕고 물량이 서면 P→Q 전환.</b> 메모리(HS 854232)와 반도체 전체(HS 8542).</div>
-    <div class="cv"><canvas id="cExp"></canvas></div></div>`;
+    ${hasExp?'<div class="cv"><canvas id="cExp"></canvas></div>':'<div class="note">관세청이 기존 API를 폐기하고 새 서비스로 이전해 재승인이 필요합니다 — data.go.kr에서 "관세청_품목별 수출입실적(GW)" 활용신청 후 자동으로 채워집니다.</div>'}</div>`;
   h+=`<div class="card"><h2>② 사이클 단계별 분기 매출·영업이익률</h2>
     <div class="d">유통사 OPM이 평소(2~3%)로 회귀하면 P 청산 완료 → OSAT·인프라·장비 순으로 Q 릴레이가 켜지는지 확인. 카드의 OPM은 우축(%).</div>
     <div id="grpCharts"></div></div>`;

@@ -24,10 +24,11 @@ jobs:
           CUSTOMS_KEY: ${{ secrets.CUSTOMS_KEY }}
         run: python pq.py
       - name: 결과 커밋
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git pull --rebase -X ours origin main || true
-          git add public/data/pq.json
+          git add public/data/pq.json 2>/dev/null || true
           git commit -m "P→Q 사이클 지표 갱신" || echo "변경 없음"
-          git push
+          git pull --rebase -X theirs origin main || true
+          git push || true

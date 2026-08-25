@@ -66,6 +66,17 @@ function draw(){
   document.getElementById('chips').innerHTML=DATA.sectors.map(x=>
     `<button class="${x.k===s.k?'on':''}" onclick="go('${x.k}')">${x.i} ${x.n}</button>`).join('');
   let h=`<div class="oneline">${s.i} ${s.oneline}</div>`;
+  // 🧭 흐름의 이동 (지역·구조 변화 타임라인)
+  if(s.shift){
+    h+=`<div class="card"><h2>${s.shift.t}</h2>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">`+
+      s.shift.steps.map((st,i)=>`<div style="flex:1 1 200px;min-width:190px;background:#f8fafc;border-radius:10px;padding:9px 11px;position:relative">
+        <div style="font-size:11px;font-weight:900;color:#2f6df6;margin-bottom:3px">${st.y}${i<s.shift.steps.length-1?' →':''}</div>
+        <div style="font-size:11.5px;color:#475467;line-height:1.55">${st.d}</div></div>`).join('')+
+      `</div>`+
+      (s.shift.pts&&s.shift.pts.length?`<div style="font-size:12px;color:#475467;line-height:1.7">${s.shift.pts.map(p=>'· '+p).join('<br>')}</div>`:'')+
+      `</div>`;
+  }
   h+=`<div class="flowrow">`+s.chain.map((c,i)=>{
     const stage=`<div class="stage ${c.st}"><span class="badge">${c.badge}</span><h3>${c.name}</h3>
       <div class="desc">${c.desc}</div>

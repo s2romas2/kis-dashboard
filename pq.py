@@ -239,7 +239,49 @@ def g_news(query, prev, pat=None):
     return items[-20:]
 
 DXI_ITEMS = {'DDR5 16Gb (2Gx8) 4800/5600': 'DDR5 16Gb', 'DDR4 16Gb (2Gx8) 3200': 'DDR4 16Gb',
-             'DDR4 8Gb (1Gx8) 3200': 'DDR4 8Gb', 'DDR3 4Gb 512Mx8 1600/1866': 'DDR3 4Gb'}
+             'DDR4 8Gb (1Gx8) 3200': 'DDR4 8Gb', 'DDR3 4Gb 512Mx8 1600/1866': 'DDR3 4Gb',
+             '512Gb TLC': 'NAND 512Gb', '256Gb TLC': 'NAND 256Gb', '128Gb TLC': 'NAND 128Gb'}
+
+# 월별 고정거래가(계약가) 시드 — 매월 초 트렌드포스 발표 보도값 (백필: 뉴스 확인치만)
+FIXED_SEED = {
+ '2025-08': {'DDR4 8Gb': 5.70, 'NAND 128Gb': 3.42}, '2025-09': {'DDR4 8Gb': 6.30, 'NAND 128Gb': 3.79},
+ '2025-10': {'DDR4 8Gb': 7.00, 'NAND 128Gb': 4.35}, '2025-11': {'DDR4 8Gb': 8.10, 'NAND 128Gb': 5.19},
+ '2025-12': {'DDR4 8Gb': 9.30, 'NAND 128Gb': 5.74}, '2026-01': {'DDR4 8Gb': 11.50, 'NAND 128Gb': 9.46},
+ '2026-02': {'DDR4 8Gb': 13.00, 'NAND 128Gb': 12.67}, '2026-03': {'DDR4 8Gb': 13.00, 'NAND 128Gb': 17.73},
+ '2026-04': {'DDR4 8Gb': 16.00, 'NAND 128Gb': 24.26}, '2026-05': {'DDR4 8Gb': 20.00, 'NAND 128Gb': 26.51},
+ '2026-06': {'DDR4 8Gb': 21.00, 'NAND 128Gb': 28.82}, '2026-07': {'DDR4 8Gb': 24.00, 'NAND 128Gb': 30.10},
+}
+
+def tr_ko(text):
+    """영문 헤드라인 한국어 번역 (MyMemory 무료 API, 실패 시 None)"""
+    try:
+        u = 'https://api.mymemory.translated.net/get?q=%s&langpair=en|ko' % urllib.parse.quote(text[:300])
+        r = json.loads(fetch(u, 20, 1).decode('utf-8'))
+        t = (r.get('responseData') or {}).get('translatedText') or ''
+        if t and 'MYMEMORY' not in t.upper():
+            return t
+    except Exception:
+        pass
+    return None
+
+def translate_feeds(g):
+    """글로벌 피드 영문 항목에 tk(번역) 추가 — 실행당 최대 12건(무료 한도 보호)"""
+    budget = 12
+    for key in ('tf', 'sia', 'semi', 'tsmc', 'asml'):
+        for it in (g.get(key) or []):
+            if budget <= 0:
+                return
+            t = it.get('t') or ''
+            if it.get('tk') or not t:
+                continue
+            # 한글 포함이면 번역 불필요
+            if any('가' <= ch <= '힣' for ch in t):
+                continue
+            k = tr_ko(t)
+            if k:
+                it['tk'] = k[:160]
+                budget -= 1
+                time.sleep(0.4)
 
 def g_dramspot(prev):
     """DRAMeXchange 일간 현물가(Daily Avg) → {date: {품목: avg}}"""
@@ -342,6 +384,10 @@ def main():
     g['tsmc'] = g_news('TSMC monthly revenue', g.get('tsmc'), r'revenue')
     g['asml'] = g_news('ASML bookings orders quarterly', g.get('asml'), r'booking|order')
     g['dxi'] = g_dramspot(g.get('dxi'))
+    fx = dict(FIXED_SEED)
+    fx.update(g.get('fixed') or {})
+    g['fixed'] = fx
+    translate_feeds(g)
     out['global'] = g
     out['mu'] = micron(prev.get('mu'))
     out['debug'] = DEBUG[-20:]

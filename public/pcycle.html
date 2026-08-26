@@ -90,11 +90,83 @@ function sigSummary(){
   return s;
 }
 
+function signalRows(){
+  const exp=PQ.exp||{}, qs=PQ.qs||{}, cl=PQ.cl||{}, g=PQ.global||{};
+  const rows=[]; let pDown=0, pLive=0, qUp=0;
+  const R=(name,val,emoji,label,rule)=>rows.push({name,val,emoji,label,rule});
+  // 1) 월별 고정가 DDR4 MoM
+  const fx=g.fixed||{}; const fk=Object.keys(fx).sort();
+  if(fk.length>=2){
+    const a=fx[fk[fk.length-1]]['DDR4 8Gb'], b=fx[fk[fk.length-2]]['DDR4 8Gb'];
+    if(a&&b){ const m=(a-b)/b*100;
+      if(m>5){R('DRAM 고정가 MoM',`$${a} (${m>0?'+':''}${m.toFixed(1)}%)`,'🔴','P 강세 지속','+5% 초과 = 판가 사이클 진행 중'); pLive++;}
+      else if(m>=0){R('DRAM 고정가 MoM',`$${a} (+${m.toFixed(1)}%)`,'🟡','상승 둔화','0~+5% = 기울기 소멸 — 피크 의심');}
+      else {R('DRAM 고정가 MoM',`$${a} (${m.toFixed(1)}%)`,'🟢','P 꺾임','마이너스 전환 = P 종료 신호'); pDown++;} } }
+  // 2) DRAM 현물가 추세(일간)
+  const dxi=g.dxi||{}; const dk=Object.keys(dxi).sort();
+  if(dk.length>=7){
+    const it='DDR4 16Gb';
+    const last=dxi[dk[dk.length-1]][it], base=dxi[dk[Math.max(0,dk.length-15)]][it];
+    if(last&&base){ const m=(last-base)/base*100;
+      if(m>3){R('DRAM 현물가(3주)',`$${last} (+${m.toFixed(1)}%)`,'🔴','P 강세 지속','+3% 초과'); pLive++;}
+      else if(m>=-3){R('DRAM 현물가(3주)',`$${last} (${m.toFixed(1)}%)`,'🟡','정체','±3% 이내 = 기울기 소멸');}
+      else {R('DRAM 현물가(3주)',`$${last} (${m.toFixed(1)}%)`,'🟢','P 꺾임','-3% 초과 하락'); pDown++;} } }
+  else if(dk.length) R('DRAM 현물가(일간)','수집 '+dk.length+'일째','⚪','축적 중','3주치 쌓이면 판정 시작');
+  // 3) 유통사 OPM
+  const s1=qs['031330'];
+  if(s1){ const ks=Object.keys(s1.q).sort(); const v=s1.q[ks[ks.length-1]];
+    if(v&&v[0]){ const o=v[1]/v[0]*100;
+      if(o>10){R('유통사 OPM(SAMT)',o.toFixed(1)+'%','🔴','P 과열','10% 초과 = 재고이익 국면'); pLive++;}
+      else if(o>3){R('유통사 OPM(SAMT)',o.toFixed(1)+'%','🟡','정상화 진행','3~10% = 마진 회귀 중 — P 후기'); pDown++;}
+      else {R('유통사 OPM(SAMT)',o.toFixed(1)+'%','🟢','P 청산 완료','3% 이하 = 평상 마진 복귀'); pDown++;} } }
+  // 4) 수출 단가 (관세청)
+  const e=exp['메모리']||exp['반도체'];
+  if(e){ const ks=Object.keys(e).sort();
+    if(ks.length>=4){
+      const u=k=>{const[d,w]=e[k];return w?d/w:null;};
+      const m3=[1,2,3].map(i=>{const a=u(ks[ks.length-i]),b=u(ks[ks.length-i-1]);return a&&b?(a-b)/b*100:null;});
+      const down3=m3.every(x=>x!=null&&x<0);
+      const m=m3[0];
+      if(down3){R('수출 단가 MoM','3개월 연속 하락','🟢','P 종료 확인','3개월 연속 마이너스'); pDown++;}
+      else if(m!=null&&m>0){R('수출 단가 MoM',`+${m.toFixed(1)}%`,'🔴','P 지속','상승 중'); pLive++;}
+      else if(m!=null){R('수출 단가 MoM',`${m.toFixed(1)}%`,'🟡','하락 시작','1~2개월 하락 — 확인 대기');}
+      // 5) 수출 물량
+      const w3=[1,2,3].map(i=>e[ks[ks.length-i]][1]);
+      const w0=[4,5,6].map(i=>e[ks[ks.length-i]]?e[ks[ks.length-i]][1]:null).filter(Boolean);
+      if(w0.length){ const g1=w3.reduce((a,b)=>a+b,0)/3, g0=w0.reduce((a,b)=>a+b,0)/w0.length;
+        const m2=(g1-g0)/g0*100;
+        if(m2>3){R('수출 물량(3개월 평균)',`+${m2.toFixed(1)}%`,'🟢','Q 확장','+3% 초과 = 출하 증가'); qUp++;}
+        else if(m2>-3){R('수출 물량(3개월 평균)',`${m2.toFixed(1)}%`,'🟡','보합','±3% 이내');}
+        else R('수출 물량(3개월 평균)',`${m2.toFixed(1)}%`,'🔴','출하 감소','수요 둔화 경고'); } } }
+  else R('수출 단가·물량','관세청 승인 대기','⚪','대기','활용신청 승인 후 자동 판정');
+  // 6) 장비 계약부채 QoQ
+  const sum={};
+  Object.values(cl).forEach(x=>{ if(Object.values(x.q).filter(v=>v!=null).length>=3) Object.entries(x.q).forEach(([q,v])=>{sum[q]=(sum[q]||0)+v;}); });
+  const cks=Object.keys(sum).sort();
+  if(cks.length>=2){ const a=sum[cks[cks.length-1]], b=sum[cks[cks.length-2]];
+    const m=(a-b)/b*100;
+    if(m>10){R('장비 계약부채 QoQ',`${Math.round(a).toLocaleString()}억 (+${m.toFixed(0)}%)`,'🟢','Q 예약 유입','+10% 초과 = 장비 발주 확대'); qUp++;}
+    else if(m>-10){R('장비 계약부채 QoQ',`${Math.round(a).toLocaleString()}억 (${m.toFixed(0)}%)`,'🟡','보합','±10% 이내');}
+    else R('장비 계약부채 QoQ',`${Math.round(a).toLocaleString()}억 (${m.toFixed(0)}%)`,'🔴','발주 위축','Q 경고'); }
+  // 종합 판정
+  let phase, pc;
+  if(pLive>=2&&pDown<2){phase='P 사이클 진행 중 — 판가 상승이 아직 살아있음'; pc='#b25e09';}
+  else if(pDown>=2&&qUp>=1){phase='P→Q 전환 진행 — 판가 꺾임 + 물량·발주 신호 동시 출현'; pc='#12805c';}
+  else if(pDown>=2&&qUp===0){phase='P 종료·Q 미점화 — 공백 구간(경계). Q 지표 점등 여부 관찰'; pc='#d92d20';}
+  else {phase='전환 관찰 구간 — 신호 혼재'; pc='#667085';}
+  return {rows, phase, pc, counts:[pLive,pDown,qUp]};
+}
 function drawKR(){
   const exp=PQ.exp||{}, qs=PQ.qs||{}, cl=PQ.cl||{};
-  let h=`<div class="sig"><h2>📟 지표 요약 (최신 vs 직전)</h2><div class="sigrow">`+
-    sigSummary().map(([t,v,c])=>`<div class="sigbox">${t}<b class="${c}">${v}</b></div>`).join('')+
-    `</div></div>`;
+  const sig=signalRows();
+  let h=`<div class="sig"><h2>🚦 P→Q 국면 판정 <span style="font-size:11px;color:#98a2b3;font-weight:600">기계적 기준에 따른 참고용 — 투자 판단 아님</span></h2>
+    <div style="font-size:13.5px;font-weight:800;color:${sig.pc};margin:4px 0 10px">${sig.phase}
+      <span style="font-size:11px;color:#98a2b3;font-weight:600">(P지속 ${sig.counts[0]} · P꺾임 ${sig.counts[1]} · Q점화 ${sig.counts[2]})</span></div>
+    <div>`+sig.rows.map(r=>`<div style="display:flex;gap:10px;align-items:baseline;padding:5px 0;border-top:1px solid #f0f2f6;font-size:12px">
+      <div style="flex:0 0 160px;font-weight:700">${r.name}</div>
+      <div style="flex:0 0 150px">${r.val}</div>
+      <div style="flex:0 0 120px">${r.emoji} <b>${r.label}</b></div>
+      <div style="flex:1;color:#98a2b3;font-size:11px">${r.rule}</div></div>`).join('')+`</div></div>`;
   if(!Object.keys(exp).length && !Object.keys(qs).length)
     h+=`<div class="note">데이터 수집 대기 중 — GitHub Actions(pq) 첫 실행 후 채워집니다.</div>`;
   const hasExp=Object.keys(exp).some(k=>Object.keys(exp[k]||{}).length);
@@ -183,17 +255,32 @@ function drawGL(){
   const g=PQ.global||{};
   const card=(t,d,items,extra)=>`<div class="card"><h2>${t}</h2><div class="d">${d}</div>${extra||''}
     <div class="glist">${(items&&items.length)?items.slice().reverse().slice(0,10).map(x=>
-      `<a href="${x.u}" target="_blank">${x.t}<div class="gd">${x.d||''}${x.pct!=null?' · '+x.pct+'%':''}</div></a>`).join(''):'<div class="loading">수집 대기</div>'}</div></div>`;
+      `<a href="${x.u}" target="_blank">${x.t}${x.tk?`<div style="color:#2f6df6;font-size:11.5px;margin-top:1px">🇰🇷 ${x.tk}</div>`:''}<div class="gd">${x.d||''}${x.pct!=null?' · '+x.pct+'%':''}</div></a>`).join(''):'<div class="loading">수집 대기</div>'}</div></div>`;
   let h='';
-  // DRAM 현물가 일간 차트 (DRAMeXchange Daily Avg)
+  // 월별 고정거래가(계약가) — 과거 12개월 백필
+  const fx=g.fixed||{};
+  const fK=Object.keys(fx).sort();
+  if(fK.length){
+    const lastF=fx[fK[fK.length-1]];
+    h+=`<div class="card"><h2>📆 DRAM·NAND 월별 고정거래가 (계약가, 12개월)</h2>
+      <div class="d">매월 초 트렌드포스 발표 보도값 백필 — DDR4 8Gb $${fx[fK[0]]['DDR4 8Gb']}(${fK[0]}) → <b>$${lastF['DDR4 8Gb']}</b>(${fK[fK.length-1]}), NAND 128Gb $${fx[fK[0]]['NAND 128Gb']} → <b>$${lastF['NAND 128Gb']}</b>. 새 달 발표는 주간 갱신으로 추가.</div>
+      <div class="cv" style="height:220px"><canvas id="cFIX"></canvas></div></div>`;
+  }
+  // DRAM/NAND 현물가 일간 차트 (DRAMeXchange Daily Avg)
   const dxi=g.dxi||{};
   const dK=Object.keys(dxi).sort();
   if(dK.length){
     const items=[...new Set(dK.flatMap(d=>Object.keys(dxi[d])))];
     const last=dxi[dK[dK.length-1]];
+    const dram=items.filter(i=>i.startsWith('DDR')), nand=items.filter(i=>i.startsWith('NAND'));
     h+=`<div class="card"><h2>💾 DRAM 현물가 (달러, 매일 자동 수집)</h2>
-      <div class="d">DRAMeXchange 일평균 현물가. <b>P의 기울기를 매일 확인하는 최선행 지표.</b> 최신: ${items.map(i=>`${i} <b>$${last[i]??'—'}</b>`).join(' · ')} (${dK[dK.length-1]})</div>
-      <div class="cv" style="height:230px"><canvas id="cDXI"></canvas></div></div>`;
+      <div class="d">DRAMeXchange 일평균 현물가. <b>P의 기울기를 매일 확인하는 최선행 지표.</b> 최신: ${dram.map(i=>`${i} <b>$${last[i]??'—'}</b>`).join(' · ')} (${dK[dK.length-1]}) · 일간 히스토리는 수집 시작일부터 누적(과거는 위 월별 고정가 참고)</div>
+      <div class="cv" style="height:220px"><canvas id="cDXI"></canvas></div></div>`;
+    if(nand.length){
+      h+=`<div class="card"><h2>💽 NAND 웨이퍼 현물가 (달러, 매일 자동 수집)</h2>
+        <div class="d">TLC 웨이퍼 일평균. 최신: ${nand.map(i=>`${i} <b>$${last[i]??'—'}</b>`).join(' · ')}</div>
+        <div class="cv" style="height:200px"><canvas id="cNAND"></canvas></div></div>`;
+    }
   }
   const sia=g.sia||[];
   if(sia.some(x=>x.pct!=null)){
@@ -205,10 +292,18 @@ function drawGL(){
   h+=card('🏭 TSMC 월매출','파운드리 가동 온도계(매월 10일경).',g.tsmc);
   h+=card('📥 ASML 수주(bookings)','장비 발주의 글로벌 최선행 — 국내 장비주 계약부채의 원조 버전.',g.asml);
   document.getElementById('body').innerHTML=h;
+  const colors=['#d92d20','#2f6df6','#12b76a','#f2a33c'];
+  if(fK.length){
+    line('cFIX',fK,[
+      {type:'line',label:'DDR4 8Gb 고정가($)',data:fK.map(k=>fx[k]['DDR4 8Gb']??null),borderColor:'#d92d20',backgroundColor:'#d92d20',pointRadius:2.5,borderWidth:2,spanGaps:true},
+      {type:'line',label:'NAND 128Gb 고정가($)',data:fK.map(k=>fx[k]['NAND 128Gb']??null),borderColor:'#2f6df6',backgroundColor:'#2f6df6',pointRadius:2.5,borderWidth:2,spanGaps:true}]);
+  }
   if(dK.length){
     const items=[...new Set(dK.flatMap(d=>Object.keys(dxi[d])))];
-    const colors=['#d92d20','#2f6df6','#12b76a','#f2a33c'];
-    line('cDXI',dK,items.map((it,i)=>({type:'line',label:it,data:dK.map(d=>dxi[d][it]??null),
+    const dram=items.filter(i=>i.startsWith('DDR')), nand=items.filter(i=>i.startsWith('NAND'));
+    line('cDXI',dK,dram.map((it,i)=>({type:'line',label:it,data:dK.map(d=>dxi[d][it]??null),
+      borderColor:colors[i%4],backgroundColor:colors[i%4],pointRadius:1.5,borderWidth:2,spanGaps:true})));
+    if(nand.length) line('cNAND',dK,nand.map((it,i)=>({type:'line',label:it,data:dK.map(d=>dxi[d][it]??null),
       borderColor:colors[i%4],backgroundColor:colors[i%4],pointRadius:1.5,borderWidth:2,spanGaps:true})));
   }
   if(sia.some(x=>x.pct!=null)){

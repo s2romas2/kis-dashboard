@@ -173,6 +173,15 @@ def main():
     top_reasons = sorted(REASONS.items(), key=lambda x: -x[1])[:12]
     print('사유 분포(상위): ' + ', '.join('%s=%d' % t for t in top_reasons), file=sys.stderr)
     matches.sort(key=lambda m: m['amount'], reverse=True)
+    # 빈 결과 보호: 기존 데이터가 충분한데 이번 수집이 0건이면 덮어쓰지 않음 (DART 일시 장애 대비)
+    if not matches:
+        try:
+            prev = json.load(open('public/data/insider.json', encoding='utf-8'))
+            if prev.get('list'):
+                print('수집 0건 — 기존 %d건 유지' % len(prev['list']), file=sys.stderr)
+                sys.exit(0)
+        except Exception:
+            pass
     out = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'days': DAYS, 'count': len(matches),
            'buyOnly': BUY_ONLY, 'list': matches}
     os.makedirs('public/data', exist_ok=True)

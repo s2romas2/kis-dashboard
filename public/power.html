@@ -82,6 +82,27 @@ function draw(){
       <div class="card"><h2>주(州)별 TOP — 어디에 짓나</h2><div class="d">TX·데이터센터 벨트 집중도.</div><div class="cv" style="height:210px"><canvas id="cState"></canvas></div></div>
     </div>`;
   }
+  // 💲 미국 PPI (전력기기 생산자물가)
+  const ppi=D.ppi||{}; const pk=Object.keys(ppi).filter(k=>Object.keys((ppi[k]||{}).d||{}).length);
+  if(pk.length){
+    const latestVals=pk.map(k=>{const d=ppi[k].d; const mk=Object.keys(d).sort(); const l=mk[mk.length-1];
+      const base=d['2021-01']||d[mk[0]];
+      return `${ppi[k].n} <b>${base?('+'+((d[l]/base-1)*100).toFixed(0)+'%'):d[l]}</b>`;}).join(' · ');
+    h+=`<div class="card"><h2>💲 미국 전력기기 PPI (생산자물가, 매월)</h2>
+      <div class="d">BLS 품목별 생산자물가 — <b>가격이 오르는 동안은 공급 부족(병목 유지)</b>이라는 뜻. 2021년 초 대비: ${latestVals}</div>
+      <div class="cv"><canvas id="cPPI"></canvas></div></div>`;
+  } else {
+    h+=`<div class="card"><h2>💲 미국 전력기기 PPI (생산자물가)</h2><div class="note">첫 배치 수집 대기 중 — 변압기·배전반·모터발전기·터빈·전선 5개 품목 지수가 채워집니다.</div></div>`;
+  }
+  // 🚢 한국 전력기기 수출 (관세청)
+  const pex=D.exp||{}; const ek=Object.keys(pex).filter(k=>Object.keys(pex[k]||{}).length);
+  if(ek.length){
+    h+=`<div class="card"><h2>🚢 한국 전력기기 수출 (월간, 백만$)</h2>
+      <div class="d">변압기·배전반·케이블 HS코드 기준 — 파이프라인이 실제 한국 수출로 확정되는 후행 확인.</div>
+      <div class="cv"><canvas id="cPEX"></canvas></div></div>`;
+  } else {
+    h+=`<div class="card"><h2>🚢 한국 전력기기 수출 (월간)</h2><div class="note">관세청 새 API 활용신청 승인 후 자동으로 채워집니다 — 변압기(8504)·배전반(8537)·케이블(8544).</div></div>`;
+  }
   const nf=(t,d,k)=>{ const items=(D.news||{})[k]||[];
     return `<div class="card"><h2>${t}</h2><div class="d">${d}</div><div class="glist">${
       items.length?items.slice().reverse().slice(0,8).map(x=>
@@ -111,6 +132,22 @@ function draw(){
     line('cYear',yk,[{type:'bar',label:'GW',data:yk.map(y=>last.year[y]),backgroundColor:'#a8c3f8'}]);
     const sk=Object.keys(last.state).slice(0,10);
     line('cState',sk,[{type:'bar',label:'GW',data:sk.map(s=>last.state[s]),backgroundColor:'#f5c98a'}]);
+  }
+  // PPI 차트
+  const ppi2=D.ppi||{}; const pk2=Object.keys(ppi2).filter(k=>Object.keys((ppi2[k]||{}).d||{}).length);
+  if(pk2.length){
+    const allM=[...new Set(pk2.flatMap(k=>Object.keys(ppi2[k].d)))].sort().filter(m=>m>='2021-01');
+    const colors=['#d92d20','#2f6df6','#12b76a','#f2a33c','#7a5af8'];
+    line('cPPI',allM,pk2.map((k,i)=>({type:'line',label:ppi2[k].n,data:allM.map(m=>ppi2[k].d[m]??null),
+      borderColor:colors[i%5],backgroundColor:colors[i%5],pointRadius:0,borderWidth:2,spanGaps:true})));
+  }
+  // 수출 차트
+  const pex2=D.exp||{}; const ek2=Object.keys(pex2).filter(k=>Object.keys(pex2[k]||{}).length);
+  if(ek2.length){
+    const allM=[...new Set(ek2.flatMap(k=>Object.keys(pex2[k])))].sort();
+    const colors=['#d92d20','#2f6df6','#12b76a'];
+    line('cPEX',allM,ek2.map((k,i)=>({type:'line',label:k,data:allM.map(m=>pex2[k][m]??null),
+      borderColor:colors[i%3],backgroundColor:colors[i%3],pointRadius:0,borderWidth:2,spanGaps:true})));
   }
   // 수혜주
   const STK=[['298040','효성중공업'],['267260','HD현대일렉트릭'],['010120','LS ELECTRIC'],['001440','대한전선'],['103590','일진전기'],['062040','산일전기'],['033100','제룡전기'],['034020','두산에너빌리티'],['417200','LS머트리얼즈'],['052690','한전기술']];

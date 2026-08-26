@@ -19,6 +19,9 @@ jobs:
       - name: 의존성
         run: pip install openpyxl --quiet
       - name: 전력 파이프라인 수집
+        env:
+          CUSTOMS_KEY: ${{ secrets.CUSTOMS_KEY }}
+          BLS_KEY: ${{ secrets.BLS_KEY }}
         run: python power.py
       - name: 결과 커밋
         if: always()

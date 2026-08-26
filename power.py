@@ -153,6 +153,100 @@ def tr_ko(text):
         pass
     return None
 
+# ── 미국 PPI (생산자물가 — 품목별) : FRED 미러(무키) 우선, BLS API 폴백 ──
+PPI_SERIES = {
+ 'PCU335311335311': '변압기',
+ 'PCU335313335313': '배전반·개폐기',
+ 'PCU335312335312': '모터·발전기',
+ 'PCU333611333611': '터빈·발전기세트',
+ 'PCU335929335929': '전력·통신 전선',
+}
+
+def collect_ppi(prev):
+    out = dict(prev or {})
+    for sid, nm in PPI_SERIES.items():
+        ser = dict((out.get(sid) or {}).get('d') or {})
+        got = False
+        # ① FRED csv (무키)
+        try:
+            x = fetch('https://fred.stlouisfed.org/graph/fredgraph.csv?id=%s' % sid, 45, 1).decode('utf-8', 'ignore')
+            for ln in x.strip().split('\n')[1:]:
+                p = ln.split(',')
+                if len(p) >= 2 and p[1] not in ('.', ''):
+                    try:
+                        ser[p[0][:7]] = float(p[1])
+                        got = True
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+        if got:
+            out[sid] = {'n': nm, 'd': ser}
+            DEBUG.append('PPI %s(FRED) %d점' % (nm, len(ser)))
+        time.sleep(0.5)
+    if not any((out.get(s) or {}).get('d') for s in PPI_SERIES):
+        # ② BLS API 폴백 (BLS_KEY 있으면 사용)
+        try:
+            key = os.environ.get('BLS_KEY', '')
+            body = {'seriesid': list(PPI_SERIES.keys()), 'startyear': '2020',
+                    'endyear': str(datetime.date.today().year)}
+            if key:
+                body['registrationkey'] = key
+            req = urllib.request.Request('https://api.bls.gov/publicAPI/v2/timeseries/data/',
+                                         json.dumps(body).encode(),
+                                         {'Content-Type': 'application/json', 'User-Agent': UA['User-Agent']})
+            r = json.loads(urllib.request.urlopen(req, timeout=60, context=CTX).read())
+            for srs in r.get('Results', {}).get('series', []):
+                sid = srs['seriesID']
+                ser = dict((out.get(sid) or {}).get('d') or {})
+                for d in srs.get('data') or []:
+                    if d['period'].startswith('M'):
+                        ser['%s-%s' % (d['year'], d['period'][1:])] = float(d['value'])
+                if ser:
+                    out[sid] = {'n': PPI_SERIES[sid], 'd': ser}
+            DEBUG.append('PPI BLS 폴백: %s' % r.get('status'))
+        except Exception as e:
+            DEBUG.append('PPI 실패 %r' % str(e)[:40])
+    return out
+
+# ── 한국 전력기기 수출 (관세청 nitemtrade — GW 활용신청 승인 후 채워짐) ──
+CUSTOMS_KEY = os.environ.get('CUSTOMS_KEY', '')
+PWR_HS = [('변압기(8504)', '8504'), ('배전반·차단기(8537)', '8537'), ('케이블(8544)', '8544')]
+
+def collect_exports(prev):
+    out = dict(prev or {})
+    if not CUSTOMS_KEY:
+        DEBUG.append('수출: 키 없음')
+        return out
+    endm = datetime.date.today().strftime('%Y%m')
+    for name, hs in PWR_HS:
+        try:
+            q = ('/1220000/nitemtrade/getNitemtradeList?serviceKey=%s&strtYymm=202001&endYymm=%s&hsSgn=%s'
+                 % (CUSTOMS_KEY, endm, hs))
+            x = ''
+            for base in ('http://apis.data.go.kr', 'https://apis.data.go.kr'):
+                try:
+                    x = urllib.request.urlopen(base + q, timeout=110).read().decode('utf-8', 'ignore')
+                    if x:
+                        break
+                except Exception:
+                    time.sleep(3)
+            root = ET.fromstring(x)
+            ser = dict(out.get(name) or {})
+            for it in root.iter('item'):
+                ym = (it.findtext('year') or '').strip()
+                dlr = it.findtext('expDlr')
+                m = re.search(r'(\d{4})\.(\d{2})', ym)
+                if m and dlr and dlr.replace(',', '').strip().isdigit():
+                    ser['%s-%s' % (m.group(1), m.group(2))] = round(int(dlr.replace(',', '')) / 1e6, 1)  # 백만$
+            if ser:
+                out[name] = ser
+                DEBUG.append('수출 %s %d개월' % (name, len(ser)))
+        except Exception as e:
+            DEBUG.append('수출 %s 실패 %r' % (name, str(e)[:40]))
+        time.sleep(1)
+    return out
+
 NEWS_Q = {
  'queue': [('en', 'data center interconnection queue gigawatts'), ('en', 'ERCOT large load data center')],
  'utility': [('en', 'Dominion AEP data center pipeline gigawatts'), ('en', 'utility data center contracted load')],
@@ -202,9 +296,11 @@ def main():
     backfill = os.environ.get('BACKFILL') == '1'
     snap = collect_eia(prev.get('eia'), backfill)
     news = collect_news(prev.get('news'))
+    ppi = collect_ppi(prev.get('ppi'))
+    exp = collect_exports(prev.get('exp'))
     if not snap and prev.get('eia'):
         snap = prev['eia']
-    out = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'eia': snap, 'news': news, 'debug': DEBUG[-15:]}
+    out = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'eia': snap, 'news': news, 'ppi': ppi, 'exp': exp, 'debug': DEBUG[-15:]}
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     json.dump(out, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False)
     print('완료', DEBUG, file=sys.stderr)

@@ -1,0 +1,1 @@
+{"at": "2026-08-26 07:38", "trace": "Traceback (most recent call last):\n  File \"/home/runner/work/kis-dashboard/kis-dashboard/leaders.py\", line 200, in <module>\n    main()\n  File \"/home/runner/work/kis-dashboard/kis-dashboard/leaders.py\", line 78, in main\n    raise RuntimeError('KIS 토큰 실패')\nRuntimeError: KIS 토큰 실패\n"}

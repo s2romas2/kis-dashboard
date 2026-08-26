@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>미국 전력 수요 파이프라인</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; background:#f4f6fa; color:#1a1f2e; }
+.wrap { max-width:1140px; margin:0 auto; padding:18px 14px 60px; }
+h1 { font-size:22px; margin:10px 0 4px; }
+.sub { color:#667085; font-size:13px; margin-bottom:12px; line-height:1.6; }
+.pipe { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; }
+.pipe span { background:#fff; border:1.5px solid #d7dce6; border-radius:20px; padding:6px 12px; font-size:11.5px; font-weight:700; color:#475467; }
+.pipe b { color:#2f6df6; }
+.kpis { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+.kpi { flex:1 1 150px; background:#fff; border:1px solid #e6e9f0; border-radius:12px; padding:10px 12px; }
+.kpi .t { font-size:11px; color:#667085; }
+.kpi .v { font-size:19px; font-weight:900; margin-top:2px; }
+.kpi .d { font-size:10.5px; color:#98a2b3; margin-top:1px; }
+.kpi.hot { border-color:#f2a33c; background:#fffdf7; }
+.card { background:#fff; border:1px solid #e6e9f0; border-radius:14px; padding:14px; margin-bottom:14px; }
+.card h2 { font-size:15px; margin-bottom:4px; }
+.card .d { font-size:12px; color:#8a93a2; margin-bottom:10px; line-height:1.55; }
+.cv { position:relative; height:250px; }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+@media (max-width:760px){ .grid2{ grid-template-columns:1fr; } }
+.glist a { display:block; padding:7px 10px; border-radius:8px; text-decoration:none; color:#1a1f2e; font-size:12.5px; line-height:1.5; }
+.glist a:hover { background:#f2f6fe; }
+.glist .gd { color:#98a2b3; font-size:11px; }
+.glist .tk { color:#2f6df6; font-size:11.5px; margin-top:1px; }
+.loading { text-align:center; color:#98a2b3; padding:30px 0; }
+.stk { display:flex; flex-wrap:wrap; gap:6px; }
+.stk a { font-size:12px; font-weight:800; color:#2f6df6; background:#eef4ff; border-radius:8px; padding:5px 10px; text-decoration:none; }
+.note { background:#fff7e8; border:1px solid #f5d9a8; border-radius:10px; padding:9px 13px; font-size:12px; color:#7a5b1e; margin-bottom:14px; line-height:1.6; }
+</style>
+</head>
+<body>
+<script src="/nav.js" defer></script>
+<div class="wrap">
+  <h1>⚡ 미국 전력 수요 파이프라인</h1>
+  <div class="sub">빅테크 데이터센터의 전력 수요가 국내 전력기기 수주로 내려오는 길목을 상류부터 추적 — <b>수주(후행)가 아니라 계획(선행)</b>을 봅니다. 핵심 원장은 미국 에너지정보청 EIA-860M "건설 예정 발전소 전수 목록"(매월).</div>
+  <div class="pipe">
+    <span>① CSP 캐펙스 <b>분기</b></span><span>→</span>
+    <span>② 대형부하 계통 신청 <b>월간·뉴스</b></span><span>→</span>
+    <span>③ EIA 계획 발전소 <b>매월 자동</b></span><span>→</span>
+    <span>④ 유틸리티 계약 파이프라인 <b>분기·뉴스</b></span><span>→</span>
+    <span>⑤ 장비 백로그 <b>분기</b></span>
+  </div>
+  <div id="body"><div class="loading">불러오는 중…</div></div>
+</div>
+<script>
+let D=null, SV=null, CHARTS=[];
+function line(id,labels,dss,y2){
+  const el=document.getElementById(id); if(!el||typeof Chart==='undefined') return;
+  CHARTS.push(new Chart(el,{data:{labels,datasets:dss},options:{responsive:true,maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{boxWidth:10,font:{size:10}}}},
+    scales:Object.assign({x:{ticks:{font:{size:9}}},y:{ticks:{font:{size:9}}}},
+      y2?{y1:{position:'right',grid:{drawOnChartArea:false},ticks:{font:{size:9}}}}:{})}}));
+}
+const FUEL_KO={'Solar Photovoltaic':'태양광','Batteries':'배터리(ESS)','Onshore Wind Turbine':'육상풍력','Offshore Wind Turbine':'해상풍력','Nuclear':'원자력','Hydroelectric Pumped Storage':'양수'};
+function fuelKo(k){ if(k.includes('Natural Gas')) return '가스터빈'; for(const [e,ko] of Object.entries(FUEL_KO)) if(k.includes(e)) return ko; return k.slice(0,14); }
+function draw(){
+  const snap=D.eia||{}; const mk=Object.keys(snap).sort();
+  let h='';
+  if(!mk.length){ h+='<div class="note">EIA 데이터 수집 대기 중 — 첫 배치 실행 후 채워집니다.</div>'; }
+  else{
+    const last=snap[mk[mk.length-1]], prev=mk.length>=2?snap[mk[mk.length-2]]:null;
+    const dGas=prev?(last.gas-prev.gas):null, dTot=prev?(last.total-prev.total):null;
+    h+=`<div class="kpis">
+      <div class="kpi"><div class="t">미국 계획 발전 총량 (${mk[mk.length-1]})</div><div class="v">${last.total} GW</div><div class="d">${dTot!=null?(dTot>=0?'▲ +':'▼ ')+dTot.toFixed(1)+' GW (전월)':'발전소 '+last.n.toLocaleString()+'기'}</div></div>
+      <div class="kpi hot"><div class="t">🔥 가스터빈 계획</div><div class="v">${last.gas} GW</div><div class="d">${dGas!=null?(dGas>=0?'▲ +':'▼ ')+dGas.toFixed(1)+' GW — 데이터센터·온사이트 수요의 직접 증거':'GE버노바·두산에너빌리티 선행지표'}</div></div>
+      <div class="kpi hot"><div class="t">☢️ 원자력 계획</div><div class="v">${last.nuke} GW</div><div class="d">SMR 사이클 온도계</div></div>
+      <div class="kpi"><div class="t">배터리(ESS)</div><div class="v">${(Object.entries(last.fuel).find(([k])=>k.includes('Batter'))||[,0])[1]} GW</div><div class="d">LS머트리얼즈·ESS 체인</div></div>
+    </div>`;
+    h+=`<div class="card"><h2>③ 계획 발전소 — 연료별 추이 (EIA-860M, 매월 자동)</h2>
+      <div class="d">발전소 단위 공식 집계. <b>가스터빈 GW가 늘어나는 속도가 변압기·배전반 수요의 6개월~2년 선행지표.</b></div>
+      <div class="cv"><canvas id="cFuel"></canvas></div></div>`;
+    h+=`<div class="grid2">
+      <div class="card"><h2>가동 예정 연도별 분포</h2><div class="d">언제 지어지나 — 뒤로 갈수록 장비 발주가 남아있는 물량.</div><div class="cv" style="height:210px"><canvas id="cYear"></canvas></div></div>
+      <div class="card"><h2>주(州)별 TOP — 어디에 짓나</h2><div class="d">TX·데이터센터 벨트 집중도.</div><div class="cv" style="height:210px"><canvas id="cState"></canvas></div></div>
+    </div>`;
+  }
+  const nf=(t,d,k)=>{ const items=(D.news||{})[k]||[];
+    return `<div class="card"><h2>${t}</h2><div class="d">${d}</div><div class="glist">${
+      items.length?items.slice().reverse().slice(0,8).map(x=>
+        `<a href="${x.u}" target="_blank">${x.t}${x.tk?`<div class="tk">🇰🇷 ${x.tk}</div>`:''}<div class="gd">${x.d||''}${x.l==='en'?' 🌐':''}</div></a>`).join(''):'<div class="loading">수집 대기</div>'}</div></div>`; };
+  h+=nf('② 대형부하 계통 신청 (데이터센터의 예약)','데이터센터가 착공 전 계통운영자에 내는 GW 신청 — 뉴스 자동 수집(매일)','queue');
+  h+=nf('① CSP 캐펙스 가이던스','빅테크의 자금 약속 — 모든 수요의 출발점(분기)','capex');
+  h+=nf('⑤ 온사이트 발전·원전 계약','빅테크의 자가발전(가스터빈·연료전지·SMR) 움직임','onsite');
+  h+=nf('④ 유틸리티 계약 파이프라인','도미니언 등 데이터센터 벨트 유틸리티의 확정 수요(분기)','utility');
+  h+=nf('⑤ 장비 백로그 뉴스','GE버노바 가스터빈·국내 전력기기 수주(후행 확인)','equip');
+  h+=`<div class="card"><h2>🇰🇷 국내 수혜주 바로가기</h2><div class="d">전력기기 3사 잔고 합산 36.7조(약 5년치) — 상세 병목 구도는 <a href="/sectorflow.html#semi">섹터 흐름 맵</a> 참고.</div>
+    <div class="stk" id="stkBox"></div></div>`;
+  h+=`<div style="font-size:11px;color:#98a2b3">갱신: EIA 계획 발전소 = 매월 말 발표 → 다음 배치에서 자동 반영 · 뉴스 피드 = 매일 · 갱신 ${D.updated}</div>`;
+  document.getElementById('body').innerHTML=h;
+  // 차트
+  const snap2=D.eia||{}; const mk2=Object.keys(snap2).sort();
+  if(mk2.length){
+    const last=snap2[mk2[mk2.length-1]];
+    let ngSeen=false;
+    const tops=Object.keys(last.fuel).filter(f=>{ if(f.includes('Natural Gas')){ if(ngSeen) return false; ngSeen=true; } return true; }).slice(0,6);
+    const colors=['#f2a33c','#d92d20','#2f6df6','#12b76a','#7a5af8','#667085'];
+    line('cFuel',mk2,tops.map((f,i)=>({type:'line',label:fuelKo(f),data:mk2.map(m=>{
+        const s=snap2[m]; if(!s) return null;
+        if(f.includes('Natural Gas')) return s.gas;
+        const e=Object.entries(s.fuel).find(([k])=>k===f); return e?e[1]:null;
+      }),borderColor:colors[i%6],backgroundColor:colors[i%6],pointRadius:2.5,borderWidth:2,spanGaps:true})));
+    const yk=Object.keys(last.year).filter(y=>+y>=2026&&+y<=2032);
+    line('cYear',yk,[{type:'bar',label:'GW',data:yk.map(y=>last.year[y]),backgroundColor:'#a8c3f8'}]);
+    const sk=Object.keys(last.state).slice(0,10);
+    line('cState',sk,[{type:'bar',label:'GW',data:sk.map(s=>last.state[s]),backgroundColor:'#f5c98a'}]);
+  }
+  // 수혜주
+  const STK=[['298040','효성중공업'],['267260','HD현대일렉트릭'],['010120','LS ELECTRIC'],['001440','대한전선'],['103590','일진전기'],['062040','산일전기'],['033100','제룡전기'],['034020','두산에너빌리티'],['417200','LS머트리얼즈'],['052690','한전기술']];
+  const box=document.getElementById('stkBox');
+  if(box) box.innerHTML=STK.map(([c,n])=>{
+    const v=(SV||{})[c]||[];
+    const tag=v[1]?` PER ${v[1]}`:'' ;
+    return `<a href="/bands.html#${c}">${n}${tag}</a>`; }).join('');
+}
+async function init(){
+  try{ D=await (await fetch('/data/power.json?t='+Date.now())).json(); }
+  catch(e){ document.getElementById('body').innerHTML='<div class="note">power.json 대기 중 — 첫 배치 실행 후 채워집니다.</div>'; return; }
+  draw();
+  try{ const sv=await (await fetch('/data/stockvals.json?t='+Date.now())).json(); SV=sv.map||null; draw(); }catch(e){}
+}
+init();
+</script>
+</body>
+</html>

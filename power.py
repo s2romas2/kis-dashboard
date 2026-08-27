@@ -247,6 +247,147 @@ def collect_exports(prev):
         time.sleep(1)
     return out
 
+# ── 한국 전력기기 수출단가 $/kg (HS 6단위: 초고압변압기·배전반·GIS) ──
+UP_HS = [('초고압 변압기(850423)', '850423'), ('배전반(853720)', '853720'), ('GIS·차단기(853521)', '853521')]
+
+def collect_export_up(prev):
+    """관세청 nitemtrade 6단위 — {품목: {ym: [수출액 백만$, 단가 $/kg]}}"""
+    out = dict(prev or {})
+    if not CUSTOMS_KEY:
+        DEBUG.append('수출단가: 키 없음')
+        return out
+    endm = datetime.date.today().strftime('%Y%m')
+    for name, hs in UP_HS:
+        try:
+            q = ('/1220000/nitemtrade/getNitemtradeList?serviceKey=%s&strtYymm=202001&endYymm=%s&hsSgn=%s'
+                 % (CUSTOMS_KEY, endm, hs))
+            x = ''
+            for base in ('http://apis.data.go.kr', 'https://apis.data.go.kr'):
+                try:
+                    x = urllib.request.urlopen(base + q, timeout=110).read().decode('utf-8', 'ignore')
+                    if x:
+                        break
+                except Exception:
+                    time.sleep(3)
+            root = ET.fromstring(x)
+            ser = dict(out.get(name) or {})
+            for it in root.iter('item'):
+                ym = (it.findtext('year') or '').strip()
+                dlr = (it.findtext('expDlr') or '').replace(',', '').strip()
+                wgt = (it.findtext('expWgt') or '').replace(',', '').strip()
+                m = re.search(r'(\d{4})\.(\d{2})', ym)
+                if m and dlr.isdigit() and wgt.isdigit() and int(wgt) > 0:
+                    ser['%s-%s' % (m.group(1), m.group(2))] = [round(int(dlr) / 1e6, 2), round(int(dlr) / int(wgt), 2)]
+            if ser:
+                out[name] = ser
+                DEBUG.append('수출단가 %s %d개월' % (name, len(ser)))
+        except Exception as e:
+            DEBUG.append('수출단가 %s 실패 %r' % (name, str(e)[:40]))
+        time.sleep(1)
+    return out
+
+# ── 미국 수입금액·한국 비중 (US Census 무역통계 — CENSUS_KEY 필요, 무료 즉시발급) ──
+CENSUS_KEY = os.environ.get('CENSUS_KEY', '')
+IMP_HS = [('초고압 변압기(850423)', '850423'), ('배전반(853720)', '853720'), ('GIS·차단기(853521)', '853521')]
+
+def collect_us_imports(prev):
+    """{품목: {'tot': {ym: 백만$}, 'kr': {ym: 백만$}}} — 한국 비중은 프론트에서 kr/tot"""
+    out = dict(prev or {})
+    if not CENSUS_KEY:
+        DEBUG.append('미국수입: CENSUS_KEY 없음')
+        return out
+    for name, hs in IMP_HS:
+        try:
+            u = ('https://api.census.gov/data/timeseries/intltrade/imports/hs'
+                 '?get=GEN_VAL_MO,CTY_CODE,CTY_NAME&I_COMMODITY=%s&time=from+2020-01&key=%s' % (hs, CENSUS_KEY))
+            rows = json.loads(fetch(u, 90, 2).decode('utf-8', 'ignore'))
+            hd = rows[0]
+            iv, ic, inm, it = hd.index('GEN_VAL_MO'), hd.index('CTY_CODE'), hd.index('CTY_NAME'), hd.index('time')
+            cur = out.get(name) or {}
+            tot, kr = dict(cur.get('tot') or {}), dict(cur.get('kr') or {})
+            for r in rows[1:]:
+                try:
+                    v = round(float(r[iv]) / 1e6, 1)
+                except Exception:
+                    continue
+                if r[ic] == '-' or 'TOTAL FOR ALL' in (r[inm] or '').upper():
+                    tot[r[it]] = v
+                elif r[ic] == '5800':  # Korea, South
+                    kr[r[it]] = v
+            if tot:
+                out[name] = {'tot': tot, 'kr': kr}
+                DEBUG.append('미국수입 %s %d개월' % (name, len(tot)))
+        except Exception as e:
+            DEBUG.append('미국수입 %s 실패 %r' % (name, str(e)[:40]))
+        time.sleep(0.6)
+    return out
+
+# ── 유틸리티·빅테크 CAPEX (SEC EDGAR XBRL, 무키 — 분기 확정치) ──
+CAPEX_CO = [
+ # (표시명, CIK, 그룹, 태그 우선순위) — 태그는 실측 검증됨
+ ('AEP',        '0000004904', 'util', ['PaymentsForConstructionInProcess']),
+ ('Duke',       '0001326160', 'util', ['PaymentsToAcquirePropertyPlantAndEquipment', 'PaymentsForConstructionInProcess']),
+ ('Southern',   '0000092122', 'util', ['PaymentsToAcquirePropertyPlantAndEquipment', 'PaymentsForConstructionInProcess']),
+ ('Dominion',   '0000715957', 'util', ['PaymentsForProceedsFromProductiveAssets', 'PaymentsForConstructionInProcess']),
+ ('Microsoft',  '0000789019', 'tech', ['PaymentsToAcquirePropertyPlantAndEquipment']),
+ ('Alphabet',   '0001652044', 'tech', ['PaymentsToAcquirePropertyPlantAndEquipment']),
+ ('Amazon',     '0001018724', 'tech', ['PaymentsToAcquireProductiveAssets', 'PaymentsToAcquirePropertyPlantAndEquipment']),
+ ('Meta',       '0001326801', 'tech', ['PaymentsToAcquirePropertyPlantAndEquipment']),
+]
+
+def collect_capex(prev):
+    """10-Q/10-K 현금흐름표 설비투자(YTD 누적) → 분기값 차감 산출. {사명: {'g':그룹, 'd': {끝날짜: $B}}}"""
+    out = dict(prev or {})
+    hdr = {'User-Agent': 'kis-dashboard research ohseho57@gmail.com'}
+    for name, cik, grp, tags in CAPEX_CO:
+        usd = None
+        for tag in tags:
+            try:
+                req = urllib.request.Request(
+                    'https://data.sec.gov/api/xbrl/companyconcept/CIK%s/us-gaap/%s.json' % (cik, tag), headers=hdr)
+                j = json.loads(urllib.request.urlopen(req, timeout=60, context=CTX).read())
+                u = (j.get('units') or {}).get('USD') or []
+                if u:
+                    usd = u
+                    break
+            except Exception:
+                pass
+            time.sleep(0.3)
+        if not usd:
+            DEBUG.append('CAPEX %s 태그없음' % name)
+            continue
+        per = {}  # (start,end) -> val (뒤 공시가 덮어씀 = 최신 정정 반영)
+        for e in usd:
+            if e.get('form') not in ('10-Q', '10-K'):
+                continue
+            s, en, v = e.get('start'), e.get('end'), e.get('val')
+            if s and en and isinstance(v, (int, float)):
+                per[(s, en)] = v
+        def days(a, b):
+            return (datetime.date.fromisoformat(b) - datetime.date.fromisoformat(a)).days
+        starts = {}
+        for (s, en), v in per.items():
+            starts.setdefault(s, []).append((en, v))
+        q = {}
+        for s, lst in starts.items():
+            lst.sort()
+            pv, pe = 0, None
+            for en, v in lst:
+                span = days(pe, en) if pe else days(s, en)
+                if 60 <= span <= 130:  # 분기 구간만 인정 (연차 단독행 등 배제)
+                    q[en] = round((v - pv) / 1e9, 2)
+                pv, pe = v, en
+        if q:
+            ql = sorted(q.items())[-26:]
+            # 태그가 끊긴 좀비 시계열 배제 (최신 분기가 15개월 이상 과거면 제외)
+            if (datetime.date.today() - datetime.date.fromisoformat(ql[-1][0])).days > 450:
+                DEBUG.append('CAPEX %s 스테일(%s) 제외' % (name, ql[-1][0]))
+            else:
+                out[name] = {'g': grp, 'd': dict(ql)}
+                DEBUG.append('CAPEX %s %d분기' % (name, len(ql)))
+        time.sleep(0.4)
+    return out
+
 NEWS_Q = {
  'queue': [('en', 'data center interconnection queue gigawatts'), ('en', 'ERCOT large load data center')],
  'utility': [('en', 'Dominion AEP data center pipeline gigawatts'), ('en', 'utility data center contracted load')],
@@ -298,9 +439,13 @@ def main():
     news = collect_news(prev.get('news'))
     ppi = collect_ppi(prev.get('ppi'))
     exp = collect_exports(prev.get('exp'))
+    expup = collect_export_up(prev.get('expup'))
+    usimp = collect_us_imports(prev.get('usimp'))
+    capex = collect_capex(prev.get('capex'))
     if not snap and prev.get('eia'):
         snap = prev['eia']
-    out = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'eia': snap, 'news': news, 'ppi': ppi, 'exp': exp, 'debug': DEBUG[-15:]}
+    out = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'eia': snap, 'news': news, 'ppi': ppi, 'exp': exp,
+           'expup': expup, 'usimp': usimp, 'capex': capex, 'debug': DEBUG[-20:]}
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     json.dump(out, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False)
     print('완료', DEBUG, file=sys.stderr)

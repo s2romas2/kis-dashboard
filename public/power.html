@@ -94,6 +94,36 @@ function draw(){
   } else {
     h+=`<div class="card"><h2>💲 미국 전력기기 PPI (생산자물가)</h2><div class="note">첫 배치 수집 대기 중 — 변압기·배전반·모터발전기·터빈·전선 5개 품목 지수가 채워집니다.</div></div>`;
   }
+  // 🏗️ 유틸리티·빅테크 CAPEX (SEC EDGAR 분기 확정치)
+  const cap=D.capex||{}; const uk=Object.keys(cap).filter(k=>cap[k].g==='util'), tk=Object.keys(cap).filter(k=>cap[k].g==='tech');
+  if(uk.length||tk.length){
+    const sum=(ks,last)=>ks.reduce((a,k)=>{const d=cap[k].d,m=Object.keys(d).sort();return a+(d[m[m.length-(last?1:5)]]||0);},0);
+    h+=`<div class="card"><h2>🏗️ 유틸리티·빅테크 CAPEX (분기, 10-Q/10-K 확정치 — 자동)</h2>
+      <div class="d">한화 리포트 그림44·46의 <b>확정치 부분을 SEC 전자공시(EDGAR)에서 자동 추적</b>. 빅테크 4사 최근 분기 합산 <b>$${sum(tk,true).toFixed(0)}B</b>(1년 전 $${sum(tk,false).toFixed(0)}B) · 유틸리티 4사 $${sum(uk,true).toFixed(1)}B. 미래 전망(E)·계약 GW·송전 capex 계획 상향은 IR 발표 기반이라 분기 리서치로 별도 보강.</div>
+      <div class="grid2">
+        <div><div style="font-size:12px;font-weight:800;margin-bottom:4px">유틸리티 4사 ($B/분기)</div><div class="cv" style="height:220px"><canvas id="cCapU"></canvas></div></div>
+        <div><div style="font-size:12px;font-weight:800;margin-bottom:4px">빅테크 4사 ($B/분기)</div><div class="cv" style="height:220px"><canvas id="cCapT"></canvas></div></div>
+      </div>
+      <div class="d" style="margin-top:8px">유틸리티: AEP·Duke·Southern·Dominion (Exelon·NextEra·FirstEnergy는 표준 공시항목 미사용으로 자동수집 제외) · 빅테크: MS·알파벳·아마존·메타</div></div>`;
+  }
+  // 🇺🇸 미국 수입금액·한국 비중 (Census)
+  const ui=D.usimp||{}; const uik=Object.keys(ui).filter(k=>Object.keys((ui[k]||{}).tot||{}).length);
+  if(uik.length){
+    h+=`<div class="card"><h2>🇺🇸 미국 수입금액 & 한국 비중 (월간, 미 센서스 — 자동)</h2>
+      <div class="d">한화 리포트 그림41~43 재현 — 초고압변압기·배전반·GIS 미국 전체 수입액(막대)과 한국산 비중(선). <b>비중이 유지·상승하며 금액이 늘면 한국 업체가 증설 수요를 그대로 가져가는 것.</b></div>
+      ${uik.map((k,i)=>`<div style="font-size:12px;font-weight:800;margin:8px 0 4px">${k}</div><div class="cv" style="height:190px"><canvas id="cUI${i}"></canvas></div>`).join('')}</div>`;
+  } else {
+    h+=`<div class="card"><h2>🇺🇸 미국 수입금액 & 한국 비중 (월간)</h2><div class="note">미국 센서스 무역통계 API 키(무료·즉시발급)를 등록하면 자동으로 채워집니다 — 초고압변압기(850423)·배전반(853720)·GIS(853521)의 미국 전체 수입액과 한국 비중. <b>api.census.gov/data/key_signup.html</b>에서 발급 → GitHub Secrets에 <b>CENSUS_KEY</b>로 저장.</div></div>`;
+  }
+  // 💱 한국 수출단가 $/kg
+  const eup=D.expup||{}; const upk=Object.keys(eup).filter(k=>Object.keys(eup[k]||{}).length);
+  if(upk.length){
+    h+=`<div class="card"><h2>💱 한국 전력기기 수출단가 ($/kg, 월간 — 자동)</h2>
+      <div class="d">한화 리포트 그림31~33 유형 — kg당 수출단가가 오르면 <b>제품 믹스 개선+가격 협상력</b>. 초고압변압기·배전반·GIS 3개 품목.</div>
+      <div class="cv"><canvas id="cUP"></canvas></div></div>`;
+  } else {
+    h+=`<div class="card"><h2>💱 한국 전력기기 수출단가 ($/kg)</h2><div class="note">관세청 "품목별 수출입실적(GW)" 활용신청 승인 후 자동으로 채워집니다 — 초고압변압기(850423)·배전반(853720)·GIS(853521). 지역별(북미/유럽) 단가와 미국향 수출 합산은 <b>"품목별 국가별 수출입실적(GW)" API를 추가 신청</b>하면 넣을 수 있습니다.</div></div>`;
+  }
   // 🚢 한국 전력기기 수출 (관세청)
   const pex=D.exp||{}; const ek=Object.keys(pex).filter(k=>Object.keys(pex[k]||{}).length);
   if(ek.length){
@@ -140,6 +170,34 @@ function draw(){
     const colors=['#d92d20','#2f6df6','#12b76a','#f2a33c','#7a5af8'];
     line('cPPI',allM,pk2.map((k,i)=>({type:'line',label:ppi2[k].n,data:allM.map(m=>ppi2[k].d[m]??null),
       borderColor:colors[i%5],backgroundColor:colors[i%5],pointRadius:0,borderWidth:2,spanGaps:true})));
+  }
+  // CAPEX 차트
+  const cap2=D.capex||{};
+  const qlab=e=>{const[y,m]=e.split('-');return y.slice(2)+"'Q"+Math.ceil(+m/3);};
+  const capChart=(id,ks,colors)=>{
+    if(!ks.length) return;
+    const allE=[...new Set(ks.flatMap(k=>Object.keys(cap2[k].d)))].sort();
+    line(id,allE.map(qlab),ks.map((k,i)=>({type:'line',label:k,data:allE.map(e=>cap2[k].d[e]??null),
+      borderColor:colors[i%4],backgroundColor:colors[i%4],pointRadius:2,borderWidth:2,spanGaps:true})));
+  };
+  capChart('cCapU',Object.keys(cap2).filter(k=>cap2[k].g==='util'),['#d92d20','#2f6df6','#12b76a','#f2a33c']);
+  capChart('cCapT',Object.keys(cap2).filter(k=>cap2[k].g==='tech'),['#7a5af8','#d92d20','#f2a33c','#2f6df6']);
+  // 미국 수입 차트 (전체 막대 + 한국 비중 % 선, 이중축)
+  const ui2=D.usimp||{}; const uik2=Object.keys(ui2).filter(k=>Object.keys((ui2[k]||{}).tot||{}).length);
+  uik2.forEach((k,i)=>{
+    const tot=ui2[k].tot, kr=ui2[k].kr||{}; const ms=Object.keys(tot).sort();
+    line('cUI'+i,ms,[
+      {type:'bar',label:'미국 수입 전체(백만$)',data:ms.map(m=>tot[m]),backgroundColor:'#a8c3f8'},
+      {type:'line',label:'한국 비중(%)',data:ms.map(m=>tot[m]?+((kr[m]||0)/tot[m]*100).toFixed(1):null),
+       borderColor:'#d92d20',backgroundColor:'#d92d20',pointRadius:0,borderWidth:2,yAxisID:'y1'}],true);
+  });
+  // 수출단가 차트
+  const eup2=D.expup||{}; const upk2=Object.keys(eup2).filter(k=>Object.keys(eup2[k]||{}).length);
+  if(upk2.length){
+    const allM=[...new Set(upk2.flatMap(k=>Object.keys(eup2[k])))].sort();
+    const colors=['#d92d20','#2f6df6','#12b76a'];
+    line('cUP',allM,upk2.map((k,i)=>({type:'line',label:k+' $/kg',data:allM.map(m=>eup2[k][m]?eup2[k][m][1]:null),
+      borderColor:colors[i%3],backgroundColor:colors[i%3],pointRadius:0,borderWidth:2,spanGaps:true})));
   }
   // 수출 차트
   const pex2=D.exp||{}; const ek2=Object.keys(pex2).filter(k=>Object.keys(pex2[k]||{}).length);

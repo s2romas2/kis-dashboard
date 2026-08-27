@@ -22,6 +22,7 @@ jobs:
         env:
           CUSTOMS_KEY: ${{ secrets.CUSTOMS_KEY }}
           BLS_KEY: ${{ secrets.BLS_KEY }}
+          CENSUS_KEY: ${{ secrets.CENSUS_KEY }}
         run: python power.py
       - name: 결과 커밋
         if: always()

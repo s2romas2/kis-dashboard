@@ -63,7 +63,7 @@ h1 { font-size:22px; margin:10px 0 4px; }
   <div id="body"><div class="loading">불러오는 중…</div></div>
 </div>
 <script>
-let D=null, FILT='all', Q='';
+let D=null, FILT='all', SEC='all', Q='';
 const ST={new:['🟢 신규 진입','new'],hold:['🔵 주도 유지','hold'],warn:['🟡 경고 13-26 DC','warn'],dead:['🔴 이탈 4-26 DC','dead']};
 function fmt(n){ return n==null?'-':n.toLocaleString(); }
 function draw(){
@@ -78,7 +78,17 @@ function draw(){
     <div class="kpi ${FILT==='dead'?'on':''}" onclick="setF('dead')"><div class="t">🔴 4-26 이탈</div><div class="v">${cnt.dead}</div></div>
   </div>
   <div class="bar"><input id="q" placeholder="종목명·코드·섹터 검색" value="${Q}" oninput="Q=this.value;draw();refocus()"></div>`;
-  const rows=list.filter(x=>(FILT==='all'||x.state===FILT)&&(!Q||x.name.includes(Q)||x.code.includes(Q)||(x.sector||'').includes(Q)));
+  // 섹터 필터 칩 — 현재 상태 필터 기준 건수 표시
+  const base=list.filter(x=>FILT==='all'||x.state===FILT);
+  const secCnt={};
+  base.forEach(x=>{ const s=x.sector||'기타'; secCnt[s]=(secCnt[s]||0)+1; });
+  const secs=Object.entries(secCnt).sort((a,b)=>b[1]-a[1]);
+  h+=`<div class="secf" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">
+    <span class="scf ${SEC==='all'?'on':''}" onclick="setSec('all')">전체 ${base.length}</span>`+
+    secs.map(([s,c])=>`<span class="scf ${SEC===s?'on':''}" onclick="setSec('${s}')">${s} ${c}</span>`).join('')+`</div>
+  <style>.scf{border:1.5px solid #e3e7ef;background:#fff;border-radius:14px;padding:4px 11px;font-size:11.5px;font-weight:700;color:#667085;cursor:pointer;display:inline-block}
+  .scf.on{background:#1a2a4a;border-color:#1a2a4a;color:#fff}</style>`;
+  const rows=base.filter(x=>(SEC==='all'||(x.sector||'기타')===SEC)&&(!Q||x.name.includes(Q)||x.code.includes(Q)||(x.sector||'').includes(Q)));
   h+=rows.map((x,i)=>{
     const [lb,cls]=ST[x.state]||['',''];
     const op=x.op;
@@ -112,7 +122,8 @@ function draw(){
   document.getElementById('body').innerHTML=h;
 }
 function refocus(){ const el=document.getElementById('q'); if(el){ el.focus(); el.setSelectionRange(el.value.length,el.value.length);} }
-function setF(f){ FILT=f; draw(); }
+function setF(f){ FILT=f; SEC='all'; draw(); }
+function setSec(s){ SEC=s; draw(); }
 const DRAWN={};
 function tog(i,code){
   const c=document.getElementById('c'+i);

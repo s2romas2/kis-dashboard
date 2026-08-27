@@ -10,6 +10,9 @@ import xml.etree.ElementTree as ET
 
 DART_KEY = os.environ.get('DART_KEY', '')
 CUSTOMS_KEY = os.environ.get('CUSTOMS_KEY', '')
+if CUSTOMS_KEY and '%' not in CUSTOMS_KEY:  # 디코딩 키가 저장돼 있어도 동작하도록 인코딩 정규화
+    import urllib.parse as _up
+    CUSTOMS_KEY = _up.quote(CUSTOMS_KEY, safe='')
 BASE = 'https://opendart.fss.or.kr/api'
 OUT = 'public/data/pq.json'
 UA = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36'}
@@ -59,33 +62,44 @@ def customs(prev):
     if not CUSTOMS_KEY:
         DEBUG.append('customs: 키 없음')
         return out
-    endm = datetime.date.today().strftime('%Y%m')
+    # 주의: GW API는 월×국가×HS6로 행이 쪼개져 나옴 → 월별 합산 필수. 대용량이라 연 단위 분할 조회
+    thisy = datetime.date.today().year
     for name, hs in [('반도체', '8542'), ('메모리', '854232')]:
         try:
-            q = ('/1220000/nitemtrade/getNitemtradeList?serviceKey=%s&strtYymm=202001&endYymm=%s&hsSgn=%s'
-                 % (CUSTOMS_KEY, endm, hs))
-            x = ''
-            last = None
-            # trends.py와 동일한 호출 방식(UA·SSL컨텍스트 없이) — data.go.kr는 기본 urlopen이 안정적
-            for base in ('http://apis.data.go.kr', 'https://apis.data.go.kr', 'http://apis.data.go.kr'):
-                try:
-                    x = urllib.request.urlopen(base + q, timeout=110).read().decode('utf-8', 'ignore')
-                    if x:
-                        break
-                except Exception as e2:
-                    last = e2
-                    time.sleep(3)
-            if not x:
-                raise last or Exception('빈 응답')
-            root = ET.fromstring(x)
+            have = bool(out.get(name))
+            years = [thisy - 1, thisy] if have else list(range(2020, thisy + 1))
             ser = dict(out.get(name) or {})
-            for it in root.iter('item'):
-                ym = (it.findtext('year') or '').strip()
-                dlr = tonum(it.findtext('expDlr'))
-                wgt = tonum(it.findtext('expWgt'))
-                m = re.search(r'(\d{4})\.(\d{2})', ym)
-                if m and dlr:
-                    ser['%s-%s' % (m.group(1), m.group(2))] = [round(dlr / 1e6, 1), round((wgt or 0) / 1e3, 1)]  # 백만$, 톤
+            agg = {}  # ym -> [dlr, wgt]
+            for y in years:
+                endm = min(int('%d12' % y), int(datetime.date.today().strftime('%Y%m')))
+                q = ('/1220000/nitemtrade/getNitemtradeList?serviceKey=%s&strtYymm=%d01&endYymm=%d&hsSgn=%s'
+                     % (CUSTOMS_KEY, y, endm, hs))
+                x = ''
+                last = None
+                for base in ('http://apis.data.go.kr', 'https://apis.data.go.kr', 'http://apis.data.go.kr'):
+                    try:
+                        x = urllib.request.urlopen(base + q, timeout=150).read().decode('utf-8', 'ignore')
+                        if x:
+                            break
+                    except Exception as e2:
+                        last = e2
+                        time.sleep(3)
+                if not x:
+                    raise last or Exception('빈 응답')
+                for it in ET.fromstring(x).iter('item'):
+                    m = re.search(r'(\d{4})\.(\d{2})', (it.findtext('year') or ''))
+                    cc = (it.findtext('statCd') or '').strip()
+                    if not m or not cc or cc == '-':
+                        continue
+                    dlr = tonum(it.findtext('expDlr')) or 0
+                    wgt = tonum(it.findtext('expWgt')) or 0
+                    a = agg.setdefault('%s-%s' % (m.group(1), m.group(2)), [0, 0])
+                    a[0] += dlr
+                    a[1] += wgt
+                time.sleep(1)
+            for ym, (dlr, wgt) in agg.items():
+                if dlr:
+                    ser[ym] = [round(dlr / 1e6, 1), round(wgt / 1e3, 1)]  # 백만$, 톤
             if ser:
                 out[name] = ser
                 DEBUG.append('customs %s %d개월' % (name, len(ser)))

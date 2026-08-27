@@ -115,14 +115,26 @@ function draw(){
   } else {
     h+=`<div class="card"><h2>🇺🇸 미국 수입금액 & 한국 비중 (월간)</h2><div class="note">미국 센서스 무역통계 API 키(무료·즉시발급)를 등록하면 자동으로 채워집니다 — 초고압변압기(850423)·배전반(853720)·GIS(853521)의 미국 전체 수입액과 한국 비중. <b>api.census.gov/data/key_signup.html</b>에서 발급 → GitHub Secrets에 <b>CENSUS_KEY</b>로 저장.</div></div>`;
   }
-  // 💱 한국 수출단가 $/kg
+  // 💱 한국 수출단가 $/kg (전체 + 북미/유럽 지역별)
   const eup=D.expup||{}; const upk=Object.keys(eup).filter(k=>Object.keys(eup[k]||{}).length);
   if(upk.length){
     h+=`<div class="card"><h2>💱 한국 전력기기 수출단가 ($/kg, 월간 — 자동)</h2>
-      <div class="d">한화 리포트 그림31~33 유형 — kg당 수출단가가 오르면 <b>제품 믹스 개선+가격 협상력</b>. 초고압변압기·배전반·GIS 3개 품목.</div>
-      <div class="cv"><canvas id="cUP"></canvas></div></div>`;
+      <div class="d">한화 리포트 그림31~33 재현 — kg당 수출단가가 오르면 <b>제품 믹스 개선+가격 협상력</b>. 아래는 품목별로 전체·북미·유럽 단가 분해.</div>
+      <div class="cv"><canvas id="cUP"></canvas></div>
+      <div class="grid2" style="grid-template-columns:1fr 1fr 1fr;margin-top:10px">${upk.map((k,i)=>
+        `<div><div style="font-size:11.5px;font-weight:800;margin-bottom:3px">${k}</div><div class="cv" style="height:160px"><canvas id="cUPR${i}"></canvas></div></div>`).join('')}</div></div>`;
   } else {
-    h+=`<div class="card"><h2>💱 한국 전력기기 수출단가 ($/kg)</h2><div class="note">관세청 "품목별 수출입실적(GW)" 활용신청 승인 후 자동으로 채워집니다 — 초고압변압기(850423)·배전반(853720)·GIS(853521). 지역별(북미/유럽) 단가와 미국향 수출 합산은 <b>"품목별 국가별 수출입실적(GW)" API를 추가 신청</b>하면 넣을 수 있습니다.</div></div>`;
+    h+=`<div class="card"><h2>💱 한국 전력기기 수출단가 ($/kg)</h2><div class="note">관세청 "품목별 수출입실적(GW)" 활용신청 승인 후 자동으로 채워집니다 — 초고압변압기(850423)·배전반(853720)·GIS(853521), 전체·북미·유럽 지역별.</div></div>`;
+  }
+  // 🇺🇸 미국향 수출 합산
+  const eus=D.expus||{}; const usk=Object.keys(eus).filter(k=>Object.keys(eus[k]||{}).length);
+  if(usk.length){
+    const allM=[...new Set(usk.flatMap(k=>Object.keys(eus[k])))].sort();
+    const l12=allM.slice(-12).reduce((a,m)=>a+usk.reduce((b,k)=>b+(eus[k][m]||0),0),0);
+    const p12=allM.slice(-24,-12).reduce((a,m)=>a+usk.reduce((b,k)=>b+(eus[k][m]||0),0),0);
+    h+=`<div class="card"><h2>🇺🇸 미국향 전력기기 수출 합산 (월간, 백만$ — 자동)</h2>
+      <div class="d">변압기+배전반+케이블 미국향 합산 — 최근 12개월 <b>$${(l12/1e3).toFixed(2)}B</b>${p12?` (직전 12개월 $${(p12/1e3).toFixed(2)}B, ${((l12/p12-1)*100).toFixed(0)>=0?'+':''}${((l12/p12-1)*100).toFixed(0)}%)`:''}. 미국 증설 수요를 한국이 실제로 가져가는지의 최종 확인.</div>
+      <div class="cv"><canvas id="cUSX"></canvas></div></div>`;
   }
   // 🚢 한국 전력기기 수출 (관세청)
   const pex=D.exp||{}; const ek=Object.keys(pex).filter(k=>Object.keys(pex[k]||{}).length);
@@ -191,13 +203,30 @@ function draw(){
       {type:'line',label:'한국 비중(%)',data:ms.map(m=>tot[m]?+((kr[m]||0)/tot[m]*100).toFixed(1):null),
        borderColor:'#d92d20',backgroundColor:'#d92d20',pointRadius:0,borderWidth:2,yAxisID:'y1'}],true);
   });
-  // 수출단가 차트
+  // 수출단가 차트 (전체 3품목 + 품목별 전체/북미/유럽)
   const eup2=D.expup||{}; const upk2=Object.keys(eup2).filter(k=>Object.keys(eup2[k]||{}).length);
   if(upk2.length){
     const allM=[...new Set(upk2.flatMap(k=>Object.keys(eup2[k])))].sort();
     const colors=['#d92d20','#2f6df6','#12b76a'];
     line('cUP',allM,upk2.map((k,i)=>({type:'line',label:k+' $/kg',data:allM.map(m=>eup2[k][m]?eup2[k][m][1]:null),
       borderColor:colors[i%3],backgroundColor:colors[i%3],pointRadius:0,borderWidth:2,spanGaps:true})));
+    upk2.forEach((k,i)=>{
+      const rc=[['전체',1,'#667085'],['북미',2,'#d92d20'],['유럽',3,'#2f6df6']];
+      line('cUPR'+i,allM,rc.map(([lb,idx,c])=>({type:'line',label:lb,data:allM.map(m=>eup2[k][m]?eup2[k][m][idx]:null),
+        borderColor:c,backgroundColor:c,pointRadius:0,borderWidth:1.8,spanGaps:true})));
+    });
+  }
+  // 미국향 수출 합산 차트 (누적 막대)
+  const eus2=D.expus||{}; const usk2=Object.keys(eus2).filter(k=>Object.keys(eus2[k]||{}).length);
+  if(usk2.length){
+    const allM=[...new Set(usk2.flatMap(k=>Object.keys(eus2[k])))].sort();
+    const colors=['#d92d20','#2f6df6','#12b76a'];
+    const el=document.getElementById('cUSX');
+    if(el&&typeof Chart!=='undefined') CHARTS.push(new Chart(el,{data:{labels:allM,
+      datasets:usk2.map((k,i)=>({type:'bar',label:k,data:allM.map(m=>eus2[k][m]??0),backgroundColor:colors[i%3]}))},
+      options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+        plugins:{legend:{labels:{boxWidth:10,font:{size:10}}}},
+        scales:{x:{stacked:true,ticks:{font:{size:9}}},y:{stacked:true,ticks:{font:{size:9}}}}}}));
   }
   // 수출 차트
   const pex2=D.exp||{}; const ek2=Object.keys(pex2).filter(k=>Object.keys(pex2[k]||{}).length);

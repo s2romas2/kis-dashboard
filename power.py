@@ -209,75 +209,101 @@ def collect_ppi(prev):
             DEBUG.append('PPI 실패 %r' % str(e)[:40])
     return out
 
-# ── 한국 전력기기 수출 (관세청 nitemtrade — GW 활용신청 승인 후 채워짐) ──
+# ── 한국 전력기기 수출 (관세청 nitemtrade GW) ──
+# 주의: 이 API는 월×국가×HS6 단위로 행이 쪼개져 나옴 → 반드시 월별 합산해야 함
 CUSTOMS_KEY = os.environ.get('CUSTOMS_KEY', '')
+if CUSTOMS_KEY and '%' not in CUSTOMS_KEY:  # 디코딩 키가 저장돼 있어도 동작하도록 인코딩 정규화
+    CUSTOMS_KEY = urllib.parse.quote(CUSTOMS_KEY, safe='')
 PWR_HS = [('변압기(8504)', '8504'), ('배전반·차단기(8537)', '8537'), ('케이블(8544)', '8544')]
+NA_CC = {'US', 'CA', 'MX'}
+EU_CC = {'GB', 'DE', 'NL', 'NO', 'FI', 'SE', 'DK', 'PL', 'ES', 'IT', 'FR', 'BE', 'IE', 'AT', 'CH',
+         'CZ', 'GR', 'PT', 'HU', 'RO', 'EE', 'LV', 'LT', 'SK', 'SI', 'HR', 'BG', 'LU', 'MT', 'CY', 'IS'}
 
-def collect_exports(prev):
-    out = dict(prev or {})
+def customs_rows(hs, y1, y2):
+    """연도 구간 조회 → [(ym, 국가코드, 수출$, 수출kg)] (총계 행 제외)"""
+    endm = min(int('%d12' % y2), int(datetime.date.today().strftime('%Y%m')))
+    q = ('/1220000/nitemtrade/getNitemtradeList?serviceKey=%s&strtYymm=%d01&endYymm=%d&hsSgn=%s'
+         % (CUSTOMS_KEY, y1, endm, hs))
+    x = ''
+    for base in ('http://apis.data.go.kr', 'https://apis.data.go.kr'):
+        try:
+            x = urllib.request.urlopen(base + q, timeout=150).read().decode('utf-8', 'ignore')
+            if x:
+                break
+        except Exception:
+            time.sleep(3)
+    rows = []
+    for it in ET.fromstring(x).iter('item'):
+        m = re.search(r'(\d{4})\.(\d{2})', (it.findtext('year') or ''))
+        if not m:
+            continue
+        cc = (it.findtext('statCd') or '').strip()
+        dlr = (it.findtext('expDlr') or '0').replace(',', '').strip()
+        wgt = (it.findtext('expWgt') or '0').replace(',', '').strip()
+        if cc and cc != '-' and re.fullmatch(r'-?\d+', dlr):
+            rows.append(('%s-%s' % (m.group(1), m.group(2)), cc, int(dlr), int(wgt) if wgt.isdigit() else 0))
+    return rows
+
+def collect_exports(prev, prev_us):
+    """4자리 HS 월별 합산 — 전체(exp)와 미국향(expus)을 동시에 산출"""
+    out, out_us = dict(prev or {}), dict(prev_us or {})
     if not CUSTOMS_KEY:
         DEBUG.append('수출: 키 없음')
-        return out
-    endm = datetime.date.today().strftime('%Y%m')
+        return out, out_us
+    thisy = datetime.date.today().year
     for name, hs in PWR_HS:
         try:
-            q = ('/1220000/nitemtrade/getNitemtradeList?serviceKey=%s&strtYymm=202001&endYymm=%s&hsSgn=%s'
-                 % (CUSTOMS_KEY, endm, hs))
-            x = ''
-            for base in ('http://apis.data.go.kr', 'https://apis.data.go.kr'):
-                try:
-                    x = urllib.request.urlopen(base + q, timeout=110).read().decode('utf-8', 'ignore')
-                    if x:
-                        break
-                except Exception:
-                    time.sleep(3)
-            root = ET.fromstring(x)
-            ser = dict(out.get(name) or {})
-            for it in root.iter('item'):
-                ym = (it.findtext('year') or '').strip()
-                dlr = it.findtext('expDlr')
-                m = re.search(r'(\d{4})\.(\d{2})', ym)
-                if m and dlr and dlr.replace(',', '').strip().isdigit():
-                    ser['%s-%s' % (m.group(1), m.group(2))] = round(int(dlr.replace(',', '')) / 1e6, 1)  # 백만$
+            have = bool(out.get(name))
+            # API가 1년 이내 조회만 허용 → 반드시 연 단위 분할
+            years = [(thisy - 1, thisy - 1), (thisy, thisy)] if have else [(y, y) for y in range(2020, thisy + 1)]
+            ser, us = dict(out.get(name) or {}), dict(out_us.get(name) or {})
+            for y1, y2 in years:
+                agg, agg_us = {}, {}
+                for ym, cc, dlr, wgt in customs_rows(hs, y1, y2):
+                    agg[ym] = agg.get(ym, 0) + dlr
+                    if cc == 'US':
+                        agg_us[ym] = agg_us.get(ym, 0) + dlr
+                for ym, v in agg.items():
+                    ser[ym] = round(v / 1e6, 1)          # 백만$
+                    us[ym] = round(agg_us.get(ym, 0) / 1e6, 1)
+                time.sleep(1)
             if ser:
-                out[name] = ser
+                out[name], out_us[name] = ser, us
                 DEBUG.append('수출 %s %d개월' % (name, len(ser)))
         except Exception as e:
             DEBUG.append('수출 %s 실패 %r' % (name, str(e)[:40]))
-        time.sleep(1)
-    return out
+    return out, out_us
 
-# ── 한국 전력기기 수출단가 $/kg (HS 6단위: 초고압변압기·배전반·GIS) ──
+# ── 수출단가 $/kg (HS 6단위) — 전체/북미/유럽 지역별 ──
 UP_HS = [('초고압 변압기(850423)', '850423'), ('배전반(853720)', '853720'), ('GIS·차단기(853521)', '853521')]
 
 def collect_export_up(prev):
-    """관세청 nitemtrade 6단위 — {품목: {ym: [수출액 백만$, 단가 $/kg]}}"""
+    """{품목: {ym: [수출액 백만$, 전체$/kg, 북미$/kg, 유럽$/kg]}} (지역 무실적 달은 null)"""
     out = dict(prev or {})
     if not CUSTOMS_KEY:
         DEBUG.append('수출단가: 키 없음')
         return out
-    endm = datetime.date.today().strftime('%Y%m')
+    thisy = datetime.date.today().year
     for name, hs in UP_HS:
         try:
-            q = ('/1220000/nitemtrade/getNitemtradeList?serviceKey=%s&strtYymm=202001&endYymm=%s&hsSgn=%s'
-                 % (CUSTOMS_KEY, endm, hs))
-            x = ''
-            for base in ('http://apis.data.go.kr', 'https://apis.data.go.kr'):
-                try:
-                    x = urllib.request.urlopen(base + q, timeout=110).read().decode('utf-8', 'ignore')
-                    if x:
-                        break
-                except Exception:
-                    time.sleep(3)
-            root = ET.fromstring(x)
+            have = bool(out.get(name))
+            years = [thisy - 1, thisy] if have else list(range(2020, thisy + 1))  # API가 1년 이내 조회만 허용
             ser = dict(out.get(name) or {})
-            for it in root.iter('item'):
-                ym = (it.findtext('year') or '').strip()
-                dlr = (it.findtext('expDlr') or '').replace(',', '').strip()
-                wgt = (it.findtext('expWgt') or '').replace(',', '').strip()
-                m = re.search(r'(\d{4})\.(\d{2})', ym)
-                if m and dlr.isdigit() and wgt.isdigit() and int(wgt) > 0:
-                    ser['%s-%s' % (m.group(1), m.group(2))] = [round(int(dlr) / 1e6, 2), round(int(dlr) / int(wgt), 2)]
+            agg = {}  # ym -> [tot$, totKg, na$, naKg, eu$, euKg]
+            for y in years:
+                for ym, cc, dlr, wgt in customs_rows(hs, y, y):
+                    a = agg.setdefault(ym, [0, 0, 0, 0, 0, 0])
+                    a[0] += dlr; a[1] += wgt
+                    if cc in NA_CC:
+                        a[2] += dlr; a[3] += wgt
+                    elif cc in EU_CC:
+                        a[4] += dlr; a[5] += wgt
+                time.sleep(0.8)
+            for ym, a in agg.items():
+                ser[ym] = [round(a[0] / 1e6, 2),
+                           round(a[0] / a[1], 2) if a[1] else None,
+                           round(a[2] / a[3], 2) if a[3] else None,
+                           round(a[4] / a[5], 2) if a[5] else None]
             if ser:
                 out[name] = ser
                 DEBUG.append('수출단가 %s %d개월' % (name, len(ser)))
@@ -438,14 +464,14 @@ def main():
     snap = collect_eia(prev.get('eia'), backfill)
     news = collect_news(prev.get('news'))
     ppi = collect_ppi(prev.get('ppi'))
-    exp = collect_exports(prev.get('exp'))
+    exp, expus = collect_exports(prev.get('exp'), prev.get('expus'))
     expup = collect_export_up(prev.get('expup'))
     usimp = collect_us_imports(prev.get('usimp'))
     capex = collect_capex(prev.get('capex'))
     if not snap and prev.get('eia'):
         snap = prev['eia']
     out = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'eia': snap, 'news': news, 'ppi': ppi, 'exp': exp,
-           'expup': expup, 'usimp': usimp, 'capex': capex, 'debug': DEBUG[-20:]}
+           'expus': expus, 'expup': expup, 'usimp': usimp, 'capex': capex, 'debug': DEBUG[-20:]}
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     json.dump(out, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False)
     print('완료', DEBUG, file=sys.stderr)

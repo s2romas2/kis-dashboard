@@ -8,6 +8,9 @@ import os, sys, json, time, re, urllib.request, urllib.parse, datetime
 import xml.etree.ElementTree as ET
 
 CUSTOMS_KEY = os.environ.get('CUSTOMS_KEY', '')
+if CUSTOMS_KEY and '%' not in CUSTOMS_KEY:  # 디코딩 키가 저장돼 있어도 동작하도록 인코딩 정규화
+    import urllib.parse as _up
+    CUSTOMS_KEY = _up.quote(CUSTOMS_KEY, safe='')
 OUT = 'public/data/trends.json'
 DEBUG = []
 TODAY = datetime.date.today()
@@ -143,36 +146,43 @@ def exports(hsmap, prev_exp):
     if not CUSTOMS_KEY:
         DEBUG.append('수출: CUSTOMS_KEY 없음 → 건너뜀')
         return out
-    endm = TODAY.strftime('%Y%m')
+    # 주의: GW API는 월×국가×HS6로 행이 쪼개져 나옴 → 월별 합산 필수. 대용량이라 연 단위 분할 조회
     ok = 0
+    thisy = TODAY.year
     for name, hs in hsmap.items():
         try:
-            q = ('/1220000/nitemtrade/getNitemtradeList?serviceKey=%s'
-                 '&strtYymm=202001&endYymm=%s&hsSgn=%s' % (CUSTOMS_KEY, endm, hs))
-            x = ''
-            last = None
-            for base in ('http://apis.data.go.kr', 'https://apis.data.go.kr', 'http://apis.data.go.kr'):
-                try:
-                    x = urllib.request.urlopen(base + q, timeout=110).read().decode('utf-8', 'ignore')
-                    break
-                except Exception as e2:
-                    last = e2
-                    time.sleep(3)
-            if not x:
-                raise last or Exception('빈 응답')
-            root = ET.fromstring(x)
-            ser = {}
-            for it in root.iter('item'):
-                ym = (it.findtext('year') or '').strip()
-                v = (it.findtext('expDlr') or '').replace(',', '').strip()
-                m = re.search(r'(\d{4})\.(\d{2})', ym)
-                if m and re.fullmatch(r'-?\d+', v):
-                    ser[m.group(1) + '-' + m.group(2)] = int(v)
-            if ser:
-                out[name] = sorted([[k, v] for k, v in ser.items()])
+            prev_ser = dict(out.get(name) or [])
+            years = [thisy - 1, thisy] if prev_ser else list(range(2020, thisy + 1))
+            agg = {}
+            for y in years:
+                endm = min(int('%d12' % y), int(TODAY.strftime('%Y%m')))
+                q = ('/1220000/nitemtrade/getNitemtradeList?serviceKey=%s'
+                     '&strtYymm=%d01&endYymm=%d&hsSgn=%s' % (CUSTOMS_KEY, y, endm, hs))
+                x = ''
+                last = None
+                for base in ('http://apis.data.go.kr', 'https://apis.data.go.kr', 'http://apis.data.go.kr'):
+                    try:
+                        x = urllib.request.urlopen(base + q, timeout=150).read().decode('utf-8', 'ignore')
+                        break
+                    except Exception as e2:
+                        last = e2
+                        time.sleep(3)
+                if not x:
+                    raise last or Exception('빈 응답')
+                for it in ET.fromstring(x).iter('item'):
+                    m = re.search(r'(\d{4})\.(\d{2})', (it.findtext('year') or ''))
+                    cc = (it.findtext('statCd') or '').strip()
+                    v = (it.findtext('expDlr') or '').replace(',', '').strip()
+                    if m and cc and cc != '-' and re.fullmatch(r'-?\d+', v):
+                        k = m.group(1) + '-' + m.group(2)
+                        agg[k] = agg.get(k, 0) + int(v)
+                time.sleep(1)
+            if agg:
+                prev_ser.update(agg)
+                out[name] = sorted([[k, v] for k, v in prev_ser.items()])
                 ok += 1
             elif len(DEBUG) < 20:
-                DEBUG.append('수출 %s 0건: %s' % (name, re.sub(r'\s+', ' ', x)[:150]))
+                DEBUG.append('수출 %s 0건' % name)
         except Exception as e:
             if len(DEBUG) < 20:
                 DEBUG.append('수출 %s: %r' % (name, e))

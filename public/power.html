@@ -51,7 +51,7 @@ h1 { font-size:22px; margin:10px 0 4px; }
   <div id="body"><div class="loading">불러오는 중…</div></div>
 </div>
 <script>
-let D=null, SV=null, CHARTS=[];
+let D=null, D2=null, SV=null, CHARTS=[];
 function line(id,labels,dss,y2){
   const el=document.getElementById(id); if(!el||typeof Chart==='undefined') return;
   CHARTS.push(new Chart(el,{data:{labels,datasets:dss},options:{responsive:true,maintainAspectRatio:false,
@@ -105,6 +105,19 @@ function draw(){
         <div><div style="font-size:12px;font-weight:800;margin-bottom:4px">빅테크 4사 ($B/분기)</div><div class="cv" style="height:220px"><canvas id="cCapT"></canvas></div></div>
       </div>
       <div class="d" style="margin-top:8px">유틸리티: AEP·Duke·Southern·Dominion (Exelon·NextEra·FirstEnergy는 표준 공시항목 미사용으로 자동수집 제외) · 빅테크: MS·알파벳·아마존·메타</div></div>`;
+  }
+  // 📋 IR 발표 기반 — 계약 GW·CAPEX 계획 (분기 리서치, 출처 링크)
+  const ir=D2||null;
+  if(ir&&(ir.list||[]).length){
+    const row=x=>`<tr><td><b>${x.co}</b></td><td>${x.metric}</td><td style="font-weight:800;white-space:nowrap">${x.value}</td><td style="white-space:nowrap;color:#667085">${x.asof}</td><td>${x.note} <a href="${x.src}" target="_blank" style="color:#2f6df6;font-weight:700;white-space:nowrap">🔗 ${x.srcname}</a></td></tr>`;
+    const tbl=g=>`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr style="color:#667085;font-size:11px;text-align:left"><th style="padding:4px 6px">회사</th><th>지표</th><th>수치</th><th>기준</th><th>내용·출처</th></tr></thead>
+      <tbody>${ir.list.filter(x=>x.g===g).map(row).join('')}</tbody></table></div>`;
+    h+=`<div class="card"><h2>📋 계약 전력수요·CAPEX 계획 (IR 발표 기반 — 분기 리서치)</h2>
+      <div class="d">한화 리포트 그림45·47~49 유형 — API가 없는 <b>미래 계획·계약 GW</b>는 각 사 실적발표(IR)에서 분기마다 수집. 모든 수치에 원문 출처 링크. 갱신 ${ir.updated}</div>
+      <div style="font-size:12.5px;font-weight:800;margin:6px 0 4px">🔌 유틸리티 — 계약 GW·투자계획</div>${tbl('util')}
+      <div style="font-size:12.5px;font-weight:800;margin:12px 0 4px">☁️ 빅테크 — CAPEX 가이던스(전망)</div>${tbl('tech')}
+      <style>#body table td{padding:5px 6px;border-top:1px solid #eef0f4;line-height:1.5;vertical-align:top}</style></div>`;
   }
   // 🇺🇸 미국 수입금액·한국 비중 (Census)
   const ui=D.usimp||{}; const uik=Object.keys(ui).filter(k=>Object.keys((ui[k]||{}).tot||{}).length);
@@ -247,6 +260,7 @@ function draw(){
 async function init(){
   try{ D=await (await fetch('/data/power.json?t='+Date.now())).json(); }
   catch(e){ document.getElementById('body').innerHTML='<div class="note">power.json 대기 중 — 첫 배치 실행 후 채워집니다.</div>'; return; }
+  try{ D2=await (await fetch('/data/irwatch.json?t='+Date.now())).json(); }catch(e){}
   draw();
   try{ const sv=await (await fetch('/data/stockvals.json?t='+Date.now())).json(); SV=sv.map||null; draw(); }catch(e){}
 }

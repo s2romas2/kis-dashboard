@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>업종 랭크테이블</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; background:#f4f6fa; color:#1a1f2e; }
+.wrap { max-width:1280px; margin:0 auto; padding:18px 14px 60px; }
+h1 { font-size:22px; margin:10px 0 4px; }
+.sub { color:#667085; font-size:13px; margin-bottom:12px; line-height:1.6; }
+.bar { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
+.chip { border:1.5px solid #d7dce6; background:#fff; border-radius:18px; padding:6px 13px; font-size:12.5px; font-weight:700; color:#475467; cursor:pointer; }
+.chip.on { background:#2f6df6; border-color:#2f6df6; color:#fff; }
+select { border:1.5px solid #d7dce6; border-radius:10px; padding:6px 10px; font-size:12.5px; font-weight:700; color:#475467; background:#fff; }
+.secbar { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px; }
+.sc { border:1.5px solid #e3e7ef; background:#fff; border-radius:14px; padding:4px 10px; font-size:11.5px; font-weight:700; color:#667085; cursor:pointer; }
+.sc.on { color:#fff; border-color:transparent; }
+.card { background:#fff; border:1px solid #e6e9f0; border-radius:14px; padding:12px; }
+.tblwrap { overflow-x:auto; position:relative; }
+.inner { position:relative; width:max-content; }
+table { border-collapse:collapse; font-size:10.5px; }
+th { font-size:10px; color:#475467; padding:4px 3px; background:#f1f4f9; border:1px solid #e3e7ef; white-space:nowrap; position:sticky; top:0; }
+th.cur { background:#1a2a4a; color:#fff; }
+td { border:1px solid #eceff4; padding:2px 4px; white-space:nowrap; text-align:center; min-width:74px; height:21px; color:#374151; }
+td.rk { min-width:26px; color:#98a2b3; font-size:9.5px; background:#fafbfd; position:sticky; left:0; }
+td.hl { font-weight:900; color:#1a1f2e; }
+svg.ov { position:absolute; left:0; top:0; pointer-events:none; }
+.legend { font-size:11.5px; color:#667085; margin-top:8px; line-height:1.7; }
+.legend b { color:#1a1f2e; }
+.climb { display:inline-block; font-size:11px; font-weight:800; background:#fde8e8; color:#d92d20; border-radius:8px; padding:2px 9px; margin-right:5px; }
+.loading { text-align:center; color:#98a2b3; padding:30px 0; }
+@media (max-width:760px){ td{min-width:64px; font-size:9.5px;} }
+</style>
+</head>
+<body>
+<script src="/nav.js" defer></script>
+<div class="wrap">
+  <h1>🗂️ 업종 랭크테이블</h1>
+  <div class="sub">가로 = 월별 시점, 세로 = 그 달 <b>수익률 순위(위가 1위)</b>. 아래에 있던 업종이 상단을 점유하기 시작하면 주도 섹터 교체 신호 — 업종 이름을 클릭하면 그 업종의 순위 이동 경로가 화살표로 그려집니다. <b>🔺 자동 감지</b>: 최근 순위가 뚜렷하게 상승 중인 업종은 자동으로 붉은 화살표 표시.</div>
+  <div class="bar">
+    <span class="chip" data-mkt="KOSPI">KOSPI</span>
+    <span class="chip" data-mkt="KOSDAQ">KOSDAQ</span>
+    <span style="width:10px"></span>
+    <span class="chip" data-win="12">최근 12개월</span>
+    <span class="chip" data-win="24">최근 24개월</span>
+    <span class="chip" data-win="36">최근 36개월</span>
+    <select id="yearSel"><option value="">연도 선택(24개월 보기)…</option></select>
+  </div>
+  <div class="secbar" id="secbar"></div>
+  <div class="card">
+    <div id="autoBox" style="margin-bottom:8px"></div>
+    <div class="tblwrap" id="tw"><div class="loading">불러오는 중…</div></div>
+    <div class="legend">읽는 법 — 책의 랭크테이블과 동일: <b>하위권에 있던 업종이 몇 달에 걸쳐 우상향 대각선을 그리며 상단으로 올라오면</b> 다음 주도 섹터 후보. 상단을 오래 점유하다 하위로 미끄러지기 시작하면 주도권 종료 신호. 셀에 마우스를 올리면 그 달 수익률이 표시됩니다. 마지막 달은 진행 중(MTD).</div>
+  </div>
+</div>
+<script>
+let H=null, MKT='KOSPI', WIN=24, YEAR='', SEL={};
+const COLORS=['#d92d20','#2f6df6','#12b76a','#f2a33c','#7a5af8','#0e9494'];
+const EXCLUDE=new Set(['제조']);
+function monthsRank(){
+  // 시장별 업종 → 월별 수익률 → 월별 순위
+  const secs={};
+  for(const [code,v] of Object.entries(H.sectors)){
+    if(v.mkt!==MKT||EXCLUDE.has(v.name)) continue;
+    const cur=secs[v.name];
+    if(!cur||v.monthly.length>cur.monthly.length) secs[v.name]=v;  // 동명 중복은 데이터 긴 쪽
+  }
+  const rets={}; const allM=new Set();
+  for(const [nm,v] of Object.entries(secs)){
+    const m=v.monthly; rets[nm]={};
+    for(let i=1;i<m.length;i++){
+      const ym=m[i][0].slice(0,6);
+      if(m[i-1][1]>0){ rets[nm][ym]=(m[i][1]/m[i-1][1]-1)*100; allM.add(ym); }
+    }
+  }
+  const months=[...allM].sort();
+  const rank={};  // ym -> [ [nm, ret], ... ] 수익률 내림차순
+  for(const ym of months){
+    const arr=Object.keys(rets).filter(n=>rets[n][ym]!=null).map(n=>[n,rets[n][ym]]);
+    arr.sort((a,b)=>b[1]-a[1]);
+    rank[ym]=arr;
+  }
+  return {months,rank,names:Object.keys(rets).sort()};
+}
+function windowMonths(months){
+  if(YEAR){ const s=YEAR+'01'; const i=months.findIndex(m=>m>=s); return months.slice(Math.max(0,i),Math.max(0,i)+24); }
+  return months.slice(-WIN);
+}
+function autoClimbers(months,rank){
+  // 표시 구간에서 순위 상승 기울기 큰 업종 탐지 (마지막 위치가 상위 1/3)
+  const N=(rank[months[0]]||[]).length||20;
+  const pos={};
+  for(const ym of months){ (rank[ym]||[]).forEach(([nm],i)=>{ (pos[nm]=pos[nm]||{})[ym]=i; }); }
+  const out=[];
+  for(const [nm,p] of Object.entries(pos)){
+    const ms=months.filter(m=>p[m]!=null);
+    if(ms.length<Math.min(6,months.length)) continue;
+    const half=Math.floor(ms.length/2);
+    const early=ms.slice(0,half).reduce((a,m)=>a+p[m],0)/half;
+    const lateMs=ms.slice(-3);
+    const late=lateMs.reduce((a,m)=>a+p[m],0)/lateMs.length;
+    if(late<N/3&&early-late>N/4) out.push([nm,early,late,early-late]);
+  }
+  out.sort((a,b)=>b[3]-a[3]);
+  return out.slice(0,3).map(x=>x[0]);
+}
+function draw(){
+  const {months,rank,names}=monthsRank();
+  const win=windowMonths(months);
+  if(!win.length){ document.getElementById('tw').innerHTML='<div class="loading">데이터 없음</div>'; return; }
+  const climbers=autoClimbers(win,rank);
+  // 업종 칩
+  document.getElementById('secbar').innerHTML=names.map(n=>{
+    const ci=SEL[n];
+    return `<span class="sc ${ci!=null?'on':''}" style="${ci!=null?'background:'+COLORS[ci%6]:''}" onclick="togSec('${n}')">${n}</span>`;
+  }).join('');
+  // 자동 감지 안내
+  document.getElementById('autoBox').innerHTML=climbers.length
+    ?'🔺 순위 상승 감지: '+climbers.map(n=>`<span class="climb">${n}</span>`).join('')+'<span style="font-size:11px;color:#98a2b3">— 하위권→상위권 이동 중 (자동 화살표)</span>'
+    :'<span style="font-size:11px;color:#98a2b3">이 구간에서 뚜렷한 순위 상승 업종 없음</span>';
+  const N=Math.max(...win.map(m=>(rank[m]||[]).length));
+  const lastYm=months[months.length-1];
+  let h='<div class="inner" id="inner"><table><tr><th style="left:0;position:sticky;z-index:2"></th>';
+  h+=win.map(m=>`<th class="${m===lastYm?'cur':''}">${m.slice(2,4)}.${m.slice(4)}${m===lastYm?'*':''}</th>`).join('')+'</tr>';
+  for(let r=0;r<N;r++){
+    h+=`<tr><td class="rk">${r+1}</td>`;
+    for(const m of win){
+      const e=(rank[m]||[])[r];
+      if(!e){ h+='<td></td>'; continue; }
+      const [nm,rt]=e;
+      const ci=SEL[nm];
+      const auto=climbers.includes(nm);
+      const bg=ci!=null?COLORS[ci%6]+'33':(auto?'#fde8e84d':(r<3?'#f6f8fc':''));
+      h+=`<td class="${ci!=null||auto?'hl':''}" data-nm="${nm}" data-m="${m}" title="${nm} ${m.slice(0,4)}.${m.slice(4)}: ${rt>=0?'+':''}${rt.toFixed(1)}%" style="background:${bg}" onclick="togSec('${nm}')">${nm}</td>`;
+    }
+    h+='</tr>';
+  }
+  h+='</table><svg class="ov" id="ov"></svg></div>';
+  document.getElementById('tw').innerHTML=h;
+  requestAnimationFrame(()=>arrows(win,rank,climbers));
+}
+function cellPos(nm,m){
+  const td=document.querySelector(`td[data-nm="${nm}"][data-m="${m}"]`);
+  if(!td) return null;
+  const inner=document.getElementById('inner');
+  const a=td.getBoundingClientRect(), b=inner.getBoundingClientRect();
+  return {x:a.left-b.left+a.width/2, y:a.top-b.top+a.height/2};
+}
+function arrows(win,rank,climbers){
+  const inner=document.getElementById('inner'), svg=document.getElementById('ov');
+  if(!inner||!svg) return;
+  svg.setAttribute('width',inner.scrollWidth); svg.setAttribute('height',inner.scrollHeight);
+  let defs=`<defs>${COLORS.concat('#d92d20').map((c,i)=>
+    `<marker id="ah${i}" markerWidth="7" markerHeight="7" refX="5.5" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="${c}"/></marker>`).join('')}</defs>`;
+  let body='';
+  // ① 자동 감지: 시작(최저점) → 끝 직선 화살표 (책 스타일)
+  for(const nm of climbers){
+    if(SEL[nm]!=null) continue;
+    let worst=null, worstM=null;
+    for(const m of win){ const i=(rank[m]||[]).findIndex(e=>e[0]===nm); if(i>=0&&(worst==null||i>worst)){worst=i;worstM=m;} }
+    const lastM=[...win].reverse().find(m=>(rank[m]||[]).some(e=>e[0]===nm));
+    if(!worstM||!lastM||worstM>=lastM) continue;
+    const p1=cellPos(nm,worstM), p2=cellPos(nm,lastM);
+    if(p1&&p2) body+=`<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="#d92d20" stroke-width="2.2" opacity="0.75" marker-end="url(#ah6)"/>`;
+  }
+  // ② 선택 업종: 전체 경로 폴리라인
+  for(const [nm,ci] of Object.entries(SEL)){
+    const pts=win.map(m=>cellPos(nm,m)).filter(Boolean);
+    if(pts.length>1){
+      body+=`<polyline points="${pts.map(p=>p.x+','+p.y).join(' ')}" fill="none" stroke="${COLORS[ci%6]}" stroke-width="2" opacity="0.7" marker-end="url(#ah${ci%6})"/>`;
+    }
+  }
+  svg.innerHTML=defs+body;
+}
+function togSec(nm){
+  if(SEL[nm]!=null){ delete SEL[nm]; }
+  else{
+    const used=new Set(Object.values(SEL));
+    let ci=0; while(used.has(ci)&&ci<6) ci++;
+    if(Object.keys(SEL).length>=6) return;
+    SEL[nm]=ci;
+  }
+  draw();
+}
+document.querySelectorAll('.chip[data-mkt]').forEach(c=>c.addEventListener('click',()=>{
+  MKT=c.dataset.mkt; SEL={}; sync(); draw();
+}));
+document.querySelectorAll('.chip[data-win]').forEach(c=>c.addEventListener('click',()=>{
+  WIN=+c.dataset.win; YEAR=''; document.getElementById('yearSel').value=''; sync(); draw();
+}));
+document.getElementById('yearSel').addEventListener('change',e=>{ YEAR=e.target.value; sync(); draw(); });
+function sync(){
+  document.querySelectorAll('.chip[data-mkt]').forEach(c=>c.classList.toggle('on',c.dataset.mkt===MKT));
+  document.querySelectorAll('.chip[data-win]').forEach(c=>c.classList.toggle('on',!YEAR&&+c.dataset.win===WIN));
+}
+async function init(){
+  try{ H=await (await fetch('/data/leadershist.json?t='+Date.now())).json(); }
+  catch(e){ document.getElementById('tw').innerHTML='<div class="loading">leadershist.json 대기 중</div>'; return; }
+  const ys=new Set();
+  for(const v of Object.values(H.sectors)) for(const m of v.monthly) ys.add(m[0].slice(0,4));
+  const sel=document.getElementById('yearSel');
+  [...ys].sort().forEach(y=>{ const o=document.createElement('option'); o.value=y; o.textContent=y+'년~'; sel.appendChild(o); });
+  sync(); draw();
+}
+init();
+</script>
+</body>
+</html>

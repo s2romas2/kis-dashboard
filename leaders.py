@@ -85,6 +85,22 @@ def main():
         hist = json.load(open(HIST, encoding='utf-8'))
     except Exception:
         hist = {'sectors': {}}
+    # hv=2: 월봉 API가 호출당 ~50봉 제한 → 4년(48개월) 단위 백필 + 월 중복 제거
+    HV = 2
+    rebuild_all = hist.get('hv') != HV
+    def dedupe_monthly(rows):
+        best = {}
+        for d, v in rows:
+            ym = d[:6]
+            if ym not in best or d > best[ym][0]:
+                best[ym] = [d, v]
+        return [best[k] for k in sorted(best)]
+    def month_ranges():
+        out, y = [], 2001
+        while y <= int(today[:4]):
+            out.append(('%d0101' % y, min('%d1231' % (y + 3), today)))
+            y += 4
+        return out
 
     sectors = {}   # code -> {name, mkt, daily:[[d,v],...]}
     found = 0
@@ -100,25 +116,24 @@ def main():
             continue
         sectors[code] = {'name': name, 'mkt': mkt, 'daily': rows[-70:]}
         found += 1
-        # 월봉(2001~) 캐시: 최초 1회 또는 월 단위 갱신
+        # 월봉(2001~) 캐시: 최초 1회(또는 hv 버전업 시) 4년 단위 풀백필
         hc = hist['sectors'].get(code)
-        need_full = not hc or not hc.get('monthly')
+        need_full = rebuild_all or not hc or not hc.get('monthly')
         if need_full:
             monthly = []
-            for (a, b) in [('20010101', '20090101'), ('20090102', '20170101'), ('20170102', '20250101')]:
+            for (a, b) in month_ranges():
                 try:
                     _, mrows = candles(hdr, code, a, b, 'M')
                     monthly += mrows
                 except Exception:
                     pass
                 time.sleep(0.25)
-            hist['sectors'][code] = {'name': name, 'mkt': mkt, 'monthly': monthly}
-        # 최근 월봉은 매번 갱신(최근 2년 창)
+            hist['sectors'][code] = {'name': name, 'mkt': mkt, 'monthly': dedupe_monthly(monthly)}
+        # 최근 월봉은 매번 갱신(최근 2년 창) — 같은 달은 최신 일자로 교체
         try:
             _, recent = candles(hdr, code, '20250102', today, 'M')
             hc = hist['sectors'][code]
-            have = {r[0] for r in hc['monthly']}
-            hc['monthly'] = sorted(hc['monthly'] + [r for r in recent if r[0] not in have])
+            hc['monthly'] = dedupe_monthly(hc['monthly'] + recent)
         except Exception:
             pass
         time.sleep(0.2)
@@ -130,14 +145,14 @@ def main():
     idx_hist = {}
     for code, label in [('0001', 'kospi'), ('1001', 'kosdaq')]:
         monthly = []
-        for (a, b) in [('20010101', '20090101'), ('20090102', '20170101'), ('20170102', today)]:
+        for (a, b) in month_ranges():
             try:
                 _, mrows = candles(hdr, code, a, b, 'M')
                 monthly += mrows
             except Exception:
                 pass
             time.sleep(0.25)
-        idx_hist[label] = monthly
+        idx_hist[label] = dedupe_monthly(monthly)
 
     # ---- 기간별 순위 (일=1, 주=5, 월=21, 연=YTD) ----
     def ytd(rows):
@@ -192,6 +207,7 @@ def main():
            'debug': DEBUG, 'periods': periods, 'history': years}
     os.makedirs('public/data', exist_ok=True)
     json.dump(out, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False)
+    hist['hv'] = HV
     json.dump(hist, open(HIST, 'w', encoding='utf-8'), ensure_ascii=False)
     print('완료:', DEBUG)
 

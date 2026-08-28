@@ -63,21 +63,53 @@ h1 { font-size:22px; margin:10px 0 4px; }
   <div id="body"><div class="loading">불러오는 중…</div></div>
 </div>
 <script>
-let D=null, FILT='all', SEC='all', Q='';
+let D=null, FILT='all', SEC='all', TW='all', Q='';
 const ST={new:['🟢 신규 진입','new'],hold:['🔵 주도 유지','hold'],warn:['🟡 경고 13-26 DC','warn'],dead:['🔴 이탈 4-26 DC','dead']};
+const TWS=[['all','전체'],['d','오늘'],['w','최근 1주'],['m','최근 1개월'],['y','올해']];
 function fmt(n){ return n==null?'-':n.toLocaleString(); }
+function sigDate(x){ return x.arrStart||x.evtDate||''; }  // 신규·유지=정배열 시작일, 경고·이탈=DC 발생일
+function twCut(){
+  const now=new Date();
+  const ymd=d=>d.toISOString().slice(0,10).replace(/-/g,'');
+  if(TW==='d') return ymd(new Date(now-86400000*1));
+  if(TW==='w') return ymd(new Date(now-86400000*7));
+  if(TW==='m') return ymd(new Date(now-86400000*31));
+  if(TW==='y') return now.getFullYear()+'0101';
+  return '';
+}
 function draw(){
-  const list=(D.list||[]);
-  if(!list.length){ document.getElementById('body').innerHTML='<div class="note">첫 스캔 대기 중 — 배치 실행 후 채워집니다 (시총 상위 '+(D.capTop||1000)+'종목 대상).</div>'; return; }
+  const all=(D.list||[]);
+  if(!all.length){ document.getElementById('body').innerHTML='<div class="note">첫 스캔 대기 중 — 배치 실행 후 채워집니다 (시총 상위 '+(D.capTop||1000)+'종목 대상).</div>'; return; }
+  const cut=twCut();
+  const list=cut?all.filter(x=>sigDate(x)>=cut):all;
   const cnt={new:0,hold:0,warn:0,dead:0}; list.forEach(x=>cnt[x.state]!==undefined&&cnt[x.state]++);
-  let h=`<div class="kpis">
+  let h=`<div class="bar" style="align-items:center"><span style="font-size:12px;font-weight:800;color:#475467">신호 발생 시점:</span>`+
+    TWS.map(([k,lb])=>`<span class="scf ${TW===k?'on':''}" onclick="setTW('${k}')">${lb}</span>`).join('')+
+    `<span style="font-size:11px;color:#98a2b3">— 정배열 시작일·데드크로스 발생일 기준</span></div>`;
+  h+=`<div class="kpis">
     <div class="kpi ${FILT==='all'?'on':''}" onclick="setF('all')"><div class="t">전체 신호</div><div class="v">${list.length}</div></div>
     <div class="kpi ${FILT==='new'?'on':''}" onclick="setF('new')"><div class="t">🟢 신규 진입 (8주 내)</div><div class="v">${cnt.new}</div></div>
     <div class="kpi ${FILT==='hold'?'on':''}" onclick="setF('hold')"><div class="t">🔵 주도 유지</div><div class="v">${cnt.hold}</div></div>
     <div class="kpi ${FILT==='warn'?'on':''}" onclick="setF('warn')"><div class="t">🟡 13-26 경고</div><div class="v">${cnt.warn}</div></div>
     <div class="kpi ${FILT==='dead'?'on':''}" onclick="setF('dead')"><div class="t">🔴 4-26 이탈</div><div class="v">${cnt.dead}</div></div>
-  </div>
-  <div class="bar"><input id="q" placeholder="종목명·코드·섹터 검색" value="${Q}" oninput="Q=this.value;draw();refocus()"></div>`;
+  </div>`;
+  // 📊 신호별 업종 구성 — 어느 섹터에서 신호가 나오고 있나
+  const comp=k=>{
+    const c={};
+    list.filter(x=>x.state===k).forEach(x=>{ const s=x.sector||'기타'; c[s]=(c[s]||0)+1; });
+    return Object.entries(c).sort((a,b)=>b[1]-a[1]);
+  };
+  h+=`<div class="card" style="margin-bottom:12px"><h2 style="font-size:14px;margin-bottom:6px">📊 신호별 업종 구성${TW!=='all'?` <span style="font-weight:600;font-size:11.5px;color:#98a2b3">(${TWS.find(t=>t[0]===TW)[1]} 발생분)</span>`:''}</h2>`+
+    Object.keys(ST).map(k=>{
+      const rows=comp(k);
+      if(!rows.length) return '';
+      const [lb,cls]=ST[k];
+      return `<div style="display:flex;align-items:flex-start;gap:8px;margin:5px 0;flex-wrap:wrap">
+        <span class="st ${cls}" style="flex-shrink:0">${lb} ${cnt[k]}</span>
+        <span style="display:flex;gap:4px;flex-wrap:wrap">${rows.map(([s,c])=>
+          `<span class="scf ${FILT===k&&SEC===s?'on':''}" onclick="setFS('${k}','${s}')">${s} <b>${c}</b></span>`).join('')}</span></div>`;
+    }).join('')+`</div>`;
+  h+=`<div class="bar"><input id="q" placeholder="종목명·코드·섹터 검색" value="${Q}" oninput="Q=this.value;draw();refocus()"></div>`;
   // 섹터 필터 칩 — 현재 상태 필터 기준 건수 표시
   const base=list.filter(x=>FILT==='all'||x.state===FILT);
   const secCnt={};
@@ -124,6 +156,8 @@ function draw(){
 function refocus(){ const el=document.getElementById('q'); if(el){ el.focus(); el.setSelectionRange(el.value.length,el.value.length);} }
 function setF(f){ FILT=f; SEC='all'; draw(); }
 function setSec(s){ SEC=s; draw(); }
+function setTW(t){ TW=t; draw(); }
+function setFS(f,s){ const same=(FILT===f&&SEC===s); FILT=f; SEC=same?'all':s; draw(); }
 const DRAWN={};
 function tog(i,code){
   const c=document.getElementById('c'+i);

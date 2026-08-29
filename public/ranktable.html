@@ -44,6 +44,8 @@ svg.ov { position:absolute; left:0; top:0; pointer-events:none; }
   <h1>🗂️ 업종 랭크테이블</h1>
   <div class="sub">가로 = 시점, 세로 = <b>수익률 순위(위가 1위)</b>. 하위권에 있던 업종이 상단으로 올라오면 주도 섹터 교체 신호 — <b>🔺 뜨는 섹터(적색)와 🔻 가라앉는 섹터(청색)를 동시에 자동 감지</b>합니다. 업종을 클릭·검색하면 그 업종만 색으로 표시(나머지는 흐리게)됩니다.</div>
   <div class="bar">
+    <span class="chip gran" data-g="D">일별</span>
+    <span class="chip gran" data-g="W">주별</span>
     <span class="chip gran" data-g="M">월별</span>
     <span class="chip gran" data-g="Q">분기별</span>
     <span class="chip gran" data-g="H">반기별</span>
@@ -103,9 +105,37 @@ function periodKey(ym){
   return y;
 }
 function periodLabel(p){
-  return GRAN==='M'?p.slice(2,4)+'.'+p.slice(4):GRAN==='Y'?p:p.slice(2,4)+'.'+p.slice(4);
+  if(GRAN==='D') return p.slice(4,6)+'.'+p.slice(6);
+  if(GRAN==='W') return p.slice(2,4)+'.'+p.slice(4,6)+'.'+p.slice(6);
+  return GRAN==='Y'?p:p.slice(2,4)+'.'+p.slice(4);
+}
+function buildDW(){
+  // 일별/주별: leadershist의 daily/weekly 종가에서 직접 봉 단위 수익률·순위
+  const key=GRAN==='D'?'daily':'weekly';
+  const secs={};
+  for(const v of Object.values(H.sectors)){
+    if(v.mkt!==MKT||EXCLUDE.has(v.name)||!(v[key]||[]).length) continue;
+    const cur=secs[v.name];
+    if(!cur||v[key].length>cur[key].length) secs[v.name]=v;
+  }
+  const rets={}; const allD=new Set();
+  for(const [nm,v] of Object.entries(secs)){
+    const m=v[key]; rets[nm]={};
+    for(let i=1;i<m.length;i++){
+      if(m[i-1][1]>0){ rets[nm][m[i][0]]=(m[i][1]/m[i-1][1]-1)*100; allD.add(m[i][0]); }
+    }
+  }
+  const plist=[...allD].sort();
+  const rank={};
+  for(const d of plist){
+    const arr=Object.keys(rets).filter(n=>rets[n][d]!=null).map(n=>[n,0,rets[n][d]]);
+    arr.sort((a,b)=>b[2]-a[2]);
+    rank[d]=arr;
+  }
+  return {plist,rank,names:Object.keys(rets).sort()};
 }
 function build(){
+  if(GRAN==='D'||GRAN==='W') return buildDW();
   const {months,rets,mrank,names}=baseData();
   const pmap={}; const plist=[];
   for(const ym of months){
@@ -140,12 +170,12 @@ function movers(win,rank){
   const pos={};
   for(const p of win){ (rank[p]||[]).forEach(([nm],i)=>{ (pos[nm]=pos[nm]||{})[p]=i; }); }
   const climb=[],fade=[];
-  const minLen=Math.min(GRAN==='M'?6:3,win.length);
+  const minLen=Math.min(GRAN==='D'?10:GRAN==='W'?6:GRAN==='M'?6:3,win.length);
   for(const [nm,pp] of Object.entries(pos)){
     const ps=win.filter(p=>pp[p]!=null);
     if(ps.length<minLen) continue;
     const half=Math.max(1,Math.floor(ps.length/2));
-    const tail=Math.max(1,Math.min(GRAN==='M'?3:2,ps.length));
+    const tail=Math.max(1,Math.min(GRAN==='D'?5:GRAN==='M'||GRAN==='W'?3:2,ps.length));
     const early=ps.slice(0,half).reduce((a,p)=>a+pp[p],0)/half;
     const late=ps.slice(-tail).reduce((a,p)=>a+pp[p],0)/tail;
     if(late<N/3&&early-late>N/4) climb.push([nm,early-late]);
@@ -158,7 +188,12 @@ function draw(){
   if(!H) return;
   const {plist,rank,names}=build();
   const win=windowPeriods(plist);
-  if(!win.length){ document.getElementById('tw').innerHTML='<div class="loading">데이터 없음</div>'; return; }
+  if(!win.length){
+    document.getElementById('tw').innerHTML=(GRAN==='D'||GRAN==='W')
+      ?'<div class="loading">일별·주별 데이터 수집 중 — 다음 배치(내일 아침) 이후 채워집니다. 그때까지는 월별 이상 단위를 이용해주세요.</div>'
+      :'<div class="loading">데이터 없음</div>';
+    return;
+  }
   const {climbers,faders}=movers(win,rank);
   const qhits=QRY?names.filter(n=>n.includes(QRY)):[];
   document.getElementById('secbar').innerHTML=names.map(n=>{
@@ -186,7 +221,8 @@ function draw(){
       const isC=climbers.includes(nm), isF=faders.includes(nm);
       const marked=ci!=null||hit||isC||isF;
       const bg=ci!=null?COLORS[ci%6]+'33':hit?'#dbe7ff':isC?'#fde8e84d':isF?'#e8f0fe66':(r<3?'#f6f8fc':'');
-      const tip=GRAN==='M'?`${nm} ${p.slice(0,4)}.${p.slice(4)}: ${rt>=0?'+':''}${rt.toFixed(1)}%`
+      const tip=(GRAN==='D'||GRAN==='W')?`${nm} ${p.slice(0,4)}.${p.slice(4,6)}.${p.slice(6)}: ${rt>=0?'+':''}${rt.toFixed(1)}%`
+        :GRAN==='M'?`${nm} ${p.slice(0,4)}.${p.slice(4)}: ${rt>=0?'+':''}${rt.toFixed(1)}%`
         :`${nm} ${p}: 평균 ${(avg+1).toFixed(1)}위 · 기간수익률 ${rt>=0?'+':''}${rt.toFixed(1)}%`;
       h+=`<td class="${marked?'hl':''}" data-nm="${nm}" data-m="${p}" title="${tip}" style="background:${bg}" onclick="togSec('${nm}')">${nm}</td>`;
     }

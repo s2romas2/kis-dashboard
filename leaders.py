@@ -101,6 +101,26 @@ def main():
             out.append(('%d0101' % y, min('%d1231' % (y + 3), today)))
             y += 4
         return out
+    # dv=1: 랭크테이블 일별/주별용 — 일봉 1년(2개월 창), 주봉 3년(6개월 창). API 호출당 ~50봉 제한 준수
+    DV = 1
+    rebuild_dw = hist.get('dv') != DV
+    import datetime as _dt
+    def back_ranges(months_back, step_months):
+        end = _dt.date.today()
+        out = []
+        cur_end = end
+        total = 0
+        while total < months_back:
+            cur_start = cur_end - _dt.timedelta(days=step_months * 31)
+            out.append((cur_start.strftime('%Y%m%d'), cur_end.strftime('%Y%m%d')))
+            cur_end = cur_start - _dt.timedelta(days=1)
+            total += step_months
+        return out
+    def merge_series(hc, key, rows, cap):
+        byd = {r[0]: r[1] for r in (hc.get(key) or [])}
+        for d, v in rows:
+            byd[d] = v
+        hc[key] = [[d, byd[d]] for d in sorted(byd)][-cap:]
 
     sectors = {}   # code -> {name, mkt, daily:[[d,v],...]}
     found = 0
@@ -137,6 +157,30 @@ def main():
         except Exception:
             pass
         time.sleep(0.2)
+        # 일봉(1년)·주봉(3년) 히스토리 — 랭크테이블 일별/주별 보기용
+        hc = hist['sectors'][code]
+        try:
+            if rebuild_dw or not hc.get('weekly'):
+                for (a, b) in back_ranges(36, 6):   # 주봉: 6개월 창 × 6 = 3년
+                    _, wr = candles(hdr, code, a, b, 'W')
+                    merge_series(hc, 'weekly', wr, 170)
+                    time.sleep(0.22)
+            else:                                   # 증분: 최근 3개월만
+                _, wr = candles(hdr, code, time.strftime('%Y%m%d', time.gmtime(time.time() - 90 * 86400)), today, 'W')
+                merge_series(hc, 'weekly', wr, 170)
+                time.sleep(0.2)
+            if rebuild_dw or not hc.get('daily'):
+                for (a, b) in back_ranges(12, 2):   # 일봉: 2개월 창 × 6 = 1년
+                    _, dr = candles(hdr, code, a, b, 'D')
+                    merge_series(hc, 'daily', dr, 270)
+                    time.sleep(0.22)
+            else:
+                _, dr = candles(hdr, code, time.strftime('%Y%m%d', time.gmtime(time.time() - 40 * 86400)), today, 'D')
+                merge_series(hc, 'daily', dr, 270)
+                time.sleep(0.2)
+        except Exception as e:
+            if len(DEBUG) < 12:
+                DEBUG.append('%s 일/주봉 %r' % (code, str(e)[:30]))
     DEBUG.append('업종 %d개 인식' % found)
     if found < 10:
         raise RuntimeError('업종 인식 %d개 — API 응답 확인 필요' % found)
@@ -208,6 +252,7 @@ def main():
     os.makedirs('public/data', exist_ok=True)
     json.dump(out, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False)
     hist['hv'] = HV
+    hist['dv'] = DV
     json.dump(hist, open(HIST, 'w', encoding='utf-8'), ensure_ascii=False)
     print('완료:', DEBUG)
 

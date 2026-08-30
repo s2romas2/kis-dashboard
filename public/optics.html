@@ -162,7 +162,33 @@ h1 { font-size:22px; margin:10px 0 4px; }
         <td>통신사 백본·프론트홀 장비 — AI 데이터센터 직접 매출 없음. "6G 사이클" 논리로 오르내리는 별개 그룹이니 <b>AI 광통신 테마와 혼동 금물</b>.</td></tr>
     </table></div>
 
-  <div class="card"><h2>⑤ 무엇을 계속 지켜봐야 하나 (관전 포인트)</h2>
+  <div class="card"><h2>⑤ 📡 대역폭 트래커 — GPU당 스케일아웃 BW · SerDes 레인속도 (핵심 감시 변수)</h2>
+    <div class="d" style="margin-bottom:8px"><b>가설: "GPU당 스케일아웃 대역폭 3.2Tbps + SerDes 448G 레인이 만나는 지점(현 로드맵상 2028년 Feynman/CX-10)에서 CPO가 선택이 아닌 필수가 된다."</b>
+    아래 로드맵의 연도·수치가 앞당겨지거나 밀리는지가 광통신 체인 전체의 시계입니다. 굵은 행 = 현재 위치.</div>
+    <div style="overflow-x:auto"><table class="tbl">
+      <tr><th>세대</th><th>연도</th><th>스케일아웃 BW/GPU</th><th>NIC</th><th>SerDes 레인</th><th>스케일업 BW/GPU</th><th>인터커넥트 판정</th></tr>
+      <tr><td>H100</td><td>2022~23</td><td>400G</td><td>CX-7</td><td>112G</td><td>NVLink4 900GB/s</td><td>스케일업 구리 / 아웃 광 시작</td></tr>
+      <tr><td>B200/GB200</td><td>2024~25</td><td>400G</td><td>CX-7</td><td>112→224G</td><td>NVLink5 1.8TB/s</td><td>NVL72 구리 백플레인</td></tr>
+      <tr><td>B300/GB300</td><td>2025</td><td>800G</td><td>CX-8</td><td>224G</td><td>NVLink5 1.8TB/s</td><td>800G NIC 개막</td></tr>
+      <tr style="background:#eef4ff"><td><b>Rubin/VR200 ◀ 현재</b></td><td><b>2H26 출하</b></td><td><b>1.6T</b></td><td><b>CX-9</b></td><td><b>224G</b></td><td><b>NVLink6 3.6TB/s (구리 유지)</b></td><td><b>1.6T 램프 원년 · CPO 스위치 원년</b></td></tr>
+      <tr><td>Rubin Ultra (Kyber)</td><td>공식 2H27 <span style="color:#d92d20;font-weight:800">(SemiAnalysis: PCB 제조난으로 2028 지연설)</span></td><td>1.6T 유지</td><td>CX-9</td><td>224G</td><td>NVLink7 (수치 미공개)</td><td>NVL576 2계층</td></tr>
+      <tr style="background:#fff7e8"><td><b>Feynman 🎯 임계점</b></td><td>2028</td><td><b>3.2T (CX-10, 로드맵 공식)</b></td><td>CX-10</td><td><b>448G (제품화 시점)</b></td><td>NVLink8 + <b>CPO NVLink 스위치(공식)</b></td><td><b>구리 DAC 0.5m 미만 → 광 스케일업 개시</b></td></tr>
+      <tr><td style="color:#667085">AMD MI400/Helios</td><td style="color:#667085">2026</td><td style="color:#667085">2.4T (Vulcano 800G×3)</td><td style="color:#667085">Pensando</td><td style="color:#667085">224G</td><td style="color:#667085">UALink 1.8TB/s/방향</td><td style="color:#667085">스케일아웃은 Rubin 상회</td></tr>
+      <tr><td style="color:#667085">Google TPU v7</td><td style="color:#667085">2025~26</td><td style="color:#667085">OCS 방식 (비교 곤란)</td><td style="color:#667085">ICI 800G</td><td style="color:#667085">—</td><td style="color:#667085">3D 토러스</td><td style="color:#667085">광회선스위치로 9,216칩 pod</td></tr>
+    </table></div>
+    <div class="grid2" style="margin-top:10px">
+      <div><div class="d"><b>🔬 SerDes 레인속도 = 진짜 시계추.</b> 레인당 112G → <b>224G(현행)</b> → <b>448G(2026~27 검증, 2028 전후 제품화)</b>.
+      구리 도달거리는 224G에서 ~1m, <b>448G에서는 0.5m 미만</b> — 랙 내부조차 구리가 불가능해지는 지점이 광 스케일업(CPO)의 물리적 개시점.
+      448G SerDes 검증 뉴스(Broadcom·Marvell·Nvidia 테스트칩)가 이 표 전체를 앞당기는 방아쇠입니다.</div></div>
+      <div><div class="d"><b>⚡ 전력 논거.</b> 1.6T 플러거블 20~30W인데 GPU당 모듈 수가 늘어 3.2T 세대엔 광모듈 전력이 GPU당 수백W 규모 —
+      CPO(포트당 9W, 3.5배 절감, 레이저 4배 감소)가 강제되는 두 번째 이유. CPO 침투율 전망: <b>2026년 ~0.5% → 2030년 ~35%</b>(TrendForce).</div></div>
+    </div></div>
+
+  <div class="card"><h2>📰 대역폭·CPO 워치 (매일 자동 수집)</h2>
+    <div class="d" style="margin-bottom:8px">448G SerDes · CX-10/3.2T · CPO 스위치 · 1.6T 램프 · EML 부족 키워드를 매일 추적합니다.</div>
+    <div id="optNews" class="d" style="font-size:12px">수집 대기 중 — 다음 배치부터 채워집니다.</div></div>
+
+  <div class="card"><h2>⑥ 무엇을 계속 지켜봐야 하나 (관전 포인트)</h2>
     <div class="tl">
       <div class="ev"><b>EML 리드타임·LTA 뉴스</b> — Lumentum·Coherent 실적발표에서 "2027년 완판" 문구의 변화. 레이저가 풀리면 병목이 조립·커넥터로 이동.</div>
       <div class="ev"><b>FCC 중국산 트랜시버 금지 확정 여부</b> (연내) — 확정 시 비중국 공급망 전체 리레이팅, 동시에 단기 공급 쇼크.</div>
@@ -179,5 +205,18 @@ h1 { font-size:22px; margin:10px 0 4px; }
       메리츠증권 오이솔루션 브리프 · 옵티코어/대한광통신 공급계약 공시 보도 — 상세 링크는 리서치 원문(프로젝트 문서) 참고.
     </div></div>
 </div>
+<script>
+(async()=>{
+  try{
+    const d=await (await fetch('/data/sectornews.json?t='+Date.now())).json();
+    const items=((d.sec||{}).optics)||[];
+    if(items.length){
+      document.getElementById('optNews').innerHTML=items.slice().reverse().slice(0,10).map(x=>
+        `<div style="padding:5px 0;border-bottom:1px solid #f0f2f6"><a href="${x.u}" target="_blank" style="color:#1a1f2e;text-decoration:none;font-weight:600">${x.t}</a>
+         <span style="color:#98a2b3;font-size:11px"> — ${x.s||''} ${x.d||''}${x.l==='en'?' 🌐':''}</span></div>`).join('');
+    }
+  }catch(e){}
+})();
+</script>
 </body>
 </html>

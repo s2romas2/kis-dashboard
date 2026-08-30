@@ -21,6 +21,9 @@ Q = {
           ('ko', '조선 수주 LNG선'), ('ko', '신조선가 OR 수주잔량')],
  'def': [('en', 'South Korea defense exports contract'), ('en', 'Hanwha OR KAI defense deal'),
          ('ko', '방산 수출 수주'), ('ko', 'K방산 폴란드 OR 중동 OR 캐나다')],
+ 'optics': [('en', '448G SerDes'), ('en', 'ConnectX-10 OR "3.2T" NIC scale-out bandwidth'),
+            ('en', 'co-packaged optics CPO switch NVIDIA OR Broadcom'), ('en', '1.6T optical transceiver ramp'),
+            ('en', 'EML laser shortage InP'), ('ko', '광트랜시버 OR CPO 수주'), ('ko', '광통신 데이터센터')],
 }
 
 def rss(lang, query):

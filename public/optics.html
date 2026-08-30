@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>광통신 맵 — AI 광 인터커넥트 밸류체인</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; background:#f4f6fa; color:#1a1f2e; }
+.wrap { max-width:1140px; margin:0 auto; padding:18px 14px 60px; }
+h1 { font-size:22px; margin:10px 0 4px; }
+.sub { color:#667085; font-size:13px; margin-bottom:14px; line-height:1.65; }
+.kpis { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+.kpi { flex:1 1 150px; background:#fff; border:1px solid #e6e9f0; border-radius:12px; padding:10px 12px; }
+.kpi .t { font-size:11px; color:#667085; }
+.kpi .v { font-size:17px; font-weight:900; margin-top:2px; }
+.kpi .d { font-size:10.5px; color:#98a2b3; margin-top:2px; line-height:1.4; }
+.card { background:#fff; border:1px solid #e6e9f0; border-radius:14px; padding:15px; margin-bottom:14px; }
+.card h2 { font-size:15.5px; margin-bottom:6px; }
+.card .d { font-size:12.5px; color:#475467; line-height:1.7; }
+.card .d b { color:#1a1f2e; }
+.stage { border:1px solid #e6e9f0; border-radius:12px; padding:12px 14px; margin-bottom:10px; background:#fbfcfe; }
+.stage .hd { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:5px; }
+.stage h3 { font-size:14px; }
+.btl { font-size:10.5px; font-weight:900; border-radius:8px; padding:2.5px 9px; }
+.btl.hot { background:#fde8e8; color:#d92d20; }
+.btl.warm { background:#fff3dc; color:#b7791f; }
+.btl.ok { background:#e8f8ef; color:#0e9f5a; }
+.stage .why { font-size:12px; color:#475467; line-height:1.65; margin-bottom:7px; }
+.stage .why b { color:#1a1f2e; }
+.gl { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:5px; }
+.gl span { font-size:11px; font-weight:700; background:#eef2f8; color:#39485e; border-radius:8px; padding:3px 9px; }
+.gl span.cn { background:#fdecec; color:#b42318; }
+.gl span.kr { background:#e8f0fe; color:#1d4ed8; }
+.gl .lab { background:none; color:#98a2b3; font-weight:800; padding-left:0; }
+.krline a { font-size:11.5px; font-weight:800; color:#2f6df6; text-decoration:none; background:#eef4ff; border-radius:8px; padding:3px 9px; margin-right:4px; display:inline-block; margin-bottom:3px; }
+.tbl { width:100%; border-collapse:collapse; font-size:12px; }
+.tbl th { text-align:left; color:#667085; font-size:11px; padding:5px 8px; border-bottom:1.5px solid #e6e9f0; }
+.tbl td { padding:6px 8px; border-bottom:1px solid #f0f2f6; line-height:1.55; vertical-align:top; }
+.tag { font-size:10.5px; font-weight:900; border-radius:7px; padding:2px 8px; white-space:nowrap; }
+.tag.real { background:#e8f8ef; color:#0e9f5a; } .tag.half { background:#e8f0fe; color:#1d4ed8; }
+.tag.opt { background:#fff3dc; color:#b7791f; } .tag.hype { background:#f3e8ff; color:#7e22ce; }
+.tag.no { background:#f1f3f7; color:#98a2b3; }
+.tl { border-left:2.5px solid #d7dce6; margin-left:8px; padding-left:16px; }
+.tl .ev { position:relative; margin-bottom:11px; font-size:12.5px; color:#475467; line-height:1.6; }
+.tl .ev::before { content:''; position:absolute; left:-22px; top:5px; width:9px; height:9px; border-radius:50%; background:#2f6df6; }
+.tl .ev b { color:#1a1f2e; }
+.src { font-size:11px; color:#98a2b3; line-height:1.9; }
+.src a { color:#8a93a2; }
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+@media (max-width:760px){ .grid2{ grid-template-columns:1fr; } }
+.vs { background:#fff7e8; border:1px solid #f5d9a8; border-radius:10px; padding:10px 13px; font-size:12px; color:#7a5b1e; line-height:1.7; margin-top:8px; }
+</style>
+</head>
+<body>
+<script src="/nav.js" defer></script>
+<div class="wrap">
+  <h1>🔦 광통신 맵 — AI 광 인터커넥트 밸류체인</h1>
+  <div class="sub">"모듈은 중국, 칩은 미·일, 병목은 레이저, 차세대는 CPO." — 2026년 애널리스트들이 보는 광통신의 한 줄 요약.
+  글로벌 단계별 지배 구도와 <b>한국 상장사의 진짜 노출도</b>를 함께 표기합니다. 갱신 2026-08-30 · 목표주가 없음, 구조만.</div>
+
+  <div class="card"><h2>① 왜 지금 광통신인가 — 구리의 물리적 한계</h2>
+    <div class="d">신호 속도(SerDes)가 112G→<b>224Gbps</b>로 올라가면서 구리 케이블이 데이터를 실어나를 수 있는 거리가 급격히 짧아졌습니다.
+    패시브 구리(DAC)는 <b>약 1m</b>, 액티브 구리(ACC)도 <b>2~2.5m</b>가 한계 — 랙 하나를 벗어나는 순간 구리는 물리적으로 불가능해집니다.
+    그래서 <b>랙 안(스케일업, NVL72 백플레인)은 값싸고 전력 유리한 구리가 유지</b>되고, <b>랙과 랙을 잇는 스케일아웃 네트워크는 광(光)이 유일한 선택지</b>가 됩니다.
+    AI 학습 클러스터는 GPU끼리 주고받는 동서(east-west) 트래픽이 폭발해 <b>GPU 1개당 광트랜시버가 최대 6개</b>(LightCounting) 필요하고,
+    스케일업 도메인의 대역폭은 스케일아웃의 <b>약 10배</b> — 이 구리 영역이 광으로 넘어오는 순간이 시장의 다음 변곡점입니다.
+    전력도 핵심: 플러거블 트랜시버 포트당 <b>~30W</b> vs CPO <b>~9W</b> — 수십만 포트 클러스터에서는 네트워크 전력 자체가 병목이 됩니다.</div></div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="t">2026년 800G 출하</div><div class="v">4,000~4,900만개</div><div class="d">CMBI·Convequity 추정</div></div>
+    <div class="kpi"><div class="t">2026년 1.6T 출하</div><div class="v">~2,200만개</div><div class="d">대량출하 원년 — 엔비디아 Rubin·CX-9 동행</div></div>
+    <div class="kpi"><div class="t">이더넷 옵틱스 성장</div><div class="v">'24 +100% → '26 ~+60%</div><div class="d">LightCounting</div></div>
+    <div class="kpi"><div class="t">2030년 AI 옵틱스</div><div class="v">최대 $1,000억</div><div class="d">LightCounting 시나리오</div></div>
+    <div class="kpi"><div class="t">GPU당 트랜시버</div><div class="v">최대 6개</div><div class="d">스케일아웃 기준</div></div>
+  </div>
+
+  <div class="card"><h2>② 밸류체인 — 단계별 글로벌 지배 구도와 병목</h2>
+    <div class="d" style="margin-bottom:10px">🔴 중국계 · 🔵 한국 상장사 · 병목 온도: <span class="btl hot">🔥 병목</span> <span class="btl warm">⚠ 타이트</span> <span class="btl ok">원활</span></div>
+
+    <div class="stage"><div class="hd"><h3>1. 광칩(레이저) — EML·CW·VCSEL</h3><span class="btl hot">🔥 최대 병목</span></div>
+      <div class="why">800G 트랜시버 1개 = <b>100G EML 레이저 8개</b>, 1.6T = 200G EML 8개. 인듐인화물(InP) 웨이퍼가 3인치 위주라 증설이 느린데,
+      Lumentum CEO는 InP 수급갭이 <b>"DRAM·NAND보다 심각"</b>하다고 발언. 수요가 공급을 <b>30% 이상 초과</b>, EML 캐파는 <b>2027년까지 장기계약으로 완판</b>.
+      <b>엔비디아가 2026년 3월 Coherent·Lumentum에 각 $20억, 총 $40억을 선지급</b>하며 물량을 선점 — 나머지 수요처의 부족은 2027년 이후까지 지속 전망.
+      중국의 고속 광칩 국산화율은 <b>15% 미만</b>: 모듈은 중국이 지배해도 칩은 미·일이 쥔 구조.</div>
+      <div class="gl"><span class="lab">글로벌</span><span>Lumentum (EML 50~60%, 캐파 6천만개)</span><span>Coherent (6인치 InP 전환 시 다이 4배)</span><span>Mitsubishi (4천만→5천만개)</span><span>Sumitomo (8천만개, CW 위주)</span><span>Broadcom (2~3천만개)</span></div>
+      <div class="gl"><span class="lab">한국</span><span class="kr">직접 플레이어 없음 — 소재·패키지 주변부만 (RF머트리얼즈 등)</span></div></div>
+
+    <div class="stage"><div class="hd"><h3>2. DSP·TIA (신호처리 칩)</h3><span class="btl warm">⚠ 복점 배정</span></div>
+      <div class="why">PAM4 DSP는 <b>Broadcom(Sian)·Marvell(Spica) 사실상 복점</b> — "성숙한 중국 대체재 부재". 1.6T DSP 매출만 2026년 <b>$20억+</b>.
+      Broadcom 총이익률 ~68% vs 중국 모듈사 순마진 20~33% — <b>"모듈은 중국이 만들고 돈은 칩 회사가 번다"</b>는 애널리스트 관전평의 근거.</div>
+      <div class="gl"><span class="lab">글로벌</span><span>Broadcom</span><span>Marvell</span></div>
+      <div class="gl"><span class="lab">한국</span><span class="kr">퀄리타스반도체 (고속 인터페이스 IP — 간접)</span></div></div>
+
+    <div class="stage"><div class="hd"><h3>3. 트랜시버 모듈 조립</h3><span class="btl warm">⚠ 지정학 화약고</span></div>
+      <div class="why">2024년 글로벌 톱10 중 <b>7곳이 중국계</b>. Innolight 점유율 ~27%(1Q26 매출 +192%), Eoptolink(+106%, 순마진 33%).
+      중국계 합산 <b>글로벌 물량의 약 2/3</b>, <b>엔비디아 800G의 약 60%를 Innolight+Eoptolink</b>가 공급.
+      비중국은 Coherent ~17%, Lumentum ~6%, 위탁은 태국 <b>Fabrinet</b>(FY26 매출 $46.4억, +36%).
+      미국 내 800G 조립능력은 <b>월 ~10만개</b>에 불과 — 탈중국은 구호보다 캐파가 문제.</div>
+      <div class="gl"><span class="lab">글로벌</span><span class="cn">Innolight ~27%</span><span class="cn">Eoptolink</span><span>Coherent ~17%</span><span>Lumentum ~6%</span><span>Fabrinet (위탁·태국)</span></div>
+      <div class="gl"><span class="lab">한국</span><span class="kr">오이솔루션 (800G→1.6T→CPO 외부광원 로드맵)</span><span class="kr">옵티코어 (400/800G 수주 공시)</span><span class="kr">빛과전자 (1.6T 개발완료)</span></div></div>
+
+    <div class="stage"><div class="hd"><h3>4. 광섬유·케이블</h3><span class="btl warm">⚠ 증설 경쟁</span></div>
+      <div class="why">Corning 옵티컬 부문 매출 <b>+32%</b>, CEO는 데이터센터 인터커넥트를 <b>"$100억 매출 기회"</b>로 규정, <b>Meta와 $60억 공급계약</b>.
+      데이터센터 내부 배선이 864심 초고밀도 케이블로 고도화되며 케이블·커넥터의 부가가치가 상승.</div>
+      <div class="gl"><span class="lab">글로벌</span><span>Corning</span><span class="cn">YOFC (프리폼 세계 최대)</span><span>Prysmian</span><span>Fujikura</span><span>Sumitomo</span></div>
+      <div class="gl"><span class="lab">한국</span><span class="kr">대한광통신 (미 데이터센터향 864심 411억 수주 — 국내 최직접)</span><span class="kr">LS에코에너지</span></div></div>
+
+    <div class="stage"><div class="hd"><h3>5. 커넥터·MPO·페룰</h3><span class="btl hot">🔥 조용한 병목</span></div>
+      <div class="why">MPO 커넥터의 심장 <b>MT 페룰은 일본 하쿠산(후루카와전공 자회사)이 세계 최상위 점유</b> — AI 수요로 <b>약 50억엔 신공장</b>을 짓지만
+      양산이 <b>2028년 4월</b>일 정도로 증설 리드타임이 김. 차세대 초소형(VSFF) 커넥터는 US Conec·Corning·Fujikura·Sumitomo 멀티소스 표준화 진행.
+      눈에 안 띄지만 고밀도 배선의 실질 병목.</div>
+      <div class="gl"><span class="lab">글로벌</span><span>Hakusan/후루카와 (MT 페룰)</span><span>US Conec</span><span>Amphenol</span><span>Corning</span></div>
+      <div class="gl"><span class="lab">한국</span><span class="kr">순수 페룰·MPO 상장사 없음 (이노인스트루먼트 = 시공 계측 간접)</span></div></div>
+
+    <div class="stage"><div class="hd"><h3>6. 스위치·네트워킹</h3><span class="btl ok">원활 (기술 경쟁)</span></div>
+      <div class="why"><b>Broadcom Tomahawk 6 (102.4Tbps)</b> 세계 최초 출하 → 2026년 3월 볼륨 양산. <b>Nvidia Quantum-X/Spectrum-X Photonics</b> CPO 스위치가 2026년 순차 출시(수랭식).
+      시스템은 Arista·Cisco가 화이트박스와 경쟁. 스위치 세대교체가 빨라질수록 트랜시버·광부품 수요를 끌어올리는 구조.</div>
+      <div class="gl"><span class="lab">글로벌</span><span>Broadcom</span><span>Nvidia</span><span>Arista</span><span>Cisco</span></div></div>
+
+    <div class="stage"><div class="hd"><h3>7. 차세대: CPO·실리콘 포토닉스</h3><span class="btl warm">⚠ 2027년 이후 변곡</span></div>
+      <div class="why">TSMC <b>COUPE 3단계 로드맵</b>: Gen1 1.6Tb/s → Gen2 6.4Tb/s → Gen3 12.8Tb/s(프로세서 패키지 통합).
+      전문가 컨센서스(Third Bridge)는 <b>상업적 변곡점 2027년 하반기 이후, 2028년 침투율 20~30%</b> — "부품 하나 고장 시 스위치 통째 교체" 신뢰성 문제로
+      당분간 플러거블이 주류. 한편 EML 부족의 우회로로 실리콘 포토닉스가 부상 — <b>2026년 800G의 ~50%, 1.6T의 ~70%가 SiPho 기반</b> 전망(CMBI, SiPho도 CW 레이저는 필요).</div>
+      <div class="gl"><span class="lab">글로벌</span><span>TSMC (COUPE)</span><span>Broadcom (Davisson)</span><span>Nvidia</span></div>
+      <div class="gl"><span class="lab">한국(수혜 논리)</span><span class="kr">오이솔루션 (ELSFP 외부광원 — 가장 구체적)</span><span class="kr">한미반도체 (TC본더 사용처 확대)</span><span class="kr">SKC·삼성전기 (유리기판 — 매출 제로, 기대 단계)</span><span class="kr">티에프이 (광·전기 테스트 소켓)</span></div></div>
+  </div>
+
+  <div class="card"><h2>③ 지정학 — 탈중국 트랜시버 vs 인듐의 역공</h2>
+    <div class="grid2">
+      <div><div class="d"><b>🇺🇸 미국: FCC의 중국산 트랜시버 수입금지 추진</b> (2026.8 보도, 연내 시행 가능성).
+      발표 당일 Lumentum +7%·Coherent +11% vs Innolight -14%. 다만 Counterpoint는 <b>"서방에 12~24개월 내 중국 물량(2/3)을 흡수할 캐파가 없다"</b>며
+      금지 시 800G/1.6T 클러스터 구축이 수 분기 지연될 수 있다고 경고 — 비중국 공급사에 구조적 프리미엄이 붙는 근거.</div></div>
+      <div><div class="d"><b>🇨🇳 중국: 인듐 수출통제</b> (2025.2~). 중국이 정제 인듐의 <b>~70%</b>를 장악, 수출 <b>-72%</b> 급감으로
+      <b>6인치 InP 웨이퍼 가격 $1,400 → $5,000</b> 급등. 레이저 칩(미·일 지배)의 원재료를 중국이 쥔 아이러니 — 광통신은 미·중이 서로의 목줄을 쥔 산업.</div></div>
+    </div>
+    <div class="vs">우회 경로: Innolight·Eoptolink는 <b>태국 자동화 라인</b>으로 규제 회피 중, Fabrinet(태국)·Coherent(말레이시아)·Lumentum(태국)이 비중국 캐파의 축.
+    애널리스트들은 이 국면을 "비중국 공급망 전체(미·일·태국 + 한국·대만 부품)의 구조적 수혜"로 해석합니다.</div></div>
+
+  <div class="card"><h2>④ 한국 상장사 — 진짜 vs 소음 (냉정 분류)</h2>
+    <div class="d" style="margin-bottom:8px">국내 애널리스트 컨센서스: "한국 광통신주 대부분은 5G 레거시였고, <b>공시로 검증되는 AI 데이터센터 매출은 2026년에 처음</b> 나오기 시작했다."
+    아래 분류는 2026.8 기준 공시·리포트 근거.</div>
+    <table class="tbl">
+      <tr><th>구분</th><th>종목</th><th>근거·내용</th></tr>
+      <tr><td><span class="tag real">검증된 AI 매출</span></td>
+        <td><a href="/bands.html#010170"><b>대한광통신</b></a> · <a href="/bands.html#380540"><b>옵티코어</b></a></td>
+        <td>대한광통신: 미국 데이터센터향 864심 광케이블 <b>약 411억 수주 공시</b>(납품 ~2027년말) — 다만 아직 적자, 수주→이익 전환 분기 검증 필요.
+        옵티코어: <b>400G·800G 트랜시버 40.1억 공급계약 공시</b>(전년 매출의 17%) — 국내 최초의 공시 검증 사례.</td></tr>
+      <tr><td><span class="tag half">전환 진행 중</span></td>
+        <td><a href="/bands.html#138080"><b>오이솔루션</b></a> · <a href="/bands.html#069540"><b>빛과전자</b></a> · <a href="/bands.html#229640"><b>LS에코에너지</b></a></td>
+        <td>오이솔루션: 매출 구성은 아직 무선(기지국) 62%·데이터콤 3%이나 NTT AI 데이터센터향 물량 1년새 2배, <b>800G→1.6T→CPO 외부광원 3년 로드맵</b> 공개, 26년 흑자전환 전망(메리츠).
+        빛과전자(구 라이트론): 1.6T 개발완료·하반기 매출 언급 — 기대 선반영 성격. LS에코에너지: 광케이블 사상 최대 실적, 유럽·미 확장.</td></tr>
+      <tr><td><span class="tag opt">기술 옵션</span></td>
+        <td><a href="/bands.html#062970"><b>한국첨단소재</b></a> · <a href="/bands.html#046970"><b>우리로</b></a> · <a href="/bands.html#327260"><b>RF머트리얼즈</b></a> · <a href="/bands.html#042700"><b>한미반도체</b></a></td>
+        <td>한국첨단소재(구 피피아이): ETRI TFLN 광변조기·실리콘 인터포저 기술이전 — 양산 검증 전.
+        우리로: 실적 개선의 동력은 <b>양자(SPAD)·방산이지 AI가 아님</b>(1Q26 흑자전환). 한미반도체: TC본더의 CPO 확장 논리.</td></tr>
+      <tr><td><span class="tag hype">순수 기대</span></td>
+        <td><a href="/bands.html#011790"><b>SKC</b></a> · <a href="/bands.html#009150"><b>삼성전기</b></a> · <a href="/bands.html#425420"><b>티에프이</b></a> 등</td>
+        <td>유리기판(앱솔릭스 2027 양산 목표·"시점 안갯속" 병존)·CPO 테스트 — <b>현재 CPO 매출 제로</b>, 2027년 이후의 이야기.</td></tr>
+      <tr><td><span class="tag no">AI와 무관 (5G 레거시)</span></td>
+        <td>코위버 · 텔레필드 · HFR · 다산네트웍스 · 이노인스트루먼트</td>
+        <td>통신사 백본·프론트홀 장비 — AI 데이터센터 직접 매출 없음. "6G 사이클" 논리로 오르내리는 별개 그룹이니 <b>AI 광통신 테마와 혼동 금물</b>.</td></tr>
+    </table></div>
+
+  <div class="card"><h2>⑤ 무엇을 계속 지켜봐야 하나 (관전 포인트)</h2>
+    <div class="tl">
+      <div class="ev"><b>EML 리드타임·LTA 뉴스</b> — Lumentum·Coherent 실적발표에서 "2027년 완판" 문구의 변화. 레이저가 풀리면 병목이 조립·커넥터로 이동.</div>
+      <div class="ev"><b>FCC 중국산 트랜시버 금지 확정 여부</b> (연내) — 확정 시 비중국 공급망 전체 리레이팅, 동시에 단기 공급 쇼크.</div>
+      <div class="ev"><b>1.6T 램프 속도</b> — 2026년 2,200만개 전망 대비 실출하. 엔비디아 Rubin 일정과 동행.</div>
+      <div class="ev"><b>CPO 변곡점</b> — 2027년 하반기 상업화 컨센서스의 앞당김/지연. TSMC COUPE Gen2 소식.</div>
+      <div class="ev"><b>국내 검증 확대</b> — 오이솔루션 데이터콤 매출비중(현 3%)의 상승, 옵티코어 후속 수주, 대한광통신 흑자전환.</div>
+    </div></div>
+
+  <div class="card"><h2>출처 (주요)</h2>
+    <div class="src">
+      LightCounting 이더넷 옵틱스·DSP 리포트 · TrendForce "InP shortage as AI bottleneck" · Chipstrat "Lumentum and the laser bottleneck" ·
+      Convequity "Light is the Future" · CMBI 광트랜시버 보고서 · Counterpoint "FCC China ban" · Third Bridge CPO 전문가 컨센서스 ·
+      Furukawa/Hakusan MT페룰 신공장 보도자료 · Corning 실적·Lightwave · Broadcom Tomahawk 6 발표 · 삼일PwC "AI 시대 광통신"(2026.8) ·
+      메리츠증권 오이솔루션 브리프 · 옵티코어/대한광통신 공급계약 공시 보도 — 상세 링크는 리서치 원문(프로젝트 문서) 참고.
+    </div></div>
+</div>
+</body>
+</html>

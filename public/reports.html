@@ -73,7 +73,7 @@ function chips(el, items, cur, fn, cls){
   document.getElementById(el).innerHTML=items.map(s=>
     `<span class="chip ${cls||''} ${cur===s?'on':''}" onclick="${fn}('${esc(s)}')">${s}</span>`).join('');
 }
-window.setTab=function(t){ TAB=(t==='산업분석 리포트')?'industry':(t==='종목분석 리포트'?'company':'global'); FIL='전체'; draw(); };
+window.setTab=function(t){ TAB=(t==='산업분석 리포트')?'industry':(t==='종목분석 리포트'?'company':(t.includes('아카이브')?'archive':'global')); FIL='전체'; draw(); };
 window.setFil=function(f){ FIL=f; draw(); };
 window.tgBody=function(i){ const el=document.getElementById('bd'+i); if(el) el.style.display=(el.style.display==='none')?'':'none'; };
 function matchQ(x, q){
@@ -82,24 +82,33 @@ function matchQ(x, q){
   return q.toLowerCase().split(/\s+/).every(w=>hay.includes(w));
 }
 function draw(){
-  const tabName = TAB==='industry'?'산업분석 리포트':(TAB==='company'?'종목분석 리포트':'해외 리서치 (번역)');
-  chips('tabbar', ['산업분석 리포트','종목분석 리포트','해외 리서치 (번역)'], tabName, 'setTab', 'big');
+  const tabName = TAB==='industry'?'산업분석 리포트':(TAB==='company'?'종목분석 리포트':(TAB==='archive'?'📚 아카이브 50p+':'해외 리서치 (번역)'));
+  chips('tabbar', ['산업분석 리포트','종목분석 리포트','해외 리서치 (번역)','📚 아카이브 50p+'], tabName, 'setTab', 'big');
   const q=(document.getElementById('q').value||'').trim();
   const arr=(D&&D[TAB])||[];
   let fils=[];
   if(TAB==='industry') fils=['전체','심층 50p+', ...[...new Set(arr.map(x=>x.cat||'기타'))].slice(0,14)];
   else if(TAB==='company') fils=['전체','심층 50p+','정보기술','커뮤니케이션','금융','헬스케어','임의소비재','필수소비재','산업재','소재','에너지','유틸리티','부동산','기타'];
+  else if(TAB==='archive') fils=['전체','최근 1개월','최근 3개월','최근 6개월','산업분석','종목분석'];
   else fils=['전체', ...[...new Set(arr.map(x=>x.src))]];
   chips('filterbar', fils, FIL, 'setFil');
   let list=arr;
-  if(FIL==='심층 50p+') list=list.filter(x=>(x.pg||0)>=50);
+  if(TAB==='archive'){
+    const cut=n=>{ const d=new Date(); d.setDate(d.getDate()-n); return d.toISOString().slice(0,10); };
+    if(FIL==='최근 1개월') list=list.filter(x=>(x.d||'')>=cut(31));
+    else if(FIL==='최근 3개월') list=list.filter(x=>(x.d||'')>=cut(92));
+    else if(FIL==='최근 6개월') list=list.filter(x=>(x.d||'')>=cut(183));
+    else if(FIL==='산업분석') list=list.filter(x=>x.kind==='industry');
+    else if(FIL==='종목분석') list=list.filter(x=>x.kind==='company');
+  }
+  else if(FIL==='심층 50p+') list=list.filter(x=>(x.pg||0)>=50);
   else if(FIL!=='전체'){
     list = TAB==='industry' ? list.filter(x=>(x.cat||'기타')===FIL)
          : TAB==='company' ? list.filter(x=>(pentry(x.code).s||'기타')===FIL)
          : list.filter(x=>x.src===FIL);
   }
   list=list.filter(x=>matchQ(x,q));
-  document.getElementById('cnt').textContent='총 '+list.length+'건 (최근 1주일)';
+  document.getElementById('cnt').textContent='총 '+list.length+'건 '+(TAB==='archive'?'(50페이지 이상 심층 리포트 — 무기한 누적 보관)':'(최근 1주일)');
   if(!list.length){
     document.getElementById('list').innerHTML='<div class="loading">해당 조건의 리포트가 없습니다.</div>';
     return;
@@ -123,7 +132,7 @@ function draw(){
   }
   document.getElementById('list').innerHTML=list.map(x=>{
     const pg=x.pg? `<div class="pg ${x.pg>=50?'deep':''}">${x.pg}<small>페이지</small></div>` : '<div class="pg" style="color:#98a1b0;background:#f4f5f8">—<small>측정중</small></div>';
-    const tag = TAB==='industry'
+    const tag = (TAB==='industry'||(TAB==='archive'&&x.kind!=='company'))
       ? `<span class="cat">${esc(x.cat||'기타')}</span>`
       : `<span class="cat">${esc(pentry(x.code).s||'기타')}</span><b>${esc(x.name)}</b> <span style="color:#98a1b0;font-size:11px">${x.code}</span> · `;
     const an=x.an&&x.an.length? ` · ✍ ${x.an.map(esc).join('·')}` : '';
@@ -141,7 +150,7 @@ function draw(){
   if(!D||!D.updated){
     document.getElementById('list').innerHTML='<div class="loading">첫 수집 대기 중입니다. 잠시 후 다시 확인해주세요.</div>';
     document.getElementById('meta').textContent='첫 수집 대기';
-    chips('tabbar', ['산업분석 리포트','종목분석 리포트','해외 리서치 (번역)'], '산업분석 리포트', 'setTab', 'big');
+    chips('tabbar', ['산업분석 리포트','종목분석 리포트','해외 리서치 (번역)','📚 아카이브 50p+'], '산업분석 리포트', 'setTab', 'big');
     return;
   }
   document.getElementById('meta').textContent='갱신 '+D.updated;

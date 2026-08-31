@@ -288,8 +288,19 @@ def main():
         arr.sort(key=lambda x: (-(x.get('pg') or 0), x['d']), reverse=False)
         arr.sort(key=lambda x: (x.get('pg') or 0), reverse=True)
     live = set(x['pdf'] for x in ind + cmp_)
+    # 📚 아카이브: 50페이지 이상 심층 리포트는 무기한 누적 (7일 창에서 빠져도 보존)
+    archive = {x['pdf']: x for x in (prev.get('archive') or []) if x.get('pdf')}
+    for kind, arr in (('industry', ind), ('company', cmp_)):
+        for x in arr:
+            if (x.get('pg') or 0) >= 50:
+                y = dict(x); y['kind'] = kind
+                old = archive.get(x['pdf']) or {}
+                if not old or (y.get('v') or 0) >= (old.get('v') or 0):
+                    archive[x['pdf']] = {**old, **y}
+    arch_list = sorted(archive.values(), key=lambda x: (x.get('d') or '', x.get('pg') or 0), reverse=True)
+    DEBUG.append('아카이브 %d건' % len(arch_list))
     out = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'debug': DEBUG,
-           'industry': ind, 'company': cmp_, 'global': gl,
+           'industry': ind, 'company': cmp_, 'global': gl, 'archive': arch_list,
            'pagecache': {k: v for k, v in cache.items() if v and k in live},
            'ancache': {k: v for k, v in ancache.items() if k in live}}
     import os

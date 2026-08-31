@@ -50,7 +50,7 @@ h1 { font-size:22px; margin:10px 0 4px; }
   <h1>📞 콜 노트 <span style="font-size:12px;color:#98a2b3;font-weight:600">🔒 본인 전용 · 암호화 저장</span></h1>
   <div class="sub">팀더윤쎈 콜 아카이브 — 원본 슬라이드를 그대로 열람. 신규편입·비중조절·편출을 모아 <b>포트폴리오 현황</b>도 자동 정리합니다.</div>
   <div id="body"><div class="gate"><div style="font-size:15px;font-weight:900">🔒 암호를 입력하세요</div>
-    <input id="pw" type="password" placeholder="암호" onkeydown="if(event.key==='Enter') unlock()"><br>
+    <input id="pw" type="password" placeholder="암호" autocomplete="off" onkeydown="if(event.key==='Enter'&&!event.isComposing) unlock()"><br>
     <button onclick="unlock()">열기</button><div class="err" id="err"></div></div></div>
 </div>
 <script>
@@ -74,7 +74,7 @@ async function unlock(){
     D=await decrypt(pw,b64.trim());
     try{ sessionStorage.setItem('calls_pw',pw); }catch(e){}
     draw();
-  }catch(e){ document.getElementById('err').textContent='암호가 맞지 않습니다.'; }
+  }catch(e){ document.getElementById('err').textContent='암호가 맞지 않습니다.'; try{ sessionStorage.removeItem('calls_pw'); }catch(_){} const el=document.getElementById('pw'); if(el){ el.value=''; el.focus(); } }
 }
 function esc(s){ return String(s||'').replace(/</g,'&lt;'); }
 function portfolio(){
@@ -123,7 +123,7 @@ function draw(){
   document.getElementById('body').innerHTML=h;
 }
 function refocus(){ const el=document.getElementById('q'); if(el){ el.focus(); el.setSelectionRange(el.value.length,el.value.length);} }
-(async()=>{ try{ const pw=sessionStorage.getItem('calls_pw'); if(pw){ document.getElementById('pw').value=pw; unlock(); } }catch(e){} })();
+(async()=>{ try{ const pw=sessionStorage.getItem('calls_pw'); if(pw){ document.getElementById('pw').value=pw; await unlock(); } }catch(e){} })();
 </script>
 </body>
 </html>

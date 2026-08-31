@@ -1,1 +1,1 @@
-{"updated": "2026-08-12 10:33", "count": 0, "fail": 0, "debug": ["키 길이: 36/180, 대상 8종목", "토큰 시도1 실패: {'error': \"URLError(TimeoutError('timed out'))\"}", "토큰 시도2 실패: {'error': \"URLError(TimeoutError('timed out'))\"}", "토큰 시도3 실패: {'error': \"URLError(TimeoutError('timed out'))\"}", "토큰 시도4 실패: {'error': \"URLError(TimeoutError('timed out'))\"}", "토큰: 최종 실패", "이번 수집 0건 < 기존 0건의 절반 — 기존 데이터 유지(덮어쓰기 방지)"], "map": {}}
+{"updated": "2026-08-12 10:33", "count": 0, "fail": 0, "debug": ["키 길이: 36/180, 대상 8종목", "토큰: OK", "이번 수집 8건 < 기존 0건의 절반 — 기존 데이터 유지(덮어쓰기 방지)"], "map": {}}

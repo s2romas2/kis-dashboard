@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>콜 노트</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; background:#f4f6fa; color:#1a1f2e; }
+.wrap { max-width:1140px; margin:0 auto; padding:18px 14px 60px; }
+h1 { font-size:22px; margin:10px 0 4px; }
+.sub { color:#667085; font-size:13px; margin-bottom:12px; line-height:1.6; }
+.gate { background:#fff; border:1px solid #e6e9f0; border-radius:14px; padding:26px; max-width:460px; margin:40px auto; text-align:center; }
+.gate input { width:100%; border:1.5px solid #d7dce6; border-radius:10px; padding:10px 12px; font-size:14px; margin:12px 0; }
+.gate button { background:#2f6df6; color:#fff; border:none; border-radius:10px; padding:10px 20px; font-size:14px; font-weight:800; cursor:pointer; }
+.gate .err { color:#d92d20; font-size:12px; margin-top:8px; }
+.kpis { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+.kpi { flex:1 1 130px; background:#fff; border:1px solid #e6e9f0; border-radius:12px; padding:9px 12px; }
+.kpi .t { font-size:11px; color:#667085; } .kpi .v { font-size:19px; font-weight:900; }
+.bar { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-bottom:8px; }
+.chip { border:1.5px solid #d7dce6; background:#fff; border-radius:18px; padding:5px 12px; font-size:12px; font-weight:700; color:#475467; cursor:pointer; }
+.chip.on { background:#2f6df6; border-color:#2f6df6; color:#fff; }
+.bar input { flex:1 1 200px; border:1.5px solid #d7dce6; border-radius:10px; padding:7px 12px; font-size:13px; }
+.card { background:#fff; border:1px solid #e6e9f0; border-radius:14px; margin-bottom:8px; overflow:hidden; }
+.row { display:flex; align-items:center; gap:10px; padding:10px 14px; cursor:pointer; flex-wrap:wrap; }
+.row:hover { background:#f8faff; }
+.kd { font-size:10.5px; font-weight:900; border-radius:8px; padding:3px 9px; white-space:nowrap; }
+.kd.신규편입 { background:#e8f8ef; color:#0e9f5a; } .kd.비중상향 { background:#e8f8ef; color:#0e9f5a; }
+.kd.편출 { background:#fde8e8; color:#d92d20; } .kd.비중하향 { background:#fff3dc; color:#b7791f; }
+.kd.왓칭 { background:#e8f0fe; color:#1d4ed8; } .kd.업데이트 { background:#e8f0fe; color:#1d4ed8; }
+.kd.매크로 { background:#f3e8ff; color:#7e22ce; } .kd.마켓 { background:#f3e8ff; color:#7e22ce; }
+.kd.잠정실적 { background:#f1f3f7; color:#667085; } .kd.레터 { background:#fff7e8; color:#b7791f; } .kd.기타 { background:#f1f3f7; color:#667085; }
+.tt { font-weight:800; font-size:13.5px; }
+.meta { font-size:11.5px; color:#98a2b3; white-space:nowrap; }
+.stk { font-weight:900; color:#1a2a4a; font-size:12.5px; background:#eef2f8; border-radius:7px; padding:2px 8px; }
+.det { display:none; border-top:1px solid #eef0f4; padding:12px 14px; background:#fafbfd; text-align:center; }
+.card.open .det { display:block; }
+.det img { max-width:100%; width:800px; border:1px solid #e6e9f0; border-radius:8px; margin:6px auto; display:block; }
+.sp { flex:1; }
+.pf { width:100%; border-collapse:collapse; font-size:12px; }
+.pf th { text-align:left; color:#667085; font-size:11px; padding:5px 8px; border-bottom:1.5px solid #e6e9f0; }
+.pf td { padding:5px 8px; border-bottom:1px solid #f0f2f6; }
+.loading { text-align:center; color:#98a2b3; padding:30px 0; }
+.day { font-size:12px; font-weight:900; color:#475467; margin:14px 0 6px; }
+</style>
+</head>
+<body>
+<script src="/nav.js" defer></script>
+<div class="wrap">
+  <h1>📞 콜 노트 <span style="font-size:12px;color:#98a2b3;font-weight:600">🔒 본인 전용 · 암호화 저장</span></h1>
+  <div class="sub">팀더윤쎈 콜 아카이브 — 원본 슬라이드를 그대로 열람. 신규편입·비중조절·편출을 모아 <b>포트폴리오 현황</b>도 자동 정리합니다.</div>
+  <div id="body"><div class="gate"><div style="font-size:15px;font-weight:900">🔒 암호를 입력하세요</div>
+    <input id="pw" type="password" placeholder="암호" onkeydown="if(event.key==='Enter') unlock()"><br>
+    <button onclick="unlock()">열기</button><div class="err" id="err"></div></div></div>
+</div>
+<script>
+let D=null, KIND='all', G='all', Q='', VIEW='list';
+const KINDS=['all','신규편입','비중상향','비중하향','편출','왓칭','업데이트','매크로','마켓','레터','잠정실적','기타'];
+async function derive(pw,salt){
+  const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:200000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['decrypt']);
+}
+async function decrypt(pw,b64){
+  const raw=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
+  const key=await derive(pw,raw.slice(0,16));
+  const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:raw.slice(16,28)},key,raw.slice(28));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+async function unlock(){
+  const pw=document.getElementById('pw').value;
+  document.getElementById('err').textContent='';
+  try{
+    const b64=await (await fetch('/data/calls.enc?t='+Date.now())).text();
+    D=await decrypt(pw,b64.trim());
+    try{ sessionStorage.setItem('calls_pw',pw); }catch(e){}
+    draw();
+  }catch(e){ document.getElementById('err').textContent='암호가 맞지 않습니다.'; }
+}
+function esc(s){ return String(s||'').replace(/</g,'&lt;'); }
+function portfolio(){
+  // 종목별 최근 액션(신규편입/상향/하향/편출) — 시간순 반영
+  const acts={};
+  const rows=D.list.filter(x=>['신규편입','비중상향','비중하향','편출'].includes(x.kind)&&x.stock).slice().sort((a,b)=>a.d<b.d?-1:1);
+  for(const x of rows){ const a=acts[x.stock]=acts[x.stock]||{hist:[]}; a.hist.push([x.d,x.kind,x.t,x.no]); a.last=x.kind; a.ld=x.d; a.g=x.g; }
+  return Object.entries(acts).map(([s,a])=>({s,...a})).sort((a,b)=>a.ld<b.ld?1:-1);
+}
+function draw(){
+  const L=D.list; const cnt={}; L.forEach(x=>cnt[x.kind]=(cnt[x.kind]||0)+1);
+  let h=`<div class="kpis">
+    <div class="kpi"><div class="t">전체</div><div class="v">${L.length}</div></div>
+    <div class="kpi"><div class="t">🟢 신규편입</div><div class="v">${cnt['신규편입']||0}</div></div>
+    <div class="kpi"><div class="t">🔵 왓칭·업데이트</div><div class="v">${(cnt['왓칭']||0)+(cnt['업데이트']||0)}</div></div>
+    <div class="kpi"><div class="t">🟣 매크로·마켓</div><div class="v">${(cnt['매크로']||0)+(cnt['마켓']||0)}</div></div>
+    <div class="kpi"><div class="t">기간</div><div class="v" style="font-size:13px">${L[L.length-1].d.slice(2)} ~ ${L[0].d.slice(2)}</div></div>
+  </div>
+  <div class="bar"><span class="chip ${VIEW==='list'?'on':''}" onclick="VIEW='list';draw()">📋 콜 목록</span><span class="chip ${VIEW==='pf'?'on':''}" onclick="VIEW='pf';draw()">💼 포트폴리오 현황</span>
+    <span style="width:8px"></span>${['all','7','6','5'].map(g=>`<span class="chip ${G===g?'on':''}" onclick="G='${g}';draw()">${g==='all'?'전 기수':g+'기'}</span>`).join('')}</div>`;
+  if(VIEW==='pf'){
+    const pf=portfolio();
+    h+=`<div class="card" style="padding:12px 14px"><div style="font-size:13px;font-weight:900;margin-bottom:6px">💼 포트폴리오 액션 히스토리 (종목별 최근 액션순)</div>
+      <table class="pf"><tr><th>종목</th><th>현재 상태</th><th>최근 액션일</th><th>히스토리</th></tr>${pf.map(p=>`<tr><td><b>${esc(p.s)}</b> <span class="meta">${p.g?p.g+'기':''}</span></td>
+        <td><span class="kd ${p.last}">${p.last}</span></td><td>${p.ld}</td>
+        <td style="font-size:11.5px;color:#475467">${p.hist.map(hh=>`${hh[0].slice(5)} ${hh[1]}`).join(' → ')}</td></tr>`).join('')}</table>
+      <div class="meta" style="margin-top:8px;white-space:normal">※ 콜 제목·키워드 기준 자동 정리 — 편입 비중 숫자는 원본 슬라이드에서 확인</div></div>`;
+    document.getElementById('body').innerHTML=h; return;
+  }
+  h+=`<div class="bar">${KINDS.map(k=>`<span class="chip ${KIND===k?'on':''}" onclick="KIND='${k}';draw()">${k==='all'?'전체':k}${cnt[k]?' '+cnt[k]:''}</span>`).join('')}</div>
+  <div class="bar"><input id="q" placeholder="🔍 종목·키워드·제목 검색" value="${esc(Q)}" oninput="Q=this.value;draw();refocus()"></div>`;
+  const rows=L.filter(x=>(KIND==='all'||x.kind===KIND)&&(G==='all'||x.g===G)&&(!Q||(x.t+' '+x.kw+' '+x.stock).toLowerCase().includes(Q.toLowerCase())));
+  let day='';
+  rows.slice(0,300).forEach((x,i)=>{
+    if(x.d!==day){ day=x.d; h+=`<div class="day">${day}</div>`; }
+    h+=`<div class="card" id="c${i}"><div class="row" onclick="document.getElementById('c${i}').classList.toggle('open')">
+      <span class="kd ${x.kind}">${x.kind}</span>${x.stock?`<span class="stk">${esc(x.stock)}</span>`:''}
+      <span class="tt">${esc(x.t)}</span><span class="sp"></span>
+      <span class="meta">${x.g?x.g+'기 · ':''}${x.callNo?'No.'+x.callNo+' · ':''}${x.kw?esc(x.kw):''}</span></div>
+      <div class="det">${x.imgs.length?x.imgs.map(u=>`<img loading="lazy" src="${u}">`).join(''):'<div class="meta">이미지 없음</div>'}
+        <div class="meta" style="margin-top:6px"><a href="https://www.3o3campus.co.kr/report/master_view/8?rpt_no=${x.no}" target="_blank" style="color:#2f6df6">원문 열기 ↗</a></div></div></div>`;
+  });
+  if(!rows.length) h+='<div class="loading">조건에 맞는 콜 없음</div>';
+  if(rows.length>300) h+=`<div class="loading">${rows.length-300}건 더 있음 — 검색으로 좁혀주세요</div>`;
+  h+=`<div class="meta" style="margin-top:10px;white-space:normal">갱신 ${D.updated} · "콜 업데이트해줘"로 최신분 반영</div>`;
+  document.getElementById('body').innerHTML=h;
+}
+function refocus(){ const el=document.getElementById('q'); if(el){ el.focus(); el.setSelectionRange(el.value.length,el.value.length);} }
+(async()=>{ try{ const pw=sessionStorage.getItem('calls_pw'); if(pw){ document.getElementById('pw').value=pw; unlock(); } }catch(e){} })();
+</script>
+</body>
+</html>

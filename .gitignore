@@ -4,3 +4,4 @@ __pycache__/
 .calls_raw_backup.json
 .calls_weights_*.json
 .calls_sum_backup.json
+.lectures_meta_backup.json

@@ -80,9 +80,63 @@ function esc(s){ return String(s||'').replace(/</g,'&lt;'); }
 function portfolio(){
   // 종목별 최근 액션(신규편입/상향/하향/편출) — 시간순 반영
   const acts={};
-  const rows=D.list.filter(x=>['신규편입','비중상향','비중하향','편출'].includes(x.kind)&&x.stock).slice().sort((a,b)=>a.d<b.d?-1:1);
+  const rows=D.list.filter(x=>['신규편입','비중상향','비중하향','편출'].includes(x.kind)&&x.stock&&(G==='all'||x.g===G)).slice().sort((a,b)=>a.d<b.d?-1:1);
   for(const x of rows){ const a=acts[x.stock]=acts[x.stock]||{hist:[]}; a.hist.push([x.d,x.kind,x.t,x.no]); a.last=x.kind; a.ld=x.d; a.g=x.g; }
   return Object.entries(acts).map(([s,a])=>({s,...a})).sort((a,b)=>a.ld<b.ld?1:-1);
+}
+// ── 편입 비중 재생: 슬라이드 배지에서 기록한 w(목표 비중)를 시간순으로 적용, 편출은 0
+function pfWeights(g){
+  const rows=D.list.filter(x=>x.g===g&&['신규편입','비중상향','비중하향','편출'].includes(x.kind)&&x.stock)
+    .slice().sort((a,b)=>a.d!==b.d?(a.d<b.d?-1:1):(+a.no)-(+b.no));
+  const W={}, S={}, H={};
+  for(const x of rows){
+    (H[x.stock]=H[x.stock]||[]).push({d:x.d,k:x.kind,w:x.w});
+    if(x.kind==='편출'){ W[x.stock]=0; continue; }
+    if(x.w!=null){ W[x.stock]=+x.w; if(x.style) S[x.stock]=x.style; }
+    else if(W[x.stock]==null) W[x.stock]=null;   // 비중 미기록
+  }
+  const list=Object.entries(W).filter(([s,w])=>w!==0).map(([s,w])=>({s,w,style:S[s]||'',hist:H[s]}));
+  const known=list.filter(x=>x.w!=null); const unknown=list.filter(x=>x.w==null);
+  known.sort((a,b)=>b.w-a.w||a.s.localeCompare(b.s));
+  const sum=known.reduce((a,b)=>a+b.w,0);
+  return {known,unknown,sum,cash:Math.max(0,Math.round((100-sum)*10)/10)};
+}
+const PIE_COLORS=['#2f6df6','#0e9f5a','#f59e0b','#d92d20','#7e22ce','#0891b2','#db2777','#65a30d','#ea580c','#4f46e5','#0d9488','#b45309','#9333ea','#dc2626','#2563eb','#059669'];
+function pieCard(){
+  const gs=[...new Set(D.list.map(x=>x.g).filter(Boolean))].sort((a,b)=>+b-+a);
+  const g=G!=='all'?G:gs[0];
+  const P=pfWeights(g);
+  if(!P.known.length){
+    return `<div class="card" style="padding:12px 14px"><div style="font-size:13px;font-weight:900">🥧 ${g}기 포트폴리오 구성</div>
+      <div class="meta" style="white-space:normal;margin-top:6px">이 기수는 편입 비중(슬라이드 배지) 기록이 없어 원형 그래프를 만들 수 없습니다. 기수 칩에서 최신 기수를 선택하세요.</div></div>`;
+  }
+  const items=P.known.map((x,i)=>({...x,i:i+1,c:PIE_COLORS[i%PIE_COLORS.length]}));
+  if(P.cash>0) items.push({s:'현금·미편입',w:P.cash,i:items.length+1,c:'#cbd5e1',cash:true});
+  const total=items.reduce((a,b)=>a+b.w,0);
+  // SVG 도넛
+  const R=100, r=58, cx=130, cy=130; let a0=-Math.PI/2; let paths='', labels='';
+  items.forEach(it=>{
+    const a1=a0+2*Math.PI*it.w/total; const big=(a1-a0)>Math.PI?1:0;
+    const p=(a,rr)=>[cx+rr*Math.cos(a),cy+rr*Math.sin(a)];
+    const [x0,y0]=p(a0,R),[x1,y1]=p(a1,R),[x2,y2]=p(a1,r),[x3,y3]=p(a0,r);
+    paths+=`<path d="M${x0},${y0} A${R},${R} 0 ${big} 1 ${x1},${y1} L${x2},${y2} A${r},${r} 0 ${big} 0 ${x3},${y3} Z" fill="${it.c}" stroke="#fff" stroke-width="1.5"><title>${esc(it.s)} ${it.w}%</title></path>`;
+    const am=(a0+a1)/2, [lx,ly]=p(am,(R+r)/2);
+    if(it.w/total>=0.02) labels+=`<text x="${lx}" y="${ly+4}" text-anchor="middle" font-size="${it.w/total>=0.08?12:(it.w/total>=0.03?10:8)}" font-weight="900" fill="#fff">${it.i}</text>`;
+    a0=a1;
+  });
+  const svg=`<svg viewBox="0 0 260 260" width="260" height="260" style="flex:0 0 auto">${paths}${labels}
+    <text x="${cx}" y="${cy-6}" text-anchor="middle" font-size="12" fill="#667085" font-weight="700">${g}기 주식비중</text>
+    <text x="${cx}" y="${cy+14}" text-anchor="middle" font-size="20" fill="#1a2a4a" font-weight="900">${Math.round(P.sum*10)/10}%</text></svg>`;
+  const rowsH=items.map(it=>`<tr><td><span style="display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;border-radius:50%;background:${it.c};color:#fff;font-size:11px;font-weight:900">${it.i}</span></td>
+    <td><b>${esc(it.s)}</b>${it.style?` <span class="meta">${it.style}</span>`:''}</td><td style="text-align:right;font-weight:900">${it.w}%</td>
+    <td style="font-size:11px;color:#475467">${it.cash?'':(it.hist||[]).map(hh=>`${hh.d.slice(5)} ${hh.k}${hh.w!=null?' '+hh.w+'%':''}`).join(' → ')}</td></tr>`).join('');
+  const styleSum={}; items.filter(x=>!x.cash).forEach(x=>{ if(x.style) styleSum[x.style]=(styleSum[x.style]||0)+x.w; });
+  const styleH=Object.entries(styleSum).map(([k,v])=>`${k} ${Math.round(v*10)/10}%`).join(' · ');
+  return `<div class="card" style="padding:12px 14px"><div style="font-size:13px;font-weight:900;margin-bottom:4px">🥧 ${g}기 포트폴리오 구성 <span class="meta">종목 ${P.known.length}개 · 주식 ${Math.round(P.sum*10)/10}% · 현금 ${P.cash}%${styleH?' · '+styleH:''}</span></div>
+    <div style="display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap">${svg}
+      <div style="flex:1 1 320px;overflow-x:auto"><table class="pf"><tr><th>#</th><th>종목</th><th style="text-align:right">비중</th><th>편입·조절 이력</th></tr>${rowsH}</table>
+      ${P.unknown.length?`<div class="meta" style="margin-top:6px;white-space:normal">비중 미기록: ${P.unknown.map(x=>esc(x.s)).join(', ')}</div>`:''}
+      <div class="meta" style="margin-top:6px;white-space:normal">※ 비중은 콜 슬라이드의 편입/상향/하향 배지 숫자를 그대로 기록한 값 — 주가 변동에 따른 실제 평가비중과는 다름. 현금·미편입은 100%에서 주식비중을 뺀 값.</div></div></div></div>`;
 }
 function draw(){
   const L=D.list; const cnt={}; L.forEach(x=>cnt[x.kind]=(cnt[x.kind]||0)+1);
@@ -97,6 +151,7 @@ function draw(){
     <span style="width:8px"></span>${['all','7','6','5'].map(g=>`<span class="chip ${G===g?'on':''}" onclick="G='${g}';draw()">${g==='all'?'전 기수':g+'기'}</span>`).join('')}</div>`;
   if(VIEW==='pf'){
     const pf=portfolio();
+    h+=pieCard();
     h+=`<div class="card" style="padding:12px 14px"><div style="font-size:13px;font-weight:900;margin-bottom:6px">💼 포트폴리오 액션 히스토리 (종목별 최근 액션순)</div>
       <table class="pf"><tr><th>종목</th><th>현재 상태</th><th>최근 액션일</th><th>히스토리</th></tr>${pf.map(p=>`<tr><td><b>${esc(p.s)}</b> <span class="meta">${p.g?p.g+'기':''}</span></td>
         <td><span class="kd ${p.last}">${p.last}</span></td><td>${p.ld}</td>

@@ -3,6 +3,7 @@
 # 사용: CALLS_PASS=... python3 calls_tool.py build  /tmp/calls.json   # 원본 rows(JSON 배열) → public/data/calls.enc
 #       CALLS_PASS=... python3 calls_tool.py decrypt                   # 현재 enc → stdout(JSON)
 #       CALLS_PASS=... python3 calls_tool.py merge /tmp/new_rows.json  # 기존 + 신규 rows 병합 후 재암호화
+#       CALLS_PASS=... python3 calls_tool.py setw /tmp/w.json         # 편입 비중(슬라이드 배지) 기록 {rptNo:{w,w0,style}}
 # 포맷: base64( salt16 | iv12 | AES-GCM(ciphertext) ), 키 = PBKDF2-SHA256(pass, salt, 200000, 32)
 import os, sys, json, base64, re, time
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -40,10 +41,14 @@ def classify(title, kw):
     if '마켓콜' in t or kw.startswith('마켓콜'): return '마켓'
     return '기타'
 
+ALIAS = {'삼정전자': '삼성전자'}
+
 def stock_of(kind, kw, title):
     # 키워드에서 종목명 추출: "신규편입 BGF리테일", "상향편입 삼양식품", "롯데쇼핑 편출", "왓칭콜 코스맥스", "코스맥스 2Q26"
     k = re.sub(r'(신규편입|상향편입|하향편입|왓칭콜|편출|업데이트콜|마켓콜|매크로|2Q26|1Q26|3Q26|잠정실적)', ' ', kw).strip()
     k = k.split()[0] if k else ''
+    if k in ('콜',): k = ''
+    k = ALIAS.get(k, k)
     if kind == '잠정실적':
         m = re.match(r'(.+?) 잠정실적', title)
         return m.group(1).strip() if m else k
@@ -76,6 +81,15 @@ def main():
         new = [x for x in norm_rows(json.load(open(sys.argv[2], encoding='utf-8'))) if x['no'] not in have]
         data = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'list': sorted(cur['list'] + new, key=lambda x: (x['d'], int(x['no'])), reverse=True)}
         print('신규 %d건 병합 → 총 %d건' % (len(new), len(data['list'])), file=sys.stderr)
+    elif cmd == 'setw':
+        # 슬라이드 배지에서 읽은 편입 비중을 항목에 기록: {rptNo: {"w":목표비중%, "w0":이전비중%(선택), "style":"가치성장|모멘텀"(선택)}}
+        cur = decrypt(pw, open(OUT).read())
+        wmap = json.load(open(sys.argv[2], encoding='utf-8'))
+        n = 0
+        for x in cur['list']:
+            if x['no'] in wmap:
+                x.update({k: v for k, v in wmap[x['no']].items() if k in ('w', 'w0', 'style')}); n += 1
+        data = cur; print('비중 기록 %d건' % n, file=sys.stderr)
     else:
         print(json.dumps(decrypt(pw, open(OUT).read()), ensure_ascii=False)[:3000]); return
     os.makedirs('public/data', exist_ok=True)

@@ -1,3 +1,5 @@
 __pycache__/
 .env
 .kis_token.json
+.calls_raw_backup.json
+.calls_weights_*.json

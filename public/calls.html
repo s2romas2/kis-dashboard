@@ -138,6 +138,55 @@ function pieCard(){
       ${P.unknown.length?`<div class="meta" style="margin-top:6px;white-space:normal">비중 미기록: ${P.unknown.map(x=>esc(x.s)).join(', ')}</div>`:''}
       <div class="meta" style="margin-top:6px;white-space:normal">※ 비중은 콜 슬라이드의 편입/상향/하향 배지 숫자를 그대로 기록한 값 — 주가 변동에 따른 실제 평가비중과는 다름. 현금·미편입은 100%에서 주식비중을 뺀 값.</div></div></div></div>`;
 }
+// ── 📅 일자별 정리: 날짜 → 유형([비중상향]=상향편입, [관망]=왓칭콜 …) → "종목 - 한 줄 요약"
+const DLABEL={'신규편입':'[신규편입]','비중상향':'[비중상향] = 상향편입','비중하향':'[비중하향] = 하향편입','편출':'[편출]','왓칭':'[관망] = 왓칭콜','업데이트':'[업데이트] = 업데이트콜','매크로':'[매크로]','마켓':'[마켓]','잠정실적':'[잠정실적]','레터':'[레터]','기타':'[기타]'};
+const DORDER=['신규편입','비중상향','비중하향','편출','왓칭','업데이트','매크로','마켓','잠정실적','레터','기타'];
+const SHORT={'삼성전자':'삼전','SK하이닉스':'하이닉스','삼성에스디에스':'삼성SDS','두산에너빌리티':'두산에너빌','LG생활건강':'LG생건','DB손해보험':'DB손보'};
+function dLine(x){
+  // 비중 조절은 "종목 w0% -> w%" 형태, 그 외는 "종목 - 요약"
+  const name=x.stock||'';
+  if((x.kind==='비중상향'||x.kind==='비중하향')&&x.w!=null) return `${name}${x.w0!=null?' '+x.w0+'%':''} -> ${x.w}%`+(x.sum?` (${x.sum})`:'');
+  if(x.kind==='신규편입'&&x.w!=null) return `${name} ${x.w}% 편입${x.style?' ('+x.style+')':''} - ${x.sum||x.t}`;
+  return (name?name+' - ':'')+(x.sum||x.t);
+}
+function dailyText(d,rows){
+  const by={}; rows.forEach(x=>(by[x.kind]=by[x.kind]||[]).push(x));
+  let t=`${d.slice(2).replace(/-/g,'.')} 윤쎈 콜 정리\n`;
+  for(const k of DORDER){ if(!by[k]) continue; t+=`\n${DLABEL[k]}\n`; by[k].slice().sort((a,b)=>(+a.no)-(+b.no)).forEach(x=>{ t+=dLine(x)+'\n'; }); }
+  return t;
+}
+function copyDay(i){ const el=document.getElementById('dt'+i); if(!el) return; navigator.clipboard.writeText(el.dataset.t).then(()=>{ el.textContent='✅ 복사됨'; setTimeout(()=>el.textContent='📋 텍스트 복사',1500); }); }
+function dailyView(){
+  const L=D.list.filter(x=>(G==='all'||x.g===G)&&(!Q||(x.t+' '+x.kw+' '+x.stock+' '+(x.sum||'')).toLowerCase().includes(Q.toLowerCase())));
+  const days={}; L.forEach(x=>(days[x.d]=days[x.d]||[]).push(x));
+  const ds=Object.keys(days).sort().reverse();
+  let h=`<div class="bar"><input id="q" placeholder="🔍 종목·요약 검색" value="${esc(Q)}" oninput="Q=this.value;draw();refocus()"></div>`;
+  const nsum=L.filter(x=>x.sum).length;
+  h+=`<div class="meta" style="white-space:normal;margin-bottom:8px">요약 기록 ${nsum}/${L.length}건 — 요약이 없는 콜은 제목만 표시(회색). 요약은 콜 슬라이드를 읽고 핵심 숫자 위주로 정리한 것 · "콜 업데이트해줘" 때 신규분 요약도 함께 기록</div>`;
+  ds.slice(0,60).forEach((d,i)=>{
+    const rows=days[d]; const by={}; rows.forEach(x=>(by[x.kind]=by[x.kind]||[]).push(x));
+    const txt=dailyText(d,rows);
+    h+=`<div class="card" style="padding:12px 14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+      <span style="font-size:14px;font-weight:900">${d.slice(2).replace(/-/g,'.')} 윤쎈 콜 정리</span><span class="meta">${rows.length}건${rows[0].g?' · '+rows[0].g+'기':''}</span><span class="sp"></span>
+      <span class="chip" id="dt${i}" data-t="${esc(txt).replace(/"/g,'&quot;')}" onclick="copyDay(${i})" style="padding:3px 9px;font-size:11px">📋 텍스트 복사</span></div>`;
+    for(const k of DORDER){ if(!by[k]) continue;
+      h+=`<div style="margin-top:8px"><span class="kd ${k}">${DLABEL[k]}</span></div><ul style="margin:4px 0 0 18px;font-size:13px;line-height:1.7">`;
+      by[k].slice().sort((a,b)=>(+a.no)-(+b.no)).forEach(x=>{
+        const nm=x.stock?`<b>${esc(x.stock)}</b>${SHORT[x.stock]?` <span class="meta">(${SHORT[x.stock]})</span>`:''}`:'';
+        let body;
+        if((x.kind==='비중상향'||x.kind==='비중하향')&&x.w!=null) body=`${nm} <b>${x.w0!=null?x.w0+'% → ':''}${x.w}%</b>${x.sum?` <span style="color:#475467">${esc(x.sum)}</span>`:''}`;
+        else if(x.kind==='신규편입'&&x.w!=null) body=`${nm} <b>${x.w}%</b>${x.style?` <span class="meta">${x.style}</span>`:''} — ${x.sum?esc(x.sum):`<span class="meta">${esc(x.t)}</span>`}`;
+        else body=`${nm?nm+' — ':''}${x.sum?esc(x.sum):`<span class="meta">${esc(x.t)}</span>`}`;
+        h+=`<li>${body} <a href="https://www.3o3campus.co.kr/report/master_view/8?rpt_no=${x.no}" target="_blank" style="color:#98a2b3;text-decoration:none;font-size:11px">↗</a></li>`;
+      });
+      h+='</ul>';
+    }
+    h+='</div>';
+  });
+  if(ds.length>60) h+=`<div class="loading">${ds.length-60}일 더 있음 — 기수·검색으로 좁혀주세요</div>`;
+  if(!ds.length) h+='<div class="loading">조건에 맞는 콜 없음</div>';
+  return h;
+}
 function draw(){
   const L=D.list; const cnt={}; L.forEach(x=>cnt[x.kind]=(cnt[x.kind]||0)+1);
   let h=`<div class="kpis">
@@ -147,8 +196,9 @@ function draw(){
     <div class="kpi"><div class="t">🟣 매크로·마켓</div><div class="v">${(cnt['매크로']||0)+(cnt['마켓']||0)}</div></div>
     <div class="kpi"><div class="t">기간</div><div class="v" style="font-size:13px">${L[L.length-1].d.slice(2)} ~ ${L[0].d.slice(2)}</div></div>
   </div>
-  <div class="bar"><span class="chip ${VIEW==='list'?'on':''}" onclick="VIEW='list';draw()">📋 콜 목록</span><span class="chip ${VIEW==='pf'?'on':''}" onclick="VIEW='pf';draw()">💼 포트폴리오 현황</span>
+  <div class="bar"><span class="chip ${VIEW==='list'?'on':''}" onclick="VIEW='list';draw()">📋 콜 목록</span><span class="chip ${VIEW==='daily'?'on':''}" onclick="VIEW='daily';draw()">📅 일자별 정리</span><span class="chip ${VIEW==='pf'?'on':''}" onclick="VIEW='pf';draw()">💼 포트폴리오 현황</span>
     <span style="width:8px"></span>${['all','7','6','5'].map(g=>`<span class="chip ${G===g?'on':''}" onclick="G='${g}';draw()">${g==='all'?'전 기수':g+'기'}</span>`).join('')}</div>`;
+  if(VIEW==='daily'){ h+=dailyView(); document.getElementById('body').innerHTML=h; return; }
   if(VIEW==='pf'){
     const pf=portfolio();
     h+=pieCard();

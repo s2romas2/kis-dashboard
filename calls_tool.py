@@ -4,6 +4,7 @@
 #       CALLS_PASS=... python3 calls_tool.py decrypt                   # 현재 enc → stdout(JSON)
 #       CALLS_PASS=... python3 calls_tool.py merge /tmp/new_rows.json  # 기존 + 신규 rows 병합 후 재암호화
 #       CALLS_PASS=... python3 calls_tool.py setw /tmp/w.json         # 편입 비중(슬라이드 배지) 기록 {rptNo:{w,w0,style}}
+#       CALLS_PASS=... python3 calls_tool.py setsum /tmp/sum.json     # 콜 한 줄 요약 기록 {rptNo:"요약"}
 # 포맷: base64( salt16 | iv12 | AES-GCM(ciphertext) ), 키 = PBKDF2-SHA256(pass, salt, 200000, 32)
 import os, sys, json, base64, re, time
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -90,6 +91,14 @@ def main():
             if x['no'] in wmap:
                 x.update({k: v for k, v in wmap[x['no']].items() if k in ('w', 'w0', 'style')}); n += 1
         data = cur; print('비중 기록 %d건' % n, file=sys.stderr)
+    elif cmd == 'setsum':
+        # 슬라이드를 읽고 쓴 한 줄 요약 기록: {rptNo: "요약"}
+        cur = decrypt(pw, open(OUT).read())
+        smap = json.load(open(sys.argv[2], encoding='utf-8'))
+        n = 0
+        for x in cur['list']:
+            if x['no'] in smap: x['sum'] = smap[x['no']].strip(); n += 1
+        data = cur; print('요약 기록 %d건' % n, file=sys.stderr)
     else:
         print(json.dumps(decrypt(pw, open(OUT).read()), ensure_ascii=False)[:3000]); return
     os.makedirs('public/data', exist_ok=True)

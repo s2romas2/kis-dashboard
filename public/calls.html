@@ -42,6 +42,39 @@ h1 { font-size:22px; margin:10px 0 4px; }
 .pf td { padding:5px 8px; border-bottom:1px solid #f0f2f6; }
 .loading { text-align:center; color:#98a2b3; padding:30px 0; }
 .day { font-size:12px; font-weight:900; color:#475467; margin:14px 0 6px; }
+/* 스타일(가치성장/모멘텀) 배지 */
+.sb { font-size:10.5px; font-weight:900; border-radius:6px; padding:2px 7px; white-space:nowrap; }
+.sb.가치성장 { background:#dcfce7; color:#15803d; } .sb.모멘텀 { background:#ede9fe; color:#6d28d9; }
+.chip.st-가치성장.on { background:#15803d; border-color:#15803d; } .chip.st-모멘텀.on { background:#6d28d9; border-color:#6d28d9; }
+/* 일자별 정리 */
+.dcard { padding:0; }
+.dhead { display:flex; align-items:center; gap:10px; padding:12px 16px; border-bottom:1px solid #eef0f4; background:#fafbfd; }
+.dhead .dt { font-size:15px; font-weight:900; letter-spacing:-.2px; }
+.dsec { padding:10px 16px 6px; }
+.dsec + .dsec { border-top:1px dashed #eceff4; }
+.dsec .dk { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.dsec .dk .alias { font-size:11px; color:#98a2b3; }
+.drow { display:grid; grid-template-columns:168px 1fr; gap:6px 14px; padding:8px 0; border-top:1px solid #f3f4f7; }
+.drow:first-of-type { border-top:none; }
+.drow .dl { display:flex; flex-direction:column; gap:4px; align-items:flex-start; }
+.drow .nm { font-size:14px; font-weight:900; color:#1a2a4a; }
+.drow .nm small { font-weight:600; color:#98a2b3; font-size:11px; margin-left:3px; }
+.drow .wt { font-size:12px; font-weight:900; color:#1d4ed8; background:#eef4ff; border-radius:6px; padding:1px 7px; }
+.drow .wt.up { color:#15803d; background:#dcfce7; } .drow .wt.dn { color:#b45309; background:#fff3dc; }
+.drow .hl { font-size:13.5px; font-weight:800; color:#1a1f2e; line-height:1.5; }
+.drow .bd { margin:3px 0 0; padding:0; list-style:none; }
+.drow .bd li { font-size:12.5px; color:#475467; line-height:1.6; padding-left:12px; position:relative; }
+.drow .bd li::before { content:'·'; position:absolute; left:2px; color:#98a2b3; font-weight:900; }
+.drow .src { font-size:11px; color:#98a2b3; text-decoration:none; margin-left:6px; }
+.drow .src:hover { color:#2f6df6; }
+.nosum { color:#98a2b3; font-weight:600; font-size:12.5px; }
+.kd.big { font-size:11.5px; padding:4px 10px; }
+@media (max-width:640px){ .drow { grid-template-columns:1fr; gap:4px; } .drow .dl { flex-direction:row; flex-wrap:wrap; } }
+/* 파이 툴팁 */
+.ptip { position:absolute; pointer-events:none; background:#111827; color:#fff; font-size:12px; font-weight:800; padding:6px 9px; border-radius:8px; white-space:nowrap; box-shadow:0 4px 12px rgba(0,0,0,.25); display:none; z-index:5; }
+.ptip small { display:block; font-weight:600; color:#cbd5e1; font-size:11px; }
+svg .seg { cursor:pointer; transition:opacity .12s; } svg text { pointer-events:none; } svg.hov .seg { opacity:.45; } svg.hov .seg.on { opacity:1; }
+tr.hl-row td { background:#f2f6fe; }
 </style>
 </head>
 <body>
@@ -54,7 +87,7 @@ h1 { font-size:22px; margin:10px 0 4px; }
     <button onclick="unlock()">열기</button><div class="err" id="err"></div></div></div>
 </div>
 <script>
-let D=null, KIND='all', G='all', Q='', VIEW='list';
+let D=null, KIND='all', G='all', Q='', VIEW='list', STYLE='all';
 const KINDS=['all','신규편입','비중상향','비중하향','편출','왓칭','업데이트','매크로','마켓','레터','잠정실적','기타'];
 async function derive(pw,salt){
   const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);
@@ -71,12 +104,20 @@ async function unlock(){
   document.getElementById('err').textContent='';
   try{
     const b64=await (await fetch('/data/calls.enc?t='+Date.now())).text();
-    D=await decrypt(pw,b64.trim());
+    D=await decrypt(pw,b64.trim()); buildStyleMap();
     try{ sessionStorage.setItem('calls_pw',pw); }catch(e){}
     draw();
   }catch(e){ document.getElementById('err').textContent='암호가 맞지 않습니다.'; try{ sessionStorage.removeItem('calls_pw'); }catch(_){} const el=document.getElementById('pw'); if(el){ el.value=''; el.focus(); } }
 }
 function esc(s){ return String(s||'').replace(/</g,'&lt;'); }
+// 종목 → 스타일(가치성장/모멘텀) 맵: 슬라이드 태그가 기록된 항목에서 수집(같은 종목의 다른 콜에도 적용)
+let STYLE_MAP={};
+function buildStyleMap(){ STYLE_MAP={}; D.list.slice().sort((a,b)=>a.d<b.d?-1:1).forEach(x=>{ if(x.style&&x.stock) STYLE_MAP[x.stock]=x.style; }); }
+function styleOf(x){ return x.style||(x.stock&&STYLE_MAP[x.stock])||''; }
+function sbadge(x){ const st=styleOf(x); return st?`<span class="sb ${st}">${st}</span>`:''; }
+function passStyle(x){ return STYLE==='all'||styleOf(x)===STYLE; }
+function styleChips(){ const c={}; D.list.forEach(x=>{ if((G==='all'||x.g===G)){ const st=styleOf(x); if(st) c[st]=(c[st]||0)+1; } });
+  return `<span class="meta" style="margin-left:4px">스타일</span>`+['all','가치성장','모멘텀'].map(k=>`<span class="chip st-${k} ${STYLE===k?'on':''}" onclick="STYLE='${k}';draw()">${k==='all'?'전체':k}${c[k]?' '+c[k]:''}</span>`).join(''); }
 function portfolio(){
   // 종목별 최근 액션(신규편입/상향/하향/편출) — 시간순 반영
   const acts={};
@@ -102,6 +143,15 @@ function pfWeights(g){
   return {known,unknown,sum,cash:Math.max(0,Math.round((100-sum)*10)/10)};
 }
 const PIE_COLORS=['#2f6df6','#0e9f5a','#f59e0b','#d92d20','#7e22ce','#0891b2','#db2777','#65a30d','#ea580c','#4f46e5','#0d9488','#b45309','#9333ea','#dc2626','#2563eb','#059669'];
+function pieSel(i){ const svg=document.getElementById('pie'); if(!svg) return; svg.classList.add('hov'); svg.querySelectorAll('.seg').forEach(p=>p.classList.toggle('on',+p.dataset.i===i)); document.querySelectorAll('tr[id^=pr]').forEach(tr=>tr.classList.toggle('hl-row',tr.id==='pr'+i)); }
+function pieHover(ev){
+  const p=ev.target.closest('.seg'); const tip=document.getElementById('ptip'); if(!p){ pieOut(); return; }
+  pieSel(+p.dataset.i);
+  tip.innerHTML=`${p.dataset.i}. ${p.dataset.n} <span style="color:#fbbf24">${p.dataset.w}%</span>${p.dataset.s?`<small>${p.dataset.s}</small>`:''}`;
+  const box=ev.currentTarget.parentElement.getBoundingClientRect();
+  tip.style.display='block'; tip.style.left=(ev.clientX-box.left+14)+'px'; tip.style.top=(ev.clientY-box.top-10)+'px';
+}
+function pieOut(){ const svg=document.getElementById('pie'); const tip=document.getElementById('ptip'); if(svg){ svg.classList.remove('hov'); svg.querySelectorAll('.seg.on').forEach(p=>p.classList.remove('on')); } if(tip) tip.style.display='none'; document.querySelectorAll('tr.hl-row').forEach(tr=>tr.classList.remove('hl-row')); }
 function pieCard(){
   const gs=[...new Set(D.list.map(x=>x.g).filter(Boolean))].sort((a,b)=>+b-+a);
   const g=G!=='all'?G:gs[0];
@@ -119,16 +169,16 @@ function pieCard(){
     const a1=a0+2*Math.PI*it.w/total; const big=(a1-a0)>Math.PI?1:0;
     const p=(a,rr)=>[cx+rr*Math.cos(a),cy+rr*Math.sin(a)];
     const [x0,y0]=p(a0,R),[x1,y1]=p(a1,R),[x2,y2]=p(a1,r),[x3,y3]=p(a0,r);
-    paths+=`<path d="M${x0},${y0} A${R},${R} 0 ${big} 1 ${x1},${y1} L${x2},${y2} A${r},${r} 0 ${big} 0 ${x3},${y3} Z" fill="${it.c}" stroke="#fff" stroke-width="1.5"><title>${esc(it.s)} ${it.w}%</title></path>`;
+    paths+=`<path class="seg" data-i="${it.i}" data-n="${esc(it.s)}" data-w="${it.w}" data-s="${it.style||''}" d="M${x0},${y0} A${R},${R} 0 ${big} 1 ${x1},${y1} L${x2},${y2} A${r},${r} 0 ${big} 0 ${x3},${y3} Z" fill="${it.c}" stroke="#fff" stroke-width="1.5"></path>`;
     const am=(a0+a1)/2, [lx,ly]=p(am,(R+r)/2);
     if(it.w/total>=0.02) labels+=`<text x="${lx}" y="${ly+4}" text-anchor="middle" font-size="${it.w/total>=0.08?12:(it.w/total>=0.03?10:8)}" font-weight="900" fill="#fff">${it.i}</text>`;
     a0=a1;
   });
-  const svg=`<svg viewBox="0 0 260 260" width="260" height="260" style="flex:0 0 auto">${paths}${labels}
+  const svg=`<div style="position:relative;flex:0 0 auto"><div class="ptip" id="ptip"></div><svg id="pie" viewBox="0 0 260 260" width="260" height="260" onmousemove="pieHover(event)" onmouseleave="pieOut()">${paths}${labels}
     <text x="${cx}" y="${cy-6}" text-anchor="middle" font-size="12" fill="#667085" font-weight="700">${g}기 주식비중</text>
-    <text x="${cx}" y="${cy+14}" text-anchor="middle" font-size="20" fill="#1a2a4a" font-weight="900">${Math.round(P.sum*10)/10}%</text></svg>`;
-  const rowsH=items.map(it=>`<tr><td><span style="display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;border-radius:50%;background:${it.c};color:#fff;font-size:11px;font-weight:900">${it.i}</span></td>
-    <td><b>${esc(it.s)}</b>${it.style?` <span class="meta">${it.style}</span>`:''}</td><td style="text-align:right;font-weight:900">${it.w}%</td>
+    <text x="${cx}" y="${cy+14}" text-anchor="middle" font-size="20" fill="#1a2a4a" font-weight="900">${Math.round(P.sum*10)/10}%</text></svg></div>`;
+  const rowsH=items.map(it=>`<tr id="pr${it.i}" onmouseenter="pieSel(${it.i})" onmouseleave="pieOut()"><td><span style="display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;border-radius:50%;background:${it.c};color:#fff;font-size:11px;font-weight:900">${it.i}</span></td>
+    <td><b>${esc(it.s)}</b>${it.style?` <span class="sb ${it.style}">${it.style}</span>`:''}</td><td style="text-align:right;font-weight:900">${it.w}%</td>
     <td style="font-size:11px;color:#475467">${it.cash?'':(it.hist||[]).map(hh=>`${hh.d.slice(5)} ${hh.k}${hh.w!=null?' '+hh.w+'%':''}`).join(' → ')}</td></tr>`).join('');
   const styleSum={}; items.filter(x=>!x.cash).forEach(x=>{ if(x.style) styleSum[x.style]=(styleSum[x.style]||0)+x.w; });
   const styleH=Object.entries(styleSum).map(([k,v])=>`${k} ${Math.round(v*10)/10}%`).join(' · ');
@@ -156,30 +206,41 @@ function dailyText(d,rows){
   return t;
 }
 function copyDay(i){ const el=document.getElementById('dt'+i); if(!el) return; navigator.clipboard.writeText(el.dataset.t).then(()=>{ el.textContent='✅ 복사됨'; setTimeout(()=>el.textContent='📋 텍스트 복사',1500); }); }
+function splitSum(sum){
+  // "헤드라인 — 본문. 본문. 본문" → {hl, lines[]}; 헤드라인 구분자가 없으면 첫 문장을 헤드라인으로
+  let hl='', body=sum||'';
+  const m=body.match(/^(.{2,60}?)\s[—–-]\s(.*)$/s); if(m){ hl=m[1]; body=m[2]; }
+  const lines=body.split(/(?<=[^\d])\.\s+(?=\S)/).map(t=>t.replace(/\.$/,'').trim()).filter(Boolean);
+  if(!hl&&lines.length>1){ hl=lines.shift(); }
+  return {hl,lines};
+}
 function dailyView(){
-  const L=D.list.filter(x=>(G==='all'||x.g===G)&&(!Q||(x.t+' '+x.kw+' '+x.stock+' '+(x.sum||'')).toLowerCase().includes(Q.toLowerCase())));
+  const L=D.list.filter(x=>(G==='all'||x.g===G)&&passStyle(x)&&(!Q||(x.t+' '+x.kw+' '+x.stock+' '+(x.sum||'')).toLowerCase().includes(Q.toLowerCase())));
   const days={}; L.forEach(x=>(days[x.d]=days[x.d]||[]).push(x));
   const ds=Object.keys(days).sort().reverse();
-  let h=`<div class="bar"><input id="q" placeholder="🔍 종목·요약 검색" value="${esc(Q)}" oninput="Q=this.value;draw();refocus()"></div>`;
+  let h=`<div class="bar">${styleChips()}<span style="width:8px"></span><input id="q" placeholder="🔍 종목·요약 검색" value="${esc(Q)}" oninput="Q=this.value;draw();refocus()"></div>`;
   const nsum=L.filter(x=>x.sum).length;
-  h+=`<div class="meta" style="white-space:normal;margin-bottom:8px">요약 기록 ${nsum}/${L.length}건 — 요약이 없는 콜은 제목만 표시(회색). 요약은 콜 슬라이드를 읽고 핵심 숫자 위주로 정리한 것 · "콜 업데이트해줘" 때 신규분 요약도 함께 기록</div>`;
+  h+=`<div class="meta" style="white-space:normal;margin-bottom:10px">요약 ${nsum}/${L.length}건 · 굵은 줄 = 핵심 한 줄, 아래 점은 근거 숫자 · <span class="sb 가치성장">가치성장</span> <span class="sb 모멘텀">모멘텀</span> 은 콜 슬라이드의 스타일 태그 · ↗ 원문</div>`;
   ds.slice(0,60).forEach((d,i)=>{
     const rows=days[d]; const by={}; rows.forEach(x=>(by[x.kind]=by[x.kind]||[]).push(x));
     const txt=dailyText(d,rows);
-    h+=`<div class="card" style="padding:12px 14px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-      <span style="font-size:14px;font-weight:900">${d.slice(2).replace(/-/g,'.')} 윤쎈 콜 정리</span><span class="meta">${rows.length}건${rows[0].g?' · '+rows[0].g+'기':''}</span><span class="sp"></span>
+    h+=`<div class="card dcard"><div class="dhead"><span class="dt">${d.slice(2).replace(/-/g,'.')} 윤쎈 콜 정리</span><span class="meta">${rows.length}건${rows[0].g?' · '+rows[0].g+'기':''}</span><span class="sp"></span>
       <span class="chip" id="dt${i}" data-t="${esc(txt).replace(/"/g,'&quot;')}" onclick="copyDay(${i})" style="padding:3px 9px;font-size:11px">📋 텍스트 복사</span></div>`;
     for(const k of DORDER){ if(!by[k]) continue;
-      h+=`<div style="margin-top:8px"><span class="kd ${k}">${DLABEL[k]}</span></div><ul style="margin:4px 0 0 18px;font-size:13px;line-height:1.7">`;
+      const lab=DLABEL[k].replace(/^\[(.+?)\](.*)$/,(m,a,b)=>`<span class="kd big ${k}">${a}</span>${b?`<span class="alias">${b.replace(/^\s*=\s*/,'= ')}</span>`:''}`);
+      h+=`<div class="dsec"><div class="dk">${lab}<span class="meta">${by[k].length}</span></div>`;
       by[k].slice().sort((a,b)=>(+a.no)-(+b.no)).forEach(x=>{
-        const nm=x.stock?`<b>${esc(x.stock)}</b>${SHORT[x.stock]?` <span class="meta">(${SHORT[x.stock]})</span>`:''}`:'';
-        let body;
-        if((x.kind==='비중상향'||x.kind==='비중하향')&&x.w!=null) body=`${nm} <b>${x.w0!=null?x.w0+'% → ':''}${x.w}%</b>${x.sum?` <span style="color:#475467">${esc(x.sum)}</span>`:''}`;
-        else if(x.kind==='신규편입'&&x.w!=null) body=`${nm} <b>${x.w}%</b>${x.style?` <span class="meta">${x.style}</span>`:''} — ${x.sum?esc(x.sum):`<span class="meta">${esc(x.t)}</span>`}`;
-        else body=`${nm?nm+' — ':''}${x.sum?esc(x.sum):`<span class="meta">${esc(x.t)}</span>`}`;
-        h+=`<li>${body} <a href="https://www.3o3campus.co.kr/report/master_view/8?rpt_no=${x.no}" target="_blank" style="color:#98a2b3;text-decoration:none;font-size:11px">↗</a></li>`;
+        const nm=x.stock?`<span class="nm">${esc(x.stock)}${SHORT[x.stock]?`<small>${SHORT[x.stock]}</small>`:''}</span>`:`<span class="nm" style="color:#667085">${k==='마켓'?'마켓콜':k==='매크로'?'매크로콜':'—'}</span>`;
+        let wt='';
+        if((x.kind==='비중상향'||x.kind==='비중하향')&&x.w!=null) wt=`<span class="wt ${x.kind==='비중상향'?'up':'dn'}">${x.w0!=null?x.w0+'% → ':''}${x.w}%</span>`;
+        else if(x.kind==='신규편입'&&x.w!=null) wt=`<span class="wt">${x.w}% 편입</span>`;
+        const link=`<a class="src" href="https://www.3o3campus.co.kr/report/master_view/8?rpt_no=${x.no}" target="_blank" title="원문 슬라이드">↗</a>`;
+        let right;
+        if(x.sum){ const {hl,lines}=splitSum(x.sum); right=`<div class="hl">${esc(hl||lines.shift()||'')}${link}</div>${lines.length?`<ul class="bd">${lines.map(l=>`<li>${esc(l)}</li>`).join('')}</ul>`:''}`; }
+        else right=`<div class="nosum">${esc(x.t)}${link}</div>`;
+        h+=`<div class="drow"><div class="dl">${nm}<div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">${sbadge(x)}${wt}</div></div><div>${right}</div></div>`;
       });
-      h+='</ul>';
+      h+='</div>';
     }
     h+='</div>';
   });
@@ -210,16 +271,16 @@ function draw(){
     document.getElementById('body').innerHTML=h; return;
   }
   h+=`<div class="bar">${KINDS.map(k=>`<span class="chip ${KIND===k?'on':''}" onclick="KIND='${k}';draw()">${k==='all'?'전체':k}${cnt[k]?' '+cnt[k]:''}</span>`).join('')}</div>
-  <div class="bar"><input id="q" placeholder="🔍 종목·키워드·제목 검색" value="${esc(Q)}" oninput="Q=this.value;draw();refocus()"></div>`;
-  const rows=L.filter(x=>(KIND==='all'||x.kind===KIND)&&(G==='all'||x.g===G)&&(!Q||(x.t+' '+x.kw+' '+x.stock).toLowerCase().includes(Q.toLowerCase())));
+  <div class="bar">${styleChips()}<span style="width:8px"></span><input id="q" placeholder="🔍 종목·키워드·제목 검색" value="${esc(Q)}" oninput="Q=this.value;draw();refocus()"></div>`;
+  const rows=L.filter(x=>(KIND==='all'||x.kind===KIND)&&(G==='all'||x.g===G)&&passStyle(x)&&(!Q||(x.t+' '+x.kw+' '+x.stock+' '+(x.sum||'')).toLowerCase().includes(Q.toLowerCase())));
   let day='';
   rows.slice(0,300).forEach((x,i)=>{
     if(x.d!==day){ day=x.d; h+=`<div class="day">${day}</div>`; }
     h+=`<div class="card" id="c${i}"><div class="row" onclick="document.getElementById('c${i}').classList.toggle('open')">
-      <span class="kd ${x.kind}">${x.kind}</span>${x.stock?`<span class="stk">${esc(x.stock)}</span>`:''}
+      <span class="kd ${x.kind}">${x.kind}</span>${x.stock?`<span class="stk">${esc(x.stock)}</span>`:''}${sbadge(x)}
       <span class="tt">${esc(x.t)}</span><span class="sp"></span>
       <span class="meta">${x.g?x.g+'기 · ':''}${x.callNo?'No.'+x.callNo+' · ':''}${x.kw?esc(x.kw):''}</span></div>
-      <div class="det">${x.imgs.length?x.imgs.map(u=>`<img loading="lazy" src="${u}">`).join(''):'<div class="meta">이미지 없음</div>'}
+      <div class="det">${x.sum?`<div style="text-align:left;font-size:13px;line-height:1.6;background:#fff;border:1px solid #e6e9f0;border-radius:8px;padding:8px 12px;margin-bottom:6px"><b>요약</b> — ${esc(x.sum)}</div>`:''}${x.imgs.length?x.imgs.map(u=>`<img loading="lazy" src="${u}">`).join(''):'<div class="meta">이미지 없음</div>'}
         <div class="meta" style="margin-top:6px"><a href="https://www.3o3campus.co.kr/report/master_view/8?rpt_no=${x.no}" target="_blank" style="color:#2f6df6">원문 열기 ↗</a></div></div></div>`;
   });
   if(!rows.length) h+='<div class="loading">조건에 맞는 콜 없음</div>';

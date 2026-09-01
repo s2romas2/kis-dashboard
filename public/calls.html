@@ -45,6 +45,8 @@ h1 { font-size:22px; margin:10px 0 4px; }
 /* 스타일(가치성장/모멘텀) 배지 */
 .sb { font-size:10.5px; font-weight:900; border-radius:6px; padding:2px 7px; white-space:nowrap; }
 .sb.가치성장 { background:#dcfce7; color:#15803d; } .sb.모멘텀 { background:#ede9fe; color:#6d28d9; }
+.chip.kc-신규편입.on,.chip.kc-비중상향.on { background:#0e9f5a; border-color:#0e9f5a; } .chip.kc-편출.on { background:#d92d20; border-color:#d92d20; } .chip.kc-비중하향.on { background:#b7791f; border-color:#b7791f; }
+.chip.kc-왓칭.on,.chip.kc-업데이트.on { background:#1d4ed8; border-color:#1d4ed8; } .chip.kc-매크로.on,.chip.kc-마켓.on { background:#7e22ce; border-color:#7e22ce; }
 .chip.st-가치성장.on { background:#15803d; border-color:#15803d; } .chip.st-모멘텀.on { background:#6d28d9; border-color:#6d28d9; }
 /* 일자별 정리 */
 .dcard { padding:0; }
@@ -215,10 +217,13 @@ function splitSum(sum){
   return {hl,lines};
 }
 function dailyView(){
-  const L=D.list.filter(x=>(G==='all'||x.g===G)&&passStyle(x)&&(!Q||(x.t+' '+x.kw+' '+x.stock+' '+(x.sum||'')).toLowerCase().includes(Q.toLowerCase())));
+  const base=D.list.filter(x=>(G==='all'||x.g===G)&&passStyle(x)&&(!Q||(x.t+' '+x.kw+' '+x.stock+' '+(x.sum||'')).toLowerCase().includes(Q.toLowerCase())));
+  const kc={}; base.forEach(x=>kc[x.kind]=(kc[x.kind]||0)+1);
+  const L=base.filter(x=>KIND==='all'||x.kind===KIND);
   const days={}; L.forEach(x=>(days[x.d]=days[x.d]||[]).push(x));
   const ds=Object.keys(days).sort().reverse();
-  let h=`<div class="bar">${styleChips()}<span style="width:8px"></span><input id="q" placeholder="🔍 종목·요약 검색" value="${esc(Q)}" oninput="Q=this.value;draw();refocus()"></div>`;
+  let h=`<div class="bar"><span class="meta">유형</span>${KINDS.map(k=>`<span class="chip kc-${k} ${KIND===k?'on':''}" onclick="KIND='${k}';draw()">${k==='all'?'전체':(DLABEL[k]||k).replace(/^\[(.+?)\].*$/,'$1')}${k!=='all'&&DLABEL[k]&&DLABEL[k].includes('=')?`<span style="font-weight:600;opacity:.75"> ${DLABEL[k].split('=')[1].trim()}</span>`:''}${kc[k]?` <b>${kc[k]}</b>`:''}</span>`).join('')}</div>
+  <div class="bar">${styleChips()}<span style="width:8px"></span><input id="q" placeholder="🔍 종목·요약 검색" value="${esc(Q)}" oninput="Q=this.value;draw();refocus()"></div>`;
   const nsum=L.filter(x=>x.sum).length;
   h+=`<div class="meta" style="white-space:normal;margin-bottom:10px">요약 ${nsum}/${L.length}건 · 굵은 줄 = 핵심 한 줄, 아래 점은 근거 숫자 · <span class="sb 가치성장">가치성장</span> <span class="sb 모멘텀">모멘텀</span> 은 콜 슬라이드의 스타일 태그 · ↗ 원문</div>`;
   ds.slice(0,60).forEach((d,i)=>{

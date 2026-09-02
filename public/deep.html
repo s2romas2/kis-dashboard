@@ -109,6 +109,16 @@ function renderFin(){
   const per=cur.k||''; const qoqLab=F.mode==='y'?'전년비':'QoQ', yoyLab=F.mode==='y'?'전전년비':'YoY';
   const g=(cu,ba)=>broken?'<td style="text-align:right;color:#98a2b3">—</td>':gcell(gpct(cu,ba));
   const line=(nm,key)=>`<tr><td style="font-weight:800;padding:5px 6px;border-bottom:1px solid #f0f2f6">${nm}</td><td style="text-align:right;font-weight:800;padding:5px 6px;border-bottom:1px solid #f0f2f6">${fnum(cur[key])}</td>${g(cur[key],prev[key])}${g(cur[key],yoyBase[key])}</tr>`;
+  // 최근 6개 기간 시계열 표 (매출·영업이익·순이익)
+  const L6=rows.slice(-6), LB6=labels.slice(-6);
+  const perHdr=LB6.map(k=>`<th style="text-align:right;padding:4px 6px;border-bottom:1.5px solid #e6e9f0;white-space:nowrap">${k}</th>`).join('');
+  const qline=(nm,key,col)=>`<tr><td style="font-weight:800;padding:5px 6px;border-bottom:1px solid #f0f2f6;white-space:nowrap;position:sticky;left:0;background:#fff">${nm}</td>`+
+    L6.map(r=>`<td style="text-align:right;padding:5px 6px;border-bottom:1px solid #f0f2f6;color:${col}">${fnum(r[key])}</td>`).join('')+`</tr>`;
+  const six=`<div style="font-size:11.5px;font-weight:800;color:#344054;margin:2px 0 4px">📊 최근 6개 ${F.mode==='y'?'연도':'분기'} 추이 (억원)</div>
+    <div style="overflow-x:auto;margin-bottom:6px"><table style="border-collapse:collapse;font-size:12px;min-width:100%">
+      <tr style="color:#667085;font-size:11px"><th style="text-align:left;padding:4px 6px;border-bottom:1.5px solid #e6e9f0;position:sticky;left:0;background:#fff">${F.mode==='y'?'연도':'분기'}</th>${perHdr}</tr>
+      ${qline('매출','rev','#1d4ed8')}${qline('영업이익','op','#059669')}${qline('순이익','ni','#7c3aed')}
+    </table></div>`;
   document.getElementById('finGrow').innerHTML=
     `<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px">
       <tr style="color:#667085;font-size:11px"><th style="text-align:left;padding:4px 6px;border-bottom:1.5px solid #e6e9f0">${per} 기준 (억원)</th>
@@ -117,7 +127,8 @@ function renderFin(){
         <th style="text-align:right;padding:4px 6px;border-bottom:1.5px solid #e6e9f0">${yoyLab}</th></tr>
       ${line('매출','rev')}${line('영업이익','op')}${line('순이익','ni')}
     </table>
-    <div style="font-size:10.5px;color:#98a2b3;margin:-4px 0 4px">${broken?'⚠ 이 종목은 분기 재무에 누적값이 섞여 정정 반영 대기 중 — 성장률은 재계산 후 표시됩니다. ':''}${unitNote} · ${qoqLab}=직전 ${F.mode==='y'?'연도':'분기'} 대비, ${yoyLab}=전년 ${F.mode==='y'?'':'동기 '}대비</div>`;
+    ${six}
+    <div style="font-size:10.5px;color:#98a2b3;margin:-2px 0 4px">${broken?'⚠ 이 종목은 분기 재무에 누적값이 섞여 정정 반영 대기 중 — 성장률은 재계산 후 표시됩니다. ':''}${unitNote} · ${qoqLab}=직전 ${F.mode==='y'?'연도':'분기'} 대비, ${yoyLab}=전년 ${F.mode==='y'?'':'동기 '}대비</div>`;
   mk('finC',{data:{labels,datasets:[
     {type:'bar',label:'매출액',data:rows.map(r=>r.rev),backgroundColor:'rgba(29,78,216,.72)',borderRadius:2,yAxisID:'y'},
     {type:'bar',label:'영업이익',data:rows.map(r=>r.op),backgroundColor:'rgba(5,150,105,.72)',borderRadius:2,yAxisID:'y'},

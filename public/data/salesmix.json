@@ -1,3 +1,31 @@
 {
-    "_note": "\ub9e4\ucd9c\ube44\uc911 \ud050\ub808\uc774\uc158. code: {type:\uc9c0\uc5ed|\uc81c\ud488, period:YYYYQn, rows:[{k,share}], src:URL, srcName, srcDate:YYYY-MM-DD, note}. srcDate\uac00 period \uc2e4\uc801\ubc1c\ud45c \uc774\uc804\uc774\uba74 \ub300\uc2dc\ubcf4\ub4dc\uc5d0 \u26a0 \ud45c\uc2dc."
+ "_note": "매출비중 큐레이션. code: {type:지역|제품, period:YYYYQn, rows:[{k,share}], src:URL, srcName, srcDate:YYYY-MM-DD, note}. srcDate가 period 실적발표 이전이면 대시보드에 ⚠ 표시.",
+ "090430": {
+  "name": "아모레퍼시픽",
+  "type": "지역",
+  "period": "2026Q2",
+  "growth": [
+   {
+    "k": "EMEA/유럽",
+    "g": 38
+   },
+   {
+    "k": "북미(미주)",
+    "g": 28
+   },
+   {
+    "k": "국내",
+    "g": 10
+   },
+   {
+    "k": "중화권(중국)",
+    "g": -21
+   }
+  ],
+  "headline": "중화권 −21% vs 미국 +28%·유럽 +38% — 서구 성장이 중국 감소를 상쇄하고 순증(2Q26 해외 매출 +28%, 코스알엑스 견인).",
+  "src": "https://www.newsquest.co.kr/news/articleView.html?idxno=269298",
+  "srcName": "뉴스퀘스트(2Q26 실적, 아모레퍼시픽 IR 기준)",
+  "srcDate": "2026-07-31",
+  "note": "수치=지역별 매출 YoY 성장률(2Q26). 절대 비중(%) 시계열은 IR 팩트북으로 순차 확정 예정."
+ }
 }

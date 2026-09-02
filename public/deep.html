@@ -251,10 +251,10 @@ async function show(code){
   // 6) 최신 애널 리포트 링크 + 최신성 플래그 + 매출비중(큐레이션)
   await renderReports(code, cmp);
 }
-function qCutoff(qk){ // 'YYYYQn' → 그 분기 실적이 나오는 시점(분기말+45일) ISO. 이보다 이전 자료면 stale
+function qCutoff(qk){ // 'YYYYQn' → 그 분기 실적(잠정)이 나오는 시점(분기말+15일) ISO. 이보다 이전 자료면 stale
   const m=/(\d{4})Q(\d)/.exec(qk||''); if(!m) return null;
   const y=+m[1], q=+m[2]; const end=[null,[3,31],[6,30],[9,30],[12,31]][q];
-  const d=new Date(Date.UTC(y,end[0]-1,end[1])); d.setUTCDate(d.getUTCDate()+45);
+  const d=new Date(Date.UTC(y,end[0]-1,end[1])); d.setUTCDate(d.getUTCDate()+15);
   return d.toISOString().slice(0,10);
 }
 function qLabel(qk){ const m=/(\d{4})Q(\d)/.exec(qk||''); return m?m[1].slice(2)+'.'+m[2]+'Q':qk; }
@@ -278,18 +278,34 @@ async function renderReports(code, cmp){
     box.innerHTML=html;
     // 매출비중 (큐레이션): salesmix.json[code] = {type:'지역'|'제품', period:'YYYYQn', rows:[{k,share}], src, srcDate, note}
     const mx=(window.__MIX||{})[code];
-    if(mx && mx.rows && mx.rows.length){
+    const hasData = mx && ((mx.rows&&mx.rows.length)||(mx.share&&mx.share.length)||(mx.growth&&mx.growth.length));
+    if(hasData){
       const cut=qCutoff(mx.period); const stale=cut && mx.srcDate < cut;
       const COL=['#1d4ed8','#059669','#d97706','#7c3aed','#0891b2','#dc2626','#64748b','#0e9f5a'];
-      const bars=mx.rows.map((r,i)=>`<div style="display:flex;align-items:center;gap:8px;margin:3px 0;font-size:12px">
-        <div style="width:96px;text-align:right;color:#475467">${r.k}</div>
-        <div style="flex:1;background:#eef2f8;border-radius:6px;height:16px;overflow:hidden"><div style="width:${Math.min(100,r.share)}%;height:100%;background:${COL[i%COL.length]}"></div></div>
-        <div style="width:44px;font-weight:800">${r.share}%</div></div>`).join('');
+      let body='';
+      const shareRows = mx.share || mx.rows;  // 비중 스냅샷
+      if(shareRows && shareRows.length){
+        body += `<div style="font-size:12px;font-weight:700;color:#475467;margin:2px 0 3px">비중(%)</div>`+
+          shareRows.map((r,i)=>`<div style="display:flex;align-items:center;gap:8px;margin:3px 0;font-size:12px">
+            <div style="width:100px;text-align:right;color:#475467">${r.k}</div>
+            <div style="flex:1;background:#eef2f8;border-radius:6px;height:15px;overflow:hidden"><div style="width:${Math.min(100,r.share)}%;height:100%;background:${COL[i%COL.length]}"></div></div>
+            <div style="width:42px;font-weight:800">${r.share}%</div></div>`).join('');
+      }
+      if(mx.growth && mx.growth.length){  // 지역별 YoY 성장률 (교체 폭)
+        const mxg=Math.max(...mx.growth.map(x=>Math.abs(x.g)),1);
+        body += `<div style="font-size:12px;font-weight:700;color:#475467;margin:8px 0 3px">지역별 YoY 성장률 — <span style="color:#98a2b3;font-weight:600">중국↓ 미국·유럽↑ 교체 폭</span></div>`+
+          mx.growth.map(r=>{const pos=r.g>=0;const c=pos?'#0e9f5a':'#d92d20';
+            return `<div style="display:flex;align-items:center;gap:8px;margin:3px 0;font-size:12px">
+            <div style="width:100px;text-align:right;color:#475467">${r.k}</div>
+            <div style="flex:1;display:flex;justify-content:center"><div style="width:50%;display:flex;justify-content:${pos?'flex-start':'flex-end'}"><div style="width:${Math.round(Math.abs(r.g)/mxg*100)}%;min-width:2px;height:14px;background:${c};border-radius:3px"></div></div></div>
+            <div style="width:52px;font-weight:800;color:${c}">${pos?'+':''}${r.g}%</div></div>`;}).join('');
+      }
       mixBox.innerHTML=`<div style="margin-top:6px;padding-top:8px;border-top:1px dashed #eceff4">
-        <div style="font-size:12.5px;font-weight:800;margin-bottom:4px">🗺️ ${mx.type||''} 매출 비중 <span style="color:#98a2b3;font-weight:600">(${qLabel(mx.period)} 기준)</span></div>
-        ${bars}
-        <div style="font-size:11px;color:#98a2b3;margin-top:5px">출처: <a href="${mx.src}" target="_blank" style="color:#2f6df6">${mx.srcName||'리포트/IR'} ↗</a> · 발행 ${mx.srcDate}
-        ${stale?`<span style="color:#d92d20;font-weight:800"> ⚠ 대상 분기 실적발표 이전 자료 — 갱신 필요</span>`:`<span style="color:#0e9f5a;font-weight:700"> ✓ 최신</span>`}${mx.note?' · '+mx.note:''}</div></div>`;
+        <div style="font-size:12.5px;font-weight:800;margin-bottom:4px">🗺️ ${mx.type||'지역'} 매출 ${mx.share||mx.rows?'비중·':''}추이 <span style="color:#98a2b3;font-weight:600">(${qLabel(mx.period)} 기준)</span></div>
+        ${mx.headline?`<div style="font-size:12px;color:#1a2a4a;background:#f2f6fe;border-radius:8px;padding:6px 10px;margin-bottom:6px">💡 ${mx.headline}</div>`:''}
+        ${body}
+        <div style="font-size:11px;color:#98a2b3;margin-top:6px">출처: <a href="${mx.src}" target="_blank" style="color:#2f6df6">${mx.srcName||'리포트/IR'} ↗</a> · 기준 ${mx.srcDate}
+        ${stale?`<span style="color:#d92d20;font-weight:800"> ⚠ 대상 분기 실적 이전 자료 — 갱신 필요</span>`:`<span style="color:#0e9f5a;font-weight:700"> ✓ 최신</span>`}${mx.note?'<br>'+mx.note:''}</div></div>`;
     } else mixBox.innerHTML='';
     document.getElementById('repP').style.display='';
   }catch(e){ document.getElementById('repP').style.display='none'; }

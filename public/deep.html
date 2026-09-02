@@ -52,8 +52,12 @@ table.con a { color:#2f6df6; text-decoration:none; font-weight:700; }
       <div id="noteBody" style="font-size:13px;line-height:1.8;color:#374151"></div>
       <div class="hint">🤖 Claude가 공시·수집 데이터를 근거로 작성한 분석 소결입니다(작성 기준일 명시). 다른 종목의 분석이 필요하면 대화로 "○○ 종합 분석 만들어줘"라고 요청하세요 — 검증 후 이 자리에 추가됩니다.</div>
     </div>
-    <div class="panel"><h2 id="finTitle">매출·영업이익·영업이익률</h2><div class="chart-box"><canvas id="finC"></canvas></div>
-      <div class="hint">막대=분기 매출액·영업이익(억원), 빨간 선=영업이익률(우축 %). DART 분기·반기·사업보고서 재무(연결 우선, 분기 단독 환산). 최신 분기가 잠정실적 공시만 나온 상태면 아직 반영 전이며 아래 잠정공시 링크로 확인하세요. <span id="flashLink"></span></div></div>
+    <div class="panel"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px">
+        <h2 id="finTitle" style="margin:0">매출·영업이익·순이익</h2><span style="flex:1"></span>
+        <span id="finToggle" style="display:flex;gap:4px"></span></div>
+      <div id="finGrow"></div>
+      <div class="chart-box"><canvas id="finC"></canvas></div>
+      <div class="hint">막대=매출액·영업이익·순이익(억원), 빨간 선=영업이익률(우축 %). <b>분기/연간</b> 전환·<b>QoQ·YoY 성장률</b>은 위 표. DART 분기·반기·사업보고서 재무(연결 우선, 분기 단독 환산). 최신 분기가 잠정실적 공시만 나온 상태면 아직 반영 전 — 아래 링크로 확인. <span id="flashLink"></span></div></div>
     <div class="panel" id="salesP"><h2 id="salesTitle">품목별 분기 매출</h2><div class="chart-box"><canvas id="salesC"></canvas></div>
       <div class="hint">품목별 매출(억원) — 보고서 '매출 및 수주상황' 누적값을 분기 차감. 4분기는 사업보고서(연간)−3분기 누적.</div></div>
     <div class="panel" id="priceP"><h2 id="priceTitle">품목별 판가 (P)</h2><div class="chart-box"><canvas id="priceC"></canvas></div>
@@ -77,6 +81,50 @@ const COLS=['#1d4ed8','#dc2626','#d97706','#059669','#7c3aed','#0891b2'];
 function mk(id, cfg){ if(charts[id]) charts[id].destroy(); charts[id]=new Chart(document.getElementById(id),cfg); }
 function lineSet(name,data,i,extra){ return Object.assign({label:name,data,borderColor:COLS[i%COLS.length],backgroundColor:'transparent',borderWidth:2,pointRadius:2.2,tension:.25,spanGaps:false},extra||{}); }
 async function jget(u){ try{ return await (await fetch(u+'?t='+Date.now())).json(); }catch(e){ return null; } }
+function fnum(v){ return v==null?'—':Math.round(v).toLocaleString(); }
+function gpct(cur,base){ if(cur==null||base==null||base===0) return null; return Math.round((cur-base)/Math.abs(base)*1000)/10; }
+function gcell(p){ if(p==null) return '<td style="text-align:right;color:#98a2b3">—</td>';
+  const c=p>=0?'#0e9f5a':'#d92d20', a=p>=0?'▲':'▼';
+  return `<td style="text-align:right;font-weight:800;color:${c}">${a}${Math.abs(p)}%</td>`; }
+function renderFin(){
+  const F=window.__FIN; if(!F) return;
+  let rows, labels, unitNote;
+  if(F.mode==='y'){
+    const ym={}; F.q.forEach(x=>{ const y=x.k.slice(0,4); (ym[y]=ym[y]||{y,rev:0,op:0,ni:0,n:0}); ym[y].rev+=x.rev||0; if(x.op!=null)ym[y].op+=x.op; if(x.ni!=null)ym[y].ni+=x.ni; ym[y].n++; });
+    rows=Object.values(ym).sort((a,b)=>a.y<b.y?-1:1).map(v=>({k:v.y+(v.n<4?'('+v.n+'Q)':''), rev:v.rev, op:v.op, ni:v.ni}));
+    labels=rows.map(r=>r.k); unitNote='연간 합산(진행 연도는 누계)';
+  } else {
+    rows=F.q; labels=rows.map(r=>r.k.slice(2).replace('Q','.')+'Q'); unitNote='분기 단독';
+  }
+  const opm=rows.map(r=>(r.rev&&r.op!=null)?Math.round(r.op/r.rev*1000)/10:null);
+  document.getElementById('finTitle').textContent=F.name+' — 매출·영업이익·순이익 ('+(F.mode==='y'?'연간':'분기')+', 억원)';
+  // 정정 대기 가드: 순이익>매출(불가능) 등 누적값 혼입이 감지되면 성장률 숨김
+  const broken=rows.some(r=>r.rev>0 && ((r.ni!=null&&Math.abs(r.ni)>r.rev*1.02)||(r.op!=null&&Math.abs(r.op)>r.rev*1.02)));
+  // 성장률 표를 먼저 (차트 로드 실패해도 표는 남게)
+  const n=rows.length, cur=rows[n-1]||{}, prev=rows[n-2]||{}, yoyBase=(F.mode==='y'? rows[n-2] : rows[n-4])||{};
+  const per=cur.k||''; const qoqLab=F.mode==='y'?'전년비':'QoQ', yoyLab=F.mode==='y'?'전전년비':'YoY';
+  const g=(cu,ba)=>broken?'<td style="text-align:right;color:#98a2b3">—</td>':gcell(gpct(cu,ba));
+  const line=(nm,key)=>`<tr><td style="font-weight:800;padding:5px 6px;border-bottom:1px solid #f0f2f6">${nm}</td><td style="text-align:right;font-weight:800;padding:5px 6px;border-bottom:1px solid #f0f2f6">${fnum(cur[key])}</td>${g(cur[key],prev[key])}${g(cur[key],yoyBase[key])}</tr>`;
+  document.getElementById('finGrow').innerHTML=
+    `<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px">
+      <tr style="color:#667085;font-size:11px"><th style="text-align:left;padding:4px 6px;border-bottom:1.5px solid #e6e9f0">${per} 기준 (억원)</th>
+        <th style="text-align:right;padding:4px 6px;border-bottom:1.5px solid #e6e9f0">최근값</th>
+        <th style="text-align:right;padding:4px 6px;border-bottom:1.5px solid #e6e9f0">${qoqLab}</th>
+        <th style="text-align:right;padding:4px 6px;border-bottom:1.5px solid #e6e9f0">${yoyLab}</th></tr>
+      ${line('매출','rev')}${line('영업이익','op')}${line('순이익','ni')}
+    </table>
+    <div style="font-size:10.5px;color:#98a2b3;margin:-4px 0 4px">${broken?'⚠ 이 종목은 분기 재무에 누적값이 섞여 정정 반영 대기 중 — 성장률은 재계산 후 표시됩니다. ':''}${unitNote} · ${qoqLab}=직전 ${F.mode==='y'?'연도':'분기'} 대비, ${yoyLab}=전년 ${F.mode==='y'?'':'동기 '}대비</div>`;
+  mk('finC',{data:{labels,datasets:[
+    {type:'bar',label:'매출액',data:rows.map(r=>r.rev),backgroundColor:'rgba(29,78,216,.72)',borderRadius:2,yAxisID:'y'},
+    {type:'bar',label:'영업이익',data:rows.map(r=>r.op),backgroundColor:'rgba(5,150,105,.72)',borderRadius:2,yAxisID:'y'},
+    {type:'bar',label:'순이익',data:rows.map(r=>r.ni),backgroundColor:'rgba(124,58,237,.6)',borderRadius:2,yAxisID:'y'},
+    {type:'line',label:'영업이익률%',data:opm,borderColor:'#dc2626',backgroundColor:'transparent',borderWidth:2,pointRadius:2.2,tension:.2,yAxisID:'y2'}
+  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{labels:{boxWidth:11,font:{size:11}}}},
+    scales:{x:{grid:{display:false},ticks:{font:{size:10},maxTicksLimit:14}},
+      y:{grid:{color:'#f0f2f5'},ticks:{font:{size:10}}},
+      y2:{position:'right',grid:{display:false},ticks:{font:{size:10},callback:v=>v+'%'}}}}});
+}
 async function show(code){
   const d=await jget('/data/qdeep/'+code);  // may be null
   const dd=d&&d.quarters? d : await jget('/data/qdeep/'+code+'.json');
@@ -103,22 +151,16 @@ async function show(code){
          <div style="white-space:pre-wrap;margin:2px 0 8px">${b.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</div></div>`).join('');
     }
   }catch(e){}
-  // 1) 매출·영업이익·OPM (compare qs — 분기 단독)
+  // 1) 매출·영업이익·순이익 + QoQ/YoY 성장률 + 연/분기 토글 (compare qs = [분기,매출,영익,순이익])
+  document.getElementById('finToggle').innerHTML='';
+  document.getElementById('finGrow').innerHTML='';
   if(cmp&&cmp.qs&&cmp.qs.length){
-    const qs=cmp.qs.filter(r=>r[0]>='2021Q1');
-    const labels=qs.map(r=>r[0].slice(2).replace('Q','.')+'Q');
-    const opm=qs.map(r=>(r[1]&&r[2]!=null)?Math.round(r[2]/r[1]*1000)/10:null);
-    document.getElementById('finTitle').textContent=name+' — 매출·영업이익·영업이익률 (분기, 억원)';
-    mk('finC',{data:{labels,datasets:[
-      {type:'bar',label:'매출액',data:qs.map(r=>r[1]),backgroundColor:'rgba(29,78,216,.7)',borderRadius:2,yAxisID:'y'},
-      {type:'bar',label:'영업이익',data:qs.map(r=>r[2]),backgroundColor:'rgba(5,150,105,.7)',borderRadius:2,yAxisID:'y'},
-      {type:'line',label:'영업이익률%',data:opm,borderColor:'#dc2626',backgroundColor:'transparent',borderWidth:2,pointRadius:2.5,tension:.2,yAxisID:'y2'}
-    ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-      plugins:{legend:{labels:{boxWidth:11,font:{size:11}}}},
-      scales:{x:{grid:{display:false},ticks:{font:{size:10},maxTicksLimit:14}},
-        y:{grid:{color:'#f0f2f5'},ticks:{font:{size:10}}},
-        y2:{position:'right',grid:{display:false},ticks:{font:{size:10},callback:v=>v+'%'}}}}});
-    // 잠정실적 공시 링크
+    window.__FIN={ name, mode:(window.__FIN&&window.__FIN.mode)||'q',
+      q: cmp.qs.filter(r=>r[0]>='2021Q1').map(r=>({k:r[0],rev:r[1],op:r[2]??null,ni:(r[3]!=null?r[3]:null)})) };
+    document.getElementById('finToggle').innerHTML=['q','y'].map(m=>
+      `<span class="fchip" data-m="${m}" style="cursor:pointer;font-size:11.5px;font-weight:800;border:1.5px solid #d7dce6;border-radius:14px;padding:3px 11px;${window.__FIN.mode===m?'background:#2f6df6;border-color:#2f6df6;color:#fff':'color:#475467'}">${m==='q'?'분기':'연간'}</span>`).join('');
+    document.querySelectorAll('#finToggle .fchip').forEach(el=>el.onclick=()=>{ window.__FIN.mode=el.dataset.m; renderFin(); });
+    renderFin();
     const fl=await jget('/data/flash.json');
     const hit=fl&&(fl.list||[]).find(x=>x.code===code);
     document.getElementById('flashLink').innerHTML=hit?`<a href="${hit.link}" target="_blank" style="color:#e5384d;font-weight:800">📢 ${hit.date.slice(4,6)}/${hit.date.slice(6,8)} 잠정실적 공시 ↗</a>`:'';

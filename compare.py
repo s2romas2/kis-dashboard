@@ -91,17 +91,23 @@ def fin_quarters(corp):
                 raw[(y, q)] = slot
             time.sleep(0.06)
     out = {}
+    def cumv(key, yy, qq):  # 그 보고서의 '누적(YTD)' 값 — thstrm_add_amount(cum) 우선
+        ss = raw.get((yy, qq), {}).get(key)
+        if not ss:
+            return None
+        return ss.get('cum', ss.get('cur'))
     for (y, q), s in raw.items():
-        eq = s.get('eq', {}).get('cur')
-        def single(key):  # 손익 항목: Q1~3=단일분기, Q4=연간-3Q누적
+        eq = s.get('eq', {}).get('cur')  # 자본총계는 시점값(누적 아님)
+        def single(key):  # 손익 항목: 누적 차감으로 단일분기 환산 (Q1=누적, Q2~4=당분기누적−직전분기누적)
             if key not in s:
                 return None
-            if q in (1, 2, 3):
-                return s[key]['cur']
-            fy = s[key]['cur']
-            p3 = raw.get((y, 3), {}).get(key, {})
-            nine = p3.get('cum', p3.get('cur'))
-            return (fy - nine) if (fy is not None and nine is not None) else None
+            c = cumv(key, y, q)
+            if c is None:
+                return None
+            if q == 1:
+                return c
+            p = cumv(key, y, q - 1)
+            return (c - p) if p is not None else None
         out[(y, q)] = {'eq': eq, 'ni': single('ni'), 'rv': single('rv'), 'op': single('op')}
     return out
 
@@ -193,7 +199,7 @@ def build_series(code, name, corp):
             qs.append(row)
     px_out = [[d, c] for d, c in px]
     return {'code': code, 'name': name, 'pbr': pbr, 'per': per, 'psr': psr, 'roe': roe, 'vq': vq, 'qs': qs,
-            'px': px_out, 'v': 4, 'gen': datetime.date.today().isoformat()}
+            'px': px_out, 'v': 5, 'gen': datetime.date.today().isoformat()}
 
 def main():
     if not DART_KEY:
@@ -240,8 +246,8 @@ def main():
         # 최근 7일 내 계산본(v2)은 재사용
         try:
             old = json.load(open('%s/%s.json' % (OUTDIR, code), encoding='utf-8'))
-            # v3(PSR·V차트 없음)는 실행당 MAXRUN까지 우선 재계산해 v4로 전환, 한도 초과분만 주가 이어붙임으로 유지
-            if (old.get('v') == 4 or (old.get('v') == 3 and ran >= MAXRUN)) and (old.get('gen') or '') >= cutoff_gen:
+            # v5 미만(분기 단독 누적차감 버그 수정 전)은 재계산; v5 신선본만 주가 이어붙임 유지
+            if (old.get('v') == 5 or (old.get('v') in (3,4) and ran >= MAXRUN)) and (old.get('gen') or '') >= cutoff_gen:
                 # 가벼운 일일 갱신: 최신 주가만 이어붙임 (재무 재계산은 주 1회)
                 try:
                     if old.get('px'):

@@ -184,6 +184,18 @@ h1 { font-size:22px; margin:10px 0 4px; }
       CPO(포트당 9W, 3.5배 절감, 레이저 4배 감소)가 강제되는 두 번째 이유. CPO 침투율 전망: <b>2026년 ~0.5% → 2030년 ~35%</b>(TrendForce).</div></div>
     </div></div>
 
+  <div class="card"><h2>⑤-B 🧭 Optical Transition Scorecard — "구리가 언제 깨지나" 추적표</h2>
+    <div class="d" style="margin-bottom:6px">핵심 질문: <b>"필요한 데이터 전송량을 구리로 계속 처리하는 게 기술적·경제적으로 가능한가?"</b> ·
+    점수(0~100)는 <b>쓰지 않습니다</b>(공개 데이터로 못 받쳐 가짜 정밀이 됨). 대신 방향 + 데이터 커버리지로 봅니다. 각 지표에 <b>쉬운 뜻</b>을 붙여 볼 때마다 리마인드되게 했습니다.</div>
+    <div id="scVerdict"></div>
+    <div id="scChoke" style="margin-top:10px"></div>
+    <div style="overflow-x:auto;margin-top:10px"><table class="tbl" id="scTbl"></table></div>
+    <div id="scAI" style="margin-top:12px"></div>
+    <div id="scCounter" style="margin-top:12px"></div>
+    <div id="scKill" style="margin-top:12px"></div>
+    <div class="d" style="font-size:11px;color:#98a2b3;margin-top:10px" id="scUpd"></div>
+  </div>
+
   <div class="card"><h2>📰 대역폭·CPO 워치 (매일 자동 수집)</h2>
     <div class="d" style="margin-bottom:8px">448G SerDes · CX-10/3.2T · CPO 스위치 · 1.6T 램프 · EML 부족 키워드를 매일 추적합니다.</div>
     <div id="optNews" class="d" style="font-size:12px">수집 대기 중 — 다음 배치부터 채워집니다.</div></div>
@@ -206,6 +218,84 @@ h1 { font-size:22px; margin:10px 0 4px; }
     </div></div>
 </div>
 <script>
+// ── ⑤-B Optical Transition Scorecard 데이터 (갱신은 이 객체만 수정) ──
+const SC = {
+  updated: '2026-09-02',
+  verdict: {
+    ai: '↑', copper: '높음', transition: '완만한 가속',
+    pos: 'Switch CPO 진입 · XPU CPO는 Rubin Ultra(2027) 로드맵',
+    cover: '실측 8 · 추정 4 · 참고 1'
+  },
+  choke: [
+    { n:'급소 1 — Shoreline 대역폭 밀도 (Tbps/mm)', m:'칩 가장자리(좁은 문)로 내보내야 하는 데이터량. 문 폭은 못 늘리는데 물량은 폭증 → 전기 핀으로는 한계.', s:'224G+에서 한계 접근 (전기 I/O shoreline 압박↑)' },
+    { n:'급소 2 — pJ/bit @ 목표 거리 (전기료)', m:'1비트 나르는 전기. DC 최대 제약은 전력이라, 구리 전기료가 광보다 비싸지면 성능이 아니라 전기요금 때문에 전환.', s:'단거리는 구리 우세 유지 · 고속·장거리서 광 우위 확대(CPO 포트당 ~9W vs 플러거블 20~30W)' }
+  ],
+  rows: [
+    {n:1, k:'Scale-up 도메인 GPU 수', mean:'한 팀으로 초고속 대화하는 GPU 수. 팀이 클수록 내부 대화량 폭증.', now:'72(GB200) → 144(Rubin) → 576(Rubin Ultra)', dir:'↑', imp:5, tag:'실측'},
+    {n:2, k:'GPU당 Interconnect BW', mean:'GPU 1개가 옆 GPU와 주고받는 데이터 배관 굵기.', now:'NVLink5 1.8TB/s → NVLink6 3.6TB/s', dir:'↑', imp:5, tag:'실측'},
+    {n:3, k:'Switch ASIC BW', mean:'공장 중앙 우체국(스위치 칩)이 초당 처리하는 총 물량.', now:'51.2T → 102.4T(TH6 출하) → 204.8T(차기)', dir:'↑', imp:4, tag:'실측'},
+    {n:4, k:'SerDes 레인속도', mean:'선 한 가닥의 초당 속도. 빠를수록 구리가 힘들어함.', now:'112G → 224G(현행) → 448G(전기론 난망=전환 방아쇠)', dir:'↑', imp:5, tag:'실측'},
+    {n:5, k:'Copper Reach(구리 도달거리)', mean:'그 속도에서 구리가 신호 안 깨지고 가는 거리. 짧아지면 랙 안도 구리 불가.', now:'224G ~1m → 448G <0.5m', dir:'↓', imp:5, tag:'추정'},
+    {n:6, k:'pJ/bit(비트당 전기료)', mean:'1비트 나르는 전기. 구리 vs 광 격차가 벌어지면 광이 경제적으로 이김.', now:'CPO ~9W/포트 (플러거블 대비 3.5배↓), 격차 확대 방향', dir:'↑(광유리)', imp:5, tag:'추정'},
+    {n:7, k:'Shoreline 대역폭 밀도', mean:'칩 엣지 좁은 문으로 빼야 할 데이터 밀도. 전기 핀 한계 신호.', now:'한계 접근', dir:'↑', imp:5, tag:'추정'},
+    {n:8, k:'리타이머 / AEC 필요성', mean:'구리가 힘드니 중간에 놓는 신호 증폭기. 많아지면 구리 한계.', now:'고속화로 링크당 증가(전력·비용↑)', dir:'↑', imp:3, tag:'추정'},
+    {n:9, k:'HBM 대역폭', mean:'GPU가 옆 메모리에서 퍼오는 속도. 단독 신호 아님, 통신패턴 병행.', now:'HBM3E → HBM4(Rubin, 대폭↑)', dir:'↑', imp:3, tag:'실측'},
+    {n:10, k:'CPO 상태(스위치)', mean:'광엔진을 스위치 칩 옆에 붙이는 기술의 단계. 발표≠양산.', now:'초기 상용 — 브로드컴 TH6 Davisson·엔비디아 Quantum-X Photonics 출하', dir:'↑', imp:5, tag:'실측'},
+    {n:11, k:'Optical I/O 상태(XPU 근접)', mean:'광을 GPU 패키지 안까지. 전환의 가장 깊은 단계.', now:'로드맵/프로토타입 — Rubin Ultra(2027) 스케일업 CPO 진입', dir:'초기', imp:5, tag:'실측'},
+    {n:12, k:'LPO / LRO 채택 (반대 신호)', mean:'DSP 뺀 저전력 플러거블. 잘 되면 CPO를 늦춤.', now:'1.6T에서 저전력 대안으로 채택 논쟁 진행', dir:'↑(반대)', imp:4, tag:'실측'}
+  ],
+  ai: {
+    dir:'↑',
+    items:['Total Tokens 처리량 급증(OpenAI·구글 공개치)','AI API 매출 추이 상승','Reasoning·Agentic 비중 확대(요청당 연산↑)','Multimodal·Video 비중 확대(데이터량↑)'],
+    note:'점수엔 반영하지 않음(실측 어렵고 CPO 타이밍엔 간접). "이 스토리가 살아있나"를 확인하는 최상류 선행 참고지표.'
+  },
+  counter: [
+    ['LPO / LRO 확산','DSP 없는 저전력 플러거블이 스케일업 거리를 커버하면 CPO 순연 — 가장 강한 반대경로'],
+    ['AI 효율화','양자화·통신압축·작은 active MoE·speculative decoding으로 GPU간 트래픽 증가율 둔화 가능'],
+    ['CPO 자체 리스크','수율·레이저 신뢰성(MTBF/FIT)·Thermal·파이버 attach 비용·표준화']
+  ],
+  kill: [
+    '224G LPO가 스케일업 거리 대량 채택 + 448G 전기가 0.5m reach 확보 → CPO 2년+ 순연',
+    'AI 효율화로 GPU간 트래픽 증가율 < Interconnect 발전율',
+    'AEC/DAC 급개선으로 intra-rack 계속 구리로 해결',
+    'CPO가 2년 연속 Design Win→HVM 전환 실패(수율·레이저)'
+  ]
+};
+(function(){
+  const dc={'↑':'#d92d20','↓':'#0e9f5a','→':'#667085'};
+  const v=SC.verdict;
+  document.getElementById('scVerdict').innerHTML =
+    `<div style="display:flex;flex-wrap:wrap;gap:8px">
+      ${[['AI 수요(참고)',v.ai],['Copper 한계 접근도',v.copper],['Optical 전환',v.transition],['현재 위치',v.pos],['데이터 커버리지',v.cover]]
+      .map(x=>`<div class="kpi" style="flex:1 1 150px"><div class="t">${x[0]}</div><div class="v" style="font-size:14px">${x[1]}</div></div>`).join('')}
+    </div>`;
+  document.getElementById('scChoke').innerHTML =
+    `<div class="d" style="font-weight:800;margin-bottom:5px">🎯 타이밍을 결정하는 2대 급소</div>` +
+    SC.choke.map(c=>`<div class="vs" style="margin-top:6px"><b>${c.n}</b><br><span style="color:#8a6a20">${c.m}</span><br>▶ 현재: <b>${c.s}</b></div>`).join('');
+  const star=n=>'★'.repeat(n)+'☆'.repeat(5-n);
+  const tagc={'실측':'real','추정':'opt','참고':'no'};
+  document.getElementById('scTbl').innerHTML =
+    `<tr><th>#</th><th>지표</th><th>쉬운 뜻 (무엇을 의미하나)</th><th>현재</th><th>방향</th><th>중요도</th><th>데이터</th></tr>` +
+    SC.rows.map(r=>`<tr>
+      <td>${r.n}</td>
+      <td><b>${r.k}</b></td>
+      <td style="color:#475467">${r.mean}</td>
+      <td>${r.now}</td>
+      <td style="font-weight:900;color:${dc[r.dir]||'#b7791f'}">${r.dir}</td>
+      <td style="color:#f59e0b;white-space:nowrap">${star(r.imp)}</td>
+      <td><span class="tag ${tagc[r.tag]}">${r.tag}</span></td></tr>`).join('');
+  document.getElementById('scAI').innerHTML =
+    `<div class="stage" style="background:#f2f6fe;border-color:#cfe0ff"><div class="hd"><h3>📈 AI 수요 — 참고지표 (점수 미반영, 방향만)</h3><span class="btl ok">방향 ${SC.ai.dir}</span></div>
+     <div class="gl">${SC.ai.items.map(x=>`<span class="kr">${x}</span>`).join('')}</div>
+     <div class="why">${SC.ai.note}</div></div>`;
+  document.getElementById('scCounter').innerHTML =
+    `<div class="d" style="font-weight:800;margin-bottom:5px">▼ 반대지표 (확증편향 방지 — 전환을 늦출 수 있는 근거)</div>` +
+    `<div style="overflow-x:auto"><table class="tbl">${SC.counter.map(c=>`<tr><td style="white-space:nowrap"><b>${c[0]}</b></td><td style="color:#475467">${c[1]}</td></tr>`).join('')}</table></div>`;
+  document.getElementById('scKill').innerHTML =
+    `<div class="d" style="font-weight:800;margin-bottom:5px">🛑 Kill 조건 (관측되면 논지 약화 → 강제 하향)</div>` +
+    `<div class="d" style="line-height:1.9">${SC.kill.map((k,i)=>`${i+1}. ${k}`).join('<br>')}</div>`;
+  document.getElementById('scUpd').textContent = '스코어카드 갱신 ' + SC.updated + ' · 점수제 대신 방향+커버리지 · 갱신은 SC 객체만 수정';
+})();
 (async()=>{
   try{
     const d=await (await fetch('/data/sectornews.json?t='+Date.now())).json();

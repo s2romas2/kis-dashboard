@@ -296,7 +296,7 @@ async function renderReports(code, cmp){
         body += `<div style="font-size:12px;font-weight:700;color:#475467;margin:8px 0 3px">지역별 YoY 성장률 — <span style="color:#98a2b3;font-weight:600">중국↓ 미국·유럽↑ 교체 폭</span></div>`+
           mx.growth.map(r=>{const pos=r.g>=0;const c=pos?'#0e9f5a':'#d92d20';
             return `<div style="display:flex;align-items:center;gap:8px;margin:3px 0;font-size:12px">
-            <div style="width:100px;text-align:right;color:#475467">${r.k}</div>
+            <div style="width:132px;text-align:right;color:#475467">${r.k}${r.amt?`<span style="color:#98a2b3;font-size:10.5px"> ${r.amt}</span>`:''}</div>
             <div style="flex:1;display:flex;justify-content:center"><div style="width:50%;display:flex;justify-content:${pos?'flex-start':'flex-end'}"><div style="width:${Math.round(Math.abs(r.g)/mxg*100)}%;min-width:2px;height:14px;background:${c};border-radius:3px"></div></div></div>
             <div style="width:52px;font-weight:800;color:${c}">${pos?'+':''}${r.g}%</div></div>`;}).join('');
       }

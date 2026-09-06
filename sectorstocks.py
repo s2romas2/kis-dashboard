@@ -50,6 +50,7 @@ NAME_KEYS = ['hts_kor_isnm', 'kor_isnm', 'prdt_name', 'isnm']
 CHG_KEYS = ['prdy_ctrt', 'prdy_ctrt_rate', 'ctrt']
 PRC_KEYS = ['stck_prpr', 'prpr', 'stck_clpr']
 CAP_KEYS = ['hts_avls', 'stck_avls', 'mrkt_val', 'avls', 'lstn_avls']
+VAL_KEYS = ['acml_tr_pbmn', 'tr_pbmn', 'acml_tr_pbmn_amt']   # 누적 거래대금(원)
 
 
 def pick(d, keys):
@@ -69,9 +70,9 @@ def category_stocks(hdr, code):
         'fid_rank_sort_cls_code': '0',     # 0=상승률순
         'fid_input_cnt_1': '0',
         'fid_prc_cls_code': '0',
-        'fid_input_price_1': '',
+        'fid_input_price_1': '1000',       # 최소 주가 1,000원(동전주 제외)
         'fid_input_price_2': '',
-        'fid_vol_cnt': '',
+        'fid_vol_cnt': '30000',            # 최소 거래량 3만주(유동성 하한)
         'fid_trgt_cls_code': '0',
         'fid_trgt_exls_cls_code': '0',
         'fid_div_cls_code': '0',
@@ -95,8 +96,9 @@ def category_stocks(hdr, code):
         chg = tonum(pick(r, CHG_KEYS))
         prc = tonum(pick(r, PRC_KEYS))
         cap = tonum(pick(r, CAP_KEYS))
+        val = tonum(pick(r, VAL_KEYS))     # 거래대금(원)
         out.append({'c': str(c).zfill(6), 'n': str(n).strip(),
-                    'chg': chg, 'prc': prc, 'cap': cap})
+                    'chg': chg, 'prc': prc, 'cap': cap, 'val': val})
     return out, ''
 
 

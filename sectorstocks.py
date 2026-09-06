@@ -127,53 +127,66 @@ def _mkt_of(v):
     return 'KOSPI'
 
 
+IDX_CODE_KEYS = ['idx_bztp_scls_cd', 'idx_bztp_mcls_cd', 'idx_bztp_lcls_cd']  # 소>중>대 업종코드
+
+
 def stock_industry(hdr, code):
-    """종목 기본정보 → {업종 후보명들, 시장}. 첫 성공 응답 키를 DEBUG에 1회 남김."""
+    """종목 기본정보 → (업종코드 후보[소,중,대], 시장). 첫 성공 응답 키/샘플을 DEBUG에 남김."""
     u = BASE + '/uapi/domestic-stock/v1/quotations/search-stock-info?PRDT_TYPE_CD=300&PDNO=' + code
     h = dict(hdr); h['tr_id'] = 'CTPF1002R'
     j = get_json(u, h)
     o = j.get('output') or {}
     if o and not stock_industry._logged:
-        DEBUG.append('기본정보 응답 키: ' + ','.join(list(o.keys())[:30]))
-        DEBUG.append('업종후보 예시(%s): ' % code + ' / '.join('%s=%s' % (k, o.get(k)) for k in IND_KEYS if o.get(k)))
+        DEBUG.append('기본정보 키: ' + ','.join(list(o.keys())[:32]))
         stock_industry._logged = True
-    cands = [str(o.get(k)).strip() for k in IND_KEYS if o.get(k)]
+    codes = [str(o.get(k)).strip() for k in IDX_CODE_KEYS]
     mkt = _mkt_of(next((o.get(k) for k in MKT_KEYS if o.get(k)), ''))
-    return cands, mkt
+    return codes, mkt
 
 
 stock_industry._logged = False
 
 
-def build_sectormap(hdr, codes, krx_names):
-    """screener 종목 code→(업종명, 시장) 매핑 생성. 여러 업종필드 후보 중 KRX명과 겹치는 게 가장 많은 걸 채택."""
-    raw = {}  # code -> {cands:[...], mkt}
-    for i, code in enumerate(codes):
+def build_sectormap(hdr, scodes, code2name, probe=()):
+    """screener 종목 code→(업종명,시장). idx_bztp 업종코드를 leadershist 코드(code2name)에 직접 매칭.
+    어느 레벨(소/중/대)이 맞는지 자동 선택. probe 종목은 코드값을 DEBUG에 남겨 진단."""
+    # leadershist 코드는 KOSPI 0xxx / KOSDAQ 1xxx. idx_bztp 코드 포맷이 달라도 zfill/뒤3자리로 맞춰 시도
+    name_by_full = dict(code2name)                                  # '0008' -> '화학'
+    name_by_tail = {}                                               # '008' -> '화학'(시장 무시 보조)
+    for c, nm in code2name.items():
+        name_by_tail[c.lstrip('0')[-3:].zfill(3) if c.lstrip('0') else c] = nm
+    raw = {}
+    for code in scodes:
         try:
             cands, mkt = stock_industry(hdr, code)
             raw[code] = {'cands': cands, 'mkt': mkt}
+            if code in probe:
+                DEBUG.append('probe %s: idx소중대=%s mkt=%s' % (code, cands, mkt))
         except Exception as e:
-            if len(DEBUG) < 20:
-                DEBUG.append('info %s 오류 %s' % (code, str(e)[:24]))
+            if len(DEBUG) < 22:
+                DEBUG.append('info %s 오류 %s' % (code, str(e)[:22]))
         time.sleep(0.12)
-    # 후보 슬롯(0=소분류…)별로 KRX명과 매칭되는 수를 세어 최적 슬롯 선택
-    best_slot, best_hit = 0, -1
-    for slot in range(len(IND_KEYS)):
-        hit = sum(1 for v in raw.values() if len(v['cands']) > slot and v['cands'][slot] in krx_names)
-        if hit > best_hit:
-            best_hit, best_slot = hit, slot
-    DEBUG.append('업종매핑: %d종목 조회, 슬롯%d 채택(매칭 %d)' % (len(raw), best_slot, best_hit))
+
+    def resolve(cands, mkt):
+        pref = '1' if mkt == 'KOSDAQ' else '0'
+        for cd in cands:
+            if not cd or cd in ('None', ''):
+                continue
+            for cand_full in (cd, cd.zfill(4), pref + cd[-3:].zfill(3), '0' + cd[-3:].zfill(3), '1' + cd[-3:].zfill(3)):
+                if cand_full in name_by_full:
+                    return name_by_full[cand_full]
+            tail = cd.lstrip('0')[-3:].zfill(3) if cd.lstrip('0') else cd
+            if tail in name_by_tail:
+                return name_by_tail[tail]
+        return None
+
     mp = {}
     for code, v in raw.items():
-        sec = None
-        # 최적 슬롯이 KRX명과 매칭되면 사용, 아니면 후보 중 KRX명에 있는 첫 값
-        if len(v['cands']) > best_slot and v['cands'][best_slot] in krx_names:
-            sec = v['cands'][best_slot]
-        else:
-            sec = next((c for c in v['cands'] if c in krx_names), None)
+        sec = resolve(v['cands'], v['mkt'])
         if sec:
             mp[code] = {'sec': sec, 'mkt': v['mkt']}
-    return {'v': 1, 'built': time.time(), 'map': mp}
+    DEBUG.append('업종매핑: %d종목 조회 → %d종목 매칭' % (len(raw), len(mp)))
+    return {'v': 2, 'built': time.time(), 'map': mp}
 
 
 def main():
@@ -215,19 +228,19 @@ def main():
 
     # ---- 실적 성장주: screener 종목을 KRX업종에 매핑 후, 업종별 YoY 성장 상위 ----
     try:
-        krx_names = set(name for _, name, _ in codes)
+        code2name = {code: name for code, name, mkt in codes}   # leadershist 업종코드→이름
         screener = json.load(open(SCREENER, encoding='utf-8')).get('list', [])
         scodes = [x['code'] for x in screener if x.get('code')]
-        # 업종 매핑 캐시 로드/재생성
+        # 업종 매핑 캐시 로드/재생성 (v2)
         smap = None
         try:
             cache = json.load(open(MAPFILE, encoding='utf-8'))
-            if cache.get('v') == 1 and (time.time() - cache.get('built', 0)) < MAP_TTL and cache.get('map'):
+            if cache.get('v') == 2 and (time.time() - cache.get('built', 0)) < MAP_TTL and cache.get('map'):
                 smap = cache; DEBUG.append('업종매핑 캐시 사용(%d종목)' % len(cache['map']))
         except Exception:
             pass
         if smap is None:
-            smap = build_sectormap(hdr, scodes, krx_names)
+            smap = build_sectormap(hdr, scodes, code2name, probe=('278470', '192820', '005930'))
             json.dump(smap, open(MAPFILE, 'w', encoding='utf-8'), ensure_ascii=False)
         mp = smap['map']
         # 업종별 성장주 수집: rev>=300억 & opYoY 상위, 이미 견인 top에 있으면 제외

@@ -89,7 +89,7 @@ def main():
         n = 0
         for x in cur['list']:
             if x['no'] in wmap:
-                x.update({k: v for k, v in wmap[x['no']].items() if k in ('w', 'w0', 'style')}); n += 1
+                x.update({k: v for k, v in wmap[x['no']].items() if k in ('w', 'w0', 'style', 'stock', 'kind')}); n += 1
         data = cur; print('비중 기록 %d건' % n, file=sys.stderr)
     elif cmd == 'setsum':
         # 슬라이드를 읽고 쓴 한 줄 요약 기록: {rptNo: "요약"}

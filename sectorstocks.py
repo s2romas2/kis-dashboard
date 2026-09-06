@@ -128,10 +128,34 @@ def _mkt_of(v):
 
 
 IDX_CODE_KEYS = ['idx_bztp_scls_cd', 'idx_bztp_mcls_cd', 'idx_bztp_lcls_cd']  # 소>중>대 업종코드
+STD_NAME_KEYS = ['std_idst_clsf_cd_name', 'idst_clsf_cd_name']               # 표준산업분류명(폴백)
+# 표준산업분류명 키워드 → KRX 지수업종명 폴백(업종코드가 빈값인 종목용: 에이피알·코스맥스 등)
+KW2KRX = [
+    ('화장품', '화학'), ('화학', '화학'), ('석유', '화학'), ('고무', '화학'), ('플라스틱', '화학'),
+    ('의약', '제약'), ('제약', '제약'), ('바이오', '제약'),
+    ('반도체', '전기·전자'), ('전자부품', '전기·전자'), ('전자집적', '전기·전자'), ('디스플레이', '전기·전자'), ('전기장비', '전기·전자'),
+    ('자동차', '운송장비·부품'), ('운송장비', '운송장비·부품'), ('선박', '운송장비·부품'), ('항공기', '운송장비·부품'),
+    ('식료품', '음식료·담배'), ('음료', '음식료·담배'), ('담배', '음식료·담배'),
+    ('섬유', '섬유·의류'), ('의복', '섬유·의류'), ('의류', '섬유·의류'), ('가죽', '섬유·의류'),
+    ('건설', '건설'), ('토목', '건설'),
+    ('은행', '금융'), ('금융지주', '금융'), ('여신', '금융'),
+    ('보험', '보험'), ('증권', '증권'), ('금융투자', '증권'),
+    ('소프트웨어', 'IT 서비스'), ('정보서비스', 'IT 서비스'), ('컴퓨터프로그', 'IT 서비스'), ('자료처리', 'IT 서비스'),
+    ('기계', '기계·장비'), ('장비', '기계·장비'),
+    ('1차 금속', '금속'), ('금속가공', '금속'), ('철강', '금속'),
+    ('도매', '유통'), ('소매', '유통'), ('상품 중개', '유통'),
+    ('운수', '운송·창고'), ('창고', '운송·창고'), ('물류', '운송·창고'),
+    ('통신', '통신'), ('부동산', '부동산'),
+    ('종이', '종이·목재'), ('펄프', '종이·목재'), ('목재', '종이·목재'),
+    ('비금속', '비금속'), ('시멘트', '비금속'), ('요업', '비금속'),
+    ('전기, 가스', '전기·가스'), ('전기업', '전기·가스'), ('가스', '전기·가스'),
+    ('의료용', '의료·정밀기기'), ('정밀기기', '의료·정밀기기'), ('측정', '의료·정밀기기'),
+    ('출판', '출판·매체복제'), ('영상', '오락·문화'), ('방송', '오락·문화'), ('오락', '오락·문화'), ('게임', '오락·문화'),
+]
 
 
 def stock_industry(hdr, code):
-    """종목 기본정보 → (업종코드 후보[소,중,대], 시장). 첫 성공 응답 키/샘플을 DEBUG에 남김."""
+    """종목 기본정보 → (업종코드 후보[소,중,대], 시장, 표준산업분류명). 첫 성공 응답 키를 DEBUG에 1회."""
     u = BASE + '/uapi/domestic-stock/v1/quotations/search-stock-info?PRDT_TYPE_CD=300&PDNO=' + code
     h = dict(hdr); h['tr_id'] = 'CTPF1002R'
     j = get_json(u, h)
@@ -140,8 +164,9 @@ def stock_industry(hdr, code):
         DEBUG.append('기본정보 키: ' + ','.join(list(o.keys())[:32]))
         stock_industry._logged = True
     codes = [str(o.get(k)).strip() for k in IDX_CODE_KEYS]
+    std = next((str(o.get(k)).strip() for k in STD_NAME_KEYS if o.get(k)), '')
     mkt = _mkt_of(next((o.get(k) for k in MKT_KEYS if o.get(k)), ''))
-    return codes, mkt
+    return codes, mkt, std
 
 
 stock_industry._logged = False
@@ -158,16 +183,16 @@ def build_sectormap(hdr, scodes, code2name, probe=()):
     raw = {}
     for code in scodes:
         try:
-            cands, mkt = stock_industry(hdr, code)
-            raw[code] = {'cands': cands, 'mkt': mkt}
+            cands, mkt, std = stock_industry(hdr, code)
+            raw[code] = {'cands': cands, 'mkt': mkt, 'std': std}
             if code in probe:
-                DEBUG.append('probe %s: idx소중대=%s mkt=%s' % (code, cands, mkt))
+                DEBUG.append('probe %s: idx=%s std=%s mkt=%s' % (code, cands, std, mkt))
         except Exception as e:
             if len(DEBUG) < 22:
                 DEBUG.append('info %s 오류 %s' % (code, str(e)[:22]))
         time.sleep(0.12)
 
-    def resolve(cands, mkt):
+    def resolve(cands, mkt, std):
         pref = '1' if mkt == 'KOSDAQ' else '0'
         for cd in cands:
             if not cd or cd in ('None', ''):
@@ -178,15 +203,20 @@ def build_sectormap(hdr, scodes, code2name, probe=()):
             tail = cd.lstrip('0')[-3:].zfill(3) if cd.lstrip('0') else cd
             if tail in name_by_tail:
                 return name_by_tail[tail]
+        # 업종코드 빈값/미매칭 → 표준산업분류명 키워드 폴백
+        if std:
+            for kw, krx in KW2KRX:
+                if kw in std and krx in set(code2name.values()):
+                    return krx
         return None
 
     mp = {}
     for code, v in raw.items():
-        sec = resolve(v['cands'], v['mkt'])
+        sec = resolve(v['cands'], v['mkt'], v.get('std', ''))
         if sec:
             mp[code] = {'sec': sec, 'mkt': v['mkt']}
     DEBUG.append('업종매핑: %d종목 조회 → %d종목 매칭' % (len(raw), len(mp)))
-    return {'v': 2, 'built': time.time(), 'map': mp}
+    return {'v': 3, 'built': time.time(), 'map': mp}
 
 
 def main():
@@ -235,7 +265,7 @@ def main():
         smap = None
         try:
             cache = json.load(open(MAPFILE, encoding='utf-8'))
-            if cache.get('v') == 2 and (time.time() - cache.get('built', 0)) < MAP_TTL and cache.get('map'):
+            if cache.get('v') == 3 and (time.time() - cache.get('built', 0)) < MAP_TTL and cache.get('map'):
                 smap = cache; DEBUG.append('업종매핑 캐시 사용(%d종목)' % len(cache['map']))
         except Exception:
             pass

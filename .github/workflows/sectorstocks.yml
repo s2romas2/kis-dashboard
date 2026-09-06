@@ -28,6 +28,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add public/data/sectorstocks.json || true
+          git add public/data/sectormap.json || true
           git commit -m "업종 견인 종목 갱신" || echo "변경 없음"
           git pull --rebase -X theirs origin main || true
           git push || true

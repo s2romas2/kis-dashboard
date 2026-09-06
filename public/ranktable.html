@@ -33,6 +33,7 @@ svg.ov { position:absolute; left:0; top:0; pointer-events:none; }
 .legend { font-size:11.5px; color:#667085; margin-top:8px; line-height:1.7; }
 .legend b { color:#1a1f2e; }
 .climb { display:inline-block; font-size:11px; font-weight:800; background:#fde8e8; color:#d92d20; border-radius:8px; padding:2px 9px; margin-right:5px; }
+.emerge { display:inline-block; font-size:11px; font-weight:800; background:#e6f7ee; color:#0e9f5a; border-radius:8px; padding:2px 9px; margin-right:5px; }
 .fade { display:inline-block; font-size:11px; font-weight:800; background:#e8f0fe; color:#2f6df6; border-radius:8px; padding:2px 9px; margin-right:5px; }
 .loading { text-align:center; color:#98a2b3; padding:30px 0; }
 @media (max-width:760px){ td{min-width:64px; font-size:9.5px;} }
@@ -42,7 +43,7 @@ svg.ov { position:absolute; left:0; top:0; pointer-events:none; }
 <script src="/nav.js" defer></script>
 <div class="wrap">
   <h1>🗂️ 업종 랭크테이블</h1>
-  <div class="sub">가로 = 시점, 세로 = <b>수익률 순위(위가 1위)</b>. 하위권에 있던 업종이 상단으로 올라오면 주도 섹터 교체 신호 — <b>🔺 뜨는 섹터(적색)와 🔻 가라앉는 섹터(청색)를 동시에 자동 감지</b>합니다. 업종을 클릭·검색하면 그 업종만 색으로 표시(나머지는 흐리게)됩니다.</div>
+  <div class="sub">가로 = 시점, 세로 = <b>수익률 순위(위가 1위)</b>. 하위권에 있던 업종이 상단으로 올라오면 주도 섹터 교체 신호 — <b>🔺 뜨는 섹터(상단 진입·적색), 🌱 바닥권 반등(초기·녹색), 🔻 가라앉는 섹터(청색)를 동시에 자동 감지</b>합니다. 🌱은 하위권에서 <b>4계단 이상 크게 점프</b>했지만 아직 상단엔 못 온, 슬슬 올라오는 초기 반등 섹터입니다(미세이동 제외). 업종을 클릭·검색하면 그 업종만 색으로 표시(나머지는 흐리게)됩니다.</div>
   <div class="bar">
     <span class="chip gran" data-g="D">일별</span>
     <span class="chip gran" data-g="W">주별</span>
@@ -169,8 +170,9 @@ function movers(win,rank){
   const N=Math.max(...win.map(p=>(rank[p]||[]).length),1);
   const pos={};
   for(const p of win){ (rank[p]||[]).forEach(([nm],i)=>{ (pos[nm]=pos[nm]||{})[p]=i; }); }
-  const climb=[],fade=[];
+  const climb=[],fade=[],emerge=[];
   const minLen=Math.min(GRAN==='D'?10:GRAN==='W'?6:GRAN==='M'?6:3,win.length);
+  const bigJump=Math.max(4,N/5);   // 최소 점프폭: 4계단(또는 리스트의 1/5) — 10등→9등 같은 미세이동 제외
   for(const [nm,pp] of Object.entries(pos)){
     const ps=win.filter(p=>pp[p]!=null);
     if(ps.length<minLen) continue;
@@ -178,11 +180,15 @@ function movers(win,rank){
     const tail=Math.max(1,Math.min(GRAN==='D'?5:GRAN==='M'||GRAN==='W'?3:2,ps.length));
     const early=ps.slice(0,half).reduce((a,p)=>a+pp[p],0)/half;
     const late=ps.slice(-tail).reduce((a,p)=>a+pp[p],0)/tail;
-    if(late<N/3&&early-late>N/4) climb.push([nm,early-late]);
+    const jump=early-late;                     // +면 순위 상승(위로)
+    const isClimber=(late<N/3&&jump>N/4);
+    if(isClimber) climb.push([nm,jump]);
+    // 🌱 바닥권 반등(초기): 하위 절반에서 시작 + 큰 폭 점프 + 아직 상단(top1/3) 진입 전 = 슬슬 올라오는 중
+    else if(early>=N*0.5&&jump>=bigJump) emerge.push([nm,jump]);
     if(late>N*2/3&&late-early>N/4) fade.push([nm,late-early]);
   }
-  climb.sort((a,b)=>b[1]-a[1]); fade.sort((a,b)=>b[1]-a[1]);
-  return {climbers:climb.slice(0,3).map(x=>x[0]), faders:fade.slice(0,2).map(x=>x[0])};
+  climb.sort((a,b)=>b[1]-a[1]); fade.sort((a,b)=>b[1]-a[1]); emerge.sort((a,b)=>b[1]-a[1]);
+  return {climbers:climb.slice(0,3).map(x=>x[0]), faders:fade.slice(0,2).map(x=>x[0]), emergers:emerge.slice(0,3).map(x=>x[0])};
 }
 function draw(){
   if(!H) return;
@@ -194,7 +200,7 @@ function draw(){
       :'<div class="loading">데이터 없음</div>';
     return;
   }
-  const {climbers,faders}=movers(win,rank);
+  const {climbers,faders,emergers}=movers(win,rank);
   const qhits=QRY?names.filter(n=>n.includes(QRY)):[];
   document.getElementById('secbar').innerHTML=names.map(n=>{
     const ci=SEL[n];
@@ -202,7 +208,8 @@ function draw(){
     return `<span class="sc ${ci!=null?'on':''} ${hit?'dimhit':''}" style="${ci!=null?'background:'+COLORS[ci%6]:''}" onclick="togSec('${n}')">${n}</span>`;
   }).join('');
   let ab='';
-  if(climbers.length) ab+='🔺 뜨는 중: '+climbers.map(n=>`<span class="climb">${n}</span>`).join('');
+  if(climbers.length) ab+='🔺 뜨는 중(상단 진입): '+climbers.map(n=>`<span class="climb">${n}</span>`).join('');
+  if(emergers.length) ab+=' 🌱 바닥권 반등(초기): '+emergers.map(n=>`<span class="emerge">${n}</span>`).join('');
   if(faders.length) ab+=' 🔻 가라앉는 중: '+faders.map(n=>`<span class="fade">${n}</span>`).join('');
   document.getElementById('autoBox').innerHTML=ab||'<span style="font-size:11px;color:#98a2b3">이 구간에서 뚜렷한 순위 이동 없음</span>';
   const N=Math.max(...win.map(p=>(rank[p]||[]).length));
@@ -218,9 +225,9 @@ function draw(){
       const [nm,avg,rt]=e;
       const ci=SEL[nm];
       const hit=qhits.includes(nm)&&ci==null;
-      const isC=climbers.includes(nm), isF=faders.includes(nm);
-      const marked=ci!=null||hit||isC||isF;
-      const bg=ci!=null?COLORS[ci%6]+'33':hit?'#dbe7ff':isC?'#fde8e84d':isF?'#e8f0fe66':(r<3?'#f6f8fc':'');
+      const isC=climbers.includes(nm), isF=faders.includes(nm), isE=emergers.includes(nm);
+      const marked=ci!=null||hit||isC||isF||isE;
+      const bg=ci!=null?COLORS[ci%6]+'33':hit?'#dbe7ff':isC?'#fde8e84d':isE?'#e6f7ee':isF?'#e8f0fe66':(r<3?'#f6f8fc':'');
       const tip=(GRAN==='D'||GRAN==='W')?`${nm} ${p.slice(0,4)}.${p.slice(4,6)}.${p.slice(6)}: ${rt>=0?'+':''}${rt.toFixed(1)}%`
         :GRAN==='M'?`${nm} ${p.slice(0,4)}.${p.slice(4)}: ${rt>=0?'+':''}${rt.toFixed(1)}%`
         :`${nm} ${p}: 평균 ${(avg+1).toFixed(1)}위 · 기간수익률 ${rt>=0?'+':''}${rt.toFixed(1)}%`;
@@ -230,7 +237,7 @@ function draw(){
   }
   h+='</table><svg class="ov" id="ov"></svg></div>';
   document.getElementById('tw').innerHTML=h;
-  requestAnimationFrame(()=>arrows(win,rank,climbers,faders,qhits));
+  requestAnimationFrame(()=>arrows(win,rank,climbers,faders,qhits,emergers));
 }
 function cellPos(nm,p){
   const td=document.querySelector(`td[data-nm="${nm}"][data-m="${p}"]`);
@@ -239,11 +246,11 @@ function cellPos(nm,p){
   const a=td.getBoundingClientRect(), b=inner.getBoundingClientRect();
   return {x:a.left-b.left+a.width/2, y:a.top-b.top+a.height/2};
 }
-function arrows(win,rank,climbers,faders,qhits){
+function arrows(win,rank,climbers,faders,qhits,emergers){
   const inner=document.getElementById('inner'), svg=document.getElementById('ov');
   if(!inner||!svg) return;
   svg.setAttribute('width',inner.scrollWidth); svg.setAttribute('height',inner.scrollHeight);
-  let defs=`<defs>${COLORS.concat(['#d92d20','#2f6df6']).map((c,i)=>
+  let defs=`<defs>${COLORS.concat(['#d92d20','#2f6df6','#12b76a']).map((c,i)=>
     `<marker id="ah${i}" markerWidth="7" markerHeight="7" refX="5.5" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 Z" fill="${c}"/></marker>`).join('')}</defs>`;
   let body='';
   const extreme=(nm,worst)=>{
@@ -259,6 +266,13 @@ function arrows(win,rank,climbers,faders,qhits){
     if(!a||!b||a>=b) continue;
     const p1=cellPos(nm,a), p2=cellPos(nm,b);
     if(p1&&p2) body+=`<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="#d92d20" stroke-width="2.2" opacity="0.75" marker-end="url(#ah6)"/>`;
+  }
+  for(const nm of (emergers||[])){    // 🌱 최저점 → 현재 (녹색 실선) — 바닥권에서 올라오는 초기 반등
+    if(SEL[nm]!=null) continue;
+    const a=extreme(nm,true), b=lastOf(nm);
+    if(!a||!b||a>=b) continue;
+    const p1=cellPos(nm,a), p2=cellPos(nm,b);
+    if(p1&&p2) body+=`<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="#12b76a" stroke-width="2.2" opacity="0.75" marker-end="url(#ah8)"/>`;
   }
   for(const nm of faders){            // 🔻 최고점 → 현재 (청색 점선)
     if(SEL[nm]!=null) continue;

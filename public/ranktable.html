@@ -308,8 +308,12 @@ function renderDrivers(){
     if(!e||!(e.top||[]).length){
       inner='<span style="font-size:11.5px;color:#98a2b3">이 업종 견인 종목 데이터 수집 대기 중 — 다음 배치 이후 채워집니다.</span>';
     } else {
-      // 견인 = 상승 견인(등락률 상위) 중심으로 정렬, 시총 큰 순으로 동률 보정
-      const rows=[...e.top].sort((a,b)=>((b.chg??-99)-(a.chg??-99))||((b.cap||0)-(a.cap||0)));
+      // 견인 = 오르면서 돈이 몰리는 종목: 상승 종목 먼저, 그 안에서 거래대금 큰 순
+      const rows=[...e.top].sort((a,b)=>{
+        const au=(a.chg??0)>=0?1:0, bu=(b.chg??0)>=0?1:0;
+        if(au!==bu) return bu-au;
+        return ((b.val||b.cap||0)-(a.val||a.cap||0)) || ((b.chg??-99)-(a.chg??-99));
+      });
       const money=w=>{ // 원 → 억/조
         if(!w) return '';
         const eok=w/1e8;
@@ -325,7 +329,7 @@ function renderDrivers(){
       inner=rows.slice(0,10).map(chip).join('');
     }
     h+=`<div style="margin:4px 0 6px;padding:7px 9px;border-left:3px solid ${col};background:#fafbfd;border-radius:0 8px 8px 0">
-      <div style="font-size:12px;font-weight:800;color:#1a1f2e;margin-bottom:3px">🚂 <span style="color:${col}">${nm}</span> 견인 종목 <span style="font-size:10.5px;color:#98a2b3;font-weight:600">(당일 상승률순·거래대금 표기, 유동성 하한 적용)</span></div>
+      <div style="font-size:12px;font-weight:800;color:#1a1f2e;margin-bottom:3px">🚂 <span style="color:${col}">${nm}</span> 견인 종목 <span style="font-size:10.5px;color:#98a2b3;font-weight:600">(당일 상승 종목·거래대금 순, 유동성 하한 적용)</span></div>
       <div>${inner}</div></div>`;
   }
   box.innerHTML=h;

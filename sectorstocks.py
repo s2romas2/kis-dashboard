@@ -3,14 +3,14 @@
 # 랭크테이블에서 섹터 클릭 시 그 업종을 견인하는 종목(등락률·시총)을 표시하기 위한 데이터.
 # 업종 코드·이름은 leadershist.json(이미 leaders.py가 채움)에서 그대로 재사용 → 이름이 랭크테이블과 100% 일치.
 # 필요 시크릿: KIS_APPKEY, KIS_APPSECRET
-import os, sys, json, time, urllib.request
+import os, sys, json, time, urllib.request, urllib.parse
 
 APPKEY = os.environ.get('KIS_APPKEY', '')
 APPSECRET = os.environ.get('KIS_APPSECRET', '')
 BASE = 'https://openapi.koreainvestment.com:9443'
 HIST = 'public/data/leadershist.json'   # 업종코드→이름/시장 소스
 OUT = 'public/data/sectorstocks.json'
-TOPN = 20                                 # 업종당 저장할 최대 종목수(시총 상위)
+TOPN = 15                                 # 업종당 저장할 최대 종목수(등락률 상위)
 DEBUG = []
 
 
@@ -60,17 +60,32 @@ def pick(d, keys):
 
 
 def category_stocks(hdr, code):
-    """업종 구성종목 시세 → [{c,n,chg,cap,prc}]. 첫 종목의 원본 키를 DEBUG에 한 번 남긴다."""
-    u = (BASE + '/uapi/domestic-stock/v1/quotations/inquire-index-category-price'
-         '?FID_COND_MRKT_DIV_CODE=U&FID_INPUT_ISCD=' + code +
-         '&FID_COND_SCR_DIV_CODE=20214&FID_MRKT_CLS_CODE=%20&FID_BLNG_CLS_CODE=0')
-    h = dict(hdr); h['tr_id'] = 'FHPUP02140000'
+    """업종 등락률순위 → 그 업종에서 오른 순으로 종목 리스트 [{c,n,chg,prc,cap}].
+    KIS 국내주식 등락률순위(FHPST01700000)를 업종코드로 스코프. 첫 성공 응답 키를 DEBUG에 1회 남김."""
+    params = {
+        'fid_cond_mrkt_div_code': 'J',
+        'fid_cond_scr_div_code': '20170',
+        'fid_input_iscd': code,            # 업종코드(0005 등)로 그 업종만
+        'fid_rank_sort_cls_code': '0',     # 0=상승률순
+        'fid_input_cnt_1': '0',
+        'fid_prc_cls_code': '0',
+        'fid_input_price_1': '',
+        'fid_input_price_2': '',
+        'fid_vol_cnt': '',
+        'fid_trgt_cls_code': '0',
+        'fid_trgt_exls_cls_code': '0',
+        'fid_div_cls_code': '0',
+        'fid_rsfl_rate1': '',
+        'fid_rsfl_rate2': '',
+    }
+    u = BASE + '/uapi/domestic-stock/v1/ranking/fluctuation?' + urllib.parse.urlencode(params)
+    h = dict(hdr); h['tr_id'] = 'FHPST01700000'
     j = get_json(u, h)
     if j.get('rt_cd') != '0':
-        return None, j.get('msg1', '')[:40]
-    rows = j.get('output2') or j.get('output') or []
+        return None, (j.get('msg1', '') or '')[:40]
+    rows = j.get('output') or j.get('output1') or j.get('output2') or []
     if rows and not category_stocks._logged:
-        DEBUG.append('구성종목 응답 키: ' + ','.join(list(rows[0].keys())[:20]))
+        DEBUG.append('등락률순위 응답 키: ' + ','.join(list(rows[0].keys())[:24]))
         category_stocks._logged = True
     out = []
     for r in rows:
@@ -119,11 +134,7 @@ def main():
             if msg and len(DEBUG) < 16:
                 DEBUG.append('%s(%s) 빈응답 %s' % (code, name, msg))
             continue
-        # 시총 상위 TOPN만 저장(시총 없으면 등락률 절대값 상위로 대체)
-        if any(x.get('cap') for x in lst):
-            lst.sort(key=lambda x: -(x.get('cap') or 0))
-        else:
-            lst.sort(key=lambda x: -abs(x.get('chg') or 0))
+        # API가 이미 상승률순(견인 상위)으로 반환 → 그 순서 유지, 상위 TOPN 저장
         sectors['%s|%s' % (name, mkt)] = {
             'name': name, 'mkt': mkt, 'n': len(lst), 'top': lst[:TOPN]}
         ok += 1

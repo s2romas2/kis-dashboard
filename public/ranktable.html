@@ -329,9 +329,21 @@ function renderDrivers(){
       };
       inner=rows.slice(0,10).map(chip).join('');
     }
+    // 📈 실적 성장주: 오늘 가격과 무관하게 매출·영익 YoY 상위 (견인 종목에 없는 것 위주)
+    let growHtml='';
+    if(e && e.grow && e.grow.length){
+      const gnum=g=>g==null?'—':(g>=0?'+':'')+ (Math.abs(g)>=1000? (g/100).toFixed(0)+'배급':g+'%');
+      const gchip=r=>{
+        const rv=gnum(r.revYoY), op=gnum(r.opYoY);
+        return `<a href="/deep.html#${r.c}" title="${r.n} 딥다이브(5개년 실적) 보기" style="text-decoration:none;color:inherit;display:inline-flex;align-items:center;gap:6px;border:1px solid #e7e2f5;border-radius:9px;padding:2px 8px;margin:2px 4px 2px 0;font-size:11.5px;background:#fbfaff;cursor:pointer" onmouseover="this.style.background='#f1ecff'" onmouseout="this.style.background='#fbfaff'">
+          <b>${r.n}</b><span style="color:#7a5af8;font-weight:800" title="매출 YoY">매출 ${rv}</span><span style="color:#0e9f5a;font-weight:800" title="영업이익 YoY">영익 ${op}</span><span style="color:#b9c0cc;font-size:10px">↗</span></a>`;
+      };
+      growHtml=`<div style="font-size:11.5px;font-weight:800;color:#5b3ea8;margin:7px 0 3px">📈 실적 성장주 <span style="font-size:10px;color:#98a2b3;font-weight:600">(2Q26 매출·영익 YoY 상위 — 가격과 무관, 오늘 견인 목록 밖 종목)</span></div>
+        <div>${e.grow.map(gchip).join('')}</div>`;
+    }
     h+=`<div style="margin:4px 0 6px;padding:7px 9px;border-left:3px solid ${col};background:#fafbfd;border-radius:0 8px 8px 0">
       <div style="font-size:12px;font-weight:800;color:#1a1f2e;margin-bottom:3px">🚂 <span style="color:${col}">${nm}</span> 견인 종목 <span style="font-size:10.5px;color:#98a2b3;font-weight:600">(당일 상승 종목·거래대금 순, 유동성 하한 적용)</span></div>
-      <div>${inner}</div></div>`;
+      <div>${inner}</div>${growHtml}</div>`;
   }
   box.innerHTML=h;
 }

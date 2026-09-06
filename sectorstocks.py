@@ -9,9 +9,16 @@ APPKEY = os.environ.get('KIS_APPKEY', '')
 APPSECRET = os.environ.get('KIS_APPSECRET', '')
 BASE = 'https://openapi.koreainvestment.com:9443'
 HIST = 'public/data/leadershist.json'   # 업종코드→이름/시장 소스
+SCREENER = 'public/data/screener.json'  # 종목별 실적·YoY 성장률 소스
+MAPFILE = 'public/data/sectormap.json'  # 종목→KRX업종 매핑 캐시(재수집 최소화)
 OUT = 'public/data/sectorstocks.json'
 TOPN = 15                                 # 업종당 저장할 최대 종목수(등락률 상위)
+GROWN = 8                                 # 업종당 실적 성장주 최대 개수
+MAP_TTL = 20 * 86400                      # 업종 매핑 캐시 유효기간(20일)
 DEBUG = []
+# search-stock-info(CTPF1002R) 업종명 후보 필드(소분류>중분류>대분류) — KRX 지수업종명과 매칭
+IND_KEYS = ['idx_bztp_scls_cd_name', 'idx_bztp_mcls_cd_name', 'idx_bztp_lcls_cd_name', 'std_idst_clsf_cd_name']
+MKT_KEYS = ['mket_id_cd', 'mrkt_id_cd', 'rprs_mrkt_kor_name', 'excg_dvsn_cd']
 
 
 def post_json(url, body):
@@ -113,6 +120,62 @@ def category_stocks(hdr, code):
 category_stocks._logged = False
 
 
+def _mkt_of(v):
+    s = str(v or '')
+    if 'KSQ' in s or '코스닥' in s or s == 'Q':
+        return 'KOSDAQ'
+    return 'KOSPI'
+
+
+def stock_industry(hdr, code):
+    """종목 기본정보 → {업종 후보명들, 시장}. 첫 성공 응답 키를 DEBUG에 1회 남김."""
+    u = BASE + '/uapi/domestic-stock/v1/quotations/search-stock-info?PRDT_TYPE_CD=300&PDNO=' + code
+    h = dict(hdr); h['tr_id'] = 'CTPF1002R'
+    j = get_json(u, h)
+    o = j.get('output') or {}
+    if o and not stock_industry._logged:
+        DEBUG.append('기본정보 응답 키: ' + ','.join(list(o.keys())[:30]))
+        DEBUG.append('업종후보 예시(%s): ' % code + ' / '.join('%s=%s' % (k, o.get(k)) for k in IND_KEYS if o.get(k)))
+        stock_industry._logged = True
+    cands = [str(o.get(k)).strip() for k in IND_KEYS if o.get(k)]
+    mkt = _mkt_of(next((o.get(k) for k in MKT_KEYS if o.get(k)), ''))
+    return cands, mkt
+
+
+stock_industry._logged = False
+
+
+def build_sectormap(hdr, codes, krx_names):
+    """screener 종목 code→(업종명, 시장) 매핑 생성. 여러 업종필드 후보 중 KRX명과 겹치는 게 가장 많은 걸 채택."""
+    raw = {}  # code -> {cands:[...], mkt}
+    for i, code in enumerate(codes):
+        try:
+            cands, mkt = stock_industry(hdr, code)
+            raw[code] = {'cands': cands, 'mkt': mkt}
+        except Exception as e:
+            if len(DEBUG) < 20:
+                DEBUG.append('info %s 오류 %s' % (code, str(e)[:24]))
+        time.sleep(0.12)
+    # 후보 슬롯(0=소분류…)별로 KRX명과 매칭되는 수를 세어 최적 슬롯 선택
+    best_slot, best_hit = 0, -1
+    for slot in range(len(IND_KEYS)):
+        hit = sum(1 for v in raw.values() if len(v['cands']) > slot and v['cands'][slot] in krx_names)
+        if hit > best_hit:
+            best_hit, best_slot = hit, slot
+    DEBUG.append('업종매핑: %d종목 조회, 슬롯%d 채택(매칭 %d)' % (len(raw), best_slot, best_hit))
+    mp = {}
+    for code, v in raw.items():
+        sec = None
+        # 최적 슬롯이 KRX명과 매칭되면 사용, 아니면 후보 중 KRX명에 있는 첫 값
+        if len(v['cands']) > best_slot and v['cands'][best_slot] in krx_names:
+            sec = v['cands'][best_slot]
+        else:
+            sec = next((c for c in v['cands'] if c in krx_names), None)
+        if sec:
+            mp[code] = {'sec': sec, 'mkt': v['mkt']}
+    return {'v': 1, 'built': time.time(), 'map': mp}
+
+
 def main():
     if not APPKEY or not APPSECRET:
         print('KIS 키 없음 — 건너뜀', file=sys.stderr); return
@@ -149,6 +212,54 @@ def main():
             'name': name, 'mkt': mkt, 'n': len(lst), 'top': lst[:TOPN]}
         ok += 1
     DEBUG.append('구성종목 확보 업종 %d개' % ok)
+
+    # ---- 실적 성장주: screener 종목을 KRX업종에 매핑 후, 업종별 YoY 성장 상위 ----
+    try:
+        krx_names = set(name for _, name, _ in codes)
+        screener = json.load(open(SCREENER, encoding='utf-8')).get('list', [])
+        scodes = [x['code'] for x in screener if x.get('code')]
+        # 업종 매핑 캐시 로드/재생성
+        smap = None
+        try:
+            cache = json.load(open(MAPFILE, encoding='utf-8'))
+            if cache.get('v') == 1 and (time.time() - cache.get('built', 0)) < MAP_TTL and cache.get('map'):
+                smap = cache; DEBUG.append('업종매핑 캐시 사용(%d종목)' % len(cache['map']))
+        except Exception:
+            pass
+        if smap is None:
+            smap = build_sectormap(hdr, scodes, krx_names)
+            json.dump(smap, open(MAPFILE, 'w', encoding='utf-8'), ensure_ascii=False)
+        mp = smap['map']
+        # 업종별 성장주 수집: rev>=300억 & opYoY 상위, 이미 견인 top에 있으면 제외
+        by_sec = {}
+        sd = {x['code']: x for x in screener}
+        for code, m in mp.items():
+            x = sd.get(code)
+            if not x:
+                continue
+            if (x.get('rev') or 0) < 300:          # 매출 300억 미만 제외(미니캡 노이즈)
+                continue
+            key = '%s|%s' % (m['sec'], m['mkt'])
+            by_sec.setdefault(key, []).append(x)
+        grown = 0
+        for key, lst in by_sec.items():
+            if key not in sectors:
+                sectors[key] = {'name': m['sec'], 'mkt': key.split('|')[1], 'n': 0, 'top': []}
+            have = {t['c'] for t in sectors[key].get('top', [])}
+            # opYoY 우선, 없으면 revYoY 로 정렬(비정상 초대형치 방지 위해 상한 clip)
+            def gkey(x):
+                return (x.get('opYoY') if x.get('opYoY') is not None else (x.get('revYoY') or -999))
+            lst = [x for x in lst if x['code'] not in have]
+            lst.sort(key=gkey, reverse=True)
+            grow = [{'c': x['code'], 'n': x['name'],
+                     'revYoY': x.get('revYoY'), 'opYoY': x.get('opYoY'), 'niYoY': x.get('niYoY'),
+                     'rev': x.get('rev'), 'op': x.get('op')} for x in lst[:GROWN]]
+            if grow:
+                sectors[key]['grow'] = grow
+                grown += 1
+        DEBUG.append('성장주 부착 업종 %d개' % grown)
+    except Exception as e:
+        DEBUG.append('성장주 단계 오류: %s' % str(e)[:60])
 
     out = {'updated': time.strftime('%Y-%m-%d %H:%M', time.gmtime(time.time() + 9 * 3600)) + ' KST',
            'debug': DEBUG, 'sectors': sectors}

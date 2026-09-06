@@ -50,7 +50,8 @@ NAME_KEYS = ['hts_kor_isnm', 'kor_isnm', 'prdt_name', 'isnm']
 CHG_KEYS = ['prdy_ctrt', 'prdy_ctrt_rate', 'ctrt']
 PRC_KEYS = ['stck_prpr', 'prpr', 'stck_clpr']
 CAP_KEYS = ['hts_avls', 'stck_avls', 'mrkt_val', 'avls', 'lstn_avls']
-VAL_KEYS = ['acml_tr_pbmn', 'tr_pbmn', 'acml_tr_pbmn_amt']   # 누적 거래대금(원)
+VAL_KEYS = ['acml_tr_pbmn', 'tr_pbmn', 'acml_tr_pbmn_amt']   # 누적 거래대금(원) — 없으면 vol*prc로 추정
+VOL_KEYS = ['acml_vol', 'vol', 'acml_vol_qty']              # 누적 거래량(주)
 
 
 def pick(d, keys):
@@ -93,11 +94,18 @@ def category_stocks(hdr, code):
         c = pick(r, CODE_KEYS); n = pick(r, NAME_KEYS)
         if not c or not n:
             continue
+        c = str(c).zfill(6)
+        if not c.endswith('0'):            # 보통주만(우선주 코드 끝자리 5/7/9/K 제외)
+            continue
         chg = tonum(pick(r, CHG_KEYS))
         prc = tonum(pick(r, PRC_KEYS))
         cap = tonum(pick(r, CAP_KEYS))
-        val = tonum(pick(r, VAL_KEYS))     # 거래대금(원)
-        out.append({'c': str(c).zfill(6), 'n': str(n).strip(),
+        val = tonum(pick(r, VAL_KEYS))     # 거래대금(원) — 미제공 시 거래량*현재가로 추정
+        if val is None:
+            vol = tonum(pick(r, VOL_KEYS))
+            if vol is not None and prc is not None:
+                val = vol * prc
+        out.append({'c': c, 'n': str(n).strip(),
                     'chg': chg, 'prc': prc, 'cap': cap, 'val': val})
     return out, ''
 

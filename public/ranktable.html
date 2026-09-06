@@ -323,8 +323,9 @@ function renderDrivers(){
         const up=(r.chg??0)>=0, c=up?'#0e9f5a':'#d92d20';
         const mt = r.cap? money(r.cap*1e8) : (r.val? money(r.val) : '');   // cap은 억단위 저장, val은 원
         const mT = mt?` <span style="color:#98a2b3" title="거래대금">${mt}</span>`:'';
-        return `<span style="display:inline-flex;align-items:center;gap:5px;border:1px solid #e6e9f0;border-radius:9px;padding:2px 8px;margin:2px 4px 2px 0;font-size:11.5px;background:#fff">
-          <b>${r.n}</b>${mT}<span style="font-weight:800;color:${c}">${up?'+':''}${r.chg==null?'—':r.chg+'%'}</span></span>`;
+        // 클릭 시 종목 딥다이브(5개년 분기·연간 실적)로 이동
+        return `<a href="/deep.html#${r.c}" title="${r.n} 딥다이브(5개년 분기·연간 실적) 보기" style="text-decoration:none;color:inherit;display:inline-flex;align-items:center;gap:5px;border:1px solid #e6e9f0;border-radius:9px;padding:2px 8px;margin:2px 4px 2px 0;font-size:11.5px;background:#fff;cursor:pointer" onmouseover="this.style.background='#eef4ff';this.style.borderColor='#b9d0ff'" onmouseout="this.style.background='#fff';this.style.borderColor='#e6e9f0'">
+          <b>${r.n}</b>${mT}<span style="font-weight:800;color:${c}">${up?'+':''}${r.chg==null?'—':r.chg+'%'}</span><span style="color:#b9c0cc;font-size:10px">↗</span></a>`;
       };
       inner=rows.slice(0,10).map(chip).join('');
     }

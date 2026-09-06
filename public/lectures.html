@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>강의 노트</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 * { box-sizing:border-box; margin:0; padding:0; }
 body { font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; background:#f4f6fa; color:#1a1f2e; }
@@ -38,6 +39,12 @@ h1 { font-size:22px; margin:10px 0 4px; }
 .player .st { font-size:11.5px; color:#98a2b3; }
 .loading { text-align:center; color:#98a2b3; padding:30px 0; }
 .note { font-size:11.5px; color:#98a2b3; white-space:normal; line-height:1.6; }
+.charts { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px; margin:6px 16px 14px; }
+.chartcard { border:1px solid #eef0f4; border-radius:10px; padding:10px 12px; background:#fcfdff; }
+.chartcard .ct { font-size:12.5px; font-weight:800; color:#1a1f2e; margin-bottom:2px; }
+.chartcard .cn { font-size:10.5px; color:#98a2b3; margin-bottom:6px; line-height:1.4; }
+.chartcard .cbox { position:relative; height:200px; }
+.chsec { font-size:13px; color:#7e22ce; font-weight:900; margin:2px 16px 0; }
 </style>
 </head>
 <body>
@@ -75,8 +82,9 @@ async function unlock(){
 function sumHTML(s){
   const lines=(s||'').split('\n'); let h='<ul>'; let open=true;
   for(let ln of lines){ ln=ln.trim(); if(!ln) continue;
-    if(ln.startsWith('##')){ if(open){h+='</ul>';open=false;} h+='<span class="hl">'+esc(ln.replace(/^#+\s*/,''))+'</span><ul>'; open=true; }
-    else { const t=ln.replace(/^[-•]\s*/,''); h+='<li>'+esc(t)+'</li>'; }
+    const bold=t=>esc(t).replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>');
+    if(ln.startsWith('##')){ if(open){h+='</ul>';open=false;} h+='<span class="hl">'+bold(ln.replace(/^#+\s*/,''))+'</span><ul>'; open=true; }
+    else { const t=ln.replace(/^[-•]\s*/,''); h+='<li>'+bold(t)+'</li>'; }
   }
   if(open) h+='</ul>'; return h;
 }
@@ -101,10 +109,26 @@ function draw(){
       ${x.kind?`<span class="kd ${x.kind}">${x.kind}</span>`:''}<span style="flex:1"></span>
       <span class="meta">${x.date||''}${x.dur?' · '+x.dur:''}</span></div>
       <div class="lb"><h3>📌 핵심 요약</h3><div class="sum">${sumHTML(x.summary)}</div></div>
+      ${(x.charts&&x.charts.length)?`<div class="chsec">📊 강의 언급 수치 시각화</div><div class="charts">`+x.charts.map((c,ci)=>`<div class="chartcard"><div class="ct">${esc(c.title)}</div>${c.note?`<div class="cn">${esc(c.note)}</div>`:''}<div class="cbox"><canvas id="ch_${x.g}_${ci}"></canvas></div></div>`).join('')+`</div>`:''}
       <div class="player"><button onclick="playLec('${x.g}',this)">▶ 녹음본 재생</button><span class="st"></span><audio controls style="display:none"></audio></div></div>`;
   }
   h+=`<div class="note" style="margin-top:10px">갱신 ${D.updated} · 녹음본은 AES-GCM 암호화되어 저장 — 본인 암호로만 복호화·재생됩니다. 전사·요약은 음성 인식 기반이라 일부 표기 오류가 있을 수 있습니다.</div>`;
   document.getElementById('body').innerHTML=h;
+  renderCharts(rows);
+}
+const CHC=['#2f6df6','#0e9f5a','#d92d20','#f2a33c','#7a5af8','#0e9494'];
+function renderCharts(rows){
+  if(typeof Chart==='undefined') return;
+  for(const x of rows){ if(!x.charts) continue;
+    x.charts.forEach((c,ci)=>{
+      const cv=document.getElementById('ch_'+x.g+'_'+ci); if(!cv) return;
+      const ds=(c.series||[]).map((s,i)=>({label:s.name,data:s.data,backgroundColor:CHC[i%6]+'cc',borderColor:CHC[i%6],borderWidth:1.5,borderRadius:3}));
+      new Chart(cv,{type:c.type||'bar',data:{labels:c.labels,datasets:ds},options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:(c.series||[]).length>1,labels:{boxWidth:10,font:{size:10}}},
+          tooltip:{callbacks:{label:it=>it.dataset.label+': '+it.formattedValue+(c.unit||'')}}},
+        scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'#f0f2f5'},ticks:{font:{size:10},callback:v=>v+(c.unit||'')}}}}});
+    });
+  }
 }
 (async()=>{ try{ const pw=sessionStorage.getItem('lec_pw'); if(pw){ document.getElementById('pw').value=pw; await unlock(); } }catch(e){} })();
 </script>

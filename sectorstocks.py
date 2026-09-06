@@ -63,7 +63,7 @@ def category_stocks(hdr, code):
     """업종 구성종목 시세 → [{c,n,chg,cap,prc}]. 첫 종목의 원본 키를 DEBUG에 한 번 남긴다."""
     u = (BASE + '/uapi/domestic-stock/v1/quotations/inquire-index-category-price'
          '?FID_COND_MRKT_DIV_CODE=U&FID_INPUT_ISCD=%s&FID_COND_SCR_DIV_CODE=20214'
-         '&FID_MRKT_CLS_CODE= &FID_BLNG_CLS_CODE=0' % code)
+         '&FID_MRKT_CLS_CODE=%20&FID_BLNG_CLS_CODE=0' % code)
     h = dict(hdr); h['tr_id'] = 'FHPUP02140000'
     j = get_json(u, h)
     if j.get('rt_cd') != '0':

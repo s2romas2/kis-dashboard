@@ -3,7 +3,7 @@
 # 랭크테이블에서 섹터 클릭 시 그 업종을 견인하는 종목(등락률·시총)을 표시하기 위한 데이터.
 # 업종 코드·이름은 leadershist.json(이미 leaders.py가 채움)에서 그대로 재사용 → 이름이 랭크테이블과 100% 일치.
 # 필요 시크릿: KIS_APPKEY, KIS_APPSECRET
-import os, sys, json, time, urllib.request, urllib.parse
+import math, os, sys, json, time, urllib.request, urllib.parse
 
 APPKEY = os.environ.get('KIS_APPKEY', '')
 APPSECRET = os.environ.get('KIS_APPSECRET', '')
@@ -13,7 +13,10 @@ SCREENER = 'public/data/screener.json'  # 종목별 실적·YoY 성장률 소스
 MAPFILE = 'public/data/sectormap.json'  # 종목→KRX업종 매핑 캐시(재수집 최소화)
 OUT = 'public/data/sectorstocks.json'
 TOPN = 15                                 # 업종당 저장할 최대 종목수(등락률 상위)
-GROWN = 8                                 # 업종당 실적 성장주 최대 개수
+GROWN = 10                                # 업종당 실적 성장주 최대 개수
+GROW_CAP = 6000                           # 증가율 상한(%) — 전년 적자發 극단치 제외
+GROW_OP = 6                               # 영업이익 성장 축에서 뽑는 수
+GROW_REV = 5                              # 매출 성장 축에서 뽑는 수
 MAP_TTL = 20 * 86400                      # 업종 매핑 캐시 유효기간(20일)
 DEBUG = []
 # search-stock-info(CTPF1002R) 업종명 후보 필드(소분류>중분류>대분류) — KRX 지수업종명과 매칭
@@ -280,7 +283,14 @@ def main():
             x = sd.get(code)
             if not x:
                 continue
-            if (x.get('rev') or 0) < 300:          # 매출 300억 미만 제외(미니캡 노이즈)
+            if (x.get('rev') or 0) < 500:          # 분기 매출 500억 미만 제외(미니캡 노이즈)
+                continue
+            if (x.get('op') or 0) <= 0:            # 적자 기업 제외
+                continue
+            oy, ry = x.get('opYoY'), x.get('revYoY')
+            ok_op = oy is not None and 20 <= oy <= GROW_CAP
+            ok_rev = ry is not None and 25 <= ry <= GROW_CAP
+            if not (ok_op or ok_rev):              # 영업이익·매출 어느 쪽도 성장 신호가 없으면 제외
                 continue
             key = '%s|%s' % (m['sec'], m['mkt'])
             by_sec.setdefault(key, []).append(x)
@@ -290,13 +300,22 @@ def main():
                 sectors[key] = {'name': m['sec'], 'mkt': key.split('|')[1], 'n': 0, 'top': []}
             have = {t['c'] for t in sectors[key].get('top', [])}
             # opYoY 우선, 없으면 revYoY 로 정렬(비정상 초대형치 방지 위해 상한 clip)
-            def gkey(x):
-                return (x.get('opYoY') if x.get('opYoY') is not None else (x.get('revYoY') or -999))
+            # 점수 = log(증가율) x log(매출) — 미니베이스 수천%가 대형 실적주를 밀어내지 않게 완충
+            def sc(v, rev):
+                return 0.0 if v is None or v < 0 else math.log10(1 + v) * math.log10(max(rev or 500, 500))
             lst = [x for x in lst if x['code'] not in have]
-            lst.sort(key=gkey, reverse=True)
+            byop = sorted([x for x in lst if (x.get('opYoY') or -1) >= 20],
+                          key=lambda x: sc(x.get('opYoY'), x.get('rev')), reverse=True)[:GROW_OP]
+            byrev = sorted([x for x in lst if (x.get('revYoY') or -1) >= 25],
+                           key=lambda x: sc(x.get('revYoY'), x.get('rev')), reverse=True)[:GROW_REV]
+            seen, merged = set(), []
+            for x in byop + byrev:                 # 영업이익 성장 우선 + 매출 성장 축을 따로 보강
+                if x['code'] in seen:
+                    continue
+                seen.add(x['code']); merged.append(x)
             grow = [{'c': x['code'], 'n': x['name'],
                      'revYoY': x.get('revYoY'), 'opYoY': x.get('opYoY'), 'niYoY': x.get('niYoY'),
-                     'rev': x.get('rev'), 'op': x.get('op')} for x in lst[:GROWN]]
+                     'rev': x.get('rev'), 'op': x.get('op')} for x in merged[:GROWN]]
             if grow:
                 sectors[key]['grow'] = grow
                 grown += 1

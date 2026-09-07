@@ -45,10 +45,27 @@ h1 { font-size:22px; margin:10px 0 4px; }
 .chartcard .cn { font-size:10.5px; color:#98a2b3; margin-bottom:6px; line-height:1.4; }
 .chartcard .cbox { position:relative; height:200px; }
 .chsec { font-size:13px; color:#7e22ce; font-weight:900; margin:2px 16px 0; }
+.slbar { display:flex; align-items:center; gap:10px; padding:10px 16px; border-top:1px dashed #eceff4; flex-wrap:wrap; }
+.slbar button { background:#0e9f5a; color:#fff; border:none; border-radius:8px; padding:8px 14px; font-size:12.5px; font-weight:800; cursor:pointer; }
+.slbar button:disabled { opacity:.5; cursor:default; }
+.slbar .sst { font-size:11.5px; color:#98a2b3; }
+.slides { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:10px; margin:2px 16px 14px; }
+.slide { border:1px solid #eef0f4; border-radius:10px; overflow:hidden; background:#fff; cursor:zoom-in; }
+.slide img { display:block; width:100%; }
+.slide .sc { font-size:11px; font-weight:800; color:#374151; padding:6px 8px; line-height:1.35; border-top:1px solid #f2f4f7; }
+.slide .sc em { font-style:normal; color:#98a2b3; font-weight:700; }
+#lb { position:fixed; inset:0; background:rgba(15,20,30,.92); display:none; z-index:99; align-items:center; justify-content:center; flex-direction:column; padding:16px; }
+#lb.on { display:flex; }
+#lb img { max-width:96vw; max-height:82vh; border-radius:8px; background:#fff; }
+#lb .cap { color:#fff; font-size:13px; font-weight:800; margin-top:10px; text-align:center; }
+#lb .nav { position:absolute; top:50%; transform:translateY(-50%); font-size:34px; color:#fff; opacity:.75; cursor:pointer; padding:10px 16px; user-select:none; }
+#lb .nav.p { left:4px; } #lb .nav.n { right:4px; }
+#lb .x { position:absolute; top:10px; right:16px; color:#fff; font-size:26px; cursor:pointer; opacity:.8; }
 </style>
 </head>
 <body>
 <script src="/nav.js" defer></script>
+<div id="lb" onclick="if(event.target.id==='lb')lbClose()"><span class="x" onclick="lbClose()">✕</span><span class="nav p" onclick="lbGo(-1)">‹</span><img id="lbimg"><div class="cap" id="lbcap"></div><span class="nav n" onclick="lbGo(1)">›</span></div>
 <div class="wrap">
   <h1>🎓 강의 노트 <span style="font-size:12px;color:#98a2b3;font-weight:600">🔒 본인 전용 · 암호화 저장</span></h1>
   <div class="sub">팀더윤쎈 클래스 강의를 직접 녹음·전사한 뒤 <b>핵심 위주로 요약</b>했습니다. 녹음본은 암호화되어 본인만 재생할 수 있습니다.</div>
@@ -99,6 +116,33 @@ async function playLec(g, btn){
     au.src=url; au.style.display='block'; st.textContent=''; btn.style.display='none'; au.play();
   }catch(e){ st.textContent='재생 실패: '+e.message; btn.disabled=false; }
 }
+const SLD={};   // g -> [{t,cap,d}]
+function tfmt(t){ t=+t||0; return (t/60|0)+':'+String(t%60).padStart(2,'0'); }
+async function loadSlides(g, btn){
+  const wrap=document.getElementById('sl_'+g);
+  if(wrap && wrap.dataset.on==='1'){ wrap.innerHTML=''; wrap.dataset.on='0'; btn.textContent='📑 강의 자료 보기'; return; }
+  if(SLD[g]){ paintSlides(g,btn); return; }
+  const st=btn.parentElement.querySelector('.sst');
+  btn.disabled=true; st.textContent='복호화 중…';
+  try{
+    const b64=await (await fetch('/data/lectures/s'+g+'.enc?t='+Date.now())).text();
+    SLD[g]=(await decJSON(PW,b64)).slides;
+    st.textContent=''; btn.disabled=false; paintSlides(g,btn);
+  }catch(e){ st.textContent='불러오기 실패: '+e.message; btn.disabled=false; }
+}
+function paintSlides(g, btn){
+  const wrap=document.getElementById('sl_'+g); if(!wrap) return;
+  wrap.innerHTML=SLD[g].map((s,i)=>`<div class="slide" onclick="lbOpen('${g}',${i})"><img loading="lazy" src="${s.d}"><div class="sc">${esc(s.cap)} <em>${tfmt(s.t)}</em></div></div>`).join('');
+  wrap.dataset.on='1'; btn.textContent='📑 강의 자료 접기';
+}
+let LBG=null, LBI=0;
+function lbOpen(g,i){ LBG=g; LBI=i; lbPaint(); document.getElementById('lb').classList.add('on'); }
+function lbPaint(){ const s=SLD[LBG][LBI]; document.getElementById('lbimg').src=s.d;
+  document.getElementById('lbcap').textContent=s.cap+'  ·  '+tfmt(s.t)+'  ('+(LBI+1)+'/'+SLD[LBG].length+')'; }
+function lbGo(d){ if(!LBG) return; LBI=(LBI+d+SLD[LBG].length)%SLD[LBG].length; lbPaint(); }
+function lbClose(){ document.getElementById('lb').classList.remove('on'); }
+document.addEventListener('keydown',e=>{ if(!document.getElementById('lb').classList.contains('on'))return;
+  if(e.key==='Escape')lbClose(); if(e.key==='ArrowLeft')lbGo(-1); if(e.key==='ArrowRight')lbGo(1); });
 function draw(){
   const gs=[...new Set(D.list.map(x=>x.g))];
   let h=`<div class="bar"><span class="chip ${G==='all'?'on':''}" onclick="G='all';draw()">전체 ${D.list.length}</span>`+
@@ -110,6 +154,7 @@ function draw(){
       <span class="meta">${x.date||''}${x.dur?' · '+x.dur:''}</span></div>
       <div class="lb"><h3>📌 핵심 요약</h3><div class="sum">${sumHTML(x.summary)}</div></div>
       ${(x.charts&&x.charts.length)?`<div class="chsec">📊 강의 언급 수치 시각화</div><div class="charts">`+x.charts.map((c,ci)=>`<div class="chartcard"><div class="ct">${esc(c.title)}</div>${c.note?`<div class="cn">${esc(c.note)}</div>`:''}<div class="cbox"><canvas id="ch_${x.g}_${ci}"></canvas></div></div>`).join('')+`</div>`:''}
+      ${x.slides?`<div class="slbar"><button onclick="loadSlides('${x.g}',this)">📑 강의 자료 보기</button><span class="sst"></span><span class="note" style="flex:1">영상에 나온 발표 자료를 캡처해 순서대로 담았습니다 (강사 필기 포함).</span></div><div class="slides" id="sl_${x.g}" data-on="0"></div>`:''}
       <div class="player"><button onclick="playLec('${x.g}',this)">▶ 녹음본 재생</button><span class="st"></span><audio controls style="display:none"></audio></div></div>`;
   }
   h+=`<div class="note" style="margin-top:10px">갱신 ${D.updated} · 녹음본은 AES-GCM 암호화되어 저장 — 본인 암호로만 복호화·재생됩니다. 전사·요약은 음성 인식 기반이라 일부 표기 오류가 있을 수 있습니다.</div>`;

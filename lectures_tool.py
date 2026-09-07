@@ -34,6 +34,19 @@ def main():
         b64 = enc_bytes(pw, open(src,'rb').read())
         out = '%s/g%s.enc' % (ADIR, g); open(out,'w').write(b64)
         print('오디오 암호화 %s → %s (%.1fMB)' % (src, out, len(b64)/1048576), file=sys.stderr)
+    elif cmd == 'encslides':
+        # 사용: encslides <슬라이드폴더> <강번호>  (폴더에 index.json + NN.jpg)
+        d, g = sys.argv[2], sys.argv[3]
+        idx = json.load(open(os.path.join(d,'index.json'), encoding='utf-8'))
+        items = []
+        for it in idx:
+            raw = open(it['f'],'rb').read()
+            items.append({'t': it['t'], 'cap': it['cap'],
+                          'd': 'data:image/jpeg;base64,' + base64.b64encode(raw).decode()})
+        os.makedirs(ADIR, exist_ok=True)
+        out = '%s/s%s.enc' % (ADIR, g)
+        open(out,'w').write(encrypt(pw, {'slides': items}))
+        print('슬라이드 %d장 암호화 → %s (%.1fMB)' % (len(items), out, os.path.getsize(out)/1048576), file=sys.stderr)
     elif cmd == 'build':
         meta = json.load(open(sys.argv[2], encoding='utf-8'))
         data = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'list': meta}

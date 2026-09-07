@@ -41,8 +41,11 @@ def main():
         items = []
         for it in idx:
             raw = open(it['f'],'rb').read()
-            items.append({'t': it['t'], 'cap': it['cap'],
-                          'd': 'data:image/jpeg;base64,' + base64.b64encode(raw).decode()})
+            o = {'t': it['t'], 'cap': it['cap'],
+                 'd': 'data:image/jpeg;base64,' + base64.b64encode(raw).decode()}
+            if it.get('sec') is not None:
+                o['sec'] = it['sec']          # 요약의 ## 소제목 순번 → 그 아래에 배치
+            items.append(o)
         os.makedirs(ADIR, exist_ok=True)
         out = '%s/s%s.enc' % (ADIR, g)
         open(out,'w').write(encrypt(pw, {'slides': items}))

@@ -50,6 +50,9 @@ h1 { font-size:22px; margin:10px 0 4px; }
 .slbar button:disabled { opacity:.5; cursor:default; }
 .slbar .sst { font-size:11.5px; color:#98a2b3; }
 .slides { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:10px; margin:2px 16px 14px; }
+.ssec { margin-bottom:2px; }
+.secsl { display:grid; grid-template-columns:repeat(auto-fill,minmax(215px,1fr)); gap:8px; margin:7px 0 13px 15px; }
+.secsl:empty { display:none; }
 .slide { border:1px solid #eef0f4; border-radius:10px; overflow:hidden; background:#fff; cursor:zoom-in; }
 .slide img { display:block; width:100%; }
 .slide .sc { font-size:11px; font-weight:800; color:#374151; padding:6px 8px; line-height:1.35; border-top:1px solid #f2f4f7; }
@@ -96,14 +99,15 @@ async function unlock(){
   }catch(e){ document.getElementById('err').textContent='암호가 맞지 않습니다.'; try{ sessionStorage.removeItem('lec_pw'); }catch(_){} const el=document.getElementById('pw'); if(el){ el.value=''; el.focus(); } }
 }
 // 요약 텍스트 → HTML: "## 헤드라인" 은 소제목, "- 항목" 은 불릿
-function sumHTML(s){
-  const lines=(s||'').split('\n'); let h='<ul>'; let open=true;
+function sumHTML(s, g){
+  const bold=t=>esc(t).replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>');
+  const lines=(s||'').split('\n'); let h=''; let open=false; let si=-1;   // si = ## 소제목 인덱스(슬라이드 sec와 1:1)
+  const close=()=>{ if(open){ h+='</ul><div class="secsl" id="ss_'+g+'_'+si+'"></div></div>'; open=false; } };
   for(let ln of lines){ ln=ln.trim(); if(!ln) continue;
-    const bold=t=>esc(t).replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>');
-    if(ln.startsWith('##')){ if(open){h+='</ul>';open=false;} h+='<span class="hl">'+bold(ln.replace(/^#+\s*/,''))+'</span><ul>'; open=true; }
-    else { const t=ln.replace(/^[-•]\s*/,''); h+='<li>'+bold(t)+'</li>'; }
+    if(ln.startsWith('##')){ close(); si++; h+='<div class="ssec"><span class="hl">'+bold(ln.replace(/^#+\s*/,''))+'</span><ul>'; open=true; }
+    else { if(!open){ h+='<div class="ssec"><ul>'; open=true; } h+='<li>'+bold(ln.replace(/^[-•]\s*/,''))+'</li>'; }
   }
-  if(open) h+='</ul>'; return h;
+  close(); return h;
 }
 async function playLec(g, btn){
   const st=btn.parentElement.querySelector('.st'); const au=btn.parentElement.querySelector('audio');
@@ -120,7 +124,7 @@ const SLD={};   // g -> [{t,cap,d}]
 function tfmt(t){ t=+t||0; return (t/60|0)+':'+String(t%60).padStart(2,'0'); }
 async function loadSlides(g, btn){
   const wrap=document.getElementById('sl_'+g);
-  if(wrap && wrap.dataset.on==='1'){ wrap.innerHTML=''; wrap.dataset.on='0'; btn.textContent='📑 강의 자료 보기'; return; }
+  if(wrap && wrap.dataset.on==='1'){ wrap.innerHTML=''; clearSecSlides(g); wrap.dataset.on='0'; btn.textContent='📑 강의 자료 보기'; return; }
   if(SLD[g]){ paintSlides(g,btn); return; }
   const st=btn.parentElement.querySelector('.sst');
   btn.disabled=true; st.textContent='복호화 중…';
@@ -130,9 +134,20 @@ async function loadSlides(g, btn){
     st.textContent=''; btn.disabled=false; paintSlides(g,btn);
   }catch(e){ st.textContent='불러오기 실패: '+e.message; btn.disabled=false; }
 }
+function slideHTML(g,s,i){
+  return `<div class="slide" onclick="lbOpen('${g}',${i})"><img loading="lazy" src="${s.d}"><div class="sc">${esc(s.cap)} <em>${tfmt(s.t)}</em></div></div>`;
+}
+function clearSecSlides(g){ document.querySelectorAll('[id^="ss_'+g+'_"]').forEach(e=>e.innerHTML=''); }
 function paintSlides(g, btn){
   const wrap=document.getElementById('sl_'+g); if(!wrap) return;
-  wrap.innerHTML=SLD[g].map((s,i)=>`<div class="slide" onclick="lbOpen('${g}',${i})"><img loading="lazy" src="${s.d}"><div class="sc">${esc(s.cap)} <em>${tfmt(s.t)}</em></div></div>`).join('');
+  clearSecSlides(g);
+  const rest=[];
+  SLD[g].forEach((s,i)=>{
+    const box = (s.sec===undefined||s.sec===null) ? null : document.getElementById('ss_'+g+'_'+s.sec);
+    if(box) box.insertAdjacentHTML('beforeend', slideHTML(g,s,i));   // 해당 소제목 바로 아래에 배치
+    else rest.push(slideHTML(g,s,i));
+  });
+  wrap.innerHTML=rest.join('');
   wrap.dataset.on='1'; btn.textContent='📑 강의 자료 접기';
 }
 let LBG=null, LBI=0;
@@ -152,9 +167,9 @@ function draw(){
     h+=`<div class="card"><div class="lh"><span class="g">${x.g}강</span><span class="ti">${esc(x.title)}</span>
       ${x.kind?`<span class="kd ${x.kind}">${x.kind}</span>`:''}<span style="flex:1"></span>
       <span class="meta">${x.date||''}${x.dur?' · '+x.dur:''}</span></div>
-      <div class="lb"><h3>📌 핵심 요약</h3><div class="sum">${sumHTML(x.summary)}</div></div>
+      <div class="lb"><h3>📌 핵심 요약</h3><div class="sum">${sumHTML(x.summary, x.g)}</div></div>
       ${(x.charts&&x.charts.length)?`<div class="chsec">📊 강의 언급 수치 시각화</div><div class="charts">`+x.charts.map((c,ci)=>`<div class="chartcard"><div class="ct">${esc(c.title)}</div>${c.note?`<div class="cn">${esc(c.note)}</div>`:''}<div class="cbox"><canvas id="ch_${x.g}_${ci}"></canvas></div></div>`).join('')+`</div>`:''}
-      ${x.slides?`<div class="slbar"><button onclick="loadSlides('${x.g}',this)">📑 강의 자료 보기</button><span class="sst"></span><span class="note" style="flex:1">영상에 나온 발표 자료를 캡처해 순서대로 담았습니다 (강사 필기 포함).</span></div><div class="slides" id="sl_${x.g}" data-on="0"></div>`:''}
+      ${x.slides?`<div class="slbar"><button onclick="loadSlides('${x.g}',this)">📑 강의 자료 보기</button><span class="sst"></span><span class="note" style="flex:1">영상 발표 자료를 캡처해 <b>해당 소제목 아래</b>에 배치했습니다 (강사 필기 포함).</span></div><div class="slides" id="sl_${x.g}" data-on="0"></div>`:''}
       <div class="player"><button onclick="playLec('${x.g}',this)">▶ 녹음본 재생</button><span class="st"></span><audio controls style="display:none"></audio></div></div>`;
   }
   h+=`<div class="note" style="margin-top:10px">갱신 ${D.updated} · 녹음본은 AES-GCM 암호화되어 저장 — 본인 암호로만 복호화·재생됩니다. 전사·요약은 음성 인식 기반이라 일부 표기 오류가 있을 수 있습니다.</div>`;

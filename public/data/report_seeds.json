@@ -1,0 +1,13 @@
+{
+  "note": "수동 큐레이션 심층 리포트 — reports.py가 archive에 병합(7일 창 밖이어도 보존). topic: optics(광통신) / glass(유리기판)",
+  "items": [
+    {"t":"AI Bottleneck Issue — 'AI 인프라 2막'의 병목","b":"미래에셋증권","an":["한종목"],"d":"2026-06-16","pdf":"https://securities.miraeasset.com/bbs/download/2145285.pdf?attachmentId=2145285","pg":86,"kind":"industry","cat":"광통신","topic":"optics","s":"AI 인프라 2막의 병목은 엔비디아 바깥(전력·광원·검사장비). 통신 병목 파트(pp.27-64) 구리·광 거리 기반 재분할, CPO·광원(InP·CW Laser·SiPho) 별도 챕터."},
+    {"t":"AIDC 다음 승부처 : 네트워크와 냉각","b":"유안타증권","an":["이안나","이승웅","김고은"],"d":"2026-09-02","pdf":"https://consensus.hankyung.com/analysis/downpdf?report_idx=652075","pg":152,"kind":"industry","cat":"광통신","topic":"optics","s":"AIDC 확장→네트워크 인프라 확대. 400G→800G→1.6T, Part VI(pp.77-97) 광트랜시버 탑재 확대 불가피, 대한광통신·오이솔루션 Top Pick."},
+    {"t":"AI 병목을 넘어서 ① Networking — Everything Goes Optical","b":"대신증권","an":["박장욱"],"d":"2026-03-03","pdf":"https://money2.daishin.com/PDF/Out/intranet_data/product/researchcenter/report/2026/02/56731_indepth1_cpo_dochi_fin_.pdf","pg":51,"kind":"industry","cat":"광통신","topic":"optics","s":"DC 내부 광화·DCI 확장 In-depth. CPO 스케일아웃→어크로스→업 확대, 광 시장 10~30배. RF머트리얼즈·대한광통신·오이솔루션."},
+    {"t":"OFC 2026 참관후기: 빛과 반도체","b":"상상인증권","d":"2026-03-23","pdf":"https://consensus.hankyung.com/analysis/downpdf?report_idx=647756","pg":44,"kind":"industry","cat":"광통신","topic":"optics","s":"OFC 2026 참관. CPO 대규모 배포 2027~28년, 현재 수익 나는 광학은 OCS. 1.6T 코히어런트·ELS·SiPh 파운드리 등 공급 집중 구간만 마진 확장."},
+    {"t":"AIDC, 통신업 성장 신항로","b":"iM증권","an":["신희철"],"d":"2026-07-21","pdf":"https://consensus.hankyung.com/analysis/downpdf?report_idx=650922","pg":151,"kind":"industry","cat":"통신","topic":"optics","s":"통신 3사 AI·NTN 두 축. Ⅳ장(pp.48-75) NTN 인프라·밸류체인. 광통신보다 통신서비스·위성 비중 큼."},
+    {"t":"해외출장기 SKC 앱솔릭스 — 유리기판 Value Chain 및 기업 분석","b":"LS증권","an":["차용호"],"d":"2024-10-15","pdf":"https://msg.ls-sec.co.kr/eum/K_20241015_31780_89.pdf","pg":32,"kind":"industry","cat":"유리기판","topic":"glass","s":"앱솔릭스 조지아 라인 투어 기반 유리기판 종합 In-depth. 기술·공정·앱솔릭스 차별점, 후반부 Value Chain·기업 분석."},
+    {"t":"Raise Your Glass — SKC 앱솔릭스 공장 탐방기","b":"유진투자증권","an":["임소정"],"d":"2024-10-14","pdf":"https://www.eugenefn.com/common/files/board/473384_20241014090902.pdf","pg":30,"kind":"industry","cat":"유리기판","topic":"glass","s":"유리기판 개요→시장 전망→관련주→업체 현황→추천주. 후속(2025-02-07) 코닝·Schott·NEG·AT&S, 인텔·앱솔릭스·삼성전기·이비덴 밸류체인 표."},
+    {"t":"The Coming Big Wave — 미국 학회 참석을 통해 본 반도체 변화의 물결","b":"현대차증권","an":["곽민정"],"d":"2024-07-01","pdf":"https://www.hmsec.com/documents/research/20240701075321880_ko.pdf","pg":42,"kind":"industry","cat":"유리기판","topic":"glass","s":"Advanced Packaging·BSPDN·실리콘 포토닉스·유리기판을 하나의 흐름으로. 실리콘 포토닉스 구현에 유리기판이 요구된다는 논리."}
+  ]
+}

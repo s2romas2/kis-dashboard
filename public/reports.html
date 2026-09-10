@@ -89,7 +89,7 @@ function draw(){
   let fils=[];
   if(TAB==='industry') fils=['전체','심층 50p+', ...[...new Set(arr.map(x=>x.cat||'기타'))].slice(0,14)];
   else if(TAB==='company') fils=['전체','심층 50p+','정보기술','커뮤니케이션','금융','헬스케어','임의소비재','필수소비재','산업재','소재','에너지','유틸리티','부동산','기타'];
-  else if(TAB==='archive') fils=['전체','최근 1개월','최근 3개월','최근 6개월','산업분석','종목분석'];
+  else if(TAB==='archive') fils=['전체','최근 1개월','최근 3개월','최근 6개월','산업분석','종목분석','🔦 광통신','🪟 유리기판'];
   else fils=['전체', ...[...new Set(arr.map(x=>x.src))]];
   chips('filterbar', fils, FIL, 'setFil');
   let list=arr;
@@ -100,6 +100,8 @@ function draw(){
     else if(FIL==='최근 6개월') list=list.filter(x=>(x.d||'')>=cut(183));
     else if(FIL==='산업분석') list=list.filter(x=>x.kind==='industry');
     else if(FIL==='종목분석') list=list.filter(x=>x.kind==='company');
+    else if(FIL==='🔦 광통신') list=list.filter(x=>x.topic==='optics'||/광통신|CPO|광트랜시버|Optical/i.test(x.t||''));
+    else if(FIL==='🪟 유리기판') list=list.filter(x=>x.topic==='glass'||/유리기판|글라스|Glass/i.test(x.t||''));
   }
   else if(FIL==='심층 50p+') list=list.filter(x=>(x.pg||0)>=50);
   else if(FIL!=='전체'){
@@ -138,8 +140,9 @@ function draw(){
     const an=x.an&&x.an.length? ` · ✍ ${x.an.map(esc).join('·')}` : '';
     return `<div class="rp">${pg}
       <div class="rmain">
-        <div class="rt"><a href="${x.pdf}" target="_blank" rel="noopener">${esc(x.t)}</a></div>
-        <div class="rsub">${tag}${esc(x.b)}${an} · ${x.d} · 조회 ${x.v.toLocaleString()}</div>
+        <div class="rt"><a href="${x.pdf}" target="_blank" rel="noopener">${esc(x.t)}</a>${x.seed?' <span class="cat" style="background:#fff3e0;color:#b45309">📌 큐레이션</span>':''}</div>
+        <div class="rsub">${tag}${esc(x.b)}${an} · ${x.d}${x.v!=null?' · 조회 '+Number(x.v).toLocaleString():''}</div>
+        ${x.s?`<div class="rsub" style="color:#4b5563;margin-top:3px">${esc(x.s)}</div>`:''}
       </div>
       <a class="dl" href="${x.pdf}" target="_blank" rel="noopener">PDF 보기</a></div>`;
   }).join('');

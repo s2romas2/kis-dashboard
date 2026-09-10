@@ -297,6 +297,16 @@ def main():
                 old = archive.get(x['pdf']) or {}
                 if not old or (y.get('v') or 0) >= (old.get('v') or 0):
                     archive[x['pdf']] = {**old, **y}
+    # 📌 수동 시드(광통신·유리기판 등 심층 리포트) 병합 — public/data/report_seeds.json
+    try:
+        seeds = json.load(open('public/data/report_seeds.json', encoding='utf-8')).get('items') or []
+        for s in seeds:
+            if s.get('pdf'):
+                old = archive.get(s['pdf']) or {}
+                archive[s['pdf']] = {**old, **s, 'seed': True}
+        DEBUG.append('시드 %d건' % len(seeds))
+    except Exception as e:
+        DEBUG.append('시드 병합 실패: %r' % e)
     arch_list = sorted(archive.values(), key=lambda x: (x.get('d') or '', x.get('pg') or 0), reverse=True)
     DEBUG.append('아카이브 %d건' % len(arch_list))
     out = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'debug': DEBUG,

@@ -28,7 +28,7 @@ h1 { font-size:22px; margin:10px 0 4px; }
 .ph.noimg { background:linear-gradient(135deg,#eef2f9,#e3e9f5); font-size:38px; }
 .ph .srcTag { position:absolute; right:6px; bottom:4px; font-size:9.5px; color:#98a2b3; background:rgba(255,255,255,.85); padding:1px 6px; border-radius:6px; }
 .bd { padding:10px 12px 12px; display:flex; flex-direction:column; gap:6px; flex:1; }
-.nm { font-size:14.5px; font-weight:900; }
+.nm { font-size:14.5px; font-weight:900; display:flex; align-items:center; gap:4px; }
 .nm .code { font-weight:600; color:#98a2b3; font-size:11.5px; margin-left:4px; }
 .tags { display:flex; flex-wrap:wrap; gap:4px; }
 .tag { font-size:10.5px; font-weight:800; padding:2px 7px; border-radius:10px; }
@@ -46,6 +46,60 @@ h1 { font-size:22px; margin:10px 0 4px; }
 .links a { font-size:11.5px; font-weight:700; text-decoration:none; color:#2f6df6; background:#eef4ff; border-radius:8px; padding:4px 9px; }
 .links a:hover { background:#dbe8ff; }
 .loading { text-align:center; color:#98a2b3; padding:40px 0; }
+/* 세부분야 */
+.fbar { display:flex; flex-wrap:wrap; gap:5px; margin:0 0 12px; align-items:center; }
+.fbar .lbl { font-size:11.5px; font-weight:800; color:#667085; margin-right:4px; }
+.fbar button { border:1.5px solid #e2e6ee; background:#fff; border-radius:16px; padding:5px 11px; font:inherit; font-size:11.5px; font-weight:700; color:#475467; cursor:pointer; }
+.fbar button.on { background:#7c3aed; border-color:#7c3aed; color:#fff; }
+.fbar button .g { font-size:9.5px; color:#98a2b3; margin-left:3px; }
+.fbar button.on .g { color:#e9d5ff; }
+.rankp { background:#fff; border:1px solid #e6e9f0; border-left:5px solid #7c3aed; border-radius:14px; padding:14px 16px; margin-bottom:14px; }
+.rankp h2 { font-size:16px; margin:0 0 6px; }
+.rankp .lg { font-size:11px; color:#667085; margin-bottom:10px; }
+.rk { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:10px; }
+.rk .it { border:1px solid #eef0f5; border-radius:12px; padding:10px 12px; background:#fafbfd; }
+.rk .it .hd { font-size:14px; font-weight:900; display:flex; align-items:center; gap:6px; }
+.rk .it .hd .medal { font-size:18px; }
+.rk .it .hd .code { font-size:11px; color:#98a2b3; font-weight:600; }
+.rk .why { font-size:12px; color:#344054; line-height:1.6; margin-top:5px; }
+.rk .gap { font-size:11.5px; color:#7a5b1e; background:#fffaf0; border-radius:8px; padding:5px 8px; margin-top:6px; line-height:1.55; }
+.rk .gap b, .rk .why b { color:#1a2a4a; }
+.refs { margin-top:6px; display:flex; flex-direction:column; gap:3px; }
+.ref { font-size:11px; color:#475467; line-height:1.45; }
+.ref a { color:#2f6df6; text-decoration:none; font-weight:700; }
+.ref a:hover { text-decoration:underline; }
+.ref .q { color:#667085; display:block; padding-left:8px; border-left:2px solid #e2e6ee; margin-top:1px; }
+.src { font-size:9.5px; font-weight:800; padding:1px 5px; border-radius:6px; margin-right:3px; vertical-align:1px; }
+.src.o { background:#e0f2fe; color:#0369a1; } .src.m { background:#ecfdf3; color:#027a48; } .src.d { background:#f2f4f7; color:#475467; }
+.dissent { font-size:12px; color:#7a1e1e; background:#fff1f0; border-radius:10px; padding:8px 10px; margin-top:10px; line-height:1.55; }
+.ind { margin-top:10px; font-size:12px; }
+.ind summary { cursor:pointer; font-weight:800; color:#1a2a4a; }
+.ind table { width:100%; border-collapse:collapse; margin-top:6px; }
+.ind td { border-top:1px solid #eef0f5; padding:5px 4px; vertical-align:top; line-height:1.5; }
+.ind td:first-child { font-weight:700; color:#344054; width:32%; }
+.subtags { display:flex; flex-wrap:wrap; gap:3px; }
+.subtag { font-size:10px; font-weight:700; color:#6d28d9; background:#f3e8ff; padding:1px 6px; border-radius:8px; }
+.grade { font-size:10px; font-weight:900; padding:1px 6px; border-radius:6px; margin-left:auto; }
+.grade.A { background:#dcfce7; color:#166534; } .grade.B { background:#fef9c3; color:#854d0e; } .grade.C { background:#f2f4f7; color:#667085; }
+.links a.det { background:#f3e8ff; color:#6d28d9; }
+/* 상세 드로어 */
+.ov { position:fixed; inset:0; background:rgba(15,20,40,.45); display:none; z-index:50; }
+.ov.on { display:block; }
+.dw { position:fixed; top:0; right:0; bottom:0; width:min(720px,100%); background:#fff; z-index:51; overflow:auto; transform:translateX(100%); transition:transform .2s; box-shadow:-4px 0 24px rgba(0,0,0,.15); }
+.dw.on { transform:none; }
+.dw .in { padding:18px 20px 40px; }
+.dw h2 { font-size:18px; margin:0 0 4px; display:flex; align-items:center; gap:8px; }
+.dw .x { position:absolute; right:14px; top:12px; border:none; background:#f2f4f7; border-radius:50%; width:32px; height:32px; font-size:16px; cursor:pointer; }
+.dw h3 { font-size:13px; color:#1a2a4a; margin:16px 0 6px; padding-bottom:4px; border-bottom:2px solid #f3e8ff; }
+.dw p { font-size:12.5px; line-height:1.65; color:#344054; }
+.kpi table { width:100%; border-collapse:collapse; font-size:12px; }
+.kpi td { border-top:1px solid #eef0f5; padding:5px 4px; vertical-align:top; line-height:1.5; }
+.kpi td:first-child { font-weight:700; color:#344054; width:30%; }
+.kpi td:last-child { color:#98a2b3; font-size:11px; width:20%; }
+.dw .note { margin-top:12px; }
+.deep { background:#fff; border:1px solid #e6e9f0; border-radius:14px; padding:12px 16px; margin-bottom:14px; }
+.deep summary { cursor:pointer; font-weight:800; font-size:13px; }
+.deep .ref { margin-top:5px; }
 @media (max-width:600px){ .grid{ grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); } .ph{height:110px;} }
 </style>
 </head>
@@ -53,16 +107,81 @@ h1 { font-size:22px; margin:10px 0 4px; }
 <script src="/nav.js" defer></script>
 <div class="wrap">
   <h1>💠 반도체 소부장 맵 — 8대공정</h1>
-  <div class="sub">웨이퍼 제조 → 산화 → 포토 → 식각 → 증착·이온주입 → 금속배선 → EDS 테스트 → 패키징 — 어떤 기업의 제품이 어느 공정 어디에 쓰이는지 (2026-08 전수조사 기준)</div>
+  <div class="sub">웨이퍼 제조 → 산화 → 포토 → 식각 → 증착·이온주입 → 금속배선 → EDS 테스트 → 패키징 — 어떤 기업의 제품이 어느 공정 어디에 쓰이는지 (2026-08 전수조사 · 2026-09 세부분야·리포트 근거 추가)</div>
   <div class="note">⚠️ <b>한 기업이 여러 공정에 걸치는 경우가 많습니다.</b> 예: 예스티는 전공정(열처리)·EDS(퍼니스)·패키징(가압 큐어)을 모두 공급 → 카드에 공정 배지가 여러 개 붙고, 어느 공정 필터에서도 나타납니다. 제품 사진은 각 기업 공식 홈페이지·언론 보도에서 발췌(카드 우하단 출처).</div>
   <div class="flow" id="flow"></div>
   <div class="grpbar" id="grpbar"></div>
+  <div class="fbar" id="fbar"></div>
+  <div id="rankp"></div>
+  <div id="deepp"></div>
   <div class="cnt" id="cnt"></div>
   <div class="grid" id="grid"><div class="loading">불러오는 중…</div></div>
 </div>
+<div class="ov" id="ov" onclick="closeDw()"></div>
+<div class="dw" id="dw"><button class="x" onclick="closeDw()">✕</button><div class="in" id="dwin"></div></div>
 <script>
-let DATA=null, VALS=null, PROC='all', GRP='all';
+let DATA=null, VALS=null, DET=null, PROC='all', GRP='all', FLD='all';
 const PRE=['w','o','f','e','d','m'], POST=['t','k'];
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const SRC={'원문':['o','📄 원문'],'전문매체':['m','📰 전문매체'],'공시':['d','📋 공시']};
+function refHtml(r){
+  const s=SRC[r.k]||['d',r.k||''];
+  const meta=[r.b,r.d,r.p?'p.'+r.p:''].filter(Boolean).join(' · ');
+  return `<div class="ref"><span class="src ${s[0]}">${s[1]}</span><a href="${esc(r.u)}" target="_blank" rel="noopener">${esc(r.t)}</a> <span style="color:#98a2b3">${esc(meta)}</span>${r.q?`<span class="q">“${esc(r.q)}”</span>`:''}</div>`;
+}
+function bold(t){ return esc(t).replace(/(\d[\d,.]*\s?(?:억원|억|조원|조|%|배|대|㎡|개|K\/m|Gbps|μm|㎛|매|bar|기압)|\d{4}년|'?\d{2}년)/g,'<b>$1</b>'); }
+function drawFields(){
+  const fb=document.getElementById('fbar');
+  if(!DET){ fb.innerHTML=''; return; }
+  const grps={};
+  DET.fields.forEach(f=>{ (grps[f.grp]=grps[f.grp]||[]).push(f); });
+  let h=`<span class="lbl">🔎 세부분야</span><button data-f="all" class="${FLD==='all'?'on':''}">전체</button>`;
+  Object.entries(grps).forEach(([g,fs])=>{ fs.forEach(f=>{ h+=`<button data-f="${f.id}" class="${FLD===f.id?'on':''}">${esc(f.name.replace(/\(.*?\)/g,'').trim())}<span class="g">${esc(g)}</span></button>`; }); });
+  fb.innerHTML=h;
+  fb.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{FLD=b.dataset.f;drawFields();drawRank();draw();}));
+}
+function drawRank(){
+  const box=document.getElementById('rankp');
+  const f=DET&&DET.fields.find(x=>x.id===FLD);
+  if(!f){ box.innerHTML=''; return; }
+  const medal=['','🥇','🥈','🥉'];
+  const items=f.rank.map(r=>{
+    const c=r.c&&/^\d{6}$/.test(r.c)?r.c:'';
+    const link=c&&DET.co[c]?`<a href="javascript:void(0)" onclick="openDw('${c}')" style="font-size:11px;color:#6d28d9;font-weight:700">상세 ▸</a>`:'';
+    return `<div class="it"><div class="hd"><span class="medal">${medal[r.r]||r.r}</span>${esc(r.n)}${c?`<span class="code">${c}</span>`:''}${link}</div>
+      <div class="why">${bold(r.why)}</div>${r.gap&&r.gap!=='원문 미확보'?`<div class="gap">↔ ${bold(r.gap)}</div>`:''}
+      ${r.refs&&r.refs.length?`<div class="refs">${r.refs.map(refHtml).join('')}</div>`:'<div class="ref" style="color:#98a2b3">원문 미확보</div>'}</div>`;
+  }).join('');
+  const ind=f.industry&&f.industry.length?`<details class="ind"><summary>📊 여러 증권사가 공통으로 짚는 산업 데이터 (${f.industry.length})</summary><table>${f.industry.map(x=>`<tr><td>${esc(x.k)}</td><td>${bold(x.v)}${x.refs&&x.refs.length?`<div class="refs">${x.refs.map(refHtml).join('')}</div>`:''}</td></tr>`).join('')}</table></details>`:'';
+  box.innerHTML=`<div class="rankp"><h2>🏆 ${esc(f.name)} — 대장주 / 2위 / 3위</h2><div class="lg">근거: 📄 증권사·한국IR협의회 리포트 원문 PDF(인용문·페이지) · 📰 전문매체 · 📋 공시. 순위는 리포트 서술을 종합한 정성 판단이며 목표주가·투자의견은 참고용.</div>
+    <div class="rk">${items}</div>${f.dissent?`<div class="dissent">⚖️ 반대 시각: ${bold(f.dissent)}</div>`:''}${ind}</div>`;
+}
+function drawDeep(){
+  const box=document.getElementById('deepp');
+  if(!DET||!DET.deep_reports){ box.innerHTML=''; return; }
+  const d=DET.deep_reports; const n=(d.optics||[]).length+(d.glass||[]).length;
+  if(!n){ box.innerHTML=''; return; }
+  const row=x=>`<div class="ref">📄 <a href="${esc(x.u)}" target="_blank" rel="noopener">${esc(x.t)}</a> <span style="color:#98a2b3">${esc(x.b)} · ${x.d}${x.pages?' · '+x.pages+'p':''}</span>${x.summary?`<span class="q">${esc(x.summary)}</span>`:''}</div>`;
+  box.innerHTML=`<details class="deep"><summary>📚 심층 산업리포트 — 🔦 광통신 ${(d.optics||[]).length}건 · 🪟 유리기판 ${(d.glass||[]).length}건 (30p 이상, 원문 PDF)</summary>${(d.optics||[]).map(row).join('')}${(d.glass||[]).map(row).join('')}</details>`;
+}
+function openDw(c){
+  const v=DET&&DET.co[c]; if(!v) return;
+  const e=DATA.items.find(x=>x.c===c)||{};
+  const fl=(v.fields||[]).map(id=>DET.fields.find(f=>f.id===id)).filter(Boolean);
+  const kpi=v.kpi&&v.kpi.length?`<h3>📊 리포트 공통 핵심 데이터</h3><div class="kpi"><table>${v.kpi.map(k=>`<tr><td>${esc(k.k)}</td><td>${bold(k.v)}</td><td>${esc(k.s)}</td></tr>`).join('')}</table></div>`:'';
+  const refs=v.refs&&v.refs.length?`<h3>🔗 출처 (${v.refs.length})</h3><div class="refs">${v.refs.map(refHtml).join('')}</div>`:'<h3>🔗 출처</h3><p style="color:#98a2b3">증권사 원문·전문매체 출처 미확보 — 검증 필요</p>';
+  document.getElementById('dwin').innerHTML=`<h2>${esc(v.n||e.n)} <span class="code" style="font-size:12px;color:#98a2b3">${c}</span> <span class="grade ${v.grade}" style="margin-left:6px">근거 ${v.grade}</span></h2>
+    <div class="subtags">${(v.sub||[]).map(s=>`<span class="subtag">${esc(s)}</span>`).join('')}</div>
+    ${fl.length?`<p style="margin-top:8px;font-size:12px">🏆 순위 분야: ${fl.map(f=>{const r=f.rank.find(x=>x.c===c);return `<a href="javascript:void(0)" onclick="FLD='${f.id}';closeDw();drawFields();drawRank();draw();window.scrollTo(0,0)" style="color:#6d28d9;font-weight:700">${esc(f.name.replace(/\(.*?\)/g,'').trim())} ${r?['','🥇','🥈','🥉'][r.r]||'':''}</a>`;}).join(' · ')}</p>`:''}
+    ${v.spec?`<h3>🧩 특화 제품·기술</h3><p>${bold(v.spec)}</p>`:''}
+    ${v.diff?`<h3>⚔️ 경쟁사 대비 차별성</h3><p>${bold(v.diff)}</p>`:''}
+    ${kpi}${refs}
+    ${v.note?`<div class="note">⚠️ ${esc(v.note)}</div>`:''}
+    <p style="margin-top:14px"><a href="/bands.html#${c}" style="color:#2f6df6;font-weight:700">📉 밴드</a> · <a href="/deep.html#${c}" style="color:#2f6df6;font-weight:700">🔬 딥다이브</a></p>`;
+  document.getElementById('ov').classList.add('on'); document.getElementById('dw').classList.add('on');
+}
+function closeDw(){ document.getElementById('ov').classList.remove('on'); document.getElementById('dw').classList.remove('on'); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeDw(); });
 
 function badge(p, procs){
   const lbl = Object.fromEntries(DATA.procs.map(x=>[x[0], x[1].replace(/^[①-⑧]\s*/,'')]));
@@ -85,19 +204,32 @@ function card(e){
     ? `<div class="ph"><img src="/img/semi/${e.c}.jpg" alt="${e.n} 제품" loading="lazy">${e.src?`<span class="srcTag">출처: ${e.src}</span>`:''}</div>`
     : `<div class="ph noimg">${e.g==='후'?'📦':(e.cat==='소재'?'🧪':e.cat==='파츠'?'⚙️':'🏭')}</div>`;
   const v = VALS && VALS[e.c] ? fmtV(VALS[e.c]) : '';
+  const d = DET && DET.co[e.c];
+  const medal=['','🥇','🥈','🥉'];
+  const rk = d ? (d.fields||[]).map(id=>{const f=DET.fields.find(x=>x.id===id); const r=f&&f.rank.find(x=>x.c===e.c); return f&&r?`<span class="subtag" title="${esc(f.name)}">${medal[r.r]||''} ${esc(f.name.replace(/\(.*?\)/g,'').trim())}</span>`:'';}).join('') : '';
   return `<div class="card">${img}<div class="bd">
-    <div class="nm">${e.n}<span class="code">${e.c}</span></div>
+    <div class="nm">${e.n}<span class="code">${e.c}</span>${d?`<span class="grade ${d.grade}" title="근거 등급: A=원문 2건+ B=원문 1건/전문매체 C=미확보">${d.grade}</span>`:''}</div>
     <div class="tags"><span class="tag cat">${e.cat}</span>${badge(e.p[0], e.p)}</div>
+    ${d&&(d.sub||[]).length?`<div class="subtags">${d.sub.map(s=>`<span class="subtag">${esc(s)}</span>`).join('')}</div>`:''}
+    ${rk?`<div class="subtags">${rk}</div>`:''}
     <div class="prod">${e.prod}</div>
     ${e.use?`<div class="use">└ <b>쓰임:</b> ${e.use}</div>`:''}
-    ${e.edge?`<div class="edge">💡 ${e.edge}</div>`:''}
+    ${d&&d.diff?`<div class="edge">⚔️ ${bold(d.diff.length>170?d.diff.slice(0,170)+'…':d.diff)}</div>`:(e.edge?`<div class="edge">💡 ${e.edge}</div>`:'')}
     ${v?`<div class="val">${v}</div>`:''}
-    <div class="links"><a href="/bands.html#${e.c}">📉 밴드</a><a href="/deep.html#${e.c}">🔬 딥다이브</a></div>
+    <div class="links">${d?`<a class="det" href="javascript:void(0)" onclick="openDw('${e.c}')">🔎 상세·출처</a>`:''}<a href="/bands.html#${e.c}">📉 밴드</a><a href="/deep.html#${e.c}">🔬 딥다이브</a></div>
   </div></div>`;
 }
 function draw(){
   const grid=document.getElementById('grid');
   let items=DATA.items;
+  if(FLD!=='all' && DET){
+    const f=DET.fields.find(x=>x.id===FLD);
+    const mem=new Set(f?f.members:[]);
+    Object.entries(DET.co).forEach(([c,v])=>{ if((v.fields||[]).includes(FLD)) mem.add(c); });
+    items=items.filter(e=>mem.has(e.c));
+    const order=f?f.rank.map(r=>r.c):[];
+    items=items.slice().sort((a,b)=>{const ia=order.indexOf(a.c),ib=order.indexOf(b.c);return (ia<0?99:ia)-(ib<0?99:ib);});
+  }
   if(PROC!=='all') items=items.filter(e=>e.p.includes(PROC));
   if(GRP==='pre') items=items.filter(e=>e.g==='전'||e.g==='양');
   else if(GRP==='post') items=items.filter(e=>e.g==='후'||e.g==='양');
@@ -126,7 +258,11 @@ async function init(){
     const sv=await (await fetch('/data/stockvals.json?t='+Date.now())).json();
     VALS=sv.map||null;
   }catch(e){ VALS=null; }
-  drawBars(); draw();
+  try{ DET=await (await fetch('/data/semidetail.json?t='+Date.now())).json(); }catch(e){ DET=null; }
+  const h=(location.hash||'').replace('#','');
+  if(DET&&h&&DET.fields.some(f=>f.id===h)) FLD=h;
+  drawBars(); drawFields(); drawRank(); drawDeep(); draw();
+  if(DET&&h&&DET.co[h]) openDw(h);
 }
 init();
 </script>

@@ -57,6 +57,33 @@ def clean_refs(refs):
         out.append(rr)
     return out, dropped
 
+# 표시 규칙(사용자): 목표주가·투자의견 제거 / 비상장·원문미확보 순위 제외
+TP_PATTERNS = [r'\(?\s*(?:BUY|Buy|매수|HOLD|Hold|중립|Not Rated|NR)\s*(?:신규|유지|개시|하향|상향)?\s*[,·]?\s*(?:(?:TP|목표주가|적정주가)\s*[\d,]+\s*원?|[\d,]+\s*원)\s*(?:상향|하향|신규|개시|유지)?\s*\)?',
+               r'(?:TP|목표주가|적정주가|목표가)\s*(?:은|는|를)?\s*[\d,]+\s*원[^.,;)/\n]*', r'\s*[—–-]\s*(?:TP|목표주가)[^.,;)\n]*']
+def scrub(s):
+    if not isinstance(s, str):
+        return s
+    for p in TP_PATTERNS:
+        s = re.sub(p, '', s)
+    s = re.sub(r'\(\s*[,·/\s]*\)', '', s)
+    return re.sub(r'\s{2,}', ' ', s).strip(' ,·/')
+def scrub_obj(o):
+    if isinstance(o, dict):
+        return {k: scrub_obj(v) for k, v in o.items()}
+    if isinstance(o, list):
+        return [scrub_obj(x) for x in o]
+    return scrub(o)
+def is_tp_kpi(k):
+    return bool(re.search(r'목표주가|투자의견|목표가|TP\b|커버리지 상태|커버리지$', k or ''))
+def valid_rank(r):
+    c = str(r.get('c', '') or '')
+    n = r.get('n', '') or ''
+    if not re.fullmatch(r'\d{6}', c):
+        return False
+    if re.search(r'원문 미확보|부재|해당 없음|비상장', n) or (r.get('why', '') or '').startswith('원문 미확보'):
+        return False
+    return True
+
 def grade(refs):
     o = sum(1 for r in refs if r['k'] == '원문')
     m = sum(1 for r in refs if r['k'] in ('전문매체', '공시'))
@@ -84,6 +111,21 @@ for f in sorted(glob.glob(os.path.join(RAW, 'raw_co_*.json'))):
         co[k] = {'n': v.get('n'), 'sub': v.get('sub', []), 'spec': v.get('spec', ''), 'diff': v.get('diff', ''),
                  'kpi': v.get('kpi', []), 'refs': refs, 'note': v.get('note', ''), 'grade': grade(refs)}
 
+# 2차 원자료 (fields + co 통합 파일) — raw2_*.json
+for f in sorted(glob.glob(os.path.join(RAW, 'raw2_*.json'))):
+    try:
+        d = json.load(open(f, encoding='utf-8'))
+    except Exception as e:
+        print('skip', f, e); continue
+    for k, v in (d.get('co') or {}).items():
+        refs, dr = clean_refs(v.get('refs'))
+        stats['dropped'] += dr
+        if k in co and co[k].get('refs'):
+            continue
+        co[k] = {'n': v.get('n'), 'sub': v.get('sub', []), 'spec': v.get('spec', ''), 'diff': v.get('diff', ''),
+                 'kpi': v.get('kpi', []), 'refs': refs, 'note': v.get('note', ''), 'grade': grade(refs)}
+    d['_is_raw2'] = True
+
 fields, deep, unverified = [], {'optics': [], 'glass': []}, []
 FIELD_META = {  # 세부분야 id, 상위 그룹, 공정코드
     'SiC': ('sic', '파츠', ['e']), 'Si 파츠': ('sipart', '파츠', ['e']), '쿼츠': ('quartz', '파츠', ['e', 'd', 'o']),
@@ -97,21 +139,40 @@ FIELD_META = {  # 세부분야 id, 상위 그룹, 공정코드
     'STF': ('stf', '테스트부품', ['t']), '프로브카드': ('probe', '테스트부품', ['t']),
     'TC본더': ('tcb', '패키징장비', ['k']), '리플로우': ('reflow', '패키징장비', ['k']),
     '외관/범프': ('inspect', '패키징장비', ['k', 't']), 'X-ray': ('xray', '패키징장비', ['k', 't']),
-    '유리기판': ('glass', '유리기판', ['k']), '솔더볼': ('solder', '후공정소재', ['k'])}
+    '유리기판': ('glass', '유리기판', ['k']), 'HBM 솔더볼': ('solder', '후공정소재', ['k']),
+    '노광·트랙': ('litho', '계측·포토', ['f']),
+    # 2차
+    'ALD': ('ald', '전공정장비', ['d']), '식각·세정 장비': ('etch', '전공정장비', ['e']), '식각·세정': ('etch', '전공정장비', ['e']),
+    'RTP': ('rtp', '전공정장비', ['o']), '중고장비': ('used', '전공정장비', ['i']), '기화기': ('vapor', '전공정장비', ['d']),
+    '결함': ('metro', '계측·포토', ['f', 'e']), '계측': ('metro', '계측·포토', ['f', 'e']),
+    '포토레지스트': ('pr', '계측·포토', ['f']), '포토 소재': ('pr', '계측·포토', ['f']),
+    '블랭크마스크': ('mask', '계측·포토', ['f']), '노광': ('litho', '계측·포토', ['f']), '트랙': ('litho', '계측·포토', ['f']),
+    '웨이퍼 가공': ('wafer', '계측·포토', ['w']), '엣지': ('wafer', '계측·포토', ['w']),
+    '식각액': ('chem', '소재', ['e']), '특수가스': ('gas', '소재', ['d']), '전구체': ('precursor', '소재', ['d']),
+    'CMP': ('cmp', '소재', ['m']), '후공정 소재': ('pkgmat', '소재', ['k']), 'EMC': ('pkgmat', '소재', ['k']),
+    '스크러버': ('scrubber', '인프라', ['i']), '진공펌프': ('pump', '인프라', ['i']), '이송': ('efem', '인프라', ['i']),
+    'CCSS': ('ccss', '인프라', ['i']), '피팅': ('fitting', '인프라', ['i']),
+    'FC-BGA': ('fcbga', '기판', ['k']), '비메모리 OSAT': ('osat2', '기판', ['k']), 'FOPLP': ('osat2', '기판', ['k'])}
 
 def meta_for(name):
-    for key, m in FIELD_META.items():
+    for key, m in sorted(FIELD_META.items(), key=lambda kv: -len(kv[0])):
         if key in name:
             return m
     return (re.sub(r'\W+', '', name)[:10].lower(), '기타', [])
 
-for f in sorted(glob.glob(os.path.join(RAW, 'raw_rank_*.json'))):
-    d = json.load(open(f, encoding='utf-8'))
+RANK_FILES = sorted(glob.glob(os.path.join(RAW, 'raw_rank_*.json'))) + sorted(glob.glob(os.path.join(RAW, 'raw2_*.json')))
+for f in RANK_FILES:
+    try:
+        d = json.load(open(f, encoding='utf-8'))
+    except Exception as e:
+        print('skip', f, e); continue
     for fd in d.get('fields', []):
         name = re.sub(r'^[A-Z]\.\s*', '', fd['field'])
         fid, grp, procs = meta_for(name)
         rank = []
         for r in fd.get('rank', []):
+            if not valid_rank(r):
+                continue
             refs, dr = clean_refs(r.get('refs'))
             stats['dropped'] += dr
             rank.append({'r': r['r'], 'c': r.get('c', ''), 'n': r.get('n', ''), 'why': r.get('why', ''),
@@ -141,11 +202,40 @@ for fd in fields:
 for c, v in co.items():
     v.setdefault('fields', [])
     v['fields'] = sorted(set(v['fields']))
+# 기업 단독 조사 없이 순위에만 등장한 기업 → 순위 근거·출처를 상세로 승계
+for fd in fields:
+    for r in fd['rank']:
+        c = r.get('c')
+        if not (c and c in co):
+            continue
+        v = co[c]
+        if not v['refs'] and r['refs']:
+            v['refs'] = list(r['refs'])
+        else:
+            seen = {(x['u'], x.get('q', '')) for x in v['refs']}
+            v['refs'] += [x for x in r['refs'] if (x['u'], x.get('q', '')) not in seen]
+        if not v['diff'] and r.get('why'):
+            v['diff'] = r['why'] + ((' ↔ ' + r['gap']) if r.get('gap') and r['gap'] != '원문 미확보' else '')
+        if not v['sub']:
+            v['sub'] = [fd['name'].replace('(', ' (').split(' (')[0]]
+        v['grade'] = grade(v['refs'])
 
 blog_notes = None
 bn = os.path.join(RAW, 'blogger_notes.md')
 if os.path.exists(bn):
     blog_notes = open(bn, encoding='utf-8').read()
+
+# 순위 재번호(빈 자리 없이) + 목표주가·투자의견 제거
+for fd in fields:
+    for i, r in enumerate(fd['rank']):
+        r['r'] = i + 1
+    fd['members'] = [r['c'] for r in fd['rank']]
+for c, v in co.items():
+    v['kpi'] = [k for k in v.get('kpi', []) if not is_tp_kpi(k.get('k', ''))]
+fields = scrub_obj(fields)
+co = scrub_obj(co)
+groups = scrub_obj(groups)
+if socamm: socamm = scrub_obj(socamm)
 
 out = {'updated': datetime.date.today().isoformat(), 'stats': {'companies': len(co), 'fields': len(fields),
        'dropped_refs': stats['dropped']}, 'legend': {'원문': '증권사·한국IR협의회 리포트 원문 PDF',

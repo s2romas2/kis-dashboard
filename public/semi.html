@@ -153,7 +153,7 @@ function drawRank(){
       ${r.refs&&r.refs.length?`<div class="refs">${r.refs.map(refHtml).join('')}</div>`:'<div class="ref" style="color:#98a2b3">원문 미확보</div>'}</div>`;
   }).join('');
   const ind=f.industry&&f.industry.length?`<details class="ind"><summary>📊 여러 증권사가 공통으로 짚는 산업 데이터 (${f.industry.length})</summary><table>${f.industry.map(x=>`<tr><td>${esc(x.k)}</td><td>${bold(x.v)}${x.refs&&x.refs.length?`<div class="refs">${x.refs.map(refHtml).join('')}</div>`:''}</td></tr>`).join('')}</table></details>`:'';
-  box.innerHTML=`<div class="rankp"><h2>🏆 ${esc(f.name)} — 대장주 / 2위 / 3위</h2><div class="lg">근거: 📄 증권사·한국IR협의회 리포트 원문 PDF(인용문·페이지) · 📰 전문매체 · 📋 공시. 순위는 리포트 서술을 종합한 정성 판단이며 목표주가·투자의견은 참고용.</div>
+  box.innerHTML=`<div class="rankp"><h2>🏆 ${esc(f.name)} — 대장주 / 2위 / 3위</h2><div class="lg">근거: 📄 증권사·한국IR협의회 리포트 원문 PDF(인용문·페이지) · 📰 전문매체 · 📋 공시. 순위는 리포트 서술을 종합한 정성 판단(목표주가·투자의견 미반영, 비상장·원문 미확보 기업 제외).</div>
     <div class="rk">${items}</div>${f.dissent?`<div class="dissent">⚖️ 반대 시각: ${bold(f.dissent)}</div>`:''}${ind}</div>`;
 }
 function drawDeep(){

@@ -1,0 +1,35 @@
+name: valalert
+on:
+  schedule:
+    - cron: '0 0 * * 1-5'   # 평일 09:00 KST
+  workflow_dispatch: {}
+  push:
+    paths: ['valalert.py']
+permissions:
+  contents: write
+jobs:
+  valalert:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 밸류 체크 → 텔레그램
+        env:
+          KIS_APPKEY: ${{ secrets.KIS_APPKEY }}
+          KIS_APPSECRET: ${{ secrets.KIS_APPSECRET }}
+          DART_KEY: ${{ secrets.DART_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python valalert.py
+      - name: 결과 커밋
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/valalert.json 2>/dev/null || true
+          git commit -m "밸류 알림 결과 갱신" || echo "변경 없음"
+          git pull --rebase -X theirs origin main || true
+          git push || true

@@ -1,0 +1,35 @@
+name: 테마 섹터 지수 일일 수집
+on:
+  schedule:
+    - cron: '20 10 * * 1-5'     # UTC 10:20 = KST 19:20 (WICS 수집 뒤, 월봉 캐시 공유)
+  workflow_dispatch: {}
+  push:
+    paths: ['themes.py', 'themes_def.json']
+permissions:
+  contents: write
+concurrency:
+  group: themes
+  cancel-in-progress: false
+jobs:
+  themes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 수집
+        env:
+          KIS_APPKEY: ${{ secrets.KIS_APPKEY }}
+          KIS_APPSECRET: ${{ secrets.KIS_APPSECRET }}
+        run: python themes.py
+      - name: 커밋
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/themes.json public/data/themeswk.json public/data/wicsmon.json 2>/dev/null || true
+          git commit -m "테마 섹터 지수 갱신" || echo "변경 없음"
+          git pull --rebase origin main || true
+          git push || true

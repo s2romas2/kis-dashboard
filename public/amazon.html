@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>아마존 베스트셀러 트래커 — K뷰티 브랜드</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; background:#f4f6fa; color:#1a1f2e; }
+.wrap { max-width:1180px; margin:0 auto; padding:18px 14px 60px; }
+h1 { font-size:22px; margin:10px 0 4px; }
+.sub { color:#667085; font-size:13px; margin-bottom:14px; line-height:1.65; }
+.note { background:#fff7e8; border:1px solid #f5d9a8; border-radius:10px; padding:10px 14px; font-size:12.5px; color:#7a5b1e; margin-bottom:14px; line-height:1.7; }
+.note b { color:#5c4413; }
+.card { background:#fff; border:1px solid #e6e9f0; border-radius:14px; padding:15px; margin-bottom:13px; }
+.card h2 { font-size:15.5px; margin-bottom:8px; }
+.bcards { display:grid; grid-template-columns:repeat(auto-fill,minmax(215px,1fr)); gap:9px; margin-bottom:14px; }
+.bc { background:#fff; border:1px solid #e6e9f0; border-radius:13px; padding:12px 13px; }
+.bc.out { background:#fbfcfe; }
+.bc .nm { font-size:13px; font-weight:800; color:#1a1f2e; line-height:1.4; }
+.bc .co { font-size:10.5px; color:#b0b7c3; margin-top:2px; }
+.bc .rk { font-size:26px; font-weight:900; letter-spacing:-1px; margin-top:7px; color:#1a1f2e; }
+.bc .rk small { font-size:11px; font-weight:800; color:#8a93a2; letter-spacing:0; margin-left:2px; }
+.bc .rk.none { font-size:14px; color:#b0b7c3; font-weight:800; letter-spacing:0; }
+.bc .ct { font-size:11px; color:#667085; margin-top:3px; line-height:1.5; }
+.bc .cnt { font-size:11px; color:#8a93a2; margin-top:6px; }
+.bc .gs { display:flex; flex-wrap:wrap; gap:3px; margin-top:6px; }
+.bc .gs span { font-size:9.5px; font-weight:800; background:#eef2f8; color:#39485e; border-radius:6px; padding:2px 6px; }
+.bar { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; align-items:center; }
+.bar button { font:inherit; font-size:12.5px; font-weight:800; border:1px solid #e6e9f0; background:#fff; color:#667085; border-radius:9px; padding:7px 13px; cursor:pointer; }
+.bar button.on { background:#1a1f2e; border-color:#1a1f2e; color:#fff; }
+.bar .sp { margin-left:auto; font-size:11.5px; color:#98a2b3; }
+.tbl { width:100%; border-collapse:collapse; font-size:12.5px; }
+.tbl th { text-align:left; color:#667085; font-size:11px; padding:7px 8px; border-bottom:1.5px solid #e6e9f0; white-space:nowrap; }
+.tbl td { padding:8px; border-bottom:1px solid #f0f2f6; line-height:1.55; vertical-align:top; }
+.tbl tr:hover td { background:#fbfcfe; }
+.rank { font-weight:900; font-size:14px; color:#1a1f2e; white-space:nowrap; }
+.rank.top { color:#d92d20; }
+.dlt { font-size:11px; font-weight:800; white-space:nowrap; }
+.dlt.up { color:#0e9f5a; } .dlt.dn { color:#d92d20; } .dlt.new { color:#7e22ce; }
+.bg { font-size:10.5px; font-weight:900; border-radius:7px; padding:2px 8px; white-space:nowrap; background:#e8f0fe; color:#1d4ed8; }
+.cat { font-size:11.5px; color:#667085; }
+.cat b { color:#39485e; }
+.pt { font-size:12px; color:#475467; }
+.pt a { color:#2f6df6; text-decoration:none; font-weight:700; }
+.grp { font-size:13px; font-weight:900; color:#39485e; margin:16px 0 7px; padding-bottom:5px; border-bottom:2px solid #e6e9f0; }
+.grp span { font-size:11px; font-weight:700; color:#98a2b3; margin-left:6px; }
+.empty { font-size:12.5px; color:#98a2b3; padding:12px 2px; }
+.loading { text-align:center; color:#98a2b3; padding:40px; font-size:13px; }
+.src { font-size:11px; color:#98a2b3; line-height:1.9; }
+</style>
+</head>
+<body>
+<script src="/nav.js" defer></script>
+<div class="wrap">
+  <h1>🛒 아마존 베스트셀러 트래커 — K뷰티 브랜드</h1>
+  <div class="sub">아마존 US <b>Beauty &amp; Personal Care</b> 베스트셀러를 카테고리별로 매일 훑어
+  타깃 브랜드가 <b>몇 위에 있는지</b> 기록합니다. 순위·전일 대비 변동·신규 진입을 함께 봅니다.</div>
+
+  <div class="note">⚠️ <b>알아두실 것</b> — 아마존은 <b>검색과 상품 페이지를 봇 차단</b>합니다(검색 503, 상품 캡차).
+  베스트셀러 목록만 열립니다. 그래서 "이 브랜드 순위 조회"가 아니라 <b>베스트셀러 목록을 훑어 그 안에 있으면 포착</b>하는 방식입니다 —
+  목록에 없으면 순위를 알 수 없어 <b>"수집 구간 밖"으로 기록</b>됩니다.<br>
+  ⚠️ <b>순위 구멍이 있습니다</b> — 아마존이 한 페이지에 30개만 내려주고 나머지는 스크롤로 채웁니다. 그래서 카테고리당
+  <b>1~30위와 51~80위만</b> 보이고 <b>31~50위·81~100위는 안 잡힙니다.</b> 어떤 브랜드가 40위에 있어도 "구간 밖"으로 나옵니다 —
+  없는 게 아니라 <b>못 본 것</b>일 수 있다는 뜻입니다.
+  아마존이 이 경로도 막으면 유료 API(Keepa·Rainforest) 외에는 대안이 없습니다.</div>
+
+  <div id="brandCards" class="bcards"></div>
+  <div class="bar" id="grpBar"></div>
+  <div id="body"><div class="loading">데이터를 불러오는 중…</div></div>
+
+  <div class="card"><h2>수집 방식</h2>
+    <div class="src" id="meta"></div>
+    <div class="pt" style="margin-top:9px">브랜드 추가·수정은 <b>public/amazonbrands.json</b>,
+    카테고리는 <b>public/amazonnodes.json</b> 만 고치면 됩니다.
+    CTK는 화장품 용기·ODM이라 아마존 소비자 브랜드가 없어 제외했습니다.</div>
+  </div>
+</div>
+<script>
+let D=null, GRP='all';
+const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+function dlt(i){
+  if(i.pr==null) return '<span class="dlt new">NEW</span>';
+  if(i.d===0||i.d==null) return '<span class="dlt" style="color:#c3cbd8">—</span>';
+  return i.d>0 ? `<span class="dlt up">▲${i.d}</span>` : `<span class="dlt dn">▼${-i.d}</span>`;
+}
+function cards(){
+  document.getElementById('brandCards').innerHTML = D.sum.map(s=>`
+   <div class="bc ${s.best==null?'out':''}">
+     <div class="nm">${esc(s.nm)}</div><div class="co">${esc(s.co)}</div>
+     ${s.best==null ? '<div class="rk none">구간 밖</div><div class="ct">1~30·51~80위 안에서 미포착</div>'
+      : `<div class="rk">#${s.best}<small>위</small></div><div class="ct">${esc(s.bestc)}</div>`}
+     <div class="cnt">포착 <b>${s.n}</b>건</div>
+     <div class="gs">${(s.gs||[]).map(g=>`<span>${esc(g)}</span>`).join('')}</div>
+   </div>`).join('');
+}
+function bar(){
+  const gs=['all'].concat(D.groups||[]);
+  document.getElementById('grpBar').innerHTML =
+    gs.map(g=>`<button data-g="${esc(g)}" class="${g===GRP?'on':''}">${g==='all'?'전체':esc(g)}</button>`).join('')
+    + `<span class="sp">갱신 ${esc(D.updated)} · 카테고리 ${D.cats.length}개 · 포착 ${D.items.length}건</span>`;
+  document.querySelectorAll('#grpBar button').forEach(b=>b.onclick=()=>{GRP=b.dataset.g;bar();table();});
+}
+function table(){
+  const cmap={}; D.cats.forEach(c=>cmap[c.id]=c);
+  let its=D.items.filter(i=>GRP==='all'||(cmap[i.c]&&cmap[i.c].g===GRP));
+  const byg={};
+  its.forEach(i=>{ const c=cmap[i.c]||{g:'?',n:'?'}; (byg[c.g]=byg[c.g]||[]).push(i); });
+  const keys=Object.keys(byg).sort();
+  if(!keys.length){ document.getElementById('body').innerHTML='<div class="card"><div class="empty">이 분류에서 포착된 타깃 브랜드가 없습니다.</div></div>'; return; }
+  document.getElementById('body').innerHTML = keys.map(g=>{
+    const rows=byg[g].sort((a,b)=>a.r-b.r);
+    return `<div class="grp">${esc(g)}<span>${rows.length}건</span></div>
+    <div class="card" style="padding:6px 10px"><div style="overflow-x:auto"><table class="tbl">
+      <tr><th>순위</th><th>전일</th><th>브랜드</th><th>카테고리</th><th>제품</th></tr>
+      ${rows.map(i=>`<tr>
+        <td class="rank ${i.r<=10?'top':''}">#${i.r}</td>
+        <td>${dlt(i)}</td>
+        <td><span class="bg">${esc(i.b)}</span></td>
+        <td class="cat">${esc((cmap[i.c]||{}).n||'')}</td>
+        <td class="pt"><a href="https://www.amazon.com/dp/${esc(i.a)}" target="_blank" rel="noopener">${esc(i.t)}</a></td>
+      </tr>`).join('')}
+    </table></div></div>`;
+  }).join('');
+}
+(async()=>{
+  try{ D=await (await fetch('/data/amazon.json?t='+Date.now())).json(); }
+  catch(e){ document.getElementById('body').innerHTML='<div class="card"><div class="empty">데이터를 불러오지 못했습니다 — /data/amazon.json 확인 필요</div></div>'; return; }
+  if(!D||!D.cats){ document.getElementById('body').innerHTML='<div class="card"><div class="empty">아직 수집 전입니다.</div></div>'; return; }
+  cards(); bar(); table();
+  const byg={}; D.cats.forEach(c=>byg[c.g]=(byg[c.g]||0)+1);
+  document.getElementById('meta').innerHTML =
+    `출처 amazon.com 베스트셀러(/zgbs) · 수집 ${D.date||''} · 카테고리 ${D.cats.length}개 `
+    + Object.entries(byg).map(([g,n])=>`${esc(g)} ${n}`).join(' · ')
+    + `<br>수집기 <b>amazon.py</b> · 카테고리당 1~30위·51~80위(31~50위는 스크롤 로딩이라 미수집) · 이력 ${Object.keys(D.hist||{}).length}일치 보관`
+    + (D.debug&&D.debug.length?`<br><span style="color:#b0b7c3">${esc(D.debug[D.debug.length-1])}</span>`:'');
+})();
+</script>
+</body>
+</html>

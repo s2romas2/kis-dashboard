@@ -1,0 +1,14 @@
+{
+  "note": "아마존 상품 제목에 포함되는 브랜드 표기를 pat 에 넣는다. off:true 면 수집 제외.",
+  "brands": [
+    { "k": "조선미녀",     "nm": "조선미녀 Beauty of Joseon", "co": "구다이글로벌(비상장)", "pat": ["beauty of joseon"] },
+    { "k": "셀리맥스",     "nm": "셀리맥스 celimax",          "co": "비상장",             "pat": ["celimax"] },
+    { "k": "이퀄베리",     "nm": "이퀄베리 EQOUALBERRY",      "co": "비상장",             "pat": ["eqoualberry", "eqoual berry"] },
+    { "k": "닥터알테아",   "nm": "닥터알테아 Dr.Althea",       "co": "비상장",             "pat": ["dr.althea", "dr. althea", "dr althea"] },
+    { "k": "에이피알",     "nm": "에이피알 medicube",          "co": "278470 에이피알",     "pat": ["medicube"] },
+    { "k": "아로마티카",   "nm": "아로마티카 AROMATICA",       "co": "비상장",             "pat": ["aromatica"] },
+    { "k": "동국제약",     "nm": "동국제약 CENTELLIAN 24",     "co": "086450 동국제약",     "pat": ["centellian"] },
+    { "k": "LG생활건강",   "nm": "LG생활건강 (belif·CNP 등)",  "co": "051900 LG생활건강",   "pat": ["belif ", "dr.groot", "dr. groot", "physiogel", "cnp laboratory", "the face shop"] },
+    { "k": "CTK",         "nm": "CTK (용기·ODM — 소비자 브랜드 없음)", "co": "260930 씨티케이", "pat": [], "off": true }
+  ]
+}

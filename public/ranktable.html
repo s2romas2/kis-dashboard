@@ -58,6 +58,9 @@ svg.ov { position:absolute; left:0; top:0; pointer-events:none; }
     <select id="yearSel"><option value="">연도 선택…</option></select>
   </div>
   <div class="bar">
+    <span class="chip cls on" data-cls="krx">KRX 업종</span>
+    <span class="chip cls" data-cls="wics" id="chipWics">WICS 중분류</span>
+    <span style="width:10px"></span>
     <span class="chip mkt" data-mkt="KOSPI">KOSPI</span>
     <span class="chip mkt" data-mkt="KOSDAQ">KOSDAQ</span>
     <input id="q" placeholder="🔍 업종 검색 (예: 화학, 전기)" oninput="search(this.value)">
@@ -76,6 +79,7 @@ let H=null, MKT='KOSPI', GRAN='M', WIN=24, YEAR='', SEL={}, QRY='';
 const COLORS=['#d92d20','#2f6df6','#12b76a','#f2a33c','#7a5af8','#0e9494'];
 const EXCLUDE=new Set(['제조']);
 function baseData(){
+  if(CLS==='wics'&&W&&W.idx) return wicsBase();
   const secs={};
   for(const v of Object.values(H.sectors)){
     if(v.mkt!==MKT||EXCLUDE.has(v.name)) continue;
@@ -363,18 +367,50 @@ function search(v){
   const q=document.getElementById('q');
   if(q){ q.focus(); q.setSelectionRange(q.value.length,q.value.length); }
 }
+document.querySelectorAll('.chip.cls').forEach(c=>c.addEventListener('click',()=>{
+  if(c.dataset.cls==='wics'&&!(W&&W.idx)) return;
+  CLS=c.dataset.cls; SEL={}; QRY=''; const q=document.getElementById('q'); if(q) q.value='';
+  document.querySelectorAll('.chip.mkt').forEach(x=>x.style.display=CLS==='wics'?'none':'');
+  sync(); draw();
+}));
 document.querySelectorAll('.chip.mkt').forEach(c=>c.addEventListener('click',()=>{ MKT=c.dataset.mkt; SEL={}; sync(); draw(); }));
 document.querySelectorAll('.chip.gran').forEach(c=>c.addEventListener('click',()=>{ GRAN=c.dataset.g; sync(); draw(); }));
 document.querySelectorAll('.chip.win').forEach(c=>c.addEventListener('click',()=>{ WIN=+c.dataset.win; YEAR=''; document.getElementById('yearSel').value=''; sync(); draw(); }));
 document.getElementById('yearSel').addEventListener('change',e=>{ YEAR=e.target.value; sync(); draw(); });
 function sync(){
+  document.querySelectorAll('.chip.cls').forEach(c=>c.classList.toggle('on',c.dataset.cls===CLS));
   document.querySelectorAll('.chip.mkt').forEach(c=>c.classList.toggle('on',c.dataset.mkt===MKT));
   document.querySelectorAll('.chip.gran').forEach(c=>c.classList.toggle('on',c.dataset.g===GRAN));
   document.querySelectorAll('.chip.win').forEach(c=>c.classList.toggle('on',!YEAR&&+c.dataset.win===WIN));
 }
+let CLS='krx', W=null;
+function wicsBase(){
+  const months=(W.months||[]).map(m=>String(m));
+  const rets={};
+  for(const [sc,ser] of Object.entries(W.idx||{})){
+    const nm=(W.secs&&W.secs[sc])||sc; rets[nm]={};
+    for(let i=1;i<ser.length;i++){
+      if(ser[i-1]>0) rets[nm][months[i]]=(ser[i]/ser[i-1]-1)*100;
+    }
+  }
+  const ms=months.slice(1);
+  const mrank={};
+  for(const ym of ms){
+    const arr=Object.keys(rets).filter(n=>rets[n][ym]!=null).map(n=>[n,rets[n][ym]]);
+    arr.sort((a,b)=>b[1]-a[1]);
+    mrank[ym]={}; arr.forEach(([nm],i)=>mrank[ym][nm]=i);
+  }
+  return {months:ms,rets,mrank,names:Object.keys(rets).sort()};
+}
 async function init(){
   try{ H=await (await fetch('/data/leadershist.json?t='+Date.now())).json(); }
   catch(e){ document.getElementById('tw').innerHTML='<div class="loading">leadershist.json 대기 중</div>'; return; }
+  try{
+    const w=await (await fetch('/data/wics.json?t='+Date.now())).json();
+    if(w&&w.idx&&Object.keys(w.idx).length) W=w;
+  }catch(e){}
+  const cw=document.getElementById('chipWics');
+  if(cw&&!(W&&W.idx)){ cw.style.opacity='.4'; cw.style.cursor='not-allowed'; cw.title='wics.json 수집 대기 중'; }
   fetch('/data/sectorstocks.json?t='+Date.now()).then(r=>r.ok?r.json():null).then(j=>{ window.__SS=j||{sectors:{}}; renderDrivers(); }).catch(()=>{ window.__SS={sectors:{}}; });
   const ys=new Set();
   for(const v of Object.values(H.sectors)) for(const m of v.monthly) ys.add(m[0].slice(0,4));

@@ -45,6 +45,23 @@ h1 { font-size:22px; margin:10px 0 4px; }
 .note { background:#fff7e8; border:1px solid #f5d9a8; border-radius:10px; padding:9px 13px; font-size:12px; color:#7a5b1e; margin-bottom:14px; line-height:1.6; }
 .loading { text-align:center; color:#98a2b3; padding:30px 0; }
 .lk { font-size:11.5px; color:#2f6df6; text-decoration:none; font-weight:700; }
+/* 📊 업종 구성 막대그래프 */
+.compcard { padding:10px 12px 12px; }
+.compcard h2 { font-size:14px; margin-bottom:6px; }
+.bcs { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:10px; margin-top:10px; }
+.bc { border:1px solid #eef0f4; border-radius:10px; padding:8px 10px; background:#fafbfd; }
+.bct { font-size:11.5px; font-weight:800; color:#475467; margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+.bct .n { color:#98a2b3; font-weight:600; font-size:10.5px; }
+.br { display:flex; align-items:center; gap:6px; font-size:11px; color:#475467; padding:2px 0; cursor:pointer; border-radius:6px; }
+.br:hover { background:#eef2f9; }
+.br.on .bl { color:#1a2a4a; font-weight:900; }
+.bl { width:80px; text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex-shrink:0; }
+.bb { flex:1; height:10px; background:#eceff4; border-radius:5px; overflow:hidden; }
+.bb i { display:block; height:100%; border-radius:5px; min-width:2px; }
+.bv { width:26px; font-weight:800; color:#1a1f2e; text-align:right; flex-shrink:0; }
+.bmode { display:inline-flex; gap:4px; margin-left:auto; }
+.bmode span { font-size:10.5px; font-weight:700; color:#667085; border:1px solid #e3e7ef; border-radius:10px; padding:2px 8px; cursor:pointer; background:#fff; }
+.bmode span.on { background:#1a2a4a; border-color:#1a2a4a; color:#fff; }
 </style>
 </head>
 <body>
@@ -63,8 +80,9 @@ h1 { font-size:22px; margin:10px 0 4px; }
   <div id="body"><div class="loading">불러오는 중…</div></div>
 </div>
 <script>
-let D=null, FILT='all', SEC='all', TW='all', Q='';
+let D=null, FILT='all', SEC='all', TW='all', Q='', BMODE='sig';
 const ST={new:['🟢 신규 진입','new'],hold:['🔵 주도 유지','hold'],warn:['🟡 경고 13-26 DC','warn'],dead:['🔴 이탈 4-26 DC','dead']};
+const STCOL={new:'#0e9f5a',hold:'#2f6df6',warn:'#e0a400',dead:'#d92d20'};
 const TWS=[['all','전체'],['d','오늘'],['w','최근 1주'],['m','최근 1개월'],['y','올해']];
 function fmt(n){ return n==null?'-':n.toLocaleString(); }
 function sigDate(x){ return x.arrStart||x.evtDate||''; }  // 신규·유지=정배열 시작일, 경고·이탈=DC 발생일
@@ -99,7 +117,7 @@ function draw(){
     list.filter(x=>x.state===k).forEach(x=>{ const s=x.sector||'기타'; c[s]=(c[s]||0)+1; });
     return Object.entries(c).sort((a,b)=>b[1]-a[1]);
   };
-  h+=`<div class="card" style="margin-bottom:12px"><h2 style="font-size:14px;margin-bottom:6px">📊 신호별 업종 구성${TW!=='all'?` <span style="font-weight:600;font-size:11.5px;color:#98a2b3">(${TWS.find(t=>t[0]===TW)[1]} 발생분)</span>`:''}</h2>`+
+  h+=`<div class="card compcard" style="margin-bottom:12px"><h2>📊 신호별 업종 구성${TW!=='all'?` <span style="font-weight:600;font-size:11.5px;color:#98a2b3">(${TWS.find(t=>t[0]===TW)[1]} 발생분)</span>`:''}</h2>`+
     Object.keys(ST).map(k=>{
       const rows=comp(k);
       if(!rows.length) return '';
@@ -108,7 +126,27 @@ function draw(){
         <span class="st ${cls}" style="flex-shrink:0">${lb} ${cnt[k]}</span>
         <span style="display:flex;gap:4px;flex-wrap:wrap">${rows.map(([s,c])=>
           `<span class="scf ${FILT===k&&SEC===s?'on':''}" onclick="setFS('${k}','${s}')">${s} <b>${c}</b></span>`).join('')}</span></div>`;
-    }).join('')+`</div>`;
+    }).join('');
+  // 📊 막대그래프 — 신호별(4개) 또는 정배열 합산(신규+유지) vs 이탈 합산(경고+이탈) 업종별 종목 수. 막대 클릭 = 그 신호·업종으로 필터
+  const barChart=(title,rows,col,k,note)=>{
+    if(!rows.length) return '';
+    const sorted=rows.filter(r=>r[0]!=='기타').concat(rows.filter(r=>r[0]==='기타'));
+    const mx=Math.max(...rows.map(r=>r[1]),1);
+    return `<div class="bc"><div class="bct">${title}${note?` <span class="n">${note}</span>`:''}</div>`+
+      sorted.map(([s,c])=>`<div class="br ${(k&&FILT===k&&SEC===s)?'on':''}" onclick="${k?`setFS('${k}','${s}')`:`setF('all');setSec('${s}')`}" title="${s} ${c}종목 — 클릭하면 목록 필터">
+        <span class="bl">${s}</span><span class="bb"><i style="width:${Math.max(2,Math.round(c/mx*100))}%;background:${col}"></i></span><span class="bv">${c}</span></div>`).join('')+`</div>`;
+  };
+  const merge=(ks)=>{ const c={}; list.filter(x=>ks.includes(x.state)).forEach(x=>{ const s=x.sector||'기타'; c[s]=(c[s]||0)+1; }); return Object.entries(c).sort((a,b)=>b[1]-a[1]); };
+  h+=`<div class="bct" style="margin-top:12px">📈 업종별 종목 수 그래프
+      <span class="bmode"><span class="${BMODE==='sig'?'on':''}" onclick="setBM('sig')">신호별</span><span class="${BMODE==='sum'?'on':''}" onclick="setBM('sum')">정배열 vs 이탈</span></span></div>`;
+  if(BMODE==='sig'){
+    h+=`<div class="bcs">`+Object.keys(ST).map(k=>barChart(`<span class="st ${ST[k][1]}">${ST[k][0]}</span>`,comp(k),STCOL[k],k,cnt[k]+'종목')).join('')+`</div>`;
+  } else {
+    const arr=merge(['new','hold']), dc=merge(['warn','dead']);
+    h+=`<div class="bcs">`+barChart('🟢🔵 업종별 정배열 종목 수',arr,'#2f6df6',null,'신규 진입 + 주도 유지 '+(cnt.new+cnt.hold)+'종목')+
+      barChart('🟡🔴 업종별 데드크로스 종목 수',dc,'#d92d20',null,'경고 + 이탈 '+(cnt.warn+cnt.dead)+'종목')+`</div>`;
+  }
+  h+=`</div>`;
   h+=`<div class="bar"><input id="q" placeholder="종목명·코드·섹터 검색" value="${Q}" oninput="Q=this.value;draw();refocus()"></div>`;
   // 섹터 필터 칩 — 현재 상태 필터 기준 건수 표시
   const base=list.filter(x=>FILT==='all'||x.state===FILT);
@@ -157,6 +195,7 @@ function refocus(){ const el=document.getElementById('q'); if(el){ el.focus(); e
 function setF(f){ FILT=f; SEC='all'; draw(); }
 function setSec(s){ SEC=s; draw(); }
 function setTW(t){ TW=t; draw(); }
+function setBM(m){ BMODE=m; draw(); }
 function setFS(f,s){ const same=(FILT===f&&SEC===s); FILT=f; SEC=same?'all':s; draw(); }
 const DRAWN={};
 function tog(i,code){

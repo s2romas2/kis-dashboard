@@ -62,7 +62,7 @@ a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
   <div class="panel">
     <div id="list"><div class="loading">불러오는 중…</div></div>
     <div class="hint" id="cnt"></div>
-    <div class="hint">파란 배지=페이지수(<b>진한 배지=50p 이상 심층</b>), ✍=애널리스트(PDF 표지에서 자동 추출·베타). 해외 리서치는 골드만삭스·모건스탠리·J.P.모건·UBS·ING·맥킨지의 <b>무료 공개 리서치 본문을 한국어로 통번역</b>해 사이트 안에서 바로 읽을 수 있습니다("번역 읽기" 버튼). 일부 본문 수집이 차단된 기사는 제목·요약 번역+원문 링크만 제공됩니다(IB 정식 리포트 PDF는 유료 고객 전용이라 제공 불가). 페이지수·애널리스트 미측정분은 다음 갱신 때 채워집니다. 정보 제공용이며 투자권유가 아닙니다.</div>
+    <div class="hint">파란 배지=페이지수(<b>진한 배지=50p 이상 심층</b>), ✍=애널리스트(PDF 표지에서 자동 추출·베타). 해외 리서치는 골드만삭스·모건스탠리·J.P.모건·UBS·ING·맥킨지의 <b>무료 공개 리서치 본문을 한국어로 통번역</b>해 사이트 안에서 바로 읽을 수 있습니다("번역 읽기" 버튼). 일부 본문 수집이 차단된 기사는 제목·요약 번역+원문 링크만 제공됩니다(IB 정식 리포트 PDF는 유료 고객 전용이라 제공 불가). 페이지수·애널리스트 미측정분은 다음 갱신 때 채워집니다. 국내 리포트는 한경컨센서스·네이버 리서치·증권사 홈페이지(삼성·키움·유안타·대신·하나·현대차·KB)에서 모아 중복을 제거한 것입니다(KB는 요약 페이지 링크). 정보 제공용이며 투자권유가 아닙니다.</div>
   </div>
 </div>
 <script>
@@ -133,7 +133,8 @@ function draw(){
     return;
   }
   document.getElementById('list').innerHTML=list.map(x=>{
-    const pg=x.pg? `<div class="pg ${x.pg>=50?'deep':''}">${x.pg}<small>페이지</small></div>` : '<div class="pg" style="color:#98a1b0;background:#f4f5f8">—<small>측정중</small></div>';
+    const pg=x.pg? `<div class="pg ${x.pg>=50?'deep':''}">${x.pg}<small>페이지</small></div>` : (x.html ? '<div class="pg" style="color:#98a1b0;background:#f4f5f8">—<small>요약</small></div>' : '<div class="pg" style="color:#98a1b0;background:#f4f5f8">—<small>측정중</small></div>');
+    const srcb=(x.src&&x.src!=='한경컨센서스') ? ` <span style="color:#98a1b0;font-size:11px">· ${esc(x.src===x.b?'홈페이지':x.src)}</span>` : '';
     const tag = (TAB==='industry'||(TAB==='archive'&&x.kind!=='company'))
       ? `<span class="cat">${esc(x.cat||'기타')}</span>`
       : `<span class="cat">${esc(pentry(x.code).s||'기타')}</span><b>${esc(x.name)}</b> <span style="color:#98a1b0;font-size:11px">${x.code}</span> · `;
@@ -141,10 +142,10 @@ function draw(){
     return `<div class="rp">${pg}
       <div class="rmain">
         <div class="rt"><a href="${x.pdf}" target="_blank" rel="noopener">${esc(x.t)}</a>${x.seed?' <span class="cat" style="background:#fff3e0;color:#b45309">📌 큐레이션</span>':''}</div>
-        <div class="rsub">${tag}${esc(x.b)}${an} · ${x.d}${x.v!=null?' · 조회 '+Number(x.v).toLocaleString():''}</div>
+        <div class="rsub">${tag}${esc(x.b)}${srcb}${an} · ${x.d}${x.v?' · 조회 '+Number(x.v).toLocaleString():''}</div>
         ${x.s?`<div class="rsub" style="color:#4b5563;margin-top:3px">${esc(x.s)}</div>`:''}
       </div>
-      <a class="dl" href="${x.pdf}" target="_blank" rel="noopener">PDF 보기</a></div>`;
+      <a class="dl" href="${x.pdf}" target="_blank" rel="noopener">${x.html?'원문 보기':'PDF 보기'}</a></div>`;
   }).join('');
 }
 (async function(){

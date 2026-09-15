@@ -162,7 +162,7 @@ def _cat_of(title, catre=None):
         m = re.search(catre, t)
         if m and m.group(1).strip():
             c = m.group(1).strip()
-            if len(c) <= 14:
+            if len(c) <= 14 and not (' ' in c and len(c) > 7):   # "헬스케어 S웨비나 자료" 같은 제목 조각은 업종으로 안 씀
                 return c
     m = re.match(r'\s*\[([^\]]{1,20})\]', t)
     if m:
@@ -238,10 +238,17 @@ def scrape_broker(cfg, probe=False):
     for p in cfg['pages']:
         url = cfg['list'].format(p=p)
         body = cfg.get('body').format(p=p, cutoff8=CUTOFF.strftime('%Y%m%d'), today8=TODAY.strftime('%Y%m%d')) if cfg.get('body') else None
-        try:
-            st, h = _get_text(url, data=body, enc=cfg.get('enc'))
-        except Exception as e:
-            DEBUG.append('%s/%s p%s: %r' % (name, tag, p, e)); break
+        st, h = 0, ''
+        for attempt, to in enumerate((20, 40)):   # 하나증권처럼 미국 러너에서 간헐 타임아웃 → 1회 재시도
+            try:
+                st, h = _get_text(url, data=body, timeout=to, enc=cfg.get('enc')); break
+            except Exception as e:
+                if attempt == 1:
+                    DEBUG.append('%s/%s p%s: %r' % (name, tag, p, e))
+                else:
+                    time.sleep(2)
+        if not st:
+            break
         if st != 200 or not h:
             DEBUG.append('%s/%s p%s: HTTP %s %s' % (name, tag, p, st, re.sub(r'\s+', ' ', h[:200]))); break
         rows = []

@@ -1,4 +1,4 @@
-# kis-dashboard 프로젝트 현황 (2026-09-15 기준)
+# kis-dashboard 프로젝트 현황 (2026-09-16 기준)
 
 > 이 파일이 원본. 프로젝트 지식(앱 업로드)·다운로드 폴더 사본은 더 이상 갱신하지 않음 — 작업 결과는 `claude/` 안의 파일을 직접 수정해 커밋한다.
 
@@ -28,6 +28,13 @@
 - **A 첫 실행 #107 성공(31.5분, 3,003콜)**: 업종 53개, 일봉 최소 538/최대 1,646, 주봉 116/450, 거래대금 단위 = 백만원(0001 중앙값 21,762,301 → 코스피 일 21.7조, 타당). money 53업종, Top5 예: 통신 KOSDAQ 2.4배·비금속 KOSPI 2.29배. **⚠ Render 배포 정지**: 9/14 22:26 KST 배포 이후 어떤 커밋도 배포되지 않음(랭크테이블 새 UI·leaders/sectorstocks 새 데이터가 onrender.com에 안 뜸) → Render 대시보드에서 배포 상태·수동 Deploy 확인 필요. 새 UI는 raw 데이터를 iframe으로 붙여 검증 완료(🔥 배지·💰 Top5·거래대금 순위 월/일·일별 2020년·주별 2018년·업종 카드·💰/🧭/📐 패널 정상, 콘솔 에러 0)
 - 검증 필요(사용자·다음 세션): ① rank.bat 실행 → rank.log 에 "RANK SYNC DONE"·status 깨끗 ② 푸시 5~15분 뒤 leaders/sectorstocks/sectorval 워크플로 성공(leaders 첫 실행은 백필로 길다) ③ ranktable.html?v=… 렌더: 일별 보기에서 연도 2020 선택, 순위:거래대금 토글, 업종 클릭 시 💰/🧭/📐 지표 줄 ④ leaders.json.debug의 "거래대금 단위"·"백필 결과" 줄, sectorstocks.json.debug의 "투자자동향 응답 키"·"순매수대금 필드/(수량×종가) 비율", sectorval.json.debug의 KRX 성공 여부
 - 한계: 거래대금·순매수 단위는 첫 실행 결과로 확정해야 함 / KRX 400이면 PER/PBR은 KIS 추정만 / leadershist.json이 ~4~5MB로 커짐(Render gzip 전제) / 견인 종목은 등락률순위 상위이므로 수급·밸류 합산은 "업종 전체"가 아닌 "견인 상위 15종목" 표본
+
+## 🧩 WICS 소분류 71 뷰 (9/15 오후 커밋 acff5bff→f0e348f1, 9/16 새벽 무인 검증 kis-wics-sectors)
+- 소스·방식: 구성종목 = **네이버 증권 모바일 API** `m.stock.naver.com/api/stocks/industry?page&pageSize=100`(업종 no·name·totalCount, pageSize 200은 400) → `/api/stocks/industry/{no}?page&pageSize=100`(itemCode). 구형 finance.naver.com sise_group 페이지는 Next.js 전환으로 EUC-KR 파싱 0건 → 폴백 코드로만 남김. 71개 업종명은 `tools/wics/sectors.json`, norm(공백·· 제거) 매칭 → **71/71 매칭·2,862종목**(`wics71map.json` 7일 캐시). 수익률 = wics.py 월봉 캐시(`wicsmon.json`, KIS FHKST03010100 M) 재사용 + `stockvals.json` 시총 가중(현재 시총 고정), TOPN 3000(=전 종목, 1500이면 가정용품 등 소형주 업종 누락)·MIN_MEMBERS 1. `wics71.yml` 평일 UTC 10:20(19:20 KST, wics.py 뒤) + push 트리거, concurrency group `wics-cache` 공유
+- 검증 결과(9/16 새벽): Actions wics71 최근 6회 전부 success — 초기 월봉 수집 run 14분(2,588종목 캐시), 이후 캐시 재사용 run 28초. `wics71.json`: 섹터 **71/71**·월 **97개**(2018-09~2026-09)·매핑 2,862/시총교집합 2,582·제외 0·최소 종목 수 3(생명보험)·4(무선통신서비스)·5(기타금융·전기유틸리티·전문소매). wics.json(중분류)도 25섹터·97개월 정상 갱신 중
+- **judoju.kboard.workers.dev/rank 교차검증**(9/14 갱신본, 표 71업종·월간 시총가중): 우리 idx로 계산한 월간 수익률 순위와 스피어만 상관 **2026.06 0.98 / 07 0.98 / 08 0.99 / 09(진행중) 0.89**, 상위 10 겹침 10·9·9·7개, 상위 20 겹침 19·18·19·15개, 35계단 이상 어긋난 업종 0. 9월은 기준일 차이(judoju 9/14 vs 우리 9/15 종가)로 낮음 — 같은 방식임이 확인돼 보정 불필요
+- 배포 확인(9/16 새벽): `ranktable.html?v=…` "WICS 소분류 71" 칩 → 72행×25열(24.10~26.09*) 렌더, 판정 카드(🔺 도로와철도운송·무역회사와판매업체 / 🌱 가구·철강·가스유틸리티 / 🔻 건강관리업체및서비스·건강관리기술), 콘솔 에러 0. **Render 자동 배포 재개 확인**(9/15 16:17 판정 기준 카드 커밋까지 반영) — 슬립 상태면 첫 요청 후 ~30초 대기
+- 한계: 과거 구간도 현재 구성종목·현재 시총(생존편향, 상폐·신규상장 미반영) / 네이버 업종 분류 ≠ WICS 공식(judoju 헤더는 "77개 업종", 표는 71행) / 네이버 API 비공식 — 구조 바뀌면 `build_map_api` 예외 → 캐시 7일 유지 후 "매핑 없음 — 중단"(debug 확인) / 월말 종가 대비 수익률(월중 진행분은 마지막 봉)
 
 ## 🔦 광통신 맵 5탭 + 구리/아마존/WICS 트래커 (9/13 반영 — 커밋 7e46030·1111cfe·824f577·449adaf·5b627bd·9ca42b3, 랭크테이블 테마/누적/카드 e3c8623)
 - 반영 파일 20개: optics.html(146KB, 탭 5개 tabRep/tabMap/tabCs/tabGl/tabCu 확인)·optics_quotes.json·optics.py·optics.yml / copper.json·copper.py·copper.yml / amazon.html·amazonbrands.json·amazonnodes.json·amazon.json·amazon.py·amazon.yml / ranktable.html(`data-cls="wics"`)·wicsmap.json(2,392종목·27섹터)·wics.py·wics.yml / nav.js(아마존 메뉴)·blogkeys.json(12명)·lectures.enc(256,273B base64)
@@ -117,9 +124,9 @@
 - **KRX 정보데이터시스템(data.krx.co.kr getJsonData.cmd)은 2026-09 현재 로그인 세션 필수** — 비로그인/GitHub Actions에서는 HTTP 400 본문 "LOGOUT". 로그인 상태(Chrome)에서 확인한 요청: 전체지수 PER/PBR/배당 = bld `dbms/MDC/STAT/standard/MDCSTAT00701`, searchType 1, idxIndMidclssCd 02(코스피)/03(코스닥), trdDd, share 2, money 3 → output[IDX_NM, CLSPRC_IDX, WT_PER, WT_STKPRC_NETASST_RTO, DIV_YD] (코스피 53행, 업종명은 접두어 없이 '음식료·담배' 등). 업종분류 현황(종목→업종) = `MDCSTAT03901`, mktId STK/KSQ, trdDd, money 1 → block1[ISU_SRT_CD, ISU_ABBRV, MKT_TP_NM, IDX_IND_NM, MKTCAP]. 로그인 페이지 `/contents/MDC/COMS/client/MDCCOMS001.cmd`(폼 COMS001_FORM, 비밀번호 보안입력 → 파이썬 자동 로그인 미검증). **주의: 로그인 상태에서 스크립트로 연속 호출·로그인 페이지 fetch 시 세션이 끊김(9/15 확인) → 사용자 재로그인 필요**. 로그인 폼은 iframe(login.jsp) 내부, 비밀번호 nProtect nppfs 암호화(자동 로그인 불가). 로그인 후 fetch로 MDCSTAT00701/03901 정상 수신. Chrome 자동 다운로드는 탭당 1건 제한(추가 다운로드는 새 탭에서)
 
 ## 미해결
-- **WICS 수집 #1 결과 확인**(9/13 23:12 KST 수동 실행) → wics.json 생성·랭크테이블 WICS 칩 활성 여부 / copper·amazon·wics.yml 첫 정기실행 로그로 py 문법 확인(셸 불가로 ast 검사 생략)
+- ~~WICS 수집 #1 결과 확인~~ → 9/16 확인: wics.json 25섹터·97개월, wics71.json 71섹터·97개월 정상(위 섹션). copper·amazon·wics.yml 정기실행 관찰은 계속
 - 셸 복구 후: 로컬 클론 동기화 필수(9/13 웹 커밋 7건 + 9/15 웹 커밋이 원격에만 있음 — `kis-apply\rank.bat`)
-- **Render 자동 배포 정지(9/14 22:26 KST 이후)** — 사용자가 Render 대시보드 확인(수동 Deploy latest commit / 빌드 실패·플랜 한도 여부)
+- ~~Render 자동 배포 정지(9/14 22:26 KST 이후)~~ → 9/16 새벽 확인: 9/15 16:17 커밋까지 배포됨(재개). 재발 시 Render 대시보드 확인
 - 랭크테이블 업그레이드 검증(9/15): leaders/sectorstocks 첫 실행 로그·debug(단위 추정·백필 결과·투자자동향 키) / sectorval은 KRX 로그인 필요라 KIS 추정(est)만 동작 — KRX 로그인 자동화 또는 로그인된 Chrome에서 수동 수집 경로 검토 / KRX 세션 재로그인
 - IR워치 첫 자동실행(11/17) / leadsig·power·pq 정기실행 관찰 / qdeep 신규 12종목 / 니어스랩 / 조선 페이지 / 소부장 이미지 2사
 - optics.yml 첫 실행(9/11 07:30 KST) 관찰 — 일본·중국 시세 채워지는지 / 마인드맵 ⚠ 노드(확인 실패 항목) 후속 검증
@@ -128,4 +135,4 @@
 - 강의 노트: 9/8 이후 강의(16강~) 올라오면 녹음·요약·슬라이드 추가
 
 ## 교훈 (누적)
-- 배치 빈 결과 덮어쓰기 금지(전 수집기) · 로컬 시드 pv 주의 · DART 과속 차단 · 단위 교차검증 · 스크롤-하베스트 · performance API · 유튜브 429 폴백 · yml git add 개별 · 네이버 차단 · Render 빈 커밋 · 인라인 onclick 금지 · IR노트 실제 접촉만 · 기존 UI 제거 금지 · 무인작업 JSON 경유 · 렌더 검증 · 이미지 자체 호스팅 · PAT repo+workflow · fnlttSinglAcnt 분기 규칙 · 워크플로 커밋 if:always · 공공API 폐기 감시 · 예약작업엔 fine-grained PAT · 섹터흐름 품질 기준 유지 · 대용량 백필은 nohup 백그라운드 · 파일형 응답은 매직바이트 검증(PK) · XBRL 표준태그 0값 함정 · 관세청 GW 월별 합산+1년 제한+키 인코딩 정규화 · 워크플로 동시 트리거 push 경합 주의 · IR 수치는 출처 링크 필수 · 신호 로직은 합성 시계열 유닛테스트 · 대시보드 반영은 PC 세션(클라우드는 push 403) · 큰 파일은 copy로 배치(Write 재타이핑 금지) · PC 세션 셸 고장 시 .bat 스크립트를 탐색기 더블클릭으로 실행 · 콜노트 merge 전 callNo 중복 확인(rptNo 재발급) · 공개 저장소 문서엔 암호·키 값 금지 · **셸 완전 고장 시 Chrome 확장→GitHub 웹 Upload files(폴더별 커밋·파일 1개씩·이름변경은 edit 페이지·중복명은 delete 후)** · 웹 업로드는 원격만 갱신되므로 로컬 클론 pull 필요 · **웹 업로드 전 원격 최신본(raw)과 대조 — 오래된 로컬 사본으로 덮어쓰기 금지** · 무인 예약작업 커밋 경로 = Claude in Chrome GitHub 웹 업로드(미연결이면 몇 분 뒤 재시도) → yml 먼저·py 마지막·폴더별 1커밋 → 로컬 클론은 동기화 bat · KIS 기간별 시세는 창을 잘게 나눠 반복하면 과거 무제한(창당 봉 수 제한 ~50 준수) · 단위 불명 필드는 기준값(코스피 0001 등)으로 자동 추정하고 debug에 근거 기록
+- 배치 빈 결과 덮어쓰기 금지(전 수집기) · 로컬 시드 pv 주의 · DART 과속 차단 · 단위 교차검증 · 스크롤-하베스트 · performance API · 유튜브 429 폴백 · yml git add 개별 · 네이버 차단 · Render 빈 커밋 · 인라인 onclick 금지 · IR노트 실제 접촉만 · 기존 UI 제거 금지 · 무인작업 JSON 경유 · 렌더 검증 · 이미지 자체 호스팅 · PAT repo+workflow · fnlttSinglAcnt 분기 규칙 · 워크플로 커밋 if:always · 공공API 폐기 감시 · 예약작업엔 fine-grained PAT · 섹터흐름 품질 기준 유지 · 대용량 백필은 nohup 백그라운드 · 파일형 응답은 매직바이트 검증(PK) · XBRL 표준태그 0값 함정 · 관세청 GW 월별 합산+1년 제한+키 인코딩 정규화 · 워크플로 동시 트리거 push 경합 주의 · IR 수치는 출처 링크 필수 · 신호 로직은 합성 시계열 유닛테스트 · 대시보드 반영은 PC 세션(클라우드는 push 403) · 큰 파일은 copy로 배치(Write 재타이핑 금지) · PC 세션 셸 고장 시 .bat 스크립트를 탐색기 더블클릭으로 실행 · 콜노트 merge 전 callNo 중복 확인(rptNo 재발급) · 공개 저장소 문서엔 암호·키 값 금지 · **셸 완전 고장 시 Chrome 확장→GitHub 웹 Upload files(폴더별 커밋·파일 1개씩·이름변경은 edit 페이지·중복명은 delete 후)** · 웹 업로드는 원격만 갱신되므로 로컬 클론 pull 필요 · **웹 업로드 전 원격 최신본(raw)과 대조 — 오래된 로컬 사본으로 덮어쓰기 금지** · 무인 예약작업 커밋 경로 = Claude in Chrome GitHub 웹 업로드(미연결이면 몇 분 뒤 재시도) → yml 먼저·py 마지막·폴더별 1커밋 → 로컬 클론은 동기화 bat · KIS 기간별 시세는 창을 잘게 나눠 반복하면 과거 무제한(창당 봉 수 제한 ~50 준수) · 단위 불명 필드는 기준값(코스피 0001 등)으로 자동 추정하고 debug에 근거 기록 · 네이버 금융 구형 페이지(sise_group)는 Next.js 전환 → 구성종목은 m.stock.naver.com/api/stocks/industry 사용 · 새 지표는 외부 참조 사이트(judoju 등)와 순위 상관으로 교차검증 후 문서화

@@ -4,8 +4,14 @@
 # 결과: public/data/sectorval.json
 #   {updated, date, map:{"업종명|KOSPI":{per,pbr,div,idx,raw}}, hist:{"업종명|KOSPI":[[YYYYMMDD,pbr,per],...]}, all:[...], debug:[...]}
 # 원칙: KRX 실패 시 기존 파일(map/hist) 유지 + debug 기록. 값은 지어내지 않는다.
-# 시크릿(선택): KRX_ID, KRX_PW — 현재 로그인 폼을 오프라인에서 확인할 수 없어 로그인 단계는 미구현(세션 쿠키 워밍업만 수행)
-import os, sys, json, time, datetime, re, urllib.request, urllib.parse, http.cookiejar
+#
+# ⚠ 2026-09 확인: KRX 정보데이터시스템은 이제 **로그인 세션을 요구**(비로그인 요청은 HTTP 400 본문 "LOGOUT").
+#   로그인 폼(login.jsp)의 비밀번호 입력란은 nProtect Plugin-Free(nppfs, npkencrypt="on")로 클라이언트 암호화 →
+#   KRX_ID/PW만으로 헤드리스(GitHub Actions·파이썬) 자동 로그인은 불가능(봇 차단 목적의 독점 암호화).
+#   따라서 이 스크립트는 GitHub Actions에서는 사실상 기존 파일을 보존만 한다(정상). 실제 갱신 경로:
+#     (1) 로그인된 Chrome 세션에서 MDCSTAT00701을 fetch해 sectorval.json을 만들어 커밋(2026-09-15 방식, claude/현황.md 참조)
+#     (2) KRX_COOKIE 시크릿: 로그인된 브라우저의 data.krx.co.kr 쿠키 문자열을 넘기면 그 세션으로 수집 시도(세션 만료 시 실패→보존)
+import os, sys, json, time, datetime, re, urllib.request, urllib.parse, urllib.error, http.cookiejar
 
 OUT = 'public/data/sectorval.json'
 HIST_SRC = 'public/data/leadershist.json'   # 랭크테이블 업종명·시장 목록(이름 매칭용)
@@ -54,6 +60,10 @@ class KRX:
         self.opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(self.cj))
         self.ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36'
         self.warm = False
+        # KRX_COOKIE 시크릿(로그인된 브라우저 쿠키 문자열)이 있으면 그 세션으로 요청
+        self.cookie = (os.environ.get('KRX_COOKIE') or '').strip()
+        if self.cookie:
+            dbg('KRX_COOKIE 사용(로그인 세션 %d바이트)' % len(self.cookie))
 
     def warmup(self, scheme):
         try:
@@ -68,7 +78,7 @@ class KRX:
     def call(self, params):
         last = ''
         for scheme in ('https', 'http'):
-            if not self.warm:
+            if not self.warm and not self.cookie:
                 self.warmup(scheme)
             url = '%s://data.krx.co.kr/comm/bldAttendant/getJsonData.cmd' % scheme
             for referer in ('%s://data.krx.co.kr/contents/MDC/MDI/mdiLoader/index.cmd?menuId=MDC0201020506' % scheme,
@@ -77,6 +87,8 @@ class KRX:
                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                        'Accept': 'application/json, text/javascript, */*; q=0.01',
                        'X-Requested-With': 'XMLHttpRequest', 'Origin': '%s://data.krx.co.kr' % scheme}
+                if self.cookie:
+                    hdr['Cookie'] = self.cookie
                 try:
                     req = urllib.request.Request(url, data=urllib.parse.urlencode(params).encode(), headers=hdr)
                     body = self.opener.open(req, timeout=30).read().decode('utf-8', 'ignore')
@@ -92,6 +104,16 @@ class KRX:
                     if rows:
                         return rows, ''
                     last = '빈 응답 %s' % body[:120]
+                except urllib.error.HTTPError as e:
+                    detail = ''
+                    try:
+                        detail = e.read().decode('utf-8', 'ignore')[:40]
+                    except Exception:
+                        pass
+                    if 'LOGOUT' in detail or e.code == 400:
+                        last = 'HTTP %s "%s" → KRX 로그인 세션 필요(KRX_COOKIE 미설정/만료)' % (e.code, detail)
+                    else:
+                        last = '%s %s: %r' % (scheme, referer[-30:], e)
                 except Exception as e:
                     last = '%s %s: %r' % (scheme, referer[-30:], e)
                 time.sleep(0.8)

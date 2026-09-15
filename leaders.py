@@ -186,9 +186,10 @@ def save_hist(hist):
     json.dump(hist, open(HIST, 'w', encoding='utf-8'), ensure_ascii=False)
 
 
-def money_axis(rows):
-    """거래대금 축: 최근 5봉 평균 ÷ 직전 60봉 평균 (rows = daily [[d, close, val, vol], ...])"""
-    vals = [(r[0], r[2]) for r in rows if len(r) >= 3 and r[2]]
+def money_axis(rows, skip_date=None):
+    """거래대금 축: 최근 5봉 평균 ÷ 직전 60봉 평균 (rows = daily [[d, close, val, vol], ...]).
+    skip_date = 장중 미완성 봉(오늘) — 평균을 희석하지 않도록 제외"""
+    vals = [(r[0], r[2]) for r in rows if len(r) >= 3 and r[2] and r[0] != skip_date]
     if len(vals) < 25:
         return None
     last5 = [v for _, v in vals[-5:]]
@@ -350,10 +351,12 @@ def main():
 
     # ---- 거래대금 축: 업종별 최근 5일 평균 ÷ 직전 60일 평균 (급증 배수) + 시장 내 점유율 ----
     money = {}
+    kst_hm = time.strftime('%H%M', time.gmtime(time.time() + 9 * 3600))
+    skip_today = today if kst_hm < '1540' else None      # 장중이면 오늘 봉(미완성) 제외
     for code, hc in hist['sectors'].items():
         if code not in sectors:
             continue
-        m = money_axis(hc.get('daily') or [])
+        m = money_axis(hc.get('daily') or [], skip_today)
         if m:
             m.update({'n': hc['name'], 'mkt': hc['mkt']})
             money[code] = m

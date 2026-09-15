@@ -50,8 +50,27 @@ NAVER_API = 'https://m.stock.naver.com/api/stocks/industry'   # 신형 네이버
 
 def build_map_api(sectors):
     """네이버 모바일 API: /api/stocks/industry → 업종 목록(no·name), /api/stocks/industry/{no}?page&pageSize → 구성종목(itemCode)."""
-    j = json.loads(get(NAVER_API + '?page=1&pageSize=200').decode('utf-8', 'ignore'))
-    groups = j.get('groups') or []
+    groups = []
+    for page in range(1, 5):   # pageSize 최대 100(200은 400 에러)
+        j = json.loads(get('%s?page=%d&pageSize=100' % (NAVER_API, page)).decode('utf-8', 'ignore'))
+        g = j.get('groups') or []
+        groups += g
+        if len(g) < 100: break
+    # 구성종목 엔드포인트 후보 — 첫 업종으로 탐색해 itemCode 가 나오는 패턴 채택
+    PATS = ['%s/{no}?page={p}&pageSize=100', '%s/{no}/stocks?page={p}&pageSize=100', '%s/{no}/list?page={p}&pageSize=100',
+            'https://m.stock.naver.com/api/stocks/industry/{no}/items?page={p}&pageSize=100']
+    pat = None
+    if groups:
+        for cand in PATS:
+            u = (cand % NAVER_API if '%s' in cand else cand).format(no=groups[0]['no'], p=1)
+            try:
+                b = get(u, tries=1).decode('utf-8', 'ignore')
+                if re.search(r'"itemCode"\s*:\s*"[0-9A-Z]{6}"', b): pat = cand; DEBUG.append('구성종목 API 채택: ' + u); break
+                DEBUG.append('후보 %s → itemCode 없음: %s' % (u, re.sub(r'\s+', ' ', b[:120])))
+            except Exception as e:
+                DEBUG.append('후보 %s → %s' % (u, repr(e)[:60]))
+    if not pat:
+        raise RuntimeError('구성종목 API 미확인')
     naver = {norm(g.get('name', '')): g for g in groups if g.get('no')}
     DEBUG.append('네이버 API 업종 %d개' % len(naver))
     want = {norm(s): s for s in sectors}
@@ -66,7 +85,7 @@ def build_map_api(sectors):
         codes, total, b = [], int(g.get('totalCount') or 0), ''
         for page in range(1, 8):
             try:
-                b = get('%s/%s?page=%d&pageSize=100' % (NAVER_API, g['no'], page), tries=2).decode('utf-8', 'ignore')
+                b = get((pat % NAVER_API if '%s' in pat else pat).format(no=g['no'], p=page), tries=2).decode('utf-8', 'ignore')
             except Exception as e:
                 DEBUG.append('%s p%d 실패 %s' % (s, page, repr(e)[:60])); break
             found = [c for c in re.findall(r'"itemCode"\s*:\s*"([0-9A-Z]{6})"', b) if c not in codes]

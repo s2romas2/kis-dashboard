@@ -66,7 +66,11 @@ def scrape(kind):
             item = {'t': title, 'b': broker, 'd': d, 'pdf': '%s/analysis/downpdf?report_idx=%s' % (CONS, rid), 'v': 0, 'src': '한경컨센서스'}
             if kind == 'industry':
                 cat = re.match(r'\s*\[([^\]]{1,20})\]', title)
-                item['cat'] = cat.group(1).strip() if cat else '기타'
+                c = cat.group(1).strip() if cat else ''
+                # 대괄호가 업종명일 때만(짧고 공백 없는 한글/영문/슬래시) 채택 — "[AI 홍수 속 살아남기]" 같은 제목 장식은 기타
+                item['cat'] = c if (c and len(c) <= 12 and re.fullmatch(r'[가-힣A-Za-z0-9/·&]+', c)) else '기타'
+                ic = re.search(r'industry_code=(\d+)', r)
+                if ic: item['icode'] = ic.group(1)
             else:
                 st = re.search(r'business_code=([0-9A-Z]{6})', r) or re.search(r'stockcd=([0-9A-Z]{6})', r)
                 nm = re.match(r'\s*(.+?)\s*\(\s*([0-9A-Z]{6})\s*\)', title)
@@ -91,6 +95,92 @@ def scrape(kind):
         uniq.append(x)
     DEBUG.append('%s %d건' % (kind, len(uniq)))
     return uniq
+
+def scrape_naver(kind):
+    """네이버 신형 리서치 — 모바일 API 후보를 순서대로 시도해 첫 성공 패턴을 채택(2026-09 개편 대응).
+    응답 JSON에서 pdf 링크·제목·날짜·증권사를 최대한 일반적으로 뽑는다. 실패하면 [] + DEBUG(진단)."""
+    cat = 'industry' if kind == 'industry' else 'company'
+    cands = ['https://m.stock.naver.com/api/research/%s?page=1&pageSize=50' % cat,
+             'https://m.stock.naver.com/api/research/list?category=%s&page=1&pageSize=50' % cat,
+             'https://m.stock.naver.com/api/research/%sList?page=1&pageSize=50' % cat,
+             'https://m.stock.naver.com/api/research?type=%s&page=1&pageSize=50' % cat,
+             'https://finance.naver.com/api/research/%s?page=1&pageSize=50' % cat]
+    out = []
+    for u in cands:
+        try:
+            raw = urllib.request.urlopen(urllib.request.Request(u, headers=UA), timeout=20).read().decode('utf-8', 'ignore')
+        except Exception as e:
+            DEBUG.append('naver %s → %s' % (u.split('naver.com')[1][:60], repr(e)[:40])); continue
+        if 'pdf' not in raw.lower() and 'report' not in raw.lower():
+            DEBUG.append('naver %s → %d바이트, 리포트 흔적 없음: %s' % (u.split('naver.com')[1][:60], len(raw), re.sub(r'\s+', ' ', raw[:120]))); continue
+        try:
+            j = json.loads(raw)
+        except Exception:
+            DEBUG.append('naver %s → JSON 아님: %s' % (u.split('naver.com')[1][:60], re.sub(r'\s+', ' ', raw[:160]))); continue
+        # 리스트 후보 탐색
+        lst = None
+        stack = [j]
+        while stack and lst is None:
+            x = stack.pop()
+            if isinstance(x, list) and x and isinstance(x[0], dict) and any(k for k in x[0] if re.search(r'title|subject', k, re.I)):
+                lst = x
+            elif isinstance(x, dict):
+                stack.extend(x.values())
+            elif isinstance(x, list):
+                stack.extend(x)
+        if not lst:
+            DEBUG.append('naver %s → 목록 키 미확인: %s' % (u.split('naver.com')[1][:60], list(j.keys())[:8] if isinstance(j, dict) else type(j).__name__)); continue
+        DEBUG.append('naver 채택 %s → %d건, 키: %s' % (u.split('naver.com')[1][:60], len(lst), list(lst[0].keys())[:14]))
+        for x in lst:
+            def pick(*names):
+                for k, v in x.items():
+                    if any(re.search(n, k, re.I) for n in names) and v not in (None, ''):
+                        return v
+                return None
+            title = pick('^title$', 'subject', 'title')
+            pdf = pick('pdf', 'fileUrl', 'attach', 'file')
+            d = pick('date', 'writeDate', 'regDate', 'createdAt')
+            broker = pick('broker', 'company', 'secur', 'org', 'source')
+            if not (title and d):
+                continue
+            ds = re.sub(r'[^0-9]', '', str(d))[:8]
+            if len(ds) == 8:
+                ds = '%s-%s-%s' % (ds[:4], ds[4:6], ds[6:8])
+            elif len(ds) == 6:
+                ds = '20%s-%s-%s' % (ds[:2], ds[2:4], ds[4:6])
+            else:
+                continue
+            if ds < CUTOFF.isoformat():
+                continue
+            item = {'t': str(title).strip(), 'b': str(broker or '').strip(), 'd': ds, 'pdf': str(pdf or ''), 'v': int(pick('read', 'view', 'hit') or 0), 'src': '네이버'}
+            if kind == 'industry':
+                c = pick('category', 'industry', 'upjong', 'sector')
+                item['cat'] = str(c).strip() if c else (re.match(r'\s*\[([^\]]{1,20})\]', item['t']).group(1) if re.match(r'\s*\[([^\]]{1,20})\]', item['t']) else '기타')
+            else:
+                code = pick('itemCode', 'stockCode', 'code')
+                name = pick('itemName', 'stockName', 'name')
+                if not code:
+                    continue
+                item['code'], item['name'] = str(code), str(name or '')
+            if item['pdf']:
+                out.append(item)
+        break
+    DEBUG.append('naver %s %d건' % (kind, len(out)))
+    return out
+
+def merge_reports(a, b):
+    """두 소스 병합 — 같은 날짜+증권사+제목(공백·괄호 정규화)이면 중복. 한경 항목을 우선."""
+    def key(x):
+        t = re.sub(r'[\s\[\]\(\)【】·,.\-_]', '', x.get('t', '')).lower()[:40]
+        return (x.get('d'), re.sub(r'(투자)?증권|㈜|\s', '', x.get('b', '')), t)
+    seen, out = set(), []
+    for x in list(a) + list(b):
+        k = key(x)
+        if k in seen or x.get('pdf') in seen:
+            continue
+        seen.add(k); seen.add(x.get('pdf'))
+        out.append(x)
+    return out
 
 AN_PAT = re.compile(r'([가-힣]{2,4})\s*(?:선임연구원|수석연구원|책임연구원|연구위원|연구원|애널리스트|Analyst)')
 AN_PAT2 = re.compile(r'(?:Analyst|애널리스트)\s*[|:.\s]\s*([가-힣]{2,4})')
@@ -297,6 +387,13 @@ def main():
     ancache = dict(prev.get('ancache') or {})
     ind = scrape('industry')
     cmp_ = scrape('company')
+    try:   # 네이버 신형 리서치(모바일 API) 병합 — 실패해도 한경 결과는 유지
+        ind = merge_reports(ind, scrape_naver('industry'))
+        cmp_ = merge_reports(cmp_, scrape_naver('company'))
+    except Exception as e:
+        DEBUG.append('naver 병합 예외 %r' % e)
+    ind.sort(key=lambda x: x['d'], reverse=True); cmp_.sort(key=lambda x: x['d'], reverse=True)
+    DEBUG.append('병합 후 industry %d · company %d' % (len(ind), len(cmp_)))
     count_pages(ind, cache, ancache)
     count_pages(cmp_, cache, ancache)
     gl = scrape_global(prev.get('global'))

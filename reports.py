@@ -7,7 +7,12 @@ import email.utils
 
 OUT = 'public/data/reports.json'
 UA = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
-DEBUG = []
+class _Dbg(list):   # DEBUG 줄을 즉시 stdout에도 찍어 Actions 로그에서 진행 위치를 볼 수 있게
+    def append(self, s):
+        print(s, flush=True); super().append(s)
+DEBUG = _Dbg()
+T0 = time.time()
+PDF_BUDGET_SEC = 480   # 페이지수 측정(PDF 다운로드) 총 예산 — 넘으면 나머지는 다음 실행에서
 TODAY = datetime.date.today()
 CUTOFF = TODAY - datetime.timedelta(days=7)
 MAX_PDF_DL = 100  # 실행당 페이지수 측정 최대 건수
@@ -102,7 +107,7 @@ def scrape(kind):
 # 유진(igii412.do 목록 0건·로그인 필요) / 미래에셋·신한·교보·DB·NH·한국투자 = 보류
 BROKER_HDR = dict(UA, **{'Accept': 'text/html,application/json;q=0.9,*/*;q=0.8', 'Accept-Language': 'ko-KR,ko;q=0.9'})
 
-def _get_text(url, data=None, timeout=30, enc=None):
+def _get_text(url, data=None, timeout=20, enc=None):
     """GET/POST → (status, text). 문자셋은 헤더→meta→enc→utf-8 순."""
     req = urllib.request.Request(url, data=data.encode() if isinstance(data, str) else data, headers=BROKER_HDR)
     if data is not None:
@@ -525,12 +530,12 @@ def count_pages(items, cache, ancache):
             if ancache[u]:
                 x['an'] = ancache[u]
             continue
-        if dl >= MAX_PDF_DL:
+        if dl >= MAX_PDF_DL or (time.time() - T0) > PDF_BUDGET_SEC:
             if u in cache:
                 x['pg'] = cache[u]
             continue
         try:
-            b = get(u, timeout=60, binary=True)
+            b = get(u, timeout=25, binary=True)
             rd = PdfReader(io.BytesIO(b))
             x['pg'] = cache[u] = len(rd.pages)
             an = extract_analysts(rd)
@@ -674,7 +679,7 @@ def scrape_global(prev_items):
     # 본문 통번역 (실행당 최대 25건 — 나머지는 다음 실행에서)
     done_body = 0
     for x in out:
-        if x.get('body') or done_body >= 25:
+        if x.get('body') or done_body >= 25 or (time.time() - T0) > PDF_BUDGET_SEC + 300:
             continue
         real = x.get('url')
         if not real:
@@ -717,6 +722,16 @@ def main():
     srcc = Counter(x.get('src', '') for x in ind + cmp_); brc = Counter(x.get('b', '') for x in ind + cmp_)
     DEBUG.append('소스별 건수: ' + ', '.join('%s %d' % kv for kv in srcc.most_common()))
     DEBUG.append('증권사별 건수: ' + ', '.join('%s %d' % kv for kv in brc.most_common()))
+    DEBUG.append('수집 단계 %.0f초' % (time.time() - T0))
+    try:   # 중간 저장 — 이후 PDF 측정·해외 번역이 타임아웃돼도 목록은 보존(워크플로 커밋은 if: always)
+        for arr in (ind, cmp_):
+            for x in arr:
+                if x['pdf'] in cache: x['pg'] = cache[x['pdf']]
+        mid = dict(prev); mid.update({'updated': time.strftime('%Y-%m-%d %H:%M'), 'debug': list(DEBUG) + ['(중간 저장)'], 'industry': ind, 'company': cmp_})
+        os.makedirs('public/data', exist_ok=True)
+        json.dump(mid, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False)
+    except Exception as e:
+        DEBUG.append('중간 저장 실패 %r' % e)
     count_pages(ind, cache, ancache)
     count_pages(cmp_, cache, ancache)
     gl = scrape_global(prev.get('global'))
@@ -745,6 +760,7 @@ def main():
         DEBUG.append('시드 병합 실패: %r' % e)
     arch_list = sorted(archive.values(), key=lambda x: (x.get('d') or '', x.get('pg') or 0), reverse=True)
     DEBUG.append('아카이브 %d건' % len(arch_list))
+    DEBUG.append('총 %.0f초' % (time.time() - T0))
     out = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'debug': DEBUG,
            'industry': ind, 'company': cmp_, 'global': gl, 'archive': arch_list,
            'pagecache': {k: v for k, v in cache.items() if v and k in live},

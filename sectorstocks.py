@@ -2,6 +2,8 @@
 # 업종별 견인 종목 수집 — KIS 업종별 구성종목 시세
 # 랭크테이블에서 섹터 클릭 시 그 업종을 견인하는 종목(등락률·시총)을 표시하기 위한 데이터.
 # 업종 코드·이름은 leadershist.json(이미 leaders.py가 채움)에서 그대로 재사용 → 이름이 랭크테이블과 100% 일치.
+# v2 (2026-09-15 랭크테이블 업그레이드 D): 견인 종목별 투자자매매동향(FHKST01010900) 최근 5거래일 외국인·기관 순매수를
+#   업종 합계(억원)로 sectors[key].flow 에 추가, 종목별 f5/o5. 현재가(FHKST01010100) per/pbr로 업종 시총가중 PER/PBR 추정 est.
 # 필요 시크릿: KIS_APPKEY, KIS_APPSECRET
 import math, os, sys, json, time, urllib.request, urllib.parse
 
@@ -121,6 +123,90 @@ def category_stocks(hdr, code):
 
 
 category_stocks._logged = False
+
+
+# ---- 수급 축: 종목별 투자자매매동향(FHKST01010900) 최근 5거래일 외국인·기관 순매수 ----
+# 응답 필드명은 문서/버전마다 달라 방어적으로 후보를 훑고, 첫 응답 키를 DEBUG에 1회 남긴다.
+INV_DATE_KEYS = ['stck_bsop_date', 'bsop_date', 'date']
+INV_CLPR_KEYS = ['stck_clpr', 'stck_prpr', 'clpr']
+FRGN_QTY_KEYS = ['frgn_ntby_qty', 'frgn_ntby_vol', 'frgn_ntby']
+ORGN_QTY_KEYS = ['orgn_ntby_qty', 'orgn_ntby_vol', 'orgn_ntby']
+FRGN_AMT_KEYS = ['frgn_ntby_tr_pbmn', 'frgn_ntby_pbmn', 'frgn_ntby_amt']
+ORGN_AMT_KEYS = ['orgn_ntby_tr_pbmn', 'orgn_ntby_pbmn', 'orgn_ntby_amt']
+FLOW_DAYS = 5
+FLOW_SLEEP = 0.06
+
+
+def investor_flow(hdr, code):
+    """종목 투자자매매동향 → {'f5': 외국인 5일 순매수(억원), 'o5': 기관 5일 순매수(억원), 'days': n, 'last': YYYYMMDD}
+    금액 = 순매수수량 × 종가 (단위가 확실한 조합). API의 순매수대금 필드는 첫 응답에서 비율만 DEBUG에 기록."""
+    u = BASE + '/uapi/domestic-stock/v1/quotations/inquire-investor?FID_COND_MRKT_DIV_CODE=J&FID_INPUT_ISCD=' + code
+    h = dict(hdr); h['tr_id'] = 'FHKST01010900'
+    j = get_json(u, h)
+    if j.get('rt_cd') != '0':
+        return None, (j.get('msg1', '') or '')[:40]
+    rows = j.get('output') or j.get('output1') or j.get('output2') or []
+    if not rows:
+        return None, 'empty'
+    if not investor_flow._logged:
+        DEBUG.append('투자자동향 응답 키: ' + ','.join(list(rows[0].keys())[:28]))
+        investor_flow._logged = True
+    recs = []
+    for r in rows:
+        d = pick(r, INV_DATE_KEYS)
+        clpr = tonum(pick(r, INV_CLPR_KEYS))
+        fq, oq = tonum(pick(r, FRGN_QTY_KEYS)), tonum(pick(r, ORGN_QTY_KEYS))
+        if not d or clpr is None or fq is None or oq is None:
+            continue
+        recs.append((str(d), clpr, fq, oq, tonum(pick(r, FRGN_AMT_KEYS)), tonum(pick(r, ORGN_AMT_KEYS))))
+    if not recs:
+        return None, 'no-fields'
+    recs.sort(key=lambda x: x[0], reverse=True)
+    recs = recs[:FLOW_DAYS]
+    # 순매수대금 필드 단위 진단(1회): 필드값 ÷ (수량×종가) 비율 → 1이면 원, 1e-6이면 백만원
+    if not investor_flow._ratio_logged:
+        for d, clpr, fq, oq, fa, oa in recs:
+            if fa and fq and clpr and abs(fq * clpr) > 0:
+                DEBUG.append('순매수대금 필드/(수량×종가) 비율 %.3g (%s %s)' % (fa / (fq * clpr), code, d))
+                investor_flow._ratio_logged = True
+                break
+    f5 = sum(fq * clpr for _, clpr, fq, _, _, _ in recs) / 1e8
+    o5 = sum(oq * clpr for _, clpr, _, oq, _, _ in recs) / 1e8
+    return {'f5': round(f5, 1), 'o5': round(o5, 1), 'days': len(recs), 'last': recs[0][0]}, ''
+
+
+investor_flow._logged = False
+investor_flow._ratio_logged = False
+
+
+def stock_price(hdr, code):
+    """주식현재가(FHKST01010100) → {per, pbr, cap(억원)} — 업종 PER/PBR 추정(KRX 실패 시 폴백)용"""
+    u = BASE + '/uapi/domestic-stock/v1/quotations/inquire-price?FID_COND_MRKT_DIV_CODE=J&FID_INPUT_ISCD=' + code
+    h = dict(hdr); h['tr_id'] = 'FHKST01010100'
+    j = get_json(u, h)
+    o = j.get('output') or {}
+    if not o:
+        return None
+    if not stock_price._logged:
+        DEBUG.append('현재가 키: ' + ','.join(k for k in o.keys() if k in ('per', 'pbr', 'eps', 'bps', 'hts_avls', 'stck_prpr')))
+        stock_price._logged = True
+    return {'per': tonum(o.get('per')), 'pbr': tonum(o.get('pbr')), 'cap': tonum(o.get('hts_avls'))}
+
+
+stock_price._logged = False
+
+
+def sector_valuation_est(items):
+    """시총가중(조화평균) PER/PBR 추정: Σ시총 ÷ Σ(시총/배수). 적자(PER≤0)·결측 제외."""
+    def agg(key):
+        num = den = 0.0
+        for it in items:
+            v, cap = it.get(key), it.get('cap')
+            if v and v > 0 and cap and cap > 0:
+                num += cap; den += cap / v
+        return round(num / den, 2) if den > 0 else None
+    n = sum(1 for it in items if it.get('cap'))
+    return {'per': agg('per'), 'pbr': agg('pbr'), 'n': n}
 
 
 def _mkt_of(v):
@@ -259,6 +345,54 @@ def main():
         ok += 1
     DEBUG.append('구성종목 확보 업종 %d개' % ok)
 
+    # ---- 수급 축 + 밸류 추정: 업종별 견인 종목(top15)에 대해 투자자매매동향 5일 순매수·현재가 PER/PBR ----
+    t0 = time.time()
+    n_flow = n_fail = n_prc = 0
+    cache_flow, cache_prc = {}, {}
+    for key, sec in sectors.items():
+        items_val = []
+        for st in sec.get('top', []):
+            c = st['c']
+            if c not in cache_flow:
+                try:
+                    fl, msg = investor_flow(hdr, c)
+                    cache_flow[c] = fl
+                    if fl is None and msg and n_fail < 5:
+                        DEBUG.append('투자자동향 %s %s' % (c, msg))
+                    if fl is None:
+                        n_fail += 1
+                except Exception as e:
+                    cache_flow[c] = None; n_fail += 1
+                    if n_fail <= 5:
+                        DEBUG.append('투자자동향 %s 오류 %s' % (c, str(e)[:30]))
+                time.sleep(FLOW_SLEEP)
+                try:
+                    cache_prc[c] = stock_price(hdr, c)
+                    n_prc += 1
+                except Exception as e:
+                    cache_prc[c] = None
+                    if len(DEBUG) < 60:
+                        DEBUG.append('현재가 %s 오류 %s' % (c, str(e)[:30]))
+                time.sleep(FLOW_SLEEP)
+            fl = cache_flow.get(c)
+            if fl:
+                st['f5'], st['o5'] = fl['f5'], fl['o5']
+                n_flow += 1
+            pr = cache_prc.get(c)
+            if pr:
+                st['per'], st['pbr'] = pr.get('per'), pr.get('pbr')
+                if pr.get('cap') and not st.get('cap'):
+                    st['cap'] = pr['cap']
+                items_val.append(pr)
+        flows = [cache_flow[st['c']] for st in sec.get('top', []) if cache_flow.get(st['c'])]
+        if flows:
+            sec['flow'] = {'f5': round(sum(f['f5'] for f in flows), 1), 'o5': round(sum(f['o5'] for f in flows), 1),
+                           'n': len(flows), 'last': max(f['last'] for f in flows),
+                           'note': '견인 상위 %d종목 합산 · 최근 %d거래일 · 순매수수량×종가(억원)' % (len(flows), FLOW_DAYS)}
+        if items_val:
+            sec['est'] = sector_valuation_est(items_val)
+    DEBUG.append('수급 %d종목·현재가 %d종목 (실패 %d) %.0f초' % (n_flow, n_prc, n_fail, time.time() - t0))
+
     # ---- 실적 성장주: screener 종목을 KRX업종에 매핑 후, 업종별 YoY 성장 상위 ----
     try:
         code2name = {code: name for code, name, mkt in codes}   # leadershist 업종코드→이름
@@ -297,7 +431,7 @@ def main():
         grown = 0
         for key, lst in by_sec.items():
             if key not in sectors:
-                sectors[key] = {'name': m['sec'], 'mkt': key.split('|')[1], 'n': 0, 'top': []}
+                sectors[key] = {'name': key.split('|')[0], 'mkt': key.split('|')[1], 'n': 0, 'top': []}
             have = {t['c'] for t in sectors[key].get('top', [])}
             # opYoY 우선, 없으면 revYoY 로 정렬(비정상 초대형치 방지 위해 상한 clip)
             # 점수 = log(증가율) x log(매출) — 미니베이스 수천%가 대형 실적주를 밀어내지 않게 완충

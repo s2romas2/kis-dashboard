@@ -100,7 +100,8 @@ svg.ov { position:absolute; left:0; top:0; pointer-events:none; }
   </div>
   <div class="bar">
     <span class="chip cls on" data-cls="krx">KRX 업종</span>
-    <span class="chip cls" data-cls="wics" id="chipWics">WICS 중분류</span>
+    <span class="chip cls" data-cls="wics" id="chipWics">WICS 중분류 27</span>
+    <span class="chip cls" data-cls="wics71" id="chipWics71">WICS 소분류 71</span>
     <span class="chip cls" data-cls="theme" id="chipTheme">테마</span>
     <span style="width:10px"></span>
     <span class="chip mkt" data-mkt="KOSPI">KOSPI</span>
@@ -119,7 +120,10 @@ svg.ov { position:absolute; left:0; top:0; pointer-events:none; }
 </div>
 <script>
 let H=null, MKT='KOSPI', GRAN='M', WIN=24, YEAR='', SEL={}, QRY='';
-let CLS='krx', W=null, T=null, BASIS='per', CUMN=12, EMG=0;
+let CLS='krx', WD={}, T=null, BASIS='per', CUMN=12, EMG=0;   // WD: WICS 계열 데이터 {cls: json}
+const WICS_SRC={wics:{file:'/data/wics.json',label:'WICS 중분류',chip:'chipWics'}, wics71:{file:'/data/wics71.json',label:'WICS 소분류 71',chip:'chipWics71'}};   // cls → 파일·라벨·칩 id
+function isWics(c){ return !!WICS_SRC[c||CLS]; }
+function wd(c){ return WD[c||CLS]||null; }   // 현재(또는 지정) WICS 계열의 json (idx/months/secs/comp)
 let L=null, V=null, RANKBY='ret', MV={climbers:[],faders:[],emergers:[]};   // 거래대금 축(leaders.json) · 밸류 축(sectorval.json) · 순위 기준
 const COLORS=['#d92d20','#2f6df6','#12b76a','#f2a33c','#7a5af8','#0e9494'];
 const EXCLUDE=new Set(['제조']);
@@ -180,7 +184,7 @@ function themeName(id){ const t=(T&&T.themes||[]).find(x=>x.id===id); return t?t
 function themeById(nm){ return (T&&T.themes||[]).find(x=>x.n===nm); }
 function seriesFor(g){ // 현재 CLS에서 단위 g(D/W/M)의 시계열, 없으면 null
   if(CLS==='krx') return krxSeries(g==='D'?'daily':g==='W'?'weekly':'monthly');
-  if(CLS==='wics') return g==='M'&&W&&W.idx?idxSeries(W.idx,W.months||[],id=>(W.secs&&W.secs[id])||id):null;
+  if(isWics()){ const W=wd(); return g==='M'&&W&&W.idx?idxSeries(W.idx,W.months||[],id=>(W.secs&&W.secs[id])||(W.comp&&W.comp[id]&&W.comp[id].n)||id):null; }
   if(CLS==='theme'){
     if(!T) return null;
     if(g==='W') return T.widx?idxSeries(T.widx,T.weeks||[],themeName):null;
@@ -363,7 +367,7 @@ function draw(){
     let msg='데이터 없음';
     if(isVal()) msg='거래대금 데이터 수집 중 — 일봉에 거래대금이 저장된 다음 배치 이후 채워집니다(2020년~). 그때까지는 순위 기준을 수익률로 두세요.';
     else if(CLS==='krx'&&(GRAN==='D'||GRAN==='W')) msg='일별·주별 데이터 수집 중 — 다음 배치(내일 아침) 이후 채워집니다. 그때까지는 월별 이상 단위를 이용해주세요.';
-    else if(CLS==='wics'&&GRAN!=='M'&&!(GRAN==='Q'||GRAN==='H'||GRAN==='Y')) msg='WICS 중분류는 월봉 기반 — 월별·분기별·반기별·연도별만 지원합니다.';
+    else if(isWics()&&GRAN!=='M'&&!(GRAN==='Q'||GRAN==='H'||GRAN==='Y')) msg=WICS_SRC[CLS].label+'는 월봉 기반 — 월별·분기별·반기별·연도별만 지원합니다.';
     else if(CLS==='theme'&&GRAN==='D') msg='테마는 주봉·월봉 기반 — 주별 이상 단위를 이용해주세요.';
     else if(isCum()) msg='누적 구간이 데이터보다 깁니다 — 더 짧은 누적 기간을 선택하세요.';
     document.getElementById('tw').innerHTML=`<div class="loading">${msg}</div>`;
@@ -466,7 +470,7 @@ function renderCards(win,rank,plist){
     for(const p of win){ const i=posIn(nm,p); if(i==null) continue; if(best==null||i<best) best=i; if(worst==null||i>worst) worst=i; }
     const chg=(now!=null&&prev!=null)?prev-now:null;
     const th=CLS==='theme'?themeById(nm):null;
-    const grp=th?th.g+' · '+th.cnt+'종목':CLS==='wics'?'WICS 중분류':MKT+' 업종';
+    const grp=th?th.g+' · '+th.cnt+'종목':isWics()?WICS_SRC[CLS].label:MKT+' 업종';
     const basisLab=val?'거래대금 순위':cum?`최근 ${cumLab} 누적`:(GRAN==='D'?'당일':GRAN==='W'?'당주':GRAN==='M'?'당월':'기간');
     let st='';
     if(th&&T&&T.stocks){
@@ -622,11 +626,11 @@ function search(v){
   if(q){ q.focus(); q.setSelectionRange(q.value.length,q.value.length); }
 }
 document.querySelectorAll('.chip.cls').forEach(c=>c.addEventListener('click',()=>{
-  if(c.dataset.cls==='wics'&&!(W&&W.idx)) return;
+  if(isWics(c.dataset.cls)&&!(wd(c.dataset.cls)||{}).idx) return;
   if(c.dataset.cls==='theme'&&!(T&&T.widx)) return;
   CLS=c.dataset.cls; SEL={}; QRY=''; const q=document.getElementById('q'); if(q) q.value='';
   if(CLS==='theme'&&GRAN==='D') GRAN='W';
-  if(CLS==='wics'&&(GRAN==='D'||GRAN==='W')) GRAN='M';
+  if(isWics()&&(GRAN==='D'||GRAN==='W')) GRAN='M';
   if(CLS!=='krx') RANKBY='ret';   // 거래대금 순위는 KRX 업종에서만
   document.querySelectorAll('.chip.mkt').forEach(x=>x.style.display=CLS==='krx'?'':'none');
   sync(); draw();
@@ -662,16 +666,18 @@ function sync(){
 async function init(){
   try{ H=await (await fetch('/data/leadershist.json?t='+Date.now())).json(); }
   catch(e){ document.getElementById('tw').innerHTML='<div class="loading">leadershist.json 대기 중</div>'; return; }
-  try{
-    const w=await (await fetch('/data/wics.json?t='+Date.now())).json();
-    if(w&&w.idx&&Object.keys(w.idx).length) W=w;
-  }catch(e){}
+  for(const [k,src] of Object.entries(WICS_SRC)){   // WICS 중분류(wics.json) · 소분류 71(wics71.json) — 같은 구조
+    try{
+      const w=await (await fetch(src.file+'?t='+Date.now())).json();
+      if(w&&w.idx&&Object.keys(w.idx).length) WD[k]=w;
+    }catch(e){}
+    const cw=document.getElementById(src.chip);
+    if(cw){ if(!(WD[k]&&WD[k].idx)){ cw.style.opacity='.4'; cw.style.cursor='not-allowed'; cw.title=src.file.split('/').pop()+' 수집 대기 중'; } else cw.title=src.label+' '+Object.keys(WD[k].idx).length+'개 · 갱신 '+(WD[k].updated||''); }
+  }
   try{
     const t=await (await fetch('/data/themes.json?t='+Date.now())).json();
     if(t&&t.widx&&Object.keys(t.widx).length) T=t;
   }catch(e){}
-  const cw=document.getElementById('chipWics');
-  if(cw&&!(W&&W.idx)){ cw.style.opacity='.4'; cw.style.cursor='not-allowed'; cw.title='wics.json 수집 대기 중'; }
   const ct=document.getElementById('chipTheme');
   if(ct){ if(!(T&&T.widx)){ ct.style.opacity='.4'; ct.style.cursor='not-allowed'; ct.title='themes.json 수집 대기 중 — Actions "테마 섹터 지수 일일 수집" 실행 후'; } else ct.title='테마 '+(T.themes||[]).length+'개 · 갱신 '+(T.updated||''); }
   fetch('/data/sectorstocks.json?t='+Date.now()).then(r=>r.ok?r.json():null).then(j=>{ window.__SS=j||{sectors:{}}; renderDrivers(); }).catch(()=>{ window.__SS={sectors:{}}; });

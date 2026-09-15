@@ -1,0 +1,35 @@
+name: WICS 소분류 71 섹터 지수
+on:
+  schedule:
+    - cron: '20 10 * * 1-5'      # UTC 10:20 = KST 19:20 (wics.py 18:50 이후 — 월봉 캐시 공유)
+  workflow_dispatch: {}
+  push:
+    paths: ['wics71.py', 'tools/wics/sectors.json']
+permissions:
+  contents: write
+concurrency:
+  group: wics-cache
+  cancel-in-progress: false
+jobs:
+  wics71:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 수집
+        env:
+          KIS_APPKEY: ${{ secrets.KIS_APPKEY }}
+          KIS_APPSECRET: ${{ secrets.KIS_APPSECRET }}
+        run: python wics71.py
+      - name: 커밋
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/wics71.json public/data/wics71map.json public/data/wicsmon.json 2>/dev/null || true
+          git commit -m "WICS 소분류 71 섹터 지수 갱신" || echo "변경 없음"
+          git pull --rebase -X theirs origin main || true
+          git push || true

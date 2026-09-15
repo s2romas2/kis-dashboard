@@ -20,6 +20,7 @@ jobs:
       - name: 수집
         env:
           DART_KEY: ${{ secrets.DART_KEY }}
+          MAXRUN: '35'
         run: python qdeep.py
       - name: 결과 커밋
         if: always()

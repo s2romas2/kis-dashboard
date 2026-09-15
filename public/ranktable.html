@@ -40,6 +40,8 @@ svg.ov { position:absolute; left:0; top:0; pointer-events:none; }
 .legend { font-size:11.5px; color:#667085; margin-top:8px; line-height:1.7; }
 .legend b { color:#1a1f2e; }
 .climb { display:inline-block; font-size:11px; font-weight:800; background:#fde8e8; color:#d92d20; border-radius:8px; padding:2px 9px; margin-right:5px; }
+#critBox table td, #critBox table th { padding:3px 6px; border-bottom:1px solid #eef0f4; vertical-align:top; }
+#critBox tr.cur td { background:#fff7e6; }
 .emerge { display:inline-block; font-size:11px; font-weight:800; background:#e6f7ee; color:#0e9f5a; border-radius:8px; padding:2px 9px; margin-right:5px; }
 .fade { display:inline-block; font-size:11px; font-weight:800; background:#e8f0fe; color:#2f6df6; border-radius:8px; padding:2px 9px; margin-right:5px; }
 .newb { display:inline-block; font-size:11px; font-weight:800; background:#fff4e5; color:#b54708; border-radius:8px; padding:2px 9px; margin:2px 5px 2px 0; }
@@ -317,9 +319,10 @@ function movers(win,rank){
   const N=Math.max(...win.map(p=>(rank[p]||[]).length),1);
   const pos={};
   for(const p of win){ (rank[p]||[]).forEach(([nm],i)=>{ (pos[nm]=pos[nm]||{})[p]=i; }); }
-  const climb=[],fade=[],emerge=[];
+  const climb=[],fade=[],emerge=[],info={};
   const minLen=Math.min(GRAN==='D'?10:GRAN==='W'?6:GRAN==='M'?6:3,win.length);
   const bigJump=Math.max(4,N/5);   // 최소 점프폭: 4계단(또는 리스트의 1/5) — 10등→9등 같은 미세이동 제외
+  const tailN=Math.max(1,Math.min(GRAN==='D'?5:GRAN==='M'||GRAN==='W'?3:2,win.length));
   for(const [nm,pp] of Object.entries(pos)){
     const ps=win.filter(p=>pp[p]!=null);
     if(ps.length<minLen) continue;
@@ -328,13 +331,63 @@ function movers(win,rank){
     const early=ps.slice(0,half).reduce((a,p)=>a+pp[p],0)/half;
     const late=ps.slice(-tail).reduce((a,p)=>a+pp[p],0)/tail;
     const jump=early-late;                     // +면 순위 상승(위로)
+    info[nm]={early:early+1,late:late+1,jump};   // 1등부터 세는 등수로 저장(툴팁용)
     const isClimber=(late<N/3&&jump>N/4);
     if(isClimber) climb.push([nm,jump]);
     else if(early>=N*0.5&&jump>=bigJump) emerge.push([nm,jump]);
     if(late>N*2/3&&late-early>N/4) fade.push([nm,late-early]);
   }
   climb.sort((a,b)=>b[1]-a[1]); fade.sort((a,b)=>b[1]-a[1]); emerge.sort((a,b)=>b[1]-a[1]);
-  return {climbers:climb.slice(0,3).map(x=>x[0]), faders:fade.slice(0,2).map(x=>x[0]), emergers:emerge.slice(0,3).map(x=>x[0])};
+  return {climbers:climb.slice(0,3).map(x=>x[0]), faders:fade.slice(0,2).map(x=>x[0]), emergers:emerge.slice(0,3).map(x=>x[0]),
+          info, N, minLen, tailN, halfN:Math.floor(win.length/2), crit:critNums(N)};
+}
+/* ---------- 🔺🌱🔻 판정 기준을 "등수·계단"으로 환산 (N = 그 뷰의 섹터 수) ---------- */
+function critNums(N){
+  return {N,
+    topRank:Math.ceil(N/3),                 // 뜨는 중: 지금 등수 ≤ 이 값 (상위 1/3)
+    upStep:Math.floor(N/4)+1,               // 뜨는 중·가라앉는 중: N/4 초과 → 정수로는 이 값 이상
+    upRaw:(N/4).toFixed(1),
+    lowHalf:Math.ceil(N/2)+1,               // 반등 초기: 예전 등수 ≥ 이 값 (하위 절반)
+    emgStep:Math.ceil(Math.max(4,N/5)),     // 반등 초기: 이 값 이상 올라옴
+    emgRaw:Math.max(4,N/5).toFixed(1),
+    fadeRank:Math.floor(2*N/3)+2};          // 가라앉는 중: 지금 등수 ≥ 이 값 (하위 1/3)
+}
+function viewN(cls){ // 각 뷰의 섹터 수(로드된 데이터 기준, 없으면 null)
+  try{
+    if(cls==='krx'){ const s=new Set(); for(const v of Object.values(H.sectors)) if(v.mkt===MKT&&!EXCLUDE.has(v.name)) s.add(v.name); return s.size||null; }
+    if(cls==='theme'){ const t=T&&(T.idx||T.themes||T.series||T.list); return t?(Array.isArray(t)?t.length:Object.keys(t).length):null; }
+    const d=WD[cls]; return d&&d.idx?Object.keys(d.idx).length:null;
+  }catch(e){ return null; }
+}
+function critRow(label,N,cur){
+  if(!N) return `<tr${cur?' class="cur"':''}><td>${label}</td><td colspan="4" class="dim">데이터 로드 후 표시</td></tr>`;
+  const c=critNums(N);
+  return `<tr${cur?' class="cur"':''}><td>${label}${cur?' <b>(지금 보는 뷰)</b>':''}</td><td><b>${N}개</b></td>
+    <td>지금 <b>1~${c.topRank}등</b> + <b>${c.upStep}계단↑</b></td>
+    <td>예전 <b>${c.lowHalf}등 밖</b>에서 <b>${c.emgStep}계단↑</b>, 아직 ${c.topRank+1}등 밖</td>
+    <td>지금 <b>${c.fadeRank}등 밖</b> + <b>${c.upStep}계단↓</b></td></tr>`;
+}
+function critBoxHtml(mv){
+  const unit=GRAN==='D'?'일':GRAN==='W'?'주':GRAN==='M'?'개월':GRAN==='Q'?'분기':GRAN==='H'?'반기':'년';
+  const nWin=mv.halfN*2||0;
+  const rows=[
+    critRow('KRX 업종 ('+MKT+')', CLS==='krx'?mv.N:viewN('krx'), CLS==='krx'),
+    critRow('WICS 중분류', CLS==='wics'?mv.N:viewN('wics'), CLS==='wics'),
+    critRow('WICS 소분류', CLS==='wics71'?mv.N:viewN('wics71'), CLS==='wics71'),
+    critRow('테마', CLS==='theme'?mv.N:viewN('theme'), CLS==='theme')].join('');
+  return `<details id="critBox" style="margin:4px 0 8px;font-size:11.5px;color:#475467">
+    <summary style="cursor:pointer;color:#2f6df6;font-weight:700">ⓘ 뜨는 중·반등 초기·가라앉는 중 — 판정 기준 보기</summary>
+    <div style="background:#fbfcfe;border:1px solid #e6e9f0;border-radius:10px;padding:10px 12px;margin-top:6px;line-height:1.7">
+      <div><b>1. 두 개의 등수를 만듭니다</b> — 지금 표에 보이는 칸 중 <b>앞쪽 절반(${mv.halfN}${unit})</b>에서의 평균 등수 = <b>예전 위치</b>, <b>마지막 ${mv.tailN}${unit}</b>의 평균 등수 = <b>지금 위치</b>.
+        수익률 크기·거래대금·수급은 보지 않고 <b>등수 이동</b>만 봅니다. (칸이 ${mv.minLen}${unit} 미만이면 판정 안 함)</div>
+      <div style="margin-top:4px"><b>2. 섹터 수(N)에 따라 기준 숫자가 정해집니다</b> — 상위 1/3 = 1~⌈N/3⌉등, "크게 올라옴" = N/4 초과 계단, 반등 초기의 점프 = N/5(최소 4) 이상, 하위 1/3 = ⌊2N/3⌋+2등부터.</div>
+      <table style="width:100%;border-collapse:collapse;margin-top:6px;font-size:11.5px">
+        <tr style="color:#667085"><th style="text-align:left;padding:3px 6px">뷰</th><th style="text-align:left;padding:3px 6px">섹터 수</th><th style="text-align:left;padding:3px 6px">🔺 뜨는 중</th><th style="text-align:left;padding:3px 6px">🌱 바닥권 반등(초기)</th><th style="text-align:left;padding:3px 6px">🔻 가라앉는 중</th></tr>
+        ${rows}
+      </table>
+      <div style="margin-top:6px;color:#667085">예) 테마 30개: 앞 6개월 평균 20등 → 최근 3개월 평균 6등이면 "1~10등 안 + 14계단↑" → 🔺 뜨는 중. 배지에 마우스를 올리면 그 섹터의 "예전 등수 → 지금 등수"가 보입니다.
+        표시 개수: 뜨는 중·반등 초기 각 3개, 가라앉는 중 2개. 단위(일/주/월)나 창 길이를 바꾸면 결과가 달라지고, 마지막 ${mv.tailN}칸 중 한 칸만 튀어도 잡힐 수 있으니 🔥(거래대금)·수급과 같이 보세요.</div>
+    </div></details>`;
 }
 /* ---------- 🆕 신규 부상: M개월 전 하위 절반 → 지금 상위 1/3 (순위 점프형) ---------- */
 function periodsBack(m){
@@ -374,7 +427,9 @@ function draw(){
     document.getElementById('autoBox').innerHTML=''; document.getElementById('secbar').innerHTML='';
     return;
   }
-  const {climbers,faders,emergers}=movers(win,rank);
+  const MVR=movers(win,rank);
+  const {climbers,faders,emergers}=MVR;
+  const tip=n=>{ const i=MVR.info[n]; return i?`${n}: 예전 ${i.early.toFixed(1)}등 → 지금 ${i.late.toFixed(1)}등 (${i.jump>0?'+':''}${i.jump.toFixed(1)}계단) · 섹터 ${MVR.N}개 기준`:n; };
   const NC=newcomers(plist,rank);
   const emgHits=NC.list.map(x=>x.nm);
   const qhits=QRY?names.filter(n=>n.includes(QRY)):[];
@@ -393,10 +448,12 @@ function draw(){
       (NC.list.length?NC.list.map(x=>`<span class="newb" onclick="togSec('${x.nm}')" style="cursor:pointer">${x.nm} ${x.from}→${x.to}위 <span style="font-weight:600;color:#98a2b3">${fmtP(x.rt)}</span></span>`).join('')
       :'<span style="font-size:11.5px;color:#98a2b3">해당 없음</span>')+'</div>';
   }
-  if(climbers.length) ab+='🔺 뜨는 중(상단 진입): '+climbers.map(n=>`<span class="climb">${n}</span>`).join('');
-  if(emergers.length) ab+=' 🌱 바닥권 반등(초기): '+emergers.map(n=>`<span class="emerge">${n}</span>`).join('');
-  if(faders.length) ab+=' 🔻 가라앉는 중: '+faders.map(n=>`<span class="fade">${n}</span>`).join('');
+  const CR=MVR.crit;
+  if(climbers.length) ab+=`<span title="지금 1~${CR.topRank}등 + ${CR.upStep}계단 이상 상승 (섹터 ${CR.N}개 기준)">🔺 뜨는 중(상단 진입):</span> `+climbers.map(n=>`<span class="climb" title="${tip(n)}">${n}</span>`).join('');
+  if(emergers.length) ab+=` <span title="예전 ${CR.lowHalf}등 밖에서 ${CR.emgStep}계단 이상 상승, 아직 ${CR.topRank+1}등 밖 (섹터 ${CR.N}개 기준)">🌱 바닥권 반등(초기):</span> `+emergers.map(n=>`<span class="emerge" title="${tip(n)}">${n}</span>`).join('');
+  if(faders.length) ab+=` <span title="지금 ${CR.fadeRank}등 밖 + ${CR.upStep}계단 이상 하락 (섹터 ${CR.N}개 기준)">🔻 가라앉는 중:</span> `+faders.map(n=>`<span class="fade" title="${tip(n)}">${n}</span>`).join('');
   if(!ab) ab='<span style="font-size:11px;color:#98a2b3">이 구간에서 뚜렷한 순위 이동 없음</span>';
+  ab+=critBoxHtml(MVR);
   // 💰 돈 몰리는 업종 Top5 — 최근 5일 평균 거래대금 ÷ 직전 60일 평균 (leaders.json money, KRX 업종)
   const mtop=Object.values(MM).sort((a,b)=>b.x-a.x).slice(0,5);
   if(mtop.length){

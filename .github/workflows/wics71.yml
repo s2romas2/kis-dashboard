@@ -29,7 +29,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/data/wics71.json public/data/wics71map.json public/data/wicsmon.json 2>/dev/null || true
+          for f in public/data/wics71.json public/data/wics71map.json public/data/wicsmon.json; do git add "$f" 2>/dev/null || true; done
           git commit -m "WICS 소분류 71 섹터 지수 갱신" || echo "변경 없음"
           git pull --rebase -X theirs origin main || true
           git push || true

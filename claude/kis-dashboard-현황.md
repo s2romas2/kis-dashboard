@@ -21,6 +21,7 @@
 - **[D] 첫 실행 #29 성공(8분)**: 수급 363종목·현재가 310종목·실패 0, 업종 flow 43개·est 43개. 투자자동향 응답 키 확인(stck_bsop_date, stck_clpr, frgn_ntby_qty, orgn_ntby_qty, frgn_ntby_tr_pbmn …), **순매수대금 필드/(수량×종가) 비율 9.51e-07 → 대금 필드 단위는 백만원**(현재는 수량×종가 사용, 필요 시 전환). 예: 전기·전자 KOSPI 외인 5일 -2,698억·기관 +1,006억, est PER 42.6·PBR 2.15
 - **[E] KRX 구성종목으로 sectormap 대체는 미착수** — 단 로그인된 Chrome에서 요청 형식은 확인(노하우 섹션 MDCSTAT03901). KRX 업종명(예: 기타금융)이 KIS 업종지수명과 1:1이 아니므로 매핑표 필요. 기존 KIS 업종코드 매칭 유지
 - **UI 재병합 사고**: 처음 올린 ranktable.html(f233305)이 9/12 로컬 사본 기반이라 9/13 e3c8623(테마·누적·카드·신규부상)을 덮어씀 → raw에서 e3c8623을 받아 그 위에 재적용해 재커밋(같은 날 후속 커밋). 현황 문서도 9/13 bc0b5e2 내용(광통신 5탭 섹션·노하우·교훈)을 병합
+- **A 첫 실행 #107 성공(31.5분, 3,003콜)**: 업종 53개, 일봉 최소 538/최대 1,646, 주봉 116/450, 거래대금 단위 = 백만원(0001 중앙값 21,762,301 → 코스피 일 21.7조, 타당). money 53업종, Top5 예: 통신 KOSDAQ 2.4배·비금속 KOSPI 2.29배. **⚠ Render 배포 정지**: 9/14 22:26 KST 배포 이후 어떤 커밋도 배포되지 않음(랭크테이블 새 UI·leaders/sectorstocks 새 데이터가 onrender.com에 안 뜸) → Render 대시보드에서 배포 상태·수동 Deploy 확인 필요. 새 UI는 raw 데이터를 iframe으로 붙여 검증 완료(🔥 배지·💰 Top5·거래대금 순위 월/일·일별 2020년·주별 2018년·업종 카드·💰/🧭/📐 패널 정상, 콘솔 에러 0)
 - 검증 필요(사용자·다음 세션): ① rank.bat 실행 → rank.log 에 "RANK SYNC DONE"·status 깨끗 ② 푸시 5~15분 뒤 leaders/sectorstocks/sectorval 워크플로 성공(leaders 첫 실행은 백필로 길다) ③ ranktable.html?v=… 렌더: 일별 보기에서 연도 2020 선택, 순위:거래대금 토글, 업종 클릭 시 💰/🧭/📐 지표 줄 ④ leaders.json.debug의 "거래대금 단위"·"백필 결과" 줄, sectorstocks.json.debug의 "투자자동향 응답 키"·"순매수대금 필드/(수량×종가) 비율", sectorval.json.debug의 KRX 성공 여부
 - 한계: 거래대금·순매수 단위는 첫 실행 결과로 확정해야 함 / KRX 400이면 PER/PBR은 KIS 추정만 / leadershist.json이 ~4~5MB로 커짐(Render gzip 전제) / 견인 종목은 등락률순위 상위이므로 수급·밸류 합산은 "업종 전체"가 아닌 "견인 상위 15종목" 표본
 
@@ -114,6 +115,7 @@
 ## 미해결
 - **WICS 수집 #1 결과 확인**(9/13 23:12 KST 수동 실행) → wics.json 생성·랭크테이블 WICS 칩 활성 여부 / copper·amazon·wics.yml 첫 정기실행 로그로 py 문법 확인(셸 불가로 ast 검사 생략)
 - 셸 복구 후: 로컬 클론 동기화 필수(9/13 웹 커밋 7건 + 9/15 웹 커밋이 원격에만 있음 — `kis-apply\rank.bat`)
+- **Render 자동 배포 정지(9/14 22:26 KST 이후)** — 사용자가 Render 대시보드 확인(수동 Deploy latest commit / 빌드 실패·플랜 한도 여부)
 - 랭크테이블 업그레이드 검증(9/15): leaders/sectorstocks 첫 실행 로그·debug(단위 추정·백필 결과·투자자동향 키) / sectorval은 KRX 로그인 필요라 KIS 추정(est)만 동작 — KRX 로그인 자동화 또는 로그인된 Chrome에서 수동 수집 경로 검토 / KRX 세션 재로그인
 - IR워치 첫 자동실행(11/17) / leadsig·power·pq 정기실행 관찰 / qdeep 신규 12종목 / 니어스랩 / 조선 페이지 / 소부장 이미지 2사
 - optics.yml 첫 실행(9/11 07:30 KST) 관찰 — 일본·중국 시세 채워지는지 / 마인드맵 ⚠ 노드(확인 실패 항목) 후속 검증

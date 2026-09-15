@@ -46,8 +46,47 @@ def load(p, d=None):
 def norm(s):
     return re.sub(r'[\s·ㆍ]', '', s).replace('，', ',').strip()
 
+NAVER_API = 'https://m.stock.naver.com/api/stocks/industry'   # 신형 네이버 증권 모바일 API (2026-09 확인: groups[{no,name,totalCount}])
+
+def build_map_api(sectors):
+    """네이버 모바일 API: /api/stocks/industry → 업종 목록(no·name), /api/stocks/industry/{no}?page&pageSize → 구성종목(itemCode)."""
+    j = json.loads(get(NAVER_API + '?page=1&pageSize=200').decode('utf-8', 'ignore'))
+    groups = j.get('groups') or []
+    naver = {norm(g.get('name', '')): g for g in groups if g.get('no')}
+    DEBUG.append('네이버 API 업종 %d개' % len(naver))
+    want = {norm(s): s for s in sectors}
+    miss = [s for k, s in want.items() if k not in naver]
+    if miss: DEBUG.append('미매칭 %d: %s' % (len(miss), ', '.join(miss[:10])))
+    extra = [k for k in naver if k not in want]
+    if extra: DEBUG.append('네이버에만 있음 %d: %s' % (len(extra), ', '.join(extra[:12])))
+    m = {}
+    for k, s in want.items():
+        g = naver.get(k)
+        if not g: continue
+        codes, total, b = [], int(g.get('totalCount') or 0), ''
+        for page in range(1, 8):
+            try:
+                b = get('%s/%s?page=%d&pageSize=100' % (NAVER_API, g['no'], page), tries=2).decode('utf-8', 'ignore')
+            except Exception as e:
+                DEBUG.append('%s p%d 실패 %s' % (s, page, repr(e)[:60])); break
+            found = [c for c in re.findall(r'"itemCode"\s*:\s*"([0-9A-Z]{6})"', b) if c not in codes]
+            if not found: break
+            codes += found
+            if len(codes) >= total or len(found) < 100: break
+            time.sleep(0.25)
+        m[s] = codes
+        if len(DEBUG) < 20 and not codes: DEBUG.append('%s(no=%s) 구성종목 0 — 응답: %s' % (s, g['no'], re.sub(r'\s+', ' ', b[:200])))
+        time.sleep(0.3)
+    return m
+
 def build_map(sectors):
-    """네이버 업종 목록 → 각 업종 상세의 종목코드. {업종명(우리 표기): [코드…]}"""
+    """네이버 업종 → {업종명(우리 표기): [코드…]} — 신형 API 우선, 실패 시 구형 HTML 파싱"""
+    try:
+        m = build_map_api(sectors)
+        if sum(len(v) for v in m.values()) > 800: return m
+        DEBUG.append('API 매핑 부족(%d) → 구형 HTML 시도' % sum(len(v) for v in m.values()))
+    except Exception as e:
+        DEBUG.append('API 매핑 예외 %s → 구형 HTML 시도' % repr(e)[:80])
     raw = get(NAVER_LIST)
     html = raw.decode('euc-kr', 'ignore')
     if 'sise_group_detail' not in html:

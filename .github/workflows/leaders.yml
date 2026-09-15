@@ -8,10 +8,13 @@ on:
     paths: ['leaders.py']
 permissions:
   contents: write
+concurrency:
+  group: leaders
+  cancel-in-progress: false   # 시간별 cron이 백필 실행과 겹치면 취소하지 않고 대기
 jobs:
   leaders:
     runs-on: ubuntu-latest
-    timeout-minutes: 55   # 최초 1회 일·주봉 딥 백필(~3,000콜) 여유
+    timeout-minutes: 110   # 일·주봉 딥 백필(~3,000콜, GitHub→KIS 지연으로 1시간 안팎) 여유. 타임아웃돼도 업종별 중간 저장분 커밋
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

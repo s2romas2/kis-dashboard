@@ -11,7 +11,7 @@ permissions:
 jobs:
   sectorstocks:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35   # 수급(투자자동향)·현재가 ~1,600콜 추가
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

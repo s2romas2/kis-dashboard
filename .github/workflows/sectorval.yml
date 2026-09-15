@@ -1,0 +1,32 @@
+name: 업종 PER/PBR 일일 갱신
+on:
+  schedule:
+    - cron: '50 9 * * 1-5'
+  workflow_dispatch: {}
+  push:
+    paths: ['sectorval.py']
+permissions:
+  contents: write
+jobs:
+  sectorval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 업종 PER/PBR 수집(KRX)
+        env:
+          KRX_ID: ${{ secrets.KRX_ID }}
+          KRX_PW: ${{ secrets.KRX_PW }}
+        run: python sectorval.py || true
+      - name: 결과 커밋
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/sectorval.json || true
+          git commit -m "업종 PER/PBR 갱신" || echo "변경 없음"
+          git pull --rebase -X theirs origin main || true
+          git push || true

@@ -17,9 +17,9 @@ NAVER_LIST = 'https://finance.naver.com/sise/sise_group.naver?type=upjong'
 NAVER_DETAIL = 'https://finance.naver.com/sise/sise_group_detail.naver?type=upjong&no=%s'
 UA = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36',
       'Referer': 'https://finance.naver.com/sise/'}
-TOPN = int(os.environ.get('TOPN', '1500'))
+TOPN = int(os.environ.get('TOPN', '3000'))     # 사실상 전 종목(9/15: 1500이면 '가정용품' 등 소형주 업종이 빠짐)
 MAP_AGE = int(os.environ.get('MAP_AGE', '7'))
-MIN_MEMBERS = 2
+MIN_MEMBERS = 1                                 # 71개 전부 표시 — 종목 1개 업종은 comp.cnt 로 확인 가능
 DEBUG = []
 
 def get(url, tries=3):

@@ -176,6 +176,16 @@ def date_windows(start, today, step_days):
     return out
 
 
+def deep_ok(rows, thresh):
+    """딥 백필 완료 여부: 첫 행이 thresh 이전이고 거래대금 컬럼(4원소)을 갖고 있으면 완료로 본다"""
+    return bool(rows) and rows[0][0] <= thresh and len(rows[0]) >= 4
+
+
+def save_hist(hist):
+    os.makedirs('public/data', exist_ok=True)
+    json.dump(hist, open(HIST, 'w', encoding='utf-8'), ensure_ascii=False)
+
+
 def money_axis(rows):
     """거래대금 축: 최근 5봉 평균 ÷ 직전 60봉 평균 (rows = daily [[d, close, val, vol], ...])"""
     vals = [(r[0], r[2]) for r in rows if len(r) >= 3 and r[2]]
@@ -212,9 +222,11 @@ def main():
         hist = {'sectors': {}}
     hist.setdefault('sectors', {})
     rebuild_all = hist.get('hv') != HV
-    rebuild_dw = hist.get('dv') != DV
-    if rebuild_dw:
-        DEBUG.append('일·주봉 딥 백필(dv=%d): 일봉 %s~ %d일창, 주봉 %s~ %d일창' % (DV, DAILY_START, DAILY_STEP_DAYS, WEEKLY_START, WEEKLY_STEP_DAYS))
+    # 일·주봉 딥 백필은 업종별로 완료 여부(deep_ok)를 보고 필요한 업종만 수행 + 업종마다 캐시 저장(타임아웃돼도 진행분 보존)
+    DAILY_THRESH, WEEKLY_THRESH = '20200301', '20180301'
+    if hist.get('dv') != DV:
+        DEBUG.append('일·주봉 딥 백필(dv=%d): 일봉 %s~ %d일창, 주봉 %s~ %d일창 — 업종별 미완료분만' % (DV, DAILY_START, DAILY_STEP_DAYS, WEEKLY_START, WEEKLY_STEP_DAYS))
+    n_backfilled = 0
 
     def month_ranges():
         out, y = [], 2001
@@ -263,8 +275,10 @@ def main():
             pass
         time.sleep(SLEEP)
         # 일봉(2020~)·주봉(2018~) 히스토리 — 랭크테이블 일별/주별 보기 + 거래대금 축
+        need_w = not deep_ok(hc.get('weekly'), WEEKLY_THRESH)
+        need_d = not deep_ok(hc.get('daily'), DAILY_THRESH)
         try:
-            if rebuild_dw or not hc.get('weekly'):
+            if need_w:
                 for (a, b) in date_windows(WEEKLY_START, today, WEEKLY_STEP_DAYS):
                     _, wr = candles_retry(hdr, code, a, b, 'W')
                     n_calls += 1
@@ -274,7 +288,7 @@ def main():
                 _, wr = candles_retry(hdr, code, (datetime.date.today() - datetime.timedelta(days=90)).strftime('%Y%m%d'), today, 'W')
                 merge_series(hc, 'weekly', wr, WEEKLY_CAP)
                 time.sleep(SLEEP)
-            if rebuild_dw or not hc.get('daily'):
+            if need_d:
                 for (a, b) in date_windows(DAILY_START, today, DAILY_STEP_DAYS):
                     _, dr = candles_retry(hdr, code, a, b, 'D')
                     n_calls += 1
@@ -285,24 +299,23 @@ def main():
         except Exception as e:
             if len(DEBUG) < 40:
                 DEBUG.append('%s 일/주봉 %r' % (code, str(e)[:30]))
+        if need_w or need_d:
+            n_backfilled += 1
+            try:
+                save_hist(hist)                     # 업종 단위 중간 저장 — 타임아웃 시에도 진행분 커밋(if: always)
+            except Exception:
+                pass
         # 순위 계산용 최근 일봉은 병합된 캐시에서(창 분할 덕에 최신까지 연속)
         sectors[code] = {'name': name, 'mkt': mkt, 'daily': (hc.get('daily') or rows)[-70:]}
     DEBUG.append('업종 %d개 인식 · 호출 %d회 · %.0f초' % (found, n_calls, time.time() - t0))
     if found < 10:
         raise RuntimeError('업종 인식 %d개 — API 응답 확인 필요' % found)
-    if rebuild_dw:
-        lens = [(len(hc.get('daily') or []), len(hc.get('weekly') or [])) for hc in hist['sectors'].values()]
-        if lens:
-            DEBUG.append('백필 결과: 일봉 최소 %d/최대 %d, 주봉 최소 %d/최대 %d' % (
-                min(x[0] for x in lens), max(x[0] for x in lens), min(x[1] for x in lens), max(x[1] for x in lens)))
-        # 빈 결과 가드: 백필이 대부분 실패했으면 dv를 올리지 않아 다음 실행에서 다시 시도
-        if lens and max(x[0] for x in lens) < 300:
-            DEBUG.append('백필 부족 → dv 유지(다음 실행 재시도)')
-            rebuild_dw_ok = False
-        else:
-            rebuild_dw_ok = True
-    else:
-        rebuild_dw_ok = True
+    lens = [(len(hc.get('daily') or []), len(hc.get('weekly') or [])) for hc in hist['sectors'].values()]
+    n_deep = sum(1 for hc in hist['sectors'].values() if deep_ok(hc.get('daily'), DAILY_THRESH) and deep_ok(hc.get('weekly'), WEEKLY_THRESH))
+    if lens:
+        DEBUG.append('딥 백필 이번 실행 %d업종 · 완료 %d/%d · 일봉 최소 %d/최대 %d, 주봉 최소 %d/최대 %d' % (
+            n_backfilled, n_deep, len(hist['sectors']), min(x[0] for x in lens), max(x[0] for x in lens), min(x[1] for x in lens), max(x[1] for x in lens)))
+    rebuild_dw_ok = n_deep == len(hist['sectors'])   # 전 업종 완료 시에만 dv 기록(정보용 — 실제 판단은 업종별 deep_ok)
 
     # 지수(코스피 0001, 코스닥 1001) 연도별 수익률
     idx_hist = {}

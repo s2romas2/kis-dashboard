@@ -12,9 +12,9 @@ TODAY = datetime.date.today()
 CUTOFF = TODAY - datetime.timedelta(days=7)
 MAX_PDF_DL = 100  # 실행당 페이지수 측정 최대 건수
 
-def get(url, timeout=25, binary=False):
+def get(url, timeout=25, binary=False, encoding='euc-kr'):
     r = urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=timeout).read()
-    return r if binary else r.decode('euc-kr', 'ignore')
+    return r if binary else r.decode(encoding, 'ignore')
 
 def parse_date(s):
     m = re.fullmatch(r'(\d{2})\.(\d{2})\.(\d{2})', s.strip())
@@ -23,47 +23,63 @@ def parse_date(s):
 def rows_of(html):
     return re.findall(r'<tr>([\s\S]*?)</tr>', html)
 
+CONS = 'https://consensus.hankyung.com'
+def strip_html(s):
+    return re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', s)).strip()
+
 def scrape(kind):
-    """kind: 'industry' | 'company'"""
+    """kind: 'industry' | 'company' — 한경컨센서스(consensus.hankyung.com) 목록.
+    2026-09-10 네이버 금융 리서치 페이지가 신형(Next.js)으로 바뀌어 기존 파싱이 0건 → 소스 교체.
+    행: 작성일 | 제목(a href=/analysis/downpdf?report_idx=N) | 투자의견 | 작성자 | 제공출처 | 차트 | 첨부.
+    기업(CO)은 차트 링크 business_code=6자리, 산업(IN)은 제목 [대괄호]에서 분류 추출."""
     out = []
-    for page in range(1, 8):
+    rt = 'IN' if kind == 'industry' else 'CO'
+    for page in range(1, 12):
+        url = ('%s/analysis/list?sdate=%s&edate=%s&now_page=%d&search_text=&pagenum=80&report_type=%s'
+               % (CONS, CUTOFF.isoformat(), TODAY.isoformat(), page, rt))
         try:
-            h = get('https://finance.naver.com/research/%s_list.naver?page=%d' % (kind, page))
+            h = get(url, encoding='utf-8')
         except Exception as e:
             DEBUG.append('%s p%d: %r' % (kind, page, e))
             break
         got_old = False
         n = 0
-        for r in rows_of(h):
-            pdf = re.search(r'href="(https?://stock\.pstatic\.net/[^"]+\.pdf)"', r)
-            dt = re.search(r'class="date"[^>]*>(\d{2}\.\d{2}\.\d{2})<', r)
-            title = re.search(r'href="%s_read\.naver[^"]*">([^<]+)<' % kind, r)
-            broker = re.findall(r'<td>([^<]+)</td>', r)
-            if not (pdf and dt and title):
+        for r in re.findall(r'<tr[^>]*>([\s\S]*?)</tr>', h):
+            m = re.search(r'href="/analysis/downpdf\?report_idx=(\d+)"[^>]*>([^<]+)</a>', r)
+            dt = re.search(r'>\s*(\d{4}-\d{2}-\d{2})\s*<', r)
+            if not (m and dt):
                 continue
-            d = parse_date(dt.group(1))
-            if not d:
-                continue
+            d = dt.group(1)
             if d < CUTOFF.isoformat():
                 got_old = True
                 continue
-            views = re.findall(r'class="date">(\d+)<', r)
-            item = {'t': title.group(1).strip(), 'b': broker[-1].strip() if broker else '',
-                    'd': d, 'pdf': pdf.group(1), 'v': int(views[-1]) if views else 0}
+            tds = [strip_html(x) for x in re.findall(r'<td[^>]*>([\s\S]*?)</td>', r)]
+            # 열 순서: 작성일, 제목, (목표가), 투자의견, 작성자, 제공출처, 차트, 첨부
+            broker = ''
+            for t in tds:
+                if re.search(r'(증권|투자증권|리서치|IR협의회|자산운용|경제연구|캐피탈|Securities)$', t) or t.endswith('증권'):
+                    broker = t
+            if not broker and len(tds) >= 6:
+                broker = tds[5] if kind == 'company' else tds[4]
+            rid = m.group(1)
+            title = strip_html(m.group(2))
+            item = {'t': title, 'b': broker, 'd': d, 'pdf': '%s/analysis/downpdf?report_idx=%s' % (CONS, rid), 'v': 0, 'src': '한경컨센서스'}
             if kind == 'industry':
-                cat = re.search(r'<td style="padding-left:10">([^<]+)</td>', r)
+                cat = re.match(r'\s*\[([^\]]{1,20})\]', title)
                 item['cat'] = cat.group(1).strip() if cat else '기타'
             else:
-                st = re.search(r'code=(\d{6})"[^>]*title="([^"]+)"', r)
-                if st:
-                    item['code'], item['name'] = st.group(1), st.group(2)
+                st = re.search(r'business_code=([0-9A-Z]{6})', r) or re.search(r'stockcd=([0-9A-Z]{6})', r)
+                nm = re.match(r'\s*(.+?)\s*\(\s*([0-9A-Z]{6})\s*\)', title)
+                if st or nm:
+                    item['code'] = (st.group(1) if st else nm.group(2))
+                    item['name'] = nm.group(1).strip() if nm else ''
                 else:
                     continue
             out.append(item)
             n += 1
         if got_old or n == 0:
             break
-        time.sleep(0.4)
+        time.sleep(0.5)
     # 중복 제거 (PDF 주소 + 제목·증권사·날짜 조합)
     seen, uniq = set(), []
     for x in out:

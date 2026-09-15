@@ -18,8 +18,7 @@ jobs:
           python-version: '3.11'
       - name: 업종 PER/PBR 수집(KRX)
         env:
-          KRX_ID: ${{ secrets.KRX_ID }}
-          KRX_PW: ${{ secrets.KRX_PW }}
+          KRX_COOKIE: ${{ secrets.KRX_COOKIE }}   # 로그인된 브라우저 쿠키(선택) — 없으면 기존 파일 보존
         run: python sectorval.py || true
       - name: 결과 커밋
         if: always()

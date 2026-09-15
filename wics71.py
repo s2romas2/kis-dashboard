@@ -26,8 +26,9 @@ def get(url, tries=3):
     for i in range(tries):
         try:
             return urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=25).read()
-        except Exception:
-            if i == tries - 1: raise
+        except Exception as e:
+            if i == tries - 1:
+                DEBUG.append('GET 실패 %s → %s' % (url[:70], repr(e)[:120])); raise
             time.sleep(1.5)
 
 def jget(url, headers=None, tries=3):
@@ -47,10 +48,15 @@ def norm(s):
 
 def build_map(sectors):
     """네이버 업종 목록 → 각 업종 상세의 종목코드. {업종명(우리 표기): [코드…]}"""
-    html = get(NAVER_LIST).decode('euc-kr', 'ignore')
-    links = re.findall(r'sise_group_detail\.naver\?type=upjong&(?:amp;)?no=(\d+)"[^>]*>([^<]+)<', html)
+    raw = get(NAVER_LIST)
+    html = raw.decode('euc-kr', 'ignore')
+    if 'sise_group_detail' not in html:
+        html = raw.decode('utf-8', 'ignore')
+    links = re.findall(r'sise_group_detail\.naver\?type=upjong&(?:amp;)?no=(\d+)["\'][^>]*>\s*([^<]+?)\s*<', html)
     naver = {norm(n): no for no, n in links}
-    DEBUG.append('네이버 업종 %d개' % len(naver))
+    DEBUG.append('네이버 업종 %d개 (응답 %d바이트)' % (len(naver), len(raw)))
+    if not naver:
+        DEBUG.append('네이버 목록 파싱 0 — 응답 앞부분: ' + re.sub(r'\s+', ' ', html[:400]))
     want = {norm(s): s for s in sectors}
     miss = [s for k, s in want.items() if k not in naver]
     if miss: DEBUG.append('미매칭 %d: %s' % (len(miss), ', '.join(miss[:10])))
@@ -199,4 +205,7 @@ def main():
     print('저장 %s — 섹터 %d · 월 %d' % (OUT, len(idx), len(months)), file=sys.stderr)
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    finally:
+        print('DEBUG:', json.dumps(DEBUG, ensure_ascii=False), file=sys.stderr)

@@ -40,8 +40,22 @@ svg.ov { position:absolute; left:0; top:0; pointer-events:none; }
 .legend { font-size:11.5px; color:#667085; margin-top:8px; line-height:1.7; }
 .legend b { color:#1a1f2e; }
 .climb { display:inline-block; font-size:11px; font-weight:800; background:#fde8e8; color:#d92d20; border-radius:8px; padding:2px 9px; margin-right:5px; }
-#critBox table td, #critBox table th { padding:3px 6px; border-bottom:1px solid #eef0f4; vertical-align:top; }
-#critBox tr.cur td { background:#fff7e6; }
+#critBox { margin:8px 0 10px; background:#fff; border:1px solid #e6e9f0; border-radius:12px; padding:10px 12px 8px; }
+#critBox .hd { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+#critBox .ttl { font-size:13px; font-weight:900; color:#1a1f2e; }
+#critBox .how { font-size:11px; color:#667085; flex:1 1 320px; }
+#critBox button { font-size:11px; border:1px solid #d0d5dd; background:#fff; border-radius:8px; padding:2px 9px; cursor:pointer; color:#475467; }
+#critBox table { width:100%; border-collapse:separate; border-spacing:0; margin-top:8px; font-size:12.5px; }
+#critBox th { text-align:left; padding:7px 10px; background:#f4f6fa; color:#475467; font-size:12px; border-bottom:1px solid #e6e9f0; }
+#critBox th.up { color:#d92d20; } #critBox th.em { color:#0e9f5a; } #critBox th.dn { color:#2f6df6; }
+#critBox td { padding:8px 10px; border-bottom:1px solid #eef0f4; vertical-align:top; line-height:1.5; }
+#critBox td.vw { font-weight:800; white-space:nowrap; }
+#critBox td.n { font-weight:900; font-size:14px; white-space:nowrap; }
+#critBox td.up b { color:#d92d20; } #critBox td.em b { color:#0e9f5a; } #critBox td.dn b { color:#2f6df6; }
+#critBox td span { color:#667085; font-size:12px; }
+#critBox td .now { display:inline-block; margin-left:6px; font-size:10.5px; font-weight:800; color:#b54708; background:#fff3dc; border-radius:6px; padding:1px 6px; }
+#critBox tr.cur td { background:#fffbeb; }
+#critBox .ft { margin-top:8px; font-size:11px; color:#667085; line-height:1.65; }
 .emerge { display:inline-block; font-size:11px; font-weight:800; background:#e6f7ee; color:#0e9f5a; border-radius:8px; padding:2px 9px; margin-right:5px; }
 .fade { display:inline-block; font-size:11px; font-weight:800; background:#e8f0fe; color:#2f6df6; border-radius:8px; padding:2px 9px; margin-right:5px; }
 .newb { display:inline-block; font-size:11px; font-weight:800; background:#fff4e5; color:#b54708; border-radius:8px; padding:2px 9px; margin:2px 5px 2px 0; }
@@ -360,34 +374,35 @@ function viewN(cls){ // 각 뷰의 섹터 수(로드된 데이터 기준, 없으
   }catch(e){ return null; }
 }
 function critRow(label,N,cur){
-  if(!N) return `<tr${cur?' class="cur"':''}><td>${label}</td><td colspan="4" class="dim">데이터 로드 후 표시</td></tr>`;
+  if(!N) return `<tr${cur?' class="cur"':''}><td class="vw">${label}</td><td colspan="4" class="dim">데이터 로드 후 표시</td></tr>`;
   const c=critNums(N);
-  return `<tr${cur?' class="cur"':''}><td>${label}${cur?' <b>(지금 보는 뷰)</b>':''}</td><td><b>${N}개</b></td>
-    <td>지금 <b>1~${c.topRank}등</b> + <b>${c.upStep}계단↑</b></td>
-    <td>예전 <b>${c.lowHalf}등 밖</b>에서 <b>${c.emgStep}계단↑</b>, 아직 ${c.topRank+1}등 밖</td>
-    <td>지금 <b>${c.fadeRank}등 밖</b> + <b>${c.upStep}계단↓</b></td></tr>`;
+  return `<tr${cur?' class="cur"':''}><td class="vw">${label}${cur?'<span class="now">지금 보는 뷰</span>':''}</td><td class="n">${N}개</td>
+    <td class="up">지금 <b>1~${c.topRank}등</b><br><span>+ <b>${c.upStep}계단</b> 이상 올라옴</span></td>
+    <td class="em">예전 <b>${c.lowHalf}등 밖</b>에서<br><span><b>${c.emgStep}계단</b> 이상 올라옴, 아직 <b>${c.topRank+1}등 밖</b></span></td>
+    <td class="dn">지금 <b>${c.fadeRank}등 밖</b><br><span>+ <b>${c.upStep}계단</b> 이상 내려감</span></td></tr>`;
 }
+let CRIT_OPEN=true; try{ CRIT_OPEN=localStorage.getItem('rt_crit')!=='0'; }catch(e){}
+function togCrit(){ CRIT_OPEN=!CRIT_OPEN; try{ localStorage.setItem('rt_crit',CRIT_OPEN?'1':'0'); }catch(e){} const b=document.getElementById('critBody'), t=document.getElementById('critTog'); if(b) b.style.display=CRIT_OPEN?'':'none'; if(t) t.textContent=CRIT_OPEN?'접기 ▲':'펼치기 ▼'; }
 function critBoxHtml(mv){
   const unit=GRAN==='D'?'일':GRAN==='W'?'주':GRAN==='M'?'개월':GRAN==='Q'?'분기':GRAN==='H'?'반기':'년';
-  const nWin=mv.halfN*2||0;
   const rows=[
     critRow('KRX 업종 ('+MKT+')', CLS==='krx'?mv.N:viewN('krx'), CLS==='krx'),
     critRow('WICS 중분류', CLS==='wics'?mv.N:viewN('wics'), CLS==='wics'),
     critRow('WICS 소분류', CLS==='wics71'?mv.N:viewN('wics71'), CLS==='wics71'),
     critRow('테마', CLS==='theme'?mv.N:viewN('theme'), CLS==='theme')].join('');
-  return `<details id="critBox" style="margin:4px 0 8px;font-size:11.5px;color:#475467">
-    <summary style="cursor:pointer;color:#2f6df6;font-weight:700">ⓘ 뜨는 중·반등 초기·가라앉는 중 — 판정 기준 보기</summary>
-    <div style="background:#fbfcfe;border:1px solid #e6e9f0;border-radius:10px;padding:10px 12px;margin-top:6px;line-height:1.7">
-      <div><b>1. 두 개의 등수를 만듭니다</b> — 지금 표에 보이는 칸 중 <b>앞쪽 절반(${mv.halfN}${unit})</b>에서의 평균 등수 = <b>예전 위치</b>, <b>마지막 ${mv.tailN}${unit}</b>의 평균 등수 = <b>지금 위치</b>.
-        수익률 크기·거래대금·수급은 보지 않고 <b>등수 이동</b>만 봅니다. (칸이 ${mv.minLen}${unit} 미만이면 판정 안 함)</div>
-      <div style="margin-top:4px"><b>2. 섹터 수(N)에 따라 기준 숫자가 정해집니다</b> — 상위 1/3 = 1~⌈N/3⌉등, "크게 올라옴" = N/4 초과 계단, 반등 초기의 점프 = N/5(최소 4) 이상, 하위 1/3 = ⌊2N/3⌋+2등부터.</div>
-      <table style="width:100%;border-collapse:collapse;margin-top:6px;font-size:11.5px">
-        <tr style="color:#667085"><th style="text-align:left;padding:3px 6px">뷰</th><th style="text-align:left;padding:3px 6px">섹터 수</th><th style="text-align:left;padding:3px 6px">🔺 뜨는 중</th><th style="text-align:left;padding:3px 6px">🌱 바닥권 반등(초기)</th><th style="text-align:left;padding:3px 6px">🔻 가라앉는 중</th></tr>
+  return `<div id="critBox">
+    <div class="hd"><span class="ttl">📏 판정 기준 — 🔺 뜨는 중 · 🌱 바닥권 반등(초기) · 🔻 가라앉는 중</span>
+      <span class="how">예전 위치 = 표 앞쪽 절반(${mv.halfN}${unit}) 평균 등수 · 지금 위치 = 마지막 ${mv.tailN}${unit} 평균 등수 · 등수 이동만 봄(수익률 크기·거래대금 무관)</span>
+      <button id="critTog" onclick="togCrit()">${CRIT_OPEN?'접기 ▲':'펼치기 ▼'}</button></div>
+    <div id="critBody" style="${CRIT_OPEN?'':'display:none'}">
+      <table>
+        <tr><th>뷰</th><th>섹터 수</th><th class="up">🔺 뜨는 중</th><th class="em">🌱 바닥권 반등(초기)</th><th class="dn">🔻 가라앉는 중</th></tr>
         ${rows}
       </table>
-      <div style="margin-top:6px;color:#667085">예) 테마 30개: 앞 6개월 평균 20등 → 최근 3개월 평균 6등이면 "1~10등 안 + 14계단↑" → 🔺 뜨는 중. 배지에 마우스를 올리면 그 섹터의 "예전 등수 → 지금 등수"가 보입니다.
-        표시 개수: 뜨는 중·반등 초기 각 3개, 가라앉는 중 2개. 단위(일/주/월)나 창 길이를 바꾸면 결과가 달라지고, 마지막 ${mv.tailN}칸 중 한 칸만 튀어도 잡힐 수 있으니 🔥(거래대금)·수급과 같이 보세요.</div>
-    </div></details>`;
+      <div class="ft">기준 숫자는 섹터 수(N)로 정해집니다: 상위 1/3 = 1~⌈N/3⌉등 · "크게 올라옴" = N/4 초과 계단 · 반등 초기 점프 = N/5(최소 4) 이상 · 하위 1/3 = ⌊2N/3⌋+2등부터.
+        예) 테마 46개에서 앞 6개월 평균 30등 → 최근 3개월 평균 8등이면 "1~16등 안 + 22계단↑" → 🔺 뜨는 중. 배지에 마우스를 올리면 그 섹터의 "예전 등수 → 지금 등수"가 보입니다.
+        표시 개수: 뜨는 중·반등 초기 각 3개, 가라앉는 중 2개. 단위·창 길이를 바꾸면 결과가 달라지고 마지막 ${mv.tailN}칸 중 한 칸만 튀어도 잡힐 수 있으니 🔥 거래대금·수급과 같이 보세요.</div>
+    </div></div>`;
 }
 /* ---------- 🆕 신규 부상: M개월 전 하위 절반 → 지금 상위 1/3 (순위 점프형) ---------- */
 function periodsBack(m){

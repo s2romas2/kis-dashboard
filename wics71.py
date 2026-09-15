@@ -56,7 +56,19 @@ def build_map(sectors):
     naver = {norm(n): no for no, n in links}
     DEBUG.append('네이버 업종 %d개 (응답 %d바이트)' % (len(naver), len(raw)))
     if not naver:
-        DEBUG.append('네이버 목록 파싱 0 — 응답 앞부분: ' + re.sub(r'\s+', ' ', html[:400]))
+        DEBUG.append('네이버 목록 파싱 0 — 응답 앞부분: ' + re.sub(r'\s+', ' ', html[:300]))
+        # 신형(Next.js) 페이지 진단: 업종 관련 토큰 주변 덤프 + 후보 API 응답
+        for kw in ('upjong', 'industry', 'Industry', 'sise_group', '반도체와반도체장비', 'no=', 'itemCode', 'upjongCode'):
+            for m in list(re.finditer(re.escape(kw), html))[:2]:
+                DEBUG.append('[%s] …%s…' % (kw, re.sub(r'\s+', ' ', html[max(0, m.start() - 150):m.start() + 200])))
+        for u in ('https://m.stock.naver.com/api/stocks/industry?page=1&pageSize=100',
+                  'https://m.stock.naver.com/api/stocks/industry/list',
+                  'https://finance.naver.com/api/sise/upjong.naver',
+                  'https://m.stock.naver.com/api/stock/278470/basic'):
+            try:
+                b = get(u, tries=1); DEBUG.append('API %s → %d바이트: %s' % (u, len(b), re.sub(r'\s+', ' ', b.decode('utf-8', 'ignore')[:300])))
+            except Exception as e:
+                DEBUG.append('API %s → 실패 %s' % (u, repr(e)[:80]))
     want = {norm(s): s for s in sectors}
     miss = [s for k, s in want.items() if k not in naver]
     if miss: DEBUG.append('미매칭 %d: %s' % (len(miss), ', '.join(miss[:10])))

@@ -613,10 +613,62 @@ function arrows(win,rank,climbers,faders,qhits,emergers){
   }
   svg.innerHTML=defs+body;
 }
+/* ---------- WICS 뷰 구성종목 패널 (wics.json/wics71.json comp.top + stockvals + 매핑 파일 전체 목록) ---------- */
+const WX={sv:undefined, pn:undefined, map:{}, open:{}};
+async function wxLoad(){
+  if(WX.sv===undefined){ WX.sv=null; try{ WX.sv=((await (await fetch('/data/stockvals.json?t='+Date.now())).json()).map)||{}; }catch(e){ WX.sv={}; } }
+  if(WX.pn===undefined){ WX.pn=null; try{ WX.pn=((await (await fetch('/data/products.json?t='+Date.now())).json()).map)||{}; }catch(e){ WX.pn={}; } }
+  if(WX.map[CLS]===undefined){
+    WX.map[CLS]=null;
+    try{
+      if(CLS==='wics71'){ const j=await (await fetch('/data/wics71map.json?t='+Date.now())).json(); WX.map[CLS]=j.map||{}; }         // {업종명:[코드]}
+      else { const j=await (await fetch('/data/wicsmap.json?t='+Date.now())).json(); const inv={}; for(const [c,sc] of Object.entries(j.map||{})) (inv[sc]=inv[sc]||[]).push(c); WX.map[CLS]=inv; }  // {섹터코드:[코드]}
+    }catch(e){ WX.map[CLS]={}; }
+  }
+}
+function wxCodes(nm,sc){ const m=WX.map[CLS]||{}; return (CLS==='wics71'?m[nm]:m[sc])||[]; }
+function togWx(k){ WX.open[k]=!WX.open[k]; renderDrivers(); }
+function renderWicsDrivers(box,sel){
+  const D=wd(CLS)||{}; const comp=D.comp||{}; const secs=D.secs||{};
+  if(WX.sv===undefined||WX.map[CLS]===undefined){ box.innerHTML='<div style="font-size:11.5px;color:#98a2b3;padding:4px 2px">구성종목 불러오는 중…</div>'; wxLoad().then(renderDrivers); return; }
+  const sv=WX.sv||{}, pn=WX.pn||{};
+  const capT=e=>e>=10000?(e/10000).toFixed(1)+'조':Math.round(e).toLocaleString()+'억';
+  const name=c=>(pn[c]&&pn[c].n)||c;
+  const chip=(c,cap,extra)=>{
+    const s=sv[c]||[]; const per=s[1], pbr=s[0]; const capV=cap||s[2]||0;
+    const vT=(per||pbr)?` <span class="dim" title="KIS 현재가 PER/PBR">P${per??'—'}/B${pbr??'—'}</span>`:'';
+    return `<a href="/deep.html#${c}" title="${name(c)} 딥다이브 보기" style="text-decoration:none;color:inherit;display:inline-flex;align-items:center;gap:5px;border:1px solid #e6e9f0;border-radius:9px;padding:2px 8px;margin:2px 4px 2px 0;font-size:11.5px;background:#fff;cursor:pointer" onmouseover="this.style.background='#eef4ff';this.style.borderColor='#b9d0ff'" onmouseout="this.style.background='#fff';this.style.borderColor='#e6e9f0'">
+      <b>${name(c)}</b>${capV?` <span style="color:#98a2b3" title="시가총액">${capT(capV)}</span>`:''}${vT}${extra||''}<span style="color:#b9c0cc;font-size:10px">↗</span></a>`;
+  };
+  let h='';
+  for(const nm of sel){
+    const ci=SEL[nm], col=COLORS[ci%6];
+    const sc=Object.keys(secs).find(k=>secs[k]===nm)||Object.keys(comp).find(k=>(comp[k]||{}).n===nm);
+    const cp=comp[sc]||{};
+    const all=wxCodes(nm,sc);
+    const top=(cp.top||[]).slice();
+    let inner;
+    if(!top.length&&!all.length) inner='<span style="font-size:11.5px;color:#98a2b3">이 업종 구성종목 데이터가 아직 없습니다(다음 수집 이후).</span>';
+    else{
+      const k=CLS+'|'+nm;
+      const listAll=all.map(c=>[c,(sv[c]||[])[2]||0]).sort((a,b)=>b[1]-a[1]);
+      const shown=WX.open[k]?listAll:(top.length?top.map(t=>[t.c,t.cap]):listAll.slice(0,10));
+      inner=shown.map(([c,cap])=>chip(c,cap)).join('')+
+        (listAll.length>shown.length||WX.open[k]?`<button onclick="togWx('${k}')" style="font-size:11px;border:1px solid #d0d5dd;background:#fff;border-radius:8px;padding:2px 8px;cursor:pointer;color:#475467;margin:2px 0">${WX.open[k]?'상위만 보기 ▲':'전체 '+listAll.length+'종목 보기 ▼'}</button>`:'');
+    }
+    const wcap=(cp.top||[]).reduce((a,t)=>a+(t.cap||0),0);
+    h+=`<div style="margin:4px 0 6px;padding:7px 9px;border-left:3px solid ${col};background:#fafbfd;border-radius:0 8px 8px 0">
+      <div style="font-size:12px;font-weight:800;color:#1a1f2e;margin-bottom:3px">🧩 <span style="color:${col}">${nm}</span> 구성종목 <span style="font-size:10.5px;color:#98a2b3;font-weight:600">(${WICS_SRC[CLS]?WICS_SRC[CLS].label:'WICS'} · 지수 계산에 쓰인 ${cp.cnt||all.length||'—'}종목${cp.all?' / 업종 전체 '+cp.all+'종목':''} · 시총 순 · P/B = KIS 현재가 PER/PBR)</span></div>
+      <div>${inner}</div></div>`;
+  }
+  box.innerHTML=h;
+}
 function renderDrivers(){
   const box=document.getElementById('drvBox'); if(!box) return;
   const sel=Object.keys(SEL);
-  if(!sel.length||CLS!=='krx'){ box.innerHTML=''; return; }
+  if(!sel.length){ box.innerHTML=''; return; }
+  if(isWics(CLS)){ renderWicsDrivers(box,sel); return; }
+  if(CLS!=='krx'){ box.innerHTML=''; return; }
   if(window.__SS===undefined){ box.innerHTML='<div style="font-size:11.5px;color:#98a2b3;padding:4px 2px">견인 종목 불러오는 중…</div>'; return; }
   const SS=(window.__SS&&window.__SS.sectors)||{};
   let h='';

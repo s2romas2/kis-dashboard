@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>소부장 PEG 밸류 — 성장률 대비 PER</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; background:#f4f6fa; color:#1a1f2e; }
+.wrap { max-width:1180px; margin:0 auto; padding:18px 14px 60px; }
+h1 { font-size:22px; margin:10px 0 4px; }
+.sub { color:#667085; font-size:13px; margin-bottom:12px; line-height:1.6; }
+.lg { background:#fff; border:1px solid #e4e7ec; border-radius:12px; padding:12px 14px; margin-bottom:12px; font-size:12.5px; line-height:1.7; }
+.lg b { color:#1a2a4a; }
+.gr { display:inline-block; padding:1px 8px; border-radius:10px; font-weight:800; font-size:12px; margin-right:4px; }
+.A { background:#0f7b3f; color:#fff; } .B { background:#3ab35e; color:#fff; } .C { background:#f0b429; color:#1a1f2e; } .D { background:#f97316; color:#fff; } .E { background:#d92d20; color:#fff; } .N { background:#e4e7ec; color:#667085; }
+.bar { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0; align-items:center; }
+.bar button { border:1.5px solid #d7dce6; background:#fff; border-radius:20px; padding:6px 12px; font:inherit; font-size:12.5px; font-weight:700; color:#475467; cursor:pointer; }
+.bar button.on { background:#1a2a4a; border-color:#1a2a4a; color:#fff; }
+.bar input { border:1.5px solid #d7dce6; border-radius:8px; padding:6px 10px; font:inherit; font-size:13px; width:150px; }
+.cnt { font-size:12px; color:#667085; margin-left:auto; }
+table { width:100%; border-collapse:collapse; background:#fff; border:1px solid #e4e7ec; border-radius:12px; overflow:hidden; font-size:12.5px; }
+th, td { padding:7px 8px; border-bottom:1px solid #eef0f4; text-align:right; white-space:nowrap; }
+th { background:#f8fafc; color:#475467; font-size:11.5px; cursor:pointer; user-select:none; position:sticky; top:0; }
+th.s { color:#1a2a4a; }
+td.l, th.l { text-align:left; }
+td .nm { font-weight:800; } td .code { color:#98a2b3; font-size:11px; margin-left:4px; }
+td .cat { display:inline-block; font-size:10.5px; padding:1px 6px; border-radius:8px; background:#eef2ff; color:#3730a3; margin-left:4px; }
+td.peg { font-weight:800; font-size:13.5px; }
+tr.na td { color:#98a2b3; }
+.fl { font-size:11px; color:#b45309; }
+.tw { overflow-x:auto; }
+.note { background:#fff7e8; border:1px solid #f5d9a8; border-radius:10px; padding:10px 14px; font-size:12px; color:#7a5b1e; margin-top:12px; line-height:1.6; }
+@media (max-width:700px){ th,td{padding:6px 5px;font-size:11.5px} }
+</style>
+<script src="/nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<h1>📏 소부장 PEG 밸류 — 성장률 대비 PER</h1>
+<div class="sub" id="upd">불러오는 중…</div>
+<div class="lg">
+  <b>PEG = 선행 PER ÷ 순이익 성장률(%)</b>. 같은 PER이라도 성장이 빠르면 싸고, 느리면 비싸다는 관점.
+  대표값 <b>PEG(2Y)</b> = 12개월 선행 PER ÷ 2년 순이익 CAGR(직전 확정 연도 → 내년 추정) — 단년 급증 왜곡을 줄이기 위해 2년 평균 성장률 사용.
+  참고값 <b>PEG(FY1)</b> = 올해 PER ÷ 올해 순이익 성장률, <b>PEG(OP)</b> = 선행 P/OP ÷ 2년 영업이익 CAGR.<br>
+  <span class="gr A">A</span>&lt;0.5 매우 저평가 — <b>피터 린치: 0.5면 매수 매력 큼</b> &nbsp;
+  <span class="gr B">B</span>0.5~1.0 성장률 대비 저평가 &nbsp;
+  <span class="gr C">C</span>1.0~1.5 적정 — 1.0 전후 그럭저럭, <b>린치: 1.5도 나쁘지 않음</b> &nbsp;
+  <span class="gr D">D</span>1.5~2.0 다소 고평가 &nbsp;
+  <span class="gr E">E</span>≥2.0 성장률 대비 고평가 &nbsp;
+  <span class="gr N">—</span>산출 불가(적자·역성장·추정 없음)
+</div>
+<div class="bar">
+  <button data-c="all" class="on">전체</button><button data-c="장비">장비</button><button data-c="소재">소재</button><button data-c="파츠">파츠</button><button data-c="ok">PEG 산출 가능만</button>
+  <input id="q" placeholder="종목명·코드 검색">
+  <span class="cnt" id="cnt"></span>
+</div>
+<div class="tw"><table id="t"><thead><tr>
+  <th class="l" data-k="n">종목</th><th data-k="cap">시총</th><th data-k="per_t">PER<br><small>트레일링</small></th><th data-k="per_f12">PER<br><small>12M 선행</small></th>
+  <th data-k="ni0">순이익<br><small>FY0 확정</small></th><th data-k="ni1">순이익<br><small>올해E</small></th><th data-k="ni2">순이익<br><small>내년E</small></th>
+  <th data-k="g1">성장<br><small>올해</small></th><th data-k="cagr2">성장<br><small>2Y CAGR</small></th>
+  <th data-k="peg2" class="s">PEG<br><small>2Y ★</small></th><th data-k="peg1">PEG<br><small>FY1</small></th><th data-k="peg_op">PEG<br><small>OP</small></th><th class="l">비고</th>
+</tr></thead><tbody id="tb"></tbody></table></div>
+<div class="note">⚠️ 추정치는 <b>한국투자증권 리서치 단일 추정</b>(KIS 종목추정실적)이라 컨센서스와 다를 수 있고, 커버하지 않는 종목은 "추정 없음"으로 표시됩니다. 장비주는 수주→매출 인식 시차 때문에 단년 성장률이 크게 출렁이므로 <b>PEG(2Y)</b>를 우선 보고, 성장률 100% 이상(기저효과)·턴어라운드 종목의 낮은 PEG는 과신하지 마세요. 사이클 고점 이익에 낮은 PER이 붙는 '피크 밸류 함정'도 PEG로는 걸러지지 않습니다.</div>
+</div>
+<script>
+let D=null, CAT='all', SK='peg2', SA=1, Q='';
+const f1=v=>v==null?'—':Number(v).toFixed(1), f2=v=>v==null?'—':Number(v).toFixed(2);
+const fcap=v=>v==null?'—':(v>=10000?(v/10000).toFixed(1)+'조':Math.round(v).toLocaleString()+'억');
+const feok=v=>v==null?'—':(Math.round(v).toLocaleString());
+const fpct=v=>v==null?'—':(v>0?'+':'')+Number(v).toFixed(0)+'%';
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function rows(){
+  let r=D.rows.slice();
+  if(CAT==='ok') r=r.filter(x=>x.status==='ok'); else if(CAT!=='all') r=r.filter(x=>x.cat===CAT);
+  if(Q) r=r.filter(x=>(x.n||'').includes(Q)||(x.c||'').includes(Q));
+  r.sort((a,b)=>{const va=a[SK],vb=b[SK]; if(va==null&&vb==null) return 0; if(va==null) return 1; if(vb==null) return -1; return typeof va==='string'?va.localeCompare(vb)*SA:(va-vb)*SA;});
+  return r;
+}
+function draw(){
+  const r=rows();
+  document.getElementById('cnt').textContent=`${r.length}종목 (PEG 산출 ${r.filter(x=>x.status==='ok').length})`;
+  document.querySelectorAll('th[data-k]').forEach(h=>h.classList.toggle('s',h.dataset.k===SK));
+  document.getElementById('tb').innerHTML=r.map(x=>{
+    const na=x.status!=='ok'; const g=x.grade||'N';
+    const why=na?(x.status==='미커버'?'추정 없음(한투 미커버)':x.status):(x.flags||[]).join(' · ');
+    return `<tr class="${na?'na':''}"><td class="l"><span class="nm">${esc(x.n)}</span><span class="code">${x.c}</span>${x.cat?`<span class="cat">${esc(x.cat)}</span>`:''} <a href="/semi.html#${x.c}" style="font-size:11px;color:#6d28d9">맵</a> <a href="/bands.html#${x.c}" style="font-size:11px;color:#2f6df6">밴드</a></td>
+      <td>${fcap(x.cap)}</td><td>${f1(x.per_t)}</td><td>${f1(x.per_f12)}</td><td>${feok(x.ni0)}</td><td>${feok(x.ni1)}</td><td>${feok(x.ni2)}</td>
+      <td>${fpct(x.g1)}</td><td>${fpct(x.cagr2)}</td>
+      <td class="peg"><span class="gr ${g}">${g==='N'?'—':g}</span>${f2(x.peg2)}</td><td>${f2(x.peg1)}</td><td>${f2(x.peg_op)}</td><td class="l fl">${esc(why)}</td></tr>`;
+  }).join('')||'<tr><td colspan="13" style="text-align:center;color:#98a2b3">데이터 없음</td></tr>';
+}
+document.querySelectorAll('.bar button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.bar button').forEach(x=>x.classList.remove('on'));b.classList.add('on');CAT=b.dataset.c;draw();}));
+document.getElementById('q').addEventListener('input',e=>{Q=e.target.value.trim();draw();});
+document.querySelectorAll('th[data-k]').forEach(h=>h.addEventListener('click',()=>{const k=h.dataset.k; if(SK===k) SA=-SA; else {SK=k; SA=(k==='n')?1:(k.startsWith('peg')||k.startsWith('per')?1:-1);} draw();}));
+(async function(){
+  try{ D=await (await fetch('/data/peg.json?t='+Date.now())).json(); }
+  catch(e){ document.getElementById('upd').textContent='peg.json 없음 — 첫 수집(평일 16:40) 후 표시됩니다.'; return; }
+  document.getElementById('upd').innerHTML=`갱신 ${esc(D.updated)} · 대상 ${D.n}종목(반도체 소부장 맵) · PEG 산출 ${D.ok} · 추정 없음 ${D.nocov} · 출처: ${esc(D.source)} · 단위: 순이익 억원`;
+  draw();
+})();
+</script>
+</body>
+</html>

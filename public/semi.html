@@ -17,6 +17,7 @@ h1 { font-size:22px; margin:10px 0 4px; }
 .flow button.pre.on { background:#2f6df6; border-color:#2f6df6; }
 .flow button.post.on { background:#d92d20; border-color:#d92d20; }
 .flow .divider { width:100%; height:0; }
+.peg { display:inline-block; padding:1px 7px; border-radius:9px; font-weight:800; font-size:11px; } .peg.A{background:#0f7b3f;color:#fff} .peg.B{background:#3ab35e;color:#fff} .peg.C{background:#f0b429;color:#1a1f2e} .peg.D{background:#f97316;color:#fff} .peg.E{background:#d92d20;color:#fff}
 .grpbar { display:flex; gap:6px; margin-bottom:14px; }
 .grpbar button { border:1.5px solid #d7dce6; background:#fff; border-radius:8px; padding:6px 12px; font:inherit; font-size:12px; font-weight:800; cursor:pointer; color:#475467; }
 .grpbar button.on { background:#eef4ff; border-color:#2f6df6; color:#2f6df6; }
@@ -120,7 +121,7 @@ h1 { font-size:22px; margin:10px 0 4px; }
 <div class="ov" id="ov" onclick="closeDw()"></div>
 <div class="dw" id="dw"><button class="x" onclick="closeDw()">✕</button><div class="in" id="dwin"></div></div>
 <script>
-let DATA=null, VALS=null, DET=null, PROC='all', GRP='all', FLD='all';
+let DATA=null, VALS=null, DET=null, PROC='all', GRP='all', FLD='all'; let PEG=null;
 const PRE=['w','o','f','e','d','m'], POST=['t','k'];
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const SRC={'원문':['o','📄 원문'],'전문매체':['m','📰 전문매체'],'공시':['d','📋 공시']};
@@ -190,20 +191,25 @@ function badge(p, procs){
     return `<span class="tag ${cls}">${lbl[x]||x}</span>`;
   }).join('');
 }
-function fmtV(v){
+function fmtV(v, c){
   if(!v||!v.length) return '';
   const pbr=v[0], per=v[1], cap=v[2];
   const parts=[];
   if(per) parts.push(`PER <b>${per}배</b>`);
   if(pbr) parts.push(`PBR <b>${pbr}배</b>`);
   if(cap) parts.push(`시총 <b>${cap>=10000?(cap/10000).toFixed(1)+'조':Number(cap).toLocaleString()+'억'}</b>`);
+  const pg=PEG&&PEG[c];
+  if(pg&&pg.peg2!=null){
+    const lbl={A:'매우 저평가',B:'저평가',C:'적정',D:'다소 고평가',E:'고평가'}[pg.grade]||'';
+    parts.push(`<a href="/peg.html" title="PEG(2Y)=12M 선행 PER ${pg.per_f12}배 ÷ 2년 순이익 CAGR ${pg.cagr2}% · ${lbl}" style="text-decoration:none"><span class="peg ${pg.grade}">PEG ${Number(pg.peg2).toFixed(2)}</span></a>`);
+  }
   return parts.join(' · ');
 }
 function card(e){
   const img = e.img
     ? `<div class="ph"><img src="/img/semi/${e.c}.jpg" alt="${e.n} 제품" loading="lazy">${e.src?`<span class="srcTag">출처: ${e.src}</span>`:''}</div>`
     : `<div class="ph noimg">${e.g==='후'?'📦':(e.cat==='소재'?'🧪':e.cat==='파츠'?'⚙️':'🏭')}</div>`;
-  const v = VALS && VALS[e.c] ? fmtV(VALS[e.c]) : '';
+  const v = VALS && VALS[e.c] ? fmtV(VALS[e.c], e.c) : '';
   const d = DET && DET.co[e.c];
   const medal=['','🥇','🥈','🥉'];
   const rk = d ? (d.fields||[]).map(id=>{const f=DET.fields.find(x=>x.id===id); const r=f&&f.rank.find(x=>x.c===e.c); return f&&r?`<span class="subtag" title="${esc(f.name)}">${medal[r.r]||''} ${esc(f.name.replace(/\(.*?\)/g,'').trim())}</span>`:'';}).join('') : '';
@@ -259,6 +265,7 @@ async function init(){
     VALS=sv.map||null;
   }catch(e){ VALS=null; }
   try{ DET=await (await fetch('/data/semidetail.json?t='+Date.now())).json(); }catch(e){ DET=null; }
+  try{ const pj=await (await fetch('/data/peg.json?t='+Date.now())).json(); PEG={}; (pj.rows||[]).forEach(r=>{PEG[r.c]=r;}); }catch(e){ PEG=null; }
   const h=(location.hash||'').replace('#','');
   if(DET&&h&&DET.fields.some(f=>f.id===h)) FLD=h;
   drawBars(); drawFields(); drawRank(); drawDeep(); draw();

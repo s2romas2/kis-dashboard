@@ -208,7 +208,8 @@ def build(code, name, meta, px, est, nfy=None):
     if ni0 is not None and ni0 <= 0: flags.append('FY0 적자→성장률 산출 불가(턴어라운드)')
     if ni1 is not None and ni1 <= 0: flags.append('FY1 적자')
     if row['cagr2'] is not None and row['cagr2'] < 0: flags.append('순이익 역성장→PEG 무의미')
-    if row['cagr2'] is not None and row['cagr2'] > 100: flags.append('성장률 100%↑ — 저PEG 과신 금지(기저효과)')
+    gused = row['cagr2'] if (row['cagr2'] is not None and not row.get('peg2_fallback')) else row['g1']
+    if gused is not None and gused > 100: flags.append('성장률 100%↑ — 저PEG 과신 금지(기저효과)')
     if not row['actual0']: flags.append('FY0 확정치 아님')
     row['flags'] = flags
     row['status'] = 'ok' if (row['peg2'] is not None or row['peg1'] is not None) else 'PEG 산출 불가'

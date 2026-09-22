@@ -1,0 +1,35 @@
+name: 소부장 PEG 밸류 일일 수집
+on:
+  schedule:
+    - cron: '40 7 * * 1-5'   # 16:40 KST 장 마감 후
+  workflow_dispatch: {}
+  push:
+    paths: ['peg.py']
+permissions:
+  contents: write
+concurrency:
+  group: peg-cache
+  cancel-in-progress: false
+jobs:
+  peg:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 수집
+        env:
+          KIS_APPKEY: ${{ secrets.KIS_APPKEY }}
+          KIS_APPSECRET: ${{ secrets.KIS_APPSECRET }}
+        run: python peg.py
+      - name: 결과 커밋
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/peg.json 2>/dev/null || true
+          git commit -m "소부장 PEG 갱신" || echo "변경 없음"
+          git pull --rebase origin main || true
+          git push || true

@@ -204,7 +204,7 @@ def build(code, name, meta, px, est, nfy=None):
     flags = []
     if row.get('peg2_fallback'): flags.append(row['peg2_fallback'])
     if fy2note: flags.append(fy2note)
-    if row.get('kis_ni1') and ni1 and abs(row['kis_ni1'] / ni1 - 1) > 0.3: flags.append('한투 단일추정과 30%↑ 괴리(%s억)' % int(row['kis_ni1']))
+    if row.get('kis_ni1') and ni1 and abs(row['kis_ni1'] / ni1 - 1) > 0.3: flags.append('한투 단일추정과 30%%↑ 괴리(%s억)' % int(row['kis_ni1']))
     if ni0 is not None and ni0 <= 0: flags.append('FY0 적자→성장률 산출 불가(턴어라운드)')
     if ni1 is not None and ni1 <= 0: flags.append('FY1 적자')
     if row['cagr2'] is not None and row['cagr2'] < 0: flags.append('순이익 역성장→PEG 무의미')

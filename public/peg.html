@@ -59,9 +59,9 @@ tr.na td { color:#98a2b3; }
   <th class="l" data-k="n">종목</th><th data-k="cap">시총</th><th data-k="per_t">PER<br><small>트레일링</small></th><th data-k="per_f12">PER<br><small>12M 선행</small></th>
   <th data-k="ni0">순이익<br><small>FY0 확정</small></th><th data-k="ni1">순이익<br><small>올해E</small></th><th data-k="ni2">순이익<br><small>내년E</small></th>
   <th data-k="g1">성장<br><small>올해</small></th><th data-k="cagr2">성장<br><small>2Y CAGR</small></th>
-  <th data-k="peg2" class="s">PEG<br><small>2Y ★</small></th><th data-k="peg1">PEG<br><small>FY1</small></th><th data-k="peg_op">PEG<br><small>OP</small></th><th class="l">비고</th>
+  <th data-k="peg2" class="s">PEG<br><small>2Y ★</small></th><th data-k="peg1">PEG<br><small>FY1</small></th><th data-k="peg_op">PEG<br><small>OP</small></th><th class="l" data-k="src">출처</th><th class="l">비고</th>
 </tr></thead><tbody id="tb"></tbody></table></div>
-<div class="note">⚠️ 추정치는 <b>한국투자증권 리서치 단일 추정</b>(KIS 종목추정실적)이라 컨센서스와 다를 수 있고, 커버하지 않는 종목은 "추정 없음"으로 표시됩니다. 장비주는 수주→매출 인식 시차 때문에 단년 성장률이 크게 출렁이므로 <b>PEG(2Y)</b>를 우선 보고, 성장률 100% 이상(기저효과)·턴어라운드 종목의 낮은 PEG는 과신하지 마세요. 사이클 고점 이익에 낮은 PER이 붙는 '피크 밸류 함정'도 PEG로는 걸러지지 않습니다.</div>
+<div class="note">⚠️ 추정치는 <b>네이버 종목재무의 FnGuide 컨센서스</b>(올해 추정)를 우선 쓰고, 내년 추정은 컨센에 없으면 한국투자증권 단일 추정의 성장률을 차용합니다(비고에 표시). 어느 쪽도 없는 종목은 "추정 없음". 장비주는 수주→매출 인식 시차 때문에 단년 성장률이 크게 출렁이므로 <b>PEG(2Y)</b>를 우선 보고, 성장률 100% 이상(기저효과)·턴어라운드 종목의 낮은 PEG는 과신하지 마세요. 사이클 고점 이익에 낮은 PER이 붙는 '피크 밸류 함정'도 PEG로는 걸러지지 않습니다.</div>
 </div>
 <script>
 let D=null, CAT='all', SK='peg2', SA=1, Q='';
@@ -83,12 +83,12 @@ function draw(){
   document.querySelectorAll('th[data-k]').forEach(h=>h.classList.toggle('s',h.dataset.k===SK));
   document.getElementById('tb').innerHTML=r.map(x=>{
     const na=x.status!=='ok'; const g=x.grade||'N';
-    const why=na?(x.status==='미커버'?'추정 없음(한투 미커버)':x.status):(x.flags||[]).join(' · ');
+    const why=na?((x.status==='미커버'||x.status==='추정 없음')?'추정 없음(컨센·한투 모두 미커버)':x.status):(x.flags||[]).join(' · ');
     return `<tr class="${na?'na':''}"><td class="l"><span class="nm">${esc(x.n)}</span><span class="code">${x.c}</span>${x.cat?`<span class="cat">${esc(x.cat)}</span>`:''} <a href="/semi.html#${x.c}" style="font-size:11px;color:#6d28d9">맵</a> <a href="/bands.html#${x.c}" style="font-size:11px;color:#2f6df6">밴드</a></td>
       <td>${fcap(x.cap)}</td><td>${f1(x.per_t)}</td><td>${f1(x.per_f12)}</td><td>${feok(x.ni0)}</td><td>${feok(x.ni1)}</td><td>${feok(x.ni2)}</td>
       <td>${fpct(x.g1)}</td><td>${fpct(x.cagr2)}</td>
-      <td class="peg"><span class="gr ${g}">${g==='N'?'—':g}</span>${f2(x.peg2)}</td><td>${f2(x.peg1)}</td><td>${f2(x.peg_op)}</td><td class="l fl">${esc(why)}</td></tr>`;
-  }).join('')||'<tr><td colspan="13" style="text-align:center;color:#98a2b3">데이터 없음</td></tr>';
+      <td class="peg"><span class="gr ${g}">${g==='N'?'—':g}</span>${f2(x.peg2)}</td><td>${f2(x.peg1)}</td><td>${f2(x.peg_op)}</td><td class="l" style="font-size:11px;color:#667085">${esc((x.src||'').replace('네이버 컨센서스(FnGuide)','컨센서스').replace('한투 리서치(KIS 단일 추정)','한투 단일'))}</td><td class="l fl">${esc(why)}</td></tr>`;
+  }).join('')||'<tr><td colspan="14" style="text-align:center;color:#98a2b3">데이터 없음</td></tr>';
 }
 document.querySelectorAll('.bar button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.bar button').forEach(x=>x.classList.remove('on'));b.classList.add('on');CAT=b.dataset.c;draw();}));
 document.getElementById('q').addEventListener('input',e=>{Q=e.target.value.trim();draw();});

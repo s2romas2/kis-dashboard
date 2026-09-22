@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # 반도체 소부장(semimap.json 146사) PEG 밸류 일일 수집 — KIS 오픈API
 #   현재가·시총·트레일링 PER : inquire-price (FHKST01010100)
-#   순이익 추정 FY1·FY2      : 종목추정실적 estimate-perform (HHKST668300C0, 한투 리서치 단일 추정치)
+#   순이익 추정 FY1·FY2      : 네이버 종목 재무 API(FnGuide 컨센서스) 우선 → 없으면 KIS 종목추정실적(한투 단일 추정)
 #   PEG = 선행 PER ÷ 순이익 성장률(%)
 #     · peg1 = FY1 PER(시총/올해E 순이익) ÷ 올해 순이익 성장률(FY1/FY0−1)
 #     · peg2 = 12M 선행 PER ÷ 2년 순이익 CAGR(FY0→FY2)   ← 대표값(단년 급증 왜곡 완화)
@@ -61,6 +61,28 @@ def kis_price(token, code):
 def kis_estimate(token, code):
     j = jget(KIS + '/uapi/domestic-stock/v1/quotations/estimate-perform?SHT_CD=' + code, kis_hdr(token, 'HHKST668300C0'))
     return {k: j.get(k) for k in ('rt_cd', 'msg1', 'output1', 'output2', 'output3', 'output4')}
+
+def naver_consensus(code):
+    """네이버 모바일 종목 재무(연간) API — FnGuide 컨센서스(다수 추정). → fy dict (억원, est=컨센 여부)"""
+    j = jget('https://m.stock.naver.com/api/stock/%s/finance/annual' % code)
+    fi = (j or {}).get('financeInfo') or {}
+    tl = fi.get('trTitleList') or []; rows = fi.get('rowList') or []
+    if not tl or not rows: return {}
+    def row(title):
+        for r in rows:
+            if (r.get('title') or '').replace(' ', '') == title: return r.get('columns') or {}
+        return {}
+    rv, op, ni, nic = row('매출액'), row('영업이익'), row('당기순이익'), row('지배주주순이익')
+    fy = {}
+    for t in tl:
+        k = t.get('key') or ''; m = re.match(r'(20\d\d)', k)
+        if not m: continue
+        def v(col):
+            c = (col.get(k) or {}).get('value'); x = tonum(c)
+            return x
+        n = v(nic); n = n if n is not None else v(ni)   # 지배주주순이익 우선(없으면 당기순이익)
+        fy[m.group(1)] = {'rv': v(rv), 'op': v(op), 'ni': n, 'est': (t.get('isConsensus') == 'Y')}
+    return fy
 
 # ── 추정실적 파싱 (valalert.py와 동일 로직·검증) ──
 def _growth_ok(base, gr):
@@ -133,18 +155,33 @@ def grade(p):
     if p < 2.0: return 'D'   # 다소 고평가
     return 'E'               # 고평가
 
-def build(code, name, meta, px, est):
+def build(code, name, meta, px, est, nfy=None):
     row = {'c': code, 'n': name, 'cat': meta.get('cat'), 'g': meta.get('g'), 'p': meta.get('p'),
            'px': px.get('px'), 'cap': px.get('cap'), 'per_t': px.get('per'), 'pbr': px.get('pbr')}
-    fy, note = parse_estimate(est)
-    row['note'] = note
+    y1 = str(TODAY.year)
+    kfy, note = parse_estimate(est)
+    fy = {}; src = ''
+    if nfy and nfy.get(y1) and nfy[y1].get('ni') is not None:
+        fy = nfy; src = '네이버 컨센서스(FnGuide)'
+    elif kfy and kfy.get(y1) and kfy[y1].get('ni') is not None:
+        fy = kfy; src = '한투 리서치(KIS 단일 추정)'
+    row['note'] = note; row['src'] = src
+    if kfy and kfy.get(y1) and nfy and nfy.get(y1) and kfy[y1].get('ni') and nfy[y1].get('ni'):
+        row['kis_ni1'] = kfy[y1]['ni']   # 교차확인용: 한투 단일 추정 올해 순이익
     if not fy:
-        row['status'] = '미커버' if note.startswith('미커버') else '추정 파싱 실패'; return row
+        row['status'] = '미커버' if (note.startswith('미커버') and not nfy) else '추정 없음'; return row
     y1, y2 = str(TODAY.year), str(TODAY.year + 1)
     y0 = str(TODAY.year - 1)
     a0, a1, a2 = fy.get(y0), fy.get(y1), fy.get(y2)
     ni0 = a0 and a0.get('ni'); ni1 = a1 and a1.get('ni'); ni2 = a2 and a2.get('ni')
     op0 = a0 and a0.get('op'); op1 = a1 and a1.get('op'); op2 = a2 and a2.get('op')
+    fy2note = ''
+    if ni2 is None and kfy and kfy.get(y1) and kfy.get(y2):   # 컨센에 내년 추정이 없으면 한투 단일추정의 내년 성장률만 차용
+        k1, k2 = kfy[y1].get('ni'), kfy[y2].get('ni')
+        if ni1 and k1 and k2 and k1 > 0 and k2 > 0:
+            ni2 = ni1 * (k2 / k1); fy2note = 'FY2=한투 추정 성장률(%+.0f%%) 적용' % ((k2 / k1 - 1) * 100)
+        ko1, ko2 = kfy[y1].get('op'), kfy[y2].get('op')
+        if op2 is None and op1 and ko1 and ko2 and ko1 > 0 and ko2 > 0: op2 = op1 * (ko2 / ko1)
     row.update({'fy0': y0, 'ni0': ni0, 'ni1': ni1, 'ni2': ni2, 'op0': op0, 'op1': op1, 'op2': op2,
                 'actual0': bool(a0 and not a0.get('est'))})
     cap = px.get('cap')
@@ -160,9 +197,14 @@ def build(code, name, meta, px, est):
     row['og1'] = pct(op0, op1); row['ocagr2'] = cagr(op0, op2, 2)
     row['peg1'] = div(row['per_f1'], row['g1'])
     row['peg2'] = div(row['per_f12'], row['cagr2'])
+    if row['peg2'] is None and ni2 is None and row['peg1'] is not None:
+        row['peg2'] = row['peg1']; row['peg2_fallback'] = 'FY2 추정 없음 → FY1 기준'
     row['peg_op'] = div(row['pop_f12'], row['ocagr2'])   # 영업이익 기준 PEG(참고)
     row['grade'] = grade(row['peg2'] if row['peg2'] is not None else row['peg1'])
     flags = []
+    if row.get('peg2_fallback'): flags.append(row['peg2_fallback'])
+    if fy2note: flags.append(fy2note)
+    if row.get('kis_ni1') and ni1 and abs(row['kis_ni1'] / ni1 - 1) > 0.3: flags.append('한투 단일추정과 30%↑ 괴리(%s억)' % int(row['kis_ni1']))
     if ni0 is not None and ni0 <= 0: flags.append('FY0 적자→성장률 산출 불가(턴어라운드)')
     if ni1 is not None and ni1 <= 0: flags.append('FY1 적자')
     if row['cagr2'] is not None and row['cagr2'] < 0: flags.append('순이익 역성장→PEG 무의미')
@@ -193,17 +235,20 @@ def main():
     for i, c in enumerate(codes):
         px = kis_price(token, c); time.sleep(0.12)
         est = kis_estimate(token, c); time.sleep(0.12)
+        try: nfy = naver_consensus(c)
+        except Exception as e: nfy = {}; log('%s 네이버 컨센 실패 %r' % (c, e))
+        time.sleep(0.15)
         if not px:
             log('%s 시세 실패' % c)
             if c in prev: rows.append(prev[c]); continue
-        r = build(c, metas[c].get('n', c), metas[c], px, est)
+        r = build(c, metas[c].get('n', c), metas[c], px, est, nfy)
         if r.get('status') == 'ok': ok += 1
-        elif r.get('status') == '미커버': nocov += 1
+        elif r.get('status') in ('미커버', '추정 없음'): nocov += 1
         rows.append(r)
         if (i + 1) % 25 == 0: print('%d/%d' % (i + 1, len(codes)), file=sys.stderr)
     rows.sort(key=lambda r: (r.get('peg2') is None, r.get('peg2') if r.get('peg2') is not None else 9e9))
     out = {'updated': datetime.datetime.now(KST).strftime('%Y-%m-%d %H:%M'), 'n': len(rows), 'ok': ok, 'nocov': nocov,
-           'source': 'KIS inquire-price + estimate-perform(한투 리서치 추정치, 단일 추정)',
+           'source': '시세·트레일링PER=KIS / 추정=네이버 컨센서스(FnGuide, 다수 추정) 우선, 없으면 한투 리서치(KIS 단일 추정)',
            'legend': {'peg2': '12M 선행 PER ÷ 2년 순이익 CAGR(FY0→FY2)', 'peg1': 'FY1 PER ÷ 올해 순이익 성장률',
                       'peg_op': '12M 선행 P/OP ÷ 2년 영업이익 CAGR',
                       'grade': {'A': '<0.5 매우 저평가(린치: 매수 매력 큼)', 'B': '0.5~1.0 성장률 대비 저평가',

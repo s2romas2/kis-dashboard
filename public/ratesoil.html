@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>금리 vs 유가 — 유가로 설명되는 10년물</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; background:#f4f6fa; color:#1a1f2e; }
+.wrap { max-width:1100px; margin:0 auto; padding:18px 14px 60px; }
+h1 { font-size:22px; margin:10px 0 4px; }
+.sub { color:#667085; font-size:13px; margin-bottom:12px; line-height:1.6; }
+.verdict { border-radius:14px; padding:16px 18px; margin-bottom:12px; color:#fff; }
+.verdict .t { font-size:13px; opacity:.85; } .verdict .v { font-size:26px; font-weight:900; margin:2px 0; } .verdict .d { font-size:13px; line-height:1.6; }
+.v-hot { background:linear-gradient(90deg,#b91c1c,#dc2626); } .v-warm { background:linear-gradient(90deg,#c2410c,#f97316); } .v-ok { background:linear-gradient(90deg,#166534,#22c55e); } .v-cool { background:linear-gradient(90deg,#1d4ed8,#3b82f6); } .v-cold { background:linear-gradient(90deg,#312e81,#6366f1); }
+.tiles { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px; margin-bottom:12px; }
+.tile { background:#fff; border:1px solid #e4e7ec; border-radius:12px; padding:10px 12px; }
+.tile .k { font-size:11.5px; color:#667085; } .tile .val { font-size:20px; font-weight:800; margin-top:2px; } .tile .s { font-size:11px; color:#98a2b3; }
+.panel { background:#fff; border:1px solid #e4e7ec; border-radius:12px; padding:12px 14px; margin-bottom:12px; }
+.panel h2 { font-size:14px; margin-bottom:6px; } .panel .n { font-size:12px; color:#667085; margin-bottom:6px; line-height:1.5; }
+.chart-box { position:relative; height:280px; }
+.lg { background:#fff; border:1px solid #e4e7ec; border-radius:12px; padding:12px 14px; margin-bottom:12px; font-size:12.5px; line-height:1.75; }
+.z { display:inline-block; padding:1px 7px; border-radius:8px; font-weight:800; font-size:11.5px; color:#fff; margin-right:4px; }
+table { width:100%; border-collapse:collapse; font-size:12.5px; }
+th, td { padding:6px 8px; border-bottom:1px solid #eef0f4; text-align:right; white-space:nowrap; }
+th { background:#f8fafc; color:#475467; font-size:11.5px; } td.l, th.l { text-align:left; }
+.note { background:#fff7e8; border:1px solid #f5d9a8; border-radius:10px; padding:10px 14px; font-size:12px; color:#7a5b1e; line-height:1.6; }
+@media (max-width:720px){ .chart-box{height:220px;} .verdict .v{font-size:21px;} }
+</style>
+<script src="/nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<h1>🛢️ 금리 vs 유가 — 유가로 설명되는 10년물</h1>
+<div class="sub" id="upd">불러오는 중…</div>
+<div id="vbox" class="verdict v-ok"><div class="t">오늘의 판정</div><div class="v">—</div><div class="d"></div></div>
+<div class="tiles" id="tiles"></div>
+<div class="lg">
+  <b>관점(Call No.158)</b>: 최근 1년 미국채 10년물과 브렌트 유가는 상관관계가 높다 → 유가로 설명되는 10년물 <b>적정치</b>를 1년 롤링 회귀(10년물 = a + b·ln(브렌트))로 구하고, <b>실제 − 적정치 = 괴리</b>를 잔차 표준편차(σ)로 나눠 판단.
+  <br><span class="z" style="background:#dc2626">≥ +2σ</span>지나치게 앞서감(과열) — 유가 외 요인(AI 투자수요·재정·연준) 반영, 오버슈팅 가능성 &nbsp;
+  <span class="z" style="background:#f97316">+1~+2σ</span>앞서는 편 &nbsp;
+  <span class="z" style="background:#22c55e">−1~+1σ</span>상관관계대로 잘 가는 중 &nbsp;
+  <span class="z" style="background:#3b82f6">−1~−2σ</span>뒤처지는 편(유가 반영 지연) &nbsp;
+  <span class="z" style="background:#6366f1">≤ −2σ</span>지나치게 못 따라감
+  <br>보조: 10년 기대인플레(BEI)와 실질금리(TIPS)로 금리 상승이 <b>물가 기대</b> 때문인지 <b>실질금리</b>(투자 수요·재정) 때문인지 분해. 상관계수(1년·60일)가 약해지면 기준선 자체를 의심.
+</div>
+<div class="panel"><h2>① 실제 10년물 vs 유가 설명치 (좌) · 브렌트 (우)</h2><div class="chart-box"><canvas id="c1"></canvas></div></div>
+<div class="panel"><h2>② 괴리 z-score (실제 − 설명치) ÷ σ</h2><div class="n">±1σ 안이면 정상, ±2σ 밖이면 유가 외 요인이 크게 붙은 구간</div><div class="chart-box"><canvas id="c2"></canvas></div></div>
+<div class="panel"><h2>③ 상관계수(1년 롤링·60일) · 기대인플레 · 실질금리</h2><div class="chart-box"><canvas id="c3"></canvas></div></div>
+<div class="panel"><h2>최근 20영업일</h2><div style="overflow-x:auto"><table><thead><tr><th class="l">날짜</th><th>10년물</th><th>브렌트</th><th>설명치</th><th>괴리(bp)</th><th>z</th><th>판정</th><th>상관 1Y</th><th>상관 60D</th><th>BEI</th><th>실질</th></tr></thead><tbody id="tb"></tbody></table></div></div>
+<div class="note">⚠️ 회귀는 최근 1년(252영업일) 구간 특성이라 국면이 바뀌면(재정 문제로 유가와 무관하게 금리가 오르는 국면 등) 기준선이 틀어질 수 있음 — 상관계수 추이를 같이 볼 것. z는 "유가 이외 요인의 크기"를 재는 것이지 금리 방향 예측이 아님. 브렌트는 Yahoo 근월 선물(BZ=F) 종가라 Bloomberg 기준 콜 카드 수치와 소폭 다를 수 있음. 10년물은 FRED 기준(1영업일 지연 시 ^TNX로 보정).</div>
+</div>
+<script>
+function cls(z){ if(z==null) return 'v-ok'; if(z>=2) return 'v-hot'; if(z>=1) return 'v-warm'; if(z>-1) return 'v-ok'; if(z>-2) return 'v-cool'; return 'v-cold'; }
+function zc(z){ return {'v-hot':'#dc2626','v-warm':'#f97316','v-ok':'#22c55e','v-cool':'#3b82f6','v-cold':'#6366f1'}[cls(z)]; }
+function vname(z){ if(z==null) return '—'; if(z>=2) return '앞서감(과열)'; if(z>=1) return '앞서는 편'; if(z>-1) return '상관대로'; if(z>-2) return '뒤처지는 편'; return '못 따라감'; }
+const f2=v=>v==null?'—':Number(v).toFixed(2), f1=v=>v==null?'—':Number(v).toFixed(1);
+(async function(){
+  let D; try{ D=await (await fetch('/data/ratesoil.json?t='+Date.now())).json(); }catch(e){ document.getElementById('upd').textContent='ratesoil.json 없음 — 첫 수집 후 표시됩니다.'; return; }
+  const L=D.latest, S=D.series;
+  document.getElementById('upd').innerHTML=`갱신 ${D.updated} · 데이터 기준일 ${L.d} · ${D.source}`;
+  const vb=document.getElementById('vbox'); vb.className='verdict '+cls(L.z);
+  vb.querySelector('.v').textContent=`${L.verdict}  (z ${L.z>0?'+':''}${f2(L.z)}σ · 괴리 ${L.gap>0?'+':''}${f1(L.gap)}bp)`;
+  vb.querySelector('.d').textContent=L.verdict_desc+` — 최근 30일 판정: `+Object.entries(D.dist30||{}).map(([k,v])=>`${k} ${v}일`).join(', ');
+  const tiles=[['미국채 10년물',f2(L.y10)+'%',L.d],['브렌트(근월)','$'+f2(L.brent),L.d],['유가 설명치(적정 10년물)',f2(L.fit)+'%','1년 회귀'],['괴리',(L.gap>0?'+':'')+f1(L.gap)+'bp','σ '+f1(L.sd)+'bp'],
+    ['z-score',(L.z>0?'+':'')+f2(L.z)+'σ',vname(L.z)],['상관계수 1년 / 60일',f2(L.r)+' / '+f2(L.r60),'유가↔10년물'],['유가 +10%당',(L.b10>0?'+':'')+f1(L.b10)+'bp','회귀 기울기'],
+    ['기대인플레 10Y(BEI)',f2(L.bei_latest)+'%',L.bei_date||''],['실질금리 10Y(TIPS)',f2(L.tips_latest)+'%','']];
+  document.getElementById('tiles').innerHTML=tiles.map(t=>`<div class="tile"><div class="k">${t[0]}</div><div class="val">${t[1]}</div><div class="s">${t[2]}</div></div>`).join('');
+  const lab=S.map(s=>s.d);
+  const base={responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{boxWidth:10,font:{size:11}}}},elements:{point:{radius:0}},scales:{x:{ticks:{maxTicksLimit:8,font:{size:10}}}}};
+  new Chart(document.getElementById('c1'),{type:'line',data:{labels:lab,datasets:[
+    {label:'10년물 실제(%)',data:S.map(s=>s.y10),borderColor:'#1d4ed8',borderWidth:1.6,yAxisID:'y'},
+    {label:'유가 설명치(%)',data:S.map(s=>s.fit),borderColor:'#f97316',borderWidth:1.6,borderDash:[4,3],yAxisID:'y'},
+    {label:'브렌트($)',data:S.map(s=>s.brent),borderColor:'#9ca3af',borderWidth:1,yAxisID:'y2'}]},
+    options:Object.assign({},base,{scales:{x:base.scales.x,y:{position:'left',ticks:{font:{size:10}}},y2:{position:'right',grid:{drawOnChartArea:false},ticks:{font:{size:10}}}}})});
+  new Chart(document.getElementById('c2'),{type:'bar',data:{labels:lab,datasets:[{label:'z',data:S.map(s=>s.z),backgroundColor:S.map(s=>zc(s.z)),borderWidth:0,barPercentage:1,categoryPercentage:1}]},
+    options:Object.assign({},base,{plugins:{legend:{display:false}},scales:{x:base.scales.x,y:{ticks:{font:{size:10},stepSize:1},grid:{color:c=>Math.abs(c.tick.value)===2?'#ef4444':(Math.abs(c.tick.value)===1?'#f59e0b':'#eef0f4')}}}})});
+  new Chart(document.getElementById('c3'),{type:'line',data:{labels:lab,datasets:[
+    {label:'상관 1년',data:S.map(s=>s.r),borderColor:'#7c3aed',borderWidth:1.5,yAxisID:'y'},
+    {label:'상관 60일',data:S.map(s=>s.r60),borderColor:'#c4b5fd',borderWidth:1,yAxisID:'y'},
+    {label:'BEI 10Y(%)',data:S.map(s=>s.bei),borderColor:'#dc2626',borderWidth:1.2,yAxisID:'y2',spanGaps:true},
+    {label:'실질금리 10Y(%)',data:S.map(s=>s.tips),borderColor:'#0891b2',borderWidth:1.2,yAxisID:'y2',spanGaps:true}]},
+    options:Object.assign({},base,{scales:{x:base.scales.x,y:{min:-1,max:1,position:'left',ticks:{font:{size:10}}},y2:{position:'right',grid:{drawOnChartArea:false},ticks:{font:{size:10}}}}})});
+  document.getElementById('tb').innerHTML=S.slice(-20).reverse().map(s=>`<tr><td class="l">${s.d}</td><td>${f2(s.y10)}</td><td>${f2(s.brent)}</td><td>${f2(s.fit)}</td><td>${s.gap>0?'+':''}${f1(s.gap)}</td><td>${s.z>0?'+':''}${f2(s.z)}</td><td><span class="z" style="background:${zc(s.z)}">${vname(s.z)}</span></td><td>${f2(s.r)}</td><td>${f2(s.r60)}</td><td>${f2(s.bei)}</td><td>${f2(s.tips)}</td></tr>`).join('');
+})();
+</script>
+</body>
+</html>

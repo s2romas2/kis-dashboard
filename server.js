@@ -4,6 +4,8 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const RAW_BASE = 'https://raw.githubusercontent.com/s2romas2/kis-dashboard/main/public/data/';
+const DATA_CACHE = new Map(); const DATA_TTL = 3 * 60 * 1000;
 
 // .env 파일이 있으면 읽어서 환경변수로 로드
 try {
@@ -263,6 +265,22 @@ const server = http.createServer(async function (req, res) {
   const rel = u.pathname === '/' ? '/index.html' : u.pathname;
   const full = path.join(PUB, rel);
   if (!full.startsWith(PUB)) { res.statusCode = 403; res.end('forbidden'); return; }
+  // /data/* 는 GitHub main 최신본을 프록시(메모리 캐시 3분) — Actions가 갱신한 데이터를 렌더 재배포 없이 바로 반영
+  // (렌더 무료 파이프라인 500분/월이 데이터 커밋 자동배포로 소진되는 문제 대응). 실패 시 로컬 파일로 폴백
+  if (/^\/data\/[\w.\-\/%가-힣]+$/.test(rel) && !rel.includes('..')) {
+    const key = rel; const now = Date.now(); const c = DATA_CACHE.get(key);
+    if (c && now - c.ts < DATA_TTL) { res.setHeader('content-type', c.ct); res.setHeader('x-data-src', 'github-cache'); res.end(c.body); return; }
+    try {
+      const r = await fetch(RAW_BASE + rel.replace(/^\/data\//, '') , { headers: { 'user-agent': 'kis-dashboard' } });
+      if (r.ok) {
+        const body = Buffer.from(await r.arrayBuffer());
+        const ct = rel.endsWith('.json') ? 'application/json; charset=utf-8' : 'text/plain; charset=utf-8';
+        if (DATA_CACHE.size > 300) DATA_CACHE.clear();
+        DATA_CACHE.set(key, { ts: now, ct: ct, body: body });
+        res.setHeader('content-type', ct); res.setHeader('x-data-src', 'github'); res.end(body); return;
+      }
+    } catch (e) { /* 폴백 */ }
+  }
   fs.readFile(full, function (err, data) {
     if (err) { res.statusCode = 404; res.end('not found'); return; }
     const ext = path.extname(full);

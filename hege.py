@@ -106,12 +106,18 @@ def quarters_needed():
         if qq == 0: yy -= 1; qq = 4
     return qs[::-1]
 
-def is_rev(nm):
+REV_PRI = {'매출액': 0, '수익(매출액)': 1, '매출': 2, '영업수익': 3, '순영업수익': 4, '매출및지분법손익': 5}
+OP_PRI = {'영업이익': 0, '영업이익(손실)': 0}
+def rev_pri(nm):
     nm = nm.replace(' ', '')
-    return nm in ('매출액', '수익(매출액)', '영업수익', '매출', '매출및지분법손익', '순영업수익', '이자수익') or nm.startswith('매출액') or nm.startswith('수익(매출')
-def is_op(nm):
+    if nm in REV_PRI: return REV_PRI[nm]
+    if nm.startswith('매출액') or nm.startswith('수익(매출'): return 6
+    return None
+def op_pri(nm):
     nm = nm.replace(' ', '')
-    return nm == '영업이익' or nm == '영업이익(손실)' or nm.startswith('영업이익(') and '률' not in nm
+    if nm in OP_PRI: return 0
+    if nm.startswith('영업이익(') and '률' not in nm: return 1
+    return None
 
 def dart_batch(corps, year, q, store):
     """store[corp][(year,q)] = {'rev':3개월, 'op':3개월, 'rev_cum':누적, 'op_cum':누적, 'fs':'CFS'|'OFS'}"""
@@ -123,16 +129,18 @@ def dart_batch(corps, year, q, store):
     if st not in ('000', '013'): log('DART %d/%dQ status=%s %s' % (year, q, st, j.get('message'))); return 'err'
     for r in j.get('list') or []:
         nm = r.get('account_nm', ''); fs = r.get('fs_div', 'OFS'); corp = r.get('corp_code')
-        if not (is_rev(nm) or is_op(nm)): continue
-        k = 'rev' if is_rev(nm) else 'op'
+        pr = rev_pri(nm); po = op_pri(nm)
+        if pr is None and po is None: continue
+        k, pri = ('rev', pr) if pr is not None else ('op', po)
         d = store.setdefault(corp, {}).setdefault((year, q), {'CFS': {}, 'OFS': {}})[fs]
         amt = tonum(r.get('thstrm_amount')); add = tonum(r.get('thstrm_add_amount'))
+        if amt is None and add is None: continue
         if q == 4: cum = amt; qv = None                      # 사업보고서: 연간 → 4Q = 연간 − 3Q 누적
         else:
             cum = add if add is not None else amt
             qv = amt if add is not None else (amt if q == 1 else None)
-        if k in d and d[k].get('q') is not None: continue   # 매출액 항목 중복 시 첫 번째(상위) 유지
-        d[k] = {'q': qv, 'cum': cum}
+        if k in d and d[k].get('pri', 9) <= pri: continue   # 우선순위 높은 계정명(매출액 > 수익(매출액) > 영업수익) 유지
+        d[k] = {'q': qv, 'cum': cum, 'pri': pri}
     return 'ok'
 
 def build_series(store_corp, qs):
@@ -152,7 +160,9 @@ def build_series(store_corp, qs):
                 prev = ((store_corp.get((y, q - 1)) or {}).get(fs) or {}).get(key) or {}
                 pc = prev.get('cum')
                 if pc is None and q == 2: pc = prev.get('q')
-                return None if pc is None else cum - pc
+                v4 = None if pc is None else cum - pc
+                if key == 'rev' and v4 is not None and v4 <= 0: return None
+                return v4
             ser[(y, q)] = (val(rv, 'rev'), val(op, 'op'))
         n_ok = sum(1 for v in ser.values() if v[0] is not None and v[1] is not None)
         if n_ok >= 6: return ser, fs

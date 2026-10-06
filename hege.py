@@ -17,6 +17,7 @@ import xml.etree.ElementTree as ET
 KEY = os.environ.get('DART_API_KEY', '')
 OUT = os.environ.get('OUT', 'public/data/hege.json')
 LIMIT = int(os.environ.get('LIMIT', '0'))          # 테스트용: 종목 수 제한
+CHUNK = int(os.environ.get('CHUNK', '50'))         # DART 다중회사 호출당 종목 수(100이면 응답 느림)
 ONLY = [c for c in os.environ.get('ONLY', '').split(',') if re.fullmatch(r'\d{6}', c)]
 NQ = 13                                            # 수집 분기 수(YoY 계산 후 9분기 국면)
 UA = {'User-Agent': 'Mozilla/5.0'}
@@ -25,7 +26,7 @@ KST = datetime.timezone(datetime.timedelta(hours=9)); TODAY = datetime.datetime.
 DEBUG = []
 
 def log(s): DEBUG.append(str(s)[:300]); print(s, file=sys.stderr, flush=True)
-def fetch(url, timeout=40, tries=3):
+def fetch(url, timeout=60, tries=3):
     err = None
     for i in range(tries):
         try:
@@ -46,8 +47,12 @@ def tonum(s):
 
 # ───────── 1. 종목 유니버스 (네이버 업종 리스트: 이름·시장·업종·시총)
 def naver_universe():
-    g = jget('https://m.stock.naver.com/api/stocks/industry')
-    groups = g.get('groups') or []
+    groups = []
+    for pg in range(1, 10):                                   # 업종 79개, 페이지당 20개
+        g = jget('https://m.stock.naver.com/api/stocks/industry?page=%d' % pg)
+        gs = g.get('groups') or []
+        groups += gs
+        if len(gs) < 20: break
     uni = {}
     for grp in groups:
         no, name = grp.get('no'), grp.get('name')
@@ -197,16 +202,16 @@ def main():
     if LIMIT: codes = codes[:LIMIT]
     log('대상 %d종목' % len(codes))
     corp2code = {corpmap[c]: c for c in codes}
-    store = {}; calls = 0; quota = False
+    store = {}; calls = 0; quota = False; T0 = time.time()
     years = sorted({y for y, q in qs})
-    for i in range(0, len(codes), 100):
-        batch = [corpmap[c] for c in codes[i:i + 100]]
+    for i in range(0, len(codes), CHUNK):
+        batch = [corpmap[c] for c in codes[i:i + CHUNK]]
         for (y, q) in qs:
             r = dart_batch(batch, y, q, store); calls += 1
             if r == 'quota': quota = True; break
             time.sleep(0.15)
         if quota: break
-        log('배치 %d/%d 완료 (호출 %d)' % (i // 100 + 1, (len(codes) + 99) // 100, calls))
+        log('배치 %d/%d 완료 (호출 %d, %ds)' % (i // CHUNK + 1, (len(codes) + CHUNK - 1) // CHUNK, calls, time.time() - T0))
     rows = []; cnt = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0}
     for corp, code in corp2code.items():
         ser, fs = build_series(store.get(corp, {}), qs)

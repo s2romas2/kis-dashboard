@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>헤게모니 4국면 — 매출·영업이익 성장 국면 필터</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; background:#f4f6fa; color:#1a1f2e; }
+.wrap { max-width:1240px; margin:0 auto; padding:18px 14px 60px; }
+h1 { font-size:22px; margin:10px 0 4px; }
+.sub { color:#667085; font-size:13px; margin-bottom:12px; line-height:1.6; }
+.lg { background:#fff; border:1px solid #e4e7ec; border-radius:12px; padding:12px 14px; margin-bottom:12px; font-size:12.5px; line-height:1.8; }
+.lg b { color:#1a2a4a; }
+.ph { display:inline-block; min-width:26px; text-align:center; padding:1px 7px; border-radius:8px; font-weight:800; font-size:12px; }
+.p1 { background:#2563eb; color:#fff; } .p2 { background:#0f7b3f; color:#fff; } .p3 { background:#f0b429; color:#1a1f2e; } .p4 { background:#d92d20; color:#fff; } .p0 { background:#8b5cf6; color:#fff; } .pN { background:#e4e7ec; color:#98a2b3; }
+.bar { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0; align-items:center; }
+.bar button { border:1.5px solid #d7dce6; background:#fff; border-radius:20px; padding:6px 12px; font:inherit; font-size:12.5px; font-weight:700; color:#475467; cursor:pointer; }
+.bar button.on { background:#1a2a4a; border-color:#1a2a4a; color:#fff; }
+.bar button.hot.on { background:#b42318; border-color:#b42318; }
+.bar input, .bar select { border:1.5px solid #d7dce6; border-radius:8px; padding:6px 10px; font:inherit; font-size:13px; background:#fff; }
+.bar input { width:150px; }
+.cnt { font-size:12px; color:#667085; margin-left:auto; }
+table { width:100%; border-collapse:collapse; background:#fff; border:1px solid #e4e7ec; border-radius:12px; overflow:hidden; font-size:12.5px; }
+th, td { padding:7px 8px; border-bottom:1px solid #eef0f4; text-align:right; white-space:nowrap; }
+th { background:#f8fafc; color:#475467; font-size:11.5px; cursor:pointer; user-select:none; position:sticky; top:0; }
+th.s { color:#1a2a4a; }
+td.l, th.l { text-align:left; }
+td .nm { font-weight:800; } td .code { color:#98a2b3; font-size:11px; margin-left:4px; }
+td .sec { display:inline-block; font-size:10.5px; padding:1px 6px; border-radius:8px; background:#eef2ff; color:#3730a3; margin-left:4px; }
+td .mk { font-size:10px; color:#98a2b3; margin-left:3px; }
+.fl { display:inline-block; font-size:10.5px; padding:1px 6px; border-radius:8px; margin-left:3px; font-weight:800; }
+.fl.n1 { background:#dbeafe; color:#1d4ed8; } .fl.e2 { background:#dcfce7; color:#15803d; } .fl.sl { background:#fef3c7; color:#b45309; } .fl.q4 { background:#fee2e2; color:#b42318; } .fl.st { background:#f1f5f9; color:#475467; }
+.hist { display:inline-flex; gap:2px; vertical-align:middle; }
+.hist i { display:inline-block; width:11px; height:14px; border-radius:2px; background:#e4e7ec; }
+.hist i.h1 { background:#2563eb; } .hist i.h2 { background:#0f7b3f; } .hist i.h3 { background:#f0b429; } .hist i.h4 { background:#d92d20; } .hist i.h0 { background:#8b5cf6; }
+.hist i.cur { outline:2px solid #1a1f2e; outline-offset:1px; }
+.pos { color:#0f7b3f; font-weight:700; } .neg { color:#d92d20; font-weight:700; }
+tr.r { cursor:pointer; } tr.r:hover td { background:#f8fafc; }
+tr.d td { background:#fbfcfe; padding:10px 14px; white-space:normal; }
+.dt { display:flex; gap:18px; flex-wrap:wrap; align-items:flex-start; }
+.dt table { width:auto; font-size:11.5px; border-radius:8px; }
+.dt th, .dt td { padding:4px 8px; position:static; }
+svg.sp { background:#fff; border:1px solid #e4e7ec; border-radius:8px; }
+.tw { overflow-x:auto; }
+.note { background:#fff7e8; border:1px solid #f5d9a8; border-radius:10px; padding:10px 14px; font-size:12px; color:#7a5b1e; margin-top:12px; line-height:1.6; }
+.sum { display:flex; gap:8px; flex-wrap:wrap; margin:6px 0 2px; }
+.sum div { background:#fff; border:1px solid #e4e7ec; border-radius:10px; padding:6px 12px; font-size:12px; color:#475467; }
+.sum div b { font-size:15px; color:#1a1f2e; margin-left:4px; }
+@media (max-width:700px){ th,td{padding:6px 5px;font-size:11.5px} }
+</style>
+<script src="/nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<h1>🧭 헤게모니 4국면 — 매출·영업이익 성장 국면 필터</h1>
+<div class="sub" id="upd">불러오는 중…</div>
+<div class="lg">
+  동부 스몰캡 『투자의 定石』(2011·2016) 계량 기준 — 분기 실적의 <b>매출액 YoY vs 영업이익 YoY</b>로 전 상장사를 4국면으로 분류합니다.<br>
+  <span class="ph p1">1</span> <b>매출만 증가</b>(최근 8분기 최대 매출·직전 하락기 뒤 턴어라운드)인데 영업이익은 못 따라옴 — 수요 회복 초기, 저가수주 구간 &nbsp;
+  <span class="ph p2">2</span> <b>영업이익 증가율 &gt; 매출 증가율</b> — 영업레버리지·헤게모니 보유, 주도주 구간(리포트 검증 BM 대비 +54~85%)<br>
+  <span class="ph p3">3</span> 매출은 늘어도 <b>영업이익 증가율 &lt; 매출 증가율</b> — 헤게모니 상실 신호, "모두가 흥분할 때 뒷문으로" &nbsp;
+  <span class="ph p4">4</span> <b>매출·영업이익 모두 감소</b> — 1국면 진입까지 무관심 &nbsp;
+  <span class="ph p0">0</span> 매출 감소·영업이익 증가(비용절감형 생존)<br>
+  플래그: <span class="fl n1">1국면 신규</span> 직전 분기 ≠1 → 1 &nbsp; <span class="fl e2">2국면 초입</span> 직전 분기 ≠2 → 2 &nbsp; <span class="fl st">2국면 n분기</span> 연속 유지 &nbsp;
+  <span class="fl sl">둔화</span> 2국면이지만 영업이익 증가율이 직전 분기보다 낮아짐(중·후반) &nbsp; <span class="fl q4">4Q</span> 최근 분기가 4Q — 인센티브 등 일회성 비용으로 3국면 오판 주의
+</div>
+<div class="sum" id="sum"></div>
+<div class="bar">
+  <button data-c="hot" class="hot on">★ 핵심 (1국면 신규 + 2국면 초입)</button>
+  <button data-c="1">1국면</button><button data-c="e2">2국면 초입</button><button data-c="2">2국면 전체</button><button data-c="3">3국면</button><button data-c="4">4국면</button><button data-c="0">0</button><button data-c="all">전체</button>
+  <select id="mkt"><option value="">시장 전체</option><option>KOSPI</option><option>KOSDAQ</option></select>
+  <select id="sec"><option value="">업종 전체</option></select>
+  <select id="cap"><option value="0">시총 전체</option><option value="500">500억↑</option><option value="1000">1천억↑</option><option value="3000">3천억↑</option><option value="10000">1조↑</option></select>
+  <input id="q" placeholder="종목명·코드 검색">
+  <span class="cnt" id="cnt"></span>
+</div>
+<div class="tw"><table id="t"><thead><tr>
+  <th class="l" data-k="n">종목</th><th data-k="cap">시총</th><th data-k="ph" class="s">국면</th><th class="l">전환·플래그</th><th class="l">최근 8분기 국면</th>
+  <th data-k="rg">매출 YoY</th><th data-k="og">영익 YoY</th><th data-k="gap">영익−매출<br><small>증가율 차</small></th><th data-k="revL">매출<br><small>최근분기(억)</small></th><th data-k="opL">영익<br><small>최근분기(억)</small></th><th data-k="opm">OPM</th><th class="l">기준분기</th>
+</tr></thead><tbody id="tb"></tbody></table></div>
+<div class="note">⚠️ 계량 분류일 뿐입니다. 리포트 원문도 1국면은 "계량만으론 약하다 — 탐방(정성)으로 매출 지속·수익성 개선 가능성 확인", 2국면은 "헤게모니 유지 기간 = 투자 기간, 밸류에이션 트랩에 속지 말 것", 3국면은 "일회성 비용인지 경쟁 심화인지 구분"을 강조합니다. 분기 수치는 DART 공시(연결 우선) 기준이며 4Q는 사업보고서 연간 − 3Q 누적으로 산출, 금융사 등 매출 개념이 다른 업종은 제외·왜곡될 수 있습니다. 적자전환·적자확대 = −200%, 흑자전환·500% 초과 = 500%로 캡.</div>
+</div>
+<script>
+let D=null, CAT='hot', SK='cap', SA=-1, Q='', MKT='', SEC='', CAP=0, OPEN=null;
+const fcap=v=>v==null?'—':(v>=10000?(v/10000).toFixed(1)+'조':Math.round(v).toLocaleString()+'억');
+const feok=v=>v==null?'—':Math.round(v).toLocaleString();
+const fpct=v=>v==null?'—':(v>=500?'흑전/500%↑':v<=-200?'적전/확대':(v>0?'+':'')+Number(v).toFixed(0)+'%');
+const cls=v=>v==null?'':(v>0?'pos':v<0?'neg':'');
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function phb(p){return p==null?'<span class="ph pN">—</span>':'<span class="ph p'+p+'">'+p+'</span>';}
+function prep(){
+  for(const r of D.rows){
+    r.gap=(r.rg==null||r.og==null)?null:r.og-r.rg;
+    r.revL=r.rev[r.rev.length-1]; r.opL=r.op[r.op.length-1];
+    r.opm=(r.revL&&r.opL!=null)?r.opL/r.revL*100:null;
+  }
+  const secs=[...new Set(D.rows.map(r=>r.sec).filter(Boolean))].sort();
+  const s=document.getElementById('sec'); for(const x of secs){const o=document.createElement('option');o.textContent=x;s.appendChild(o);}
+  const c=D.count||{}, n1=D.rows.filter(r=>r.new1).length, e2=D.rows.filter(r=>r.entry2).length;
+  document.getElementById('sum').innerHTML=
+    `<div>분류 종목<b>${D.n.toLocaleString()}</b></div><div>${phb(1)} 1국면<b>${c['1']||0}</b> <small>(신규 ${n1})</small></div><div>${phb(2)} 2국면<b>${c['2']||0}</b> <small>(초입 ${e2})</small></div><div>${phb(3)} 3국면<b>${c['3']||0}</b></div><div>${phb(4)} 4국면<b>${c['4']||0}</b></div><div>${phb(0)} 비용절감<b>${c['0']||0}</b></div>`;
+}
+function rows(){
+  let r=D.rows.slice();
+  if(CAT==='hot') r=r.filter(x=>x.new1||x.entry2);
+  else if(CAT==='e2') r=r.filter(x=>x.entry2);
+  else if(CAT!=='all') r=r.filter(x=>String(x.ph)===CAT);
+  if(MKT) r=r.filter(x=>x.mkt===MKT);
+  if(SEC) r=r.filter(x=>x.sec===SEC);
+  if(CAP) r=r.filter(x=>(x.cap||0)>=CAP);
+  if(Q) r=r.filter(x=>(x.n||'').includes(Q)||(x.c||'').includes(Q));
+  r.sort((a,b)=>{const va=a[SK],vb=b[SK]; if(va==null&&vb==null) return 0; if(va==null) return 1; if(vb==null) return -1; return typeof va==='string'?va.localeCompare(vb)*SA:(va-vb)*SA;});
+  return r;
+}
+function flags(r){
+  let h='';
+  if(r.prev!=null&&r.prev!==r.ph) h+=`<span class="fl st">${r.prev}→${r.ph}</span>`;
+  if(r.new1) h+='<span class="fl n1">1국면 신규</span>';
+  if(r.entry2) h+='<span class="fl e2">2국면 초입</span>';
+  else if(r.ph===2&&r.streak>1) h+=`<span class="fl st">2국면 ${r.streak}분기</span>`;
+  if(r.slow) h+='<span class="fl sl">둔화</span>';
+  if(r.q4) h+='<span class="fl q4">4Q</span>';
+  return h;
+}
+function hist(r){
+  const n=r.hist.length;
+  return '<span class="hist" title="'+esc(r.ql.join(' · '))+'">'+r.hist.map((p,i)=>`<i class="${p==null?'':'h'+p} ${i===n-1?'cur':''}" title="${esc(r.ql[i])}: ${p==null?'—':p+'국면'}"></i>`).join('')+'</span>';
+}
+function spark(r){
+  const W=320,H=120,P=28; const n=r.rev.length; if(n<2) return '';
+  const vals=[...r.rev,...r.op].filter(v=>v!=null); const mx=Math.max(...vals,0), mn=Math.min(...vals,0);
+  const y=v=>H-P/2-(v-mn)/((mx-mn)||1)*(H-P); const x=i=>P+i*(W-P-8)/(n-1);
+  const bw=(W-P-8)/(n-1)*0.55;
+  let s=`<svg class="sp" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`;
+  s+=`<line x1="${P}" x2="${W-6}" y1="${y(0)}" y2="${y(0)}" stroke="#cbd5e1"/>`;
+  r.rev.forEach((v,i)=>{ if(v==null) return; s+=`<rect x="${x(i)-bw/2}" y="${Math.min(y(v),y(0))}" width="${bw}" height="${Math.abs(y(v)-y(0))}" fill="#c7d2fe"/>`; });
+  const pts=r.op.map((v,i)=>v==null?null:[x(i),y(v)]).filter(Boolean);
+  s+=`<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="#0f7b3f" stroke-width="2"/>`;
+  pts.forEach(p=>s+=`<circle cx="${p[0]}" cy="${p[1]}" r="2.5" fill="#0f7b3f"/>`);
+  const ql=D.quarters.slice(D.quarters.indexOf(r.ql[r.ql.length-1])-n+1, D.quarters.indexOf(r.ql[r.ql.length-1])+1);
+  ql.forEach((q,i)=>{ if(i%2===n%2) s+=`<text x="${x(i)}" y="${H-3}" font-size="9" text-anchor="middle" fill="#98a2b3">${q}</text>`; });
+  s+=`<text x="${P}" y="11" font-size="10" fill="#475467">■ 매출(억)  ─ 영업이익(억)</text></svg>`;
+  return s;
+}
+function detail(r){
+  const n=r.rev.length, off=n-r.rgs.length;
+  let t='<table><tr><th>분기</th>'+r.rev.map((_,i)=>`<th>${esc(D.quarters[D.quarters.indexOf(r.ql[r.ql.length-1])-n+1+i]||'')}</th>`).join('')+'</tr>';
+  t+='<tr><td>매출(억)</td>'+r.rev.map(v=>`<td>${feok(v)}</td>`).join('')+'</tr>';
+  t+='<tr><td>영업이익(억)</td>'+r.op.map(v=>`<td class="${v!=null&&v<0?'neg':''}">${feok(v)}</td>`).join('')+'</tr>';
+  t+='<tr><td>매출 YoY</td>'+r.rev.map((_,i)=>{const g=i>=off?r.rgs[i-off]:null;return `<td class="${cls(g)}">${fpct(g)}</td>`;}).join('')+'</tr>';
+  t+='<tr><td>영익 YoY</td>'+r.rev.map((_,i)=>{const g=i>=off?r.ogs[i-off]:null;return `<td class="${cls(g)}">${fpct(g)}</td>`;}).join('')+'</tr>';
+  const hoff=n-r.hist.length;
+  t+='<tr><td>국면</td>'+r.rev.map((_,i)=>`<td>${i>=hoff?phb(r.hist[i-hoff]):''}</td>`).join('')+'</tr></table>';
+  return `<div class="dt">${spark(r)}<div>${t}<div style="font-size:11px;color:#667085;margin-top:6px">재무제표: ${r.fs==='CFS'?'연결':'별도'} · 업종 ${esc(r.sec)} · <a href="https://m.stock.naver.com/domestic/stock/${r.c}/total" target="_blank">네이버</a> · <a href="https://comp.fnguide.com/SVO2/ASP/SVD_Main.asp?pGB=1&gicode=A${r.c}" target="_blank">FnGuide</a></div></div></div>`;
+}
+function draw(){
+  const r=rows(); const tb=document.getElementById('tb'); let h='';
+  for(const x of r){
+    h+=`<tr class="r" data-c="${x.c}"><td class="l"><span class="nm">${esc(x.n)}</span><span class="code">${x.c}</span><span class="mk">${x.mkt==='KOSDAQ'?'Q':'P'}</span><span class="sec">${esc(x.sec)}</span></td>
+      <td>${fcap(x.cap)}</td><td>${phb(x.ph)}</td><td class="l">${flags(x)}</td><td class="l">${hist(x)}</td>
+      <td class="${cls(x.rg)}">${fpct(x.rg)}</td><td class="${cls(x.og)}">${fpct(x.og)}</td><td class="${cls(x.gap)}">${x.gap==null?'—':(x.gap>0?'+':'')+x.gap.toFixed(0)+'%p'}</td>
+      <td>${feok(x.revL)}</td><td class="${x.opL!=null&&x.opL<0?'neg':''}">${feok(x.opL)}</td><td>${x.opm==null?'—':x.opm.toFixed(1)+'%'}</td><td class="l">${esc(x.q)}</td></tr>`;
+    if(OPEN===x.c) h+=`<tr class="d"><td colspan="12">${detail(x)}</td></tr>`;
+  }
+  tb.innerHTML=h||'<tr><td colspan="12" style="text-align:center;color:#98a2b3;padding:30px">해당 종목 없음</td></tr>';
+  document.getElementById('cnt').textContent=r.length+'종목';
+  document.querySelectorAll('th[data-k]').forEach(th=>th.classList.toggle('s',th.dataset.k===SK));
+}
+document.querySelectorAll('.bar button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.bar button').forEach(x=>x.classList.remove('on'));b.classList.add('on');CAT=b.dataset.c;draw();});
+document.getElementById('q').oninput=e=>{Q=e.target.value.trim();draw();};
+document.getElementById('mkt').onchange=e=>{MKT=e.target.value;draw();};
+document.getElementById('sec').onchange=e=>{SEC=e.target.value;draw();};
+document.getElementById('cap').onchange=e=>{CAP=+e.target.value;draw();};
+document.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k; if(SK===k) SA=-SA; else {SK=k; SA=(k==='n')?1:-1;} draw();});
+document.getElementById('tb').onclick=e=>{const tr=e.target.closest('tr.r'); if(!tr) return; OPEN=OPEN===tr.dataset.c?null:tr.dataset.c; draw();};
+fetch('/data/hege.json?r='+Date.now()).then(r=>r.json()).then(d=>{
+  D=d; prep(); draw();
+  document.getElementById('upd').innerHTML=`갱신 ${esc(d.updated)} · 기준 최신 분기 ${esc(d.asof_quarter)}(종목별 공시 시점에 따라 다름) · 분류 ${d.n.toLocaleString()} / 유니버스 ${d.universe.toLocaleString()}종목 · ${esc(d.source)}${d.quota_hit?' · <b style="color:#d92d20">DART 한도 초과로 일부 누락</b>':''}`;
+}).catch(e=>{document.getElementById('upd').textContent='데이터 없음 — 첫 수집 전이거나 DART_API_KEY 미등록 ('+e+')';});
+</script>
+</body>
+</html>

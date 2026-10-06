@@ -62,13 +62,14 @@ svg.sp { background:#fff; border:1px solid #e4e7ec; border-radius:8px; }
   <span class="ph p3">3</span> 매출은 늘어도 <b>영업이익 증가율 &lt; 매출 증가율</b> — 헤게모니 상실 신호, "모두가 흥분할 때 뒷문으로" &nbsp;
   <span class="ph p4">4</span> <b>매출·영업이익 모두 감소</b> — 1국면 진입까지 무관심 &nbsp;
   <span class="ph p0">0</span> 매출 감소·영업이익 증가(비용절감형 생존)<br>
-  플래그: <span class="fl n1">1국면 신규</span> 직전 분기 ≠1 → 1 &nbsp; <span class="fl e2">2국면 초입</span> 직전 분기 ≠2 → 2 &nbsp; <span class="fl st">2국면 n분기</span> 연속 유지 &nbsp;
+  플래그: <span class="fl n1">1국면 신규</span> 직전 분기 ≠1 → 1 &nbsp; <span class="fl e2">2국면 초입</span> 직전 분기 ≠2 → 2 &nbsp; <span class="fl st">n분기 유지</span> 같은 국면 연속 분기 수 — <b>1국면 유지·2국면 유지</b> 버튼(기본 2분기↑)으로 1회성 진입을 걸러냄 &nbsp;
   <span class="fl sl">둔화</span> 2국면이지만 영업이익 증가율이 직전 분기보다 낮아짐(중·후반) &nbsp; <span class="fl q4">4Q</span> 최근 분기가 4Q — 인센티브 등 일회성 비용으로 3국면 오판 주의
 </div>
 <div class="sum" id="sum"></div>
 <div class="bar">
   <button data-c="hot" class="hot on">★ 핵심 (1국면 신규 + 2국면 초입)</button>
-  <button data-c="1">1국면</button><button data-c="e2">2국면 초입</button><button data-c="2">2국면 전체</button><button data-c="3">3국면</button><button data-c="4">4국면</button><button data-c="0">0</button><button data-c="all">전체</button>
+  <button data-c="1">1국면</button><button data-c="s1">1국면 유지</button><button data-c="e2">2국면 초입</button><button data-c="s2">2국면 유지</button><button data-c="2">2국면 전체</button><button data-c="3">3국면</button><button data-c="4">4국면</button><button data-c="0">0</button><button data-c="all">전체</button>
+  <select id="st" title="유지 필터의 최소 연속 분기"><option value="2">2분기 이상 유지</option><option value="3">3분기 이상</option><option value="4">4분기 이상</option></select>
   <select id="mkt"><option value="">시장 전체</option><option>KOSPI</option><option>KOSDAQ</option></select>
   <select id="sec"><option value="">업종 전체</option></select>
   <select id="cap"><option value="0">시총 전체</option><option value="500">500억↑</option><option value="1000">1천억↑</option><option value="3000">3천억↑</option><option value="10000">1조↑</option></select>
@@ -76,13 +77,13 @@ svg.sp { background:#fff; border:1px solid #e4e7ec; border-radius:8px; }
   <span class="cnt" id="cnt"></span>
 </div>
 <div class="tw"><table id="t"><thead><tr>
-  <th class="l" data-k="n">종목</th><th data-k="cap">시총</th><th data-k="ph" class="s">국면</th><th class="l">전환·플래그</th><th class="l">최근 8분기 국면</th>
+  <th class="l" data-k="n">종목</th><th data-k="cap">시총</th><th data-k="ph" class="s">국면</th><th data-k="streak" class="l">전환·플래그<br><small>유지 분기순 정렬</small></th><th class="l">최근 8분기 국면</th>
   <th data-k="rg">매출 YoY</th><th data-k="og">영익 YoY</th><th data-k="gap">영익−매출<br><small>증가율 차</small></th><th data-k="revL">매출<br><small>최근분기(억)</small></th><th data-k="opL">영익<br><small>최근분기(억)</small></th><th data-k="opm">OPM</th><th class="l">기준분기</th>
 </tr></thead><tbody id="tb"></tbody></table></div>
 <div class="note">⚠️ 계량 분류일 뿐입니다. 리포트 원문도 1국면은 "계량만으론 약하다 — 탐방(정성)으로 매출 지속·수익성 개선 가능성 확인", 2국면은 "헤게모니 유지 기간 = 투자 기간, 밸류에이션 트랩에 속지 말 것", 3국면은 "일회성 비용인지 경쟁 심화인지 구분"을 강조합니다. 분기 수치는 DART 공시(연결 우선) 기준이며 4Q는 사업보고서 연간 − 3Q 누적으로 산출, 금융사 등 매출 개념이 다른 업종은 제외·왜곡될 수 있습니다. 적자전환·적자확대 = −200%, 흑자전환·500% 초과 = 500%로 캡.</div>
 </div>
 <script>
-let D=null, CAT='hot', SK='cap', SA=-1, Q='', MKT='', SEC='', CAP=0, OPEN=null;
+let D=null, CAT='hot', SK='cap', SA=-1, Q='', MKT='', SEC='', CAP=0, OPEN=null, ST=2;
 const fcap=v=>v==null?'—':(v>=10000?(v/10000).toFixed(1)+'조':Math.round(v).toLocaleString()+'억');
 const feok=v=>v==null?'—':Math.round(v).toLocaleString();
 const fpct=v=>v==null?'—':(v>=500?'흑전/500%↑':v<=-200?'적전/확대':(v>0?'+':'')+Number(v).toFixed(0)+'%');
@@ -97,14 +98,16 @@ function prep(){
   }
   const secs=[...new Set(D.rows.map(r=>r.sec).filter(Boolean))].sort();
   const s=document.getElementById('sec'); for(const x of secs){const o=document.createElement('option');o.textContent=x;s.appendChild(o);}
-  const c=D.count||{}, n1=D.rows.filter(r=>r.new1).length, e2=D.rows.filter(r=>r.entry2).length;
+  const c=D.count||{}, n1=D.rows.filter(r=>r.new1).length, e2=D.rows.filter(r=>r.entry2).length, s1=D.rows.filter(r=>r.ph===1&&r.streak>=2).length, s2=D.rows.filter(r=>r.ph===2&&r.streak>=2).length;
   document.getElementById('sum').innerHTML=
-    `<div>분류 종목<b>${D.n.toLocaleString()}</b></div><div>${phb(1)} 1국면<b>${c['1']||0}</b> <small>(신규 ${n1})</small></div><div>${phb(2)} 2국면<b>${c['2']||0}</b> <small>(초입 ${e2})</small></div><div>${phb(3)} 3국면<b>${c['3']||0}</b></div><div>${phb(4)} 4국면<b>${c['4']||0}</b></div><div>${phb(0)} 비용절감<b>${c['0']||0}</b></div>`;
+    `<div>분류 종목<b>${D.n.toLocaleString()}</b></div><div>${phb(1)} 1국면<b>${c['1']||0}</b> <small>(신규 ${n1} · 2분기↑유지 ${s1})</small></div><div>${phb(2)} 2국면<b>${c['2']||0}</b> <small>(초입 ${e2} · 2분기↑유지 ${s2})</small></div><div>${phb(3)} 3국면<b>${c['3']||0}</b></div><div>${phb(4)} 4국면<b>${c['4']||0}</b></div><div>${phb(0)} 비용절감<b>${c['0']||0}</b></div>`;
 }
 function rows(){
   let r=D.rows.slice();
   if(CAT==='hot') r=r.filter(x=>x.new1||x.entry2);
   else if(CAT==='e2') r=r.filter(x=>x.entry2);
+  else if(CAT==='s1') r=r.filter(x=>x.ph===1&&x.streak>=ST);
+  else if(CAT==='s2') r=r.filter(x=>x.ph===2&&x.streak>=ST);
   else if(CAT!=='all') r=r.filter(x=>String(x.ph)===CAT);
   if(MKT) r=r.filter(x=>x.mkt===MKT);
   if(SEC) r=r.filter(x=>x.sec===SEC);
@@ -118,7 +121,7 @@ function flags(r){
   if(r.prev!=null&&r.prev!==r.ph) h+=`<span class="fl st">${r.prev}→${r.ph}</span>`;
   if(r.new1) h+='<span class="fl n1">1국면 신규</span>';
   if(r.entry2) h+='<span class="fl e2">2국면 초입</span>';
-  else if(r.ph===2&&r.streak>1) h+=`<span class="fl st">2국면 ${r.streak}분기</span>`;
+  else if((r.ph===2||r.ph===1)&&r.streak>1) h+=`<span class="fl st">${r.ph}국면 ${r.streak}분기 유지</span>`;
   if(r.slow) h+='<span class="fl sl">둔화</span>';
   if(r.q4) h+='<span class="fl q4">4Q</span>';
   return h;
@@ -172,6 +175,7 @@ document.getElementById('q').oninput=e=>{Q=e.target.value.trim();draw();};
 document.getElementById('mkt').onchange=e=>{MKT=e.target.value;draw();};
 document.getElementById('sec').onchange=e=>{SEC=e.target.value;draw();};
 document.getElementById('cap').onchange=e=>{CAP=+e.target.value;draw();};
+document.getElementById('st').onchange=e=>{ST=+e.target.value;draw();};
 document.querySelectorAll('th[data-k]').forEach(th=>th.onclick=()=>{const k=th.dataset.k; if(SK===k) SA=-SA; else {SK=k; SA=(k==='n')?1:-1;} draw();});
 document.getElementById('tb').onclick=e=>{const tr=e.target.closest('tr.r'); if(!tr) return; OPEN=OPEN===tr.dataset.c?null:tr.dataset.c; draw();};
 fetch('/data/hege.json?r='+Date.now()).then(r=>r.json()).then(d=>{

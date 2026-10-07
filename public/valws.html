@@ -399,7 +399,13 @@ document.getElementById('impf').onchange=e=>{ const f=e.target.files[0]; if(!f) 
   AUTO=a||{map:{}}; SV=s||{map:{}}; HEGE=h||{rows:[],quarters:[]}; SECV=sv; SEED=sd||{map:{}};
   document.getElementById('upd').innerHTML=`자동: 컨센·CB/BW ${esc(AUTO.updated||'없음')} (관심 ${(AUTO.codes||[]).length}종목) · 시세 ${esc(SV.updated||'')} · 분기실적 ${esc(HEGE.updated||'')} · 시드 ${esc(SEED.updated||'없음')} — 가격·컨센·공시는 매일 자동, Q·ASP·OPM·배수는 실적 시즌마다 사람이`;
   // 시드가 있는 종목은 시드로 자동 생성(기존 입력이 있으면 유지), 관심종목은 빈 워크시트
-  for(const c of Object.keys(SEED.map||{})) if(!WS[c]) applySeed(c);
+  for(const c of Object.keys(SEED.map||{})){
+    if(!WS[c]){ applySeed(c); continue; }
+    const w=WS[c], sd=SEED.map[c];
+    if(w.fromSeed&&w.seedDate!==SEED.updated){ applySeed(c); continue; }           // 수정 안 한 시드본은 최신 시드로 교체
+    const hasSrc=(w.prods||[]).some(p=>(p.qSrc||[]).length||(p.aSrc||[]).length)||(w.mSrc||[]).length||(w.shSrc||[]).length;
+    if(!hasSrc){ (w.prods||[]).forEach((p,i)=>{ const sp=(sd.prods||[]).find(x=>x.name===p.name)||sd.prods[i]; if(sp){ p.qSrc=sp.qSrc||[]; p.aSrc=sp.aSrc||[]; } }); for(const k of ['mSrc','shSrc','pSrc','tamSrc']) if(!w[k]) w[k]=sd[k]||[]; }  // 근거만 보강
+  }
   for(const c of (AUTO.codes||[])) if(!WS[c]) WS[c]=blank(c);
   renderList(); save();
   const first=Object.keys(WS)[0]; if(first) openWs(first);

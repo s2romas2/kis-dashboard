@@ -100,7 +100,7 @@ canvas { max-width:100%; }
 </div>
 <div class="card">
   <b>제품군별 Q × ASP</b> <span class="mini">ASP 단위 선택(억원·백만원·만원) 또는 '매출직접'(Q칸에 매출 억원). 가격·마진이 다른 제품은 행 분리, Mix 불명확할 때만 Blended. 기간·범위 일치(Run-rate×52주 금지).</span>
-  <div class="tw" style="margin-top:6px"><table id="prodT"><thead><tr><th class="l">제품군</th><th class="l">Q단위</th><th>Q Base</th><th>Bear</th><th>Stress</th><th class="l">Q근거</th><th class="l">ASP단위</th><th>ASP Base</th><th>Bear</th><th>Stress</th><th class="l">ASP근거</th><th>매출 Base</th><th>Bear</th><th>Stress</th><th class="l">근거 메모</th><th></th></tr></thead><tbody></tbody></table></div>
+  <div class="tw" style="margin-top:6px"><table id="prodT"><thead><tr><th class="l">제품군</th><th class="l">Q단위</th><th>Q Base</th><th>Bear</th><th>Stress</th><th class="l">Q근거</th><th class="l">ASP단위</th><th>ASP Base</th><th>Bear</th><th>Stress</th><th class="l">ASP근거</th><th>매출 Base</th><th>Bear</th><th>Stress</th><th class="l">근거 메모</th><th>📎</th><th></th></tr></thead><tbody></tbody></table></div>
   <div class="row"><button class="b" id="addP">+ 제품군</button> <label>기타매출(억)</label> B <input class="s" id="oB"> R <input class="s" id="oR"> S <input class="s" id="oS"> <select class="tag" id="oTag"></select>
    <label>CAPA 상한(참고)</label><input id="capa" style="width:220px"> <select class="tag" id="capaTag"></select></div>
 </div>
@@ -111,6 +111,7 @@ canvas { max-width:100%; }
   <div class="row"><b>PER 배수</b> 정상화 <input class="s" id="pNL">~<input class="s" id="pNH"> &nbsp; Bear <input class="s" id="pRL">~<input class="s" id="pRH"> &nbsp; Stress <input class="s" id="pSL">~<input class="s" id="pSH"></div>
   <div class="row"><label>배수 근거</label><input id="pWhy" style="flex:1;min-width:300px"></div>
 </div>
+<div class="card" id="srcCard"><h3>📎 근거 자료 — 출처 · 링크 <span class="mini">항목별로 한 줄에 하나: <code>출처 설명 | https://링크</code> (링크 없으면 비움). 저장은 자동</span></h3><div id="srcList"></div></div>
 </details>
 
 <details><summary>📐 산출 상세 · 변화 추적</summary>
@@ -124,7 +125,6 @@ canvas { max-width:100%; }
  <div class="card"><h3>분기 실적 <span class="mini">억원</span></h3><div class="tw"><table id="qT"></table></div></div>
 </div>
 <div class="card"><h3>CB·BW 발행결정(최근 4년, DART) <span class="mini">전환·상환 완료분은 '현실 희석'에서 조정 — 사업보고서 '미상환 전환사채' 확인</span></h3><div class="tw"><table id="bondT"></table></div></div>
-<div class="card" id="srcCard"></div>
 </details>
 </div>
 
@@ -289,7 +289,6 @@ function renderAuto(code){
   document.getElementById('bondT').innerHTML=bs.length?'<tr><th>구분</th><th>회차</th><th>공시일</th><th>권면총액(억)</th><th>전환/행사가</th><th>전환주식수(천주)</th><th>총주식比</th><th>만기</th></tr>'+bs.map(b=>{const cnt=b.cnt!=null?b.cnt/1000:(b.amt&&b.prc?b.amt/b.prc/1000:null); tot+=cnt||0; return `<tr><td>${b.kind}</td><td>${esc(b.tm)}</td><td>${esc(b.date)}</td><td>${b.amt!=null?f0(b.amt/1e8):'—'}</td><td>${f0(b.prc)}</td><td>${f0(cnt)}</td><td>${esc(b.vs)||'—'}</td><td class="l">${esc(b.mtd)||''}</td></tr>`;}).join('')+`<tr class="sum"><td colspan="5" class="l">합계(전량 전환 시 추가 주식, 정정공시 중복 가능)</td><td>${f0(tot)}</td><td colspan="2"></td></tr>`:'<tr><td class="l mini">최근 4년 CB·BW 발행결정 없음</td></tr>';
   document.getElementById('bondHint').textContent=tot?`DART 발행결정 합계 ${f0(tot)}천주 (기발행 ${f0(A.shares)}천주 대비 ${(tot/(A.shares||1)*100).toFixed(0)}%)`:'';
   if(!num(w.shB)&&A.shares) w.shB=Math.round(A.shares);
-  document.getElementById('srcCard').innerHTML='<h3>시드 출처</h3>'+((w.sources||[]).map(s=>'· '+esc(s)).join('<br>')||'<span class="mini">—</span>');
   document.getElementById('fillPer').onclick=()=>{ if(!pv.length){ alert('피어 PER 없음'); return; } const lo=Math.min(...pv), hi=Math.max(...pv); Object.assign(w,{pNL:+lo.toFixed(1),pNH:+hi.toFixed(1),pRL:+(lo*.7).toFixed(1),pRH:+(hi*.7).toFixed(1),pSL:+(lo*.5).toFixed(1),pSH:+(hi*.5).toFixed(1)}); renderInputs(code); renderOut(code); save(); };
   return A;
 }
@@ -313,8 +312,18 @@ function renderInputs(code){
     return `<tr data-i="${i}"><td class="l"><input data-f="name" value="${esc(p.name)}" style="width:150px"></td><td class="l">${qunitSel(p.unit)}</td>
     <td><input class="s" data-f="qB" value="${esc(p.qB)}"></td><td><input class="s" data-f="qR" value="${esc(p.qR)}"></td><td><input class="s" data-f="qS" value="${esc(p.qS)}"></td><td class="l">${tagSel('qTag',p.qTag)}</td>
     <td class="l">${unitSel(p.aUnit)}</td><td><input class="s" data-f="aB" value="${esc(p.aB)}" ${direct?'disabled':''}></td><td><input class="s" data-f="aR" value="${esc(p.aR)}" ${direct?'disabled':''}></td><td><input class="s" data-f="aS" value="${esc(p.aS)}" ${direct?'disabled':''}></td><td class="l">${direct?'<span class="mini">—</span>':tagSel('aTag',p.aTag)}</td>
-    <td>${r('B')}</td><td>${r('R')}</td><td>${r('S')}</td><td class="l"><input data-f="memo" value="${esc(p.memo)}" style="width:260px" title="${esc(p.memo)}"></td><td><span class="del" data-del="${i}">✕</span></td></tr>`;}).join('');
+    <td>${r('B')}</td><td>${r('R')}</td><td>${r('S')}</td><td class="l"><input data-f="memo" value="${esc(p.memo)}" style="width:260px" title="${esc(p.memo)}"></td><td><a href="#srcCard" style="text-decoration:none">${(p.qSrc||[]).length+(p.aSrc||[]).length||'—'}</a></td><td><span class="del" data-del="${i}">✕</span></td></tr>`;}).join('');
+  renderSources(code);
   document.getElementById('mHint').textContent=COST?`최근 OPM ${(COST.rows[COST.rows.length-1].op/COST.rows[COST.rows.length-1].rev*100).toFixed(1)}%, 레버리지 ${COST.cls.lev}배`:'';
+}
+function srcLines(arr){ return (arr||[]).map(x=>(x.t||'')+(x.u?' | '+x.u:'')).join('\n'); }
+function parseSrc(txt){ return String(txt||'').split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{const i=l.lastIndexOf('|'); const t=i>=0?l.slice(0,i).trim():l; const u=i>=0?l.slice(i+1).trim():''; return {t,u};}); }
+function srcHtml(arr){ return (arr&&arr.length)?'<ul style="margin:2px 0 4px 16px">'+arr.map(x=>`<li>${esc(x.t)}${x.u?` — <a href="${esc(x.u)}" target="_blank" rel="noopener">링크</a>`:''}</li>`).join('')+'</ul>':'<div class="mini">근거 없음</div>'; }
+function renderSources(code){
+  const w=WS[code]; const items=[];
+  w.prods.forEach((p,i)=>{ items.push({k:'prods.'+i+'.qSrc', label:`${esc(p.name||'제품'+(i+1))} — Q(수량) <span class="tag t${p.qTag||'미확인'}">${p.qTag||'미확인'}</span>`, arr:p.qSrc}); if(AUNITS[p.aUnit||'억원']!==null) items.push({k:'prods.'+i+'.aSrc', label:`${esc(p.name||'제품'+(i+1))} — ASP(단가) <span class="tag t${p.aTag||'미확인'}">${p.aTag||'미확인'}</span>`, arr:p.aSrc}); });
+  items.push({k:'mSrc',label:'OPM <span class="tag t'+(w.mTag||'미확인')+'">'+(w.mTag||'미확인')+'</span>',arr:w.mSrc},{k:'shSrc',label:'주식수·희석(CB/BW)',arr:w.shSrc},{k:'pSrc',label:'PER 배수',arr:w.pSrc},{k:'tamSrc',label:'산업 TAM',arr:w.tamSrc});
+  document.getElementById('srcList').innerHTML=items.map(it=>`<div style="margin-bottom:8px"><b>${it.label}</b>${srcHtml(it.arr)}<textarea data-src="${it.k}" rows="2" placeholder="출처 설명 | https://링크" style="font-size:11.5px;min-height:34px">${esc(srcLines(it.arr))}</textarea></div>`).join('');
 }
 function renderOut(code){
   const w=WS[code], A=autoFor(code), R=calc(w,A); const B=R.out.B, Rr=R.out.R, S=R.out.S;
@@ -366,6 +375,7 @@ async function openWs(code){
 }
 document.getElementById('ws').addEventListener('input',e=>{
   if(!CUR) return; const w=WS[CUR]; const t=e.target; const tr=t.closest('tr[data-i]');
+  if(t.dataset.src){ const path=t.dataset.src.split('.'); const arr=parseSrc(t.value); if(path[0]==='prods') w.prods[+path[1]][path[2]]=arr; else w[path[0]]=arr; clearTimeout(SAVET); SAVET=setTimeout(()=>{ save(); renderInputs(CUR); },800); return; }
   if(tr&&t.dataset.f){ w.prods[+tr.dataset.i][t.dataset.f]=t.value; if(t.tagName==='SELECT'&&t.classList.contains('tag')) t.className='tag t'+t.value; }
   else if(t.id==='grade'){ w.grade=+t.value; }
   else if(t.id){ w[t.id]=t.value; if(t.tagName==='SELECT'&&t.classList.contains('tag')) t.className='tag t'+t.value; }

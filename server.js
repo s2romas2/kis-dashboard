@@ -213,9 +213,66 @@ setInterval(function () {
   const stale = Date.now() - snapshot.lastEnd > 180000; // 3분
   if (h >= 8 && h < 18 && stale && !snapshot.sweeping) sweep();
 }, 60000);
+// ───── 밸류 워크시트 서버 저장: GitHub Contents API로 public/data/valws_user.json(+valws_watch.json) 커밋
+// 환경변수: GH_TOKEN(이 repo Contents 쓰기 권한 fine-grained 토큰), VALWS_PASS(페이지 저장 비밀번호). 데이터 경로 커밋이라 렌더 재배포 없음
+const GH_REPO = 's2romas2/kis-dashboard';
+async function ghGet(p) {
+  const r = await fetch('https://api.github.com/repos/' + GH_REPO + '/contents/' + p + '?ref=main', { headers: { authorization: 'Bearer ' + process.env.GH_TOKEN, 'user-agent': 'kis-dashboard', accept: 'application/vnd.github+json' } });
+  if (r.status === 404) return { sha: null, json: null };
+  if (!r.ok) throw new Error('GitHub GET ' + r.status);
+  const j = await r.json();
+  return { sha: j.sha, json: JSON.parse(Buffer.from(j.content, 'base64').toString('utf8')) };
+}
+async function ghPut(p, obj, sha, msg) {
+  const r = await fetch('https://api.github.com/repos/' + GH_REPO + '/contents/' + p, { method: 'PUT', headers: { authorization: 'Bearer ' + process.env.GH_TOKEN, 'user-agent': 'kis-dashboard', accept: 'application/vnd.github+json', 'content-type': 'application/json' },
+    body: JSON.stringify({ message: msg, content: Buffer.from(JSON.stringify(obj, null, 1), 'utf8').toString('base64'), sha: sha || undefined, branch: 'main' }) });
+  if (!r.ok) throw new Error('GitHub PUT ' + r.status + ' ' + (await r.text()).slice(0, 200));
+  return r.json();
+}
+function readBody(req) { return new Promise(function (resolve, reject) { let b = ''; req.on('data', function (c) { b += c; if (b.length > 2e6) { reject(new Error('too large')); req.destroy(); } }); req.on('end', function () { resolve(b); }); req.on('error', reject); }); }
+let valwsLock = Promise.resolve();
+async function valwsSave(body) {
+  const code = String(body.code || '').trim();
+  if (!/^\d{6}$/.test(code)) throw new Error('code');
+  const out = { code: code };
+  // 1) 워크시트 본문
+  const P = 'public/data/valws_user.json';
+  for (let t = 0; t < 2; t++) {
+    try {
+      const cur = await ghGet(P); const d = cur.json || { map: {} }; if (!d.map) d.map = {};
+      if (body.del) delete d.map[code]; else { const w = body.ws || {}; w.code = code; w.savedAt = new Date().toISOString(); d.map[code] = w; }
+      d.updated = new Date().toISOString().slice(0, 16).replace('T', ' ');
+      await ghPut(P, d, cur.sha, (body.del ? '밸류 워크시트 삭제 ' : '밸류 워크시트 저장 ') + code + (body.name ? ' ' + body.name : ''));
+      out.ws = true; break;
+    } catch (e) { if (t === 1) throw e; await sleep(1500); }
+  }
+  // 2) 관심종목(자동수집) 등록
+  if (body.watch) {
+    const W = 'public/data/valws_watch.json';
+    const cur = await ghGet(W); const d = cur.json || { codes: [] };
+    if (!(d.codes || []).includes(code)) { d.codes = (d.codes || []).concat([code]); await ghPut(W, d, cur.sha, '밸류 워크시트 관심종목 추가 ' + code + (body.name ? ' ' + body.name : '')); out.watch = 'added'; }
+    else out.watch = 'exists';
+  }
+  DATA_CACHE.delete('/data/valws_user.json'); DATA_CACHE.delete('/data/valws_watch.json');
+  return out;
+}
+
 const server = http.createServer(async function (req, res) {
   const u = new URL(req.url, 'http://x');
   res.setHeader('Access-Control-Allow-Origin', '*');
+
+  if (u.pathname === '/api/valws/save') {
+    res.setHeader('content-type', 'application/json; charset=utf-8');
+    if (req.method !== 'POST') { res.statusCode = 405; res.end('{"error":"POST"}'); return; }
+    if (!process.env.GH_TOKEN || !process.env.VALWS_PASS) { res.statusCode = 503; res.end(JSON.stringify({ error: '서버에 GH_TOKEN / VALWS_PASS 환경변수가 없습니다 (Render → Environment)' })); return; }
+    try {
+      const body = JSON.parse(await readBody(req) || '{}');
+      if (String(body.pass || '') !== process.env.VALWS_PASS) { res.statusCode = 403; res.end('{"error":"비밀번호 불일치"}'); return; }
+      const r = await (valwsLock = valwsLock.catch(function () {}).then(function () { return valwsSave(body); }));
+      res.end(JSON.stringify(r));
+    } catch (e) { res.statusCode = 500; res.end(JSON.stringify({ error: e.message })); }
+    return;
+  }
 
   if (u.pathname === '/api/quotes') {
     const codes = (u.searchParams.get('codes') || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean).slice(0, 200);

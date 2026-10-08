@@ -28,7 +28,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          cp public/data/valws_auto.json /tmp/valws_auto.json || true
+          git fetch origin main && git reset --hard origin/main
+          cp /tmp/valws_auto.json public/data/valws_auto.json || true
           git add public/data/valws_auto.json 2>/dev/null || true
           git commit -m "밸류 워크시트 자동 데이터 갱신" || echo "변경 없음"
-          git pull --rebase origin main || true
-          git push || true
+          git push || (git fetch origin main && git reset --hard origin/main && cp /tmp/valws_auto.json public/data/valws_auto.json && git add public/data/valws_auto.json && git commit -m "밸류 워크시트 자동 데이터 갱신" && git push) || true

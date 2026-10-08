@@ -81,18 +81,19 @@ def dart_bonds(corp):
 
 # 전체 재무제표에서 뽑을 항목: (키, account_id 후보, 계정명 패턴)
 ITEMS = [
-    ('rev',    ['ifrs-full:Revenue'], r'^(매출액|수익\(매출액\)|영업수익|매출)$'),
+    ('rev',    ['ifrs-full:Revenue', 'ifrs-full:RevenueFromContractsWithCustomers', 'ifrs-full:RevenueFromSaleOfGoods'], r'^(매출액|수익\(매출액\)|영업수익|매출|수익)(\(|$)'),
     ('op',     ['dart:OperatingIncomeLoss', 'ifrs-full:ProfitLossFromOperatingActivities'], r'^영업이익(\(손실\))?$'),
     ('ni',     ['ifrs-full:ProfitLoss'], r'^(당기순이익|분기순이익|반기순이익)(\(손실\))?$'),
     ('ni_p',   ['ifrs-full:ProfitLossAttributableToOwnersOfParent'], r'지배기업.*순이익|지배주주.*순이익'),
     ('intexp', ['ifrs-full:InterestExpense', 'dart:InterestExpenseFinanceCosts'], r'^이자비용'),
+    ('fincost',['ifrs-full:FinanceCosts'], r'^(금융원가|금융비용)$'),
     ('tax',    ['ifrs-full:IncomeTaxExpenseContinuingOperations'], r'^법인세비용'),
     ('assets', ['ifrs-full:Assets'], r'^자산총계$'),
     ('liab',   ['ifrs-full:Liabilities'], r'^부채총계$'),
     ('equity', ['ifrs-full:Equity'], r'^자본총계$'),
     ('cash',   ['ifrs-full:CashAndCashEquivalents'], r'^현금및현금성자산$'),
-    ('inv',    ['ifrs-full:Inventories'], r'^재고자산$'),
-    ('recv',   ['ifrs-full:TradeAndOtherCurrentReceivables', 'ifrs-full:CurrentTradeReceivables'], r'^매출채권'),
+    ('inv',    ['ifrs-full:Inventories'], r'^(유동)?재고자산$'),
+    ('recv',   ['ifrs-full:TradeAndOtherCurrentReceivables', 'ifrs-full:CurrentTradeReceivables'], r'^(유동)?매출채권'),
     ('cfo',    ['ifrs-full:CashFlowsFromUsedInOperatingActivities'], r'^영업활동.*현금흐름$'),
     ('capex',  ['ifrs-full:PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities'], r'^유형자산의\s*취득'),
     ('capex2', ['ifrs-full:PurchaseOfIntangibleAssetsClassifiedAsInvestingActivities'], r'^무형자산의\s*취득'),
@@ -131,12 +132,14 @@ def dart_full(corp, year, q):
             if v is None: continue
             for key, ids, pat in ITEMS:
                 if key in out: continue
-                if (aid in ids) or (sj in ('BS', 'IS', 'CIS', 'CF') and re.search(pat, nm)):
-                    if key in ('ni', 'ni_p') and sj not in ('IS', 'CIS'): continue
+                want = 'CF' if key in ('cfo', 'capex', 'capex2') else 'BS' if key in ('assets', 'liab', 'equity', 'cash', 'inv', 'recv') else 'IS'
+                okdiv = (sj == want) or (want == 'IS' and sj == 'CIS')
+                if (aid in ids and okdiv) or (okdiv and re.search(pat, nm)):
                     out[key] = v / EOK
             if sj == 'BS' and re.search(DEBT_PAT, nm) and not re.search(r'(상환|발행|증가|감소|이자)', nm) and 'ifrs-full:Equity' != aid:
                 debt += v / EOK; debt_hit = True
         if debt_hit: out['debt'] = debt
+        if 'intexp' not in out and 'fincost' in out: out['intexp'] = out['fincost']; out['intexp_src'] = '금융원가'
         if 'rev' in out or 'equity' in out:
             time.sleep(0.15); return out
         time.sleep(0.15)

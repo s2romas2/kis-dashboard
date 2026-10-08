@@ -250,7 +250,7 @@ function ladder(A,R){
   if(!bands.length){ box.innerHTML='<div class="mini" style="padding:20px">Base EPS·PER 범위가 있어야 그려집니다 — 위 입력(또는 자동 초안)을 채우면 현재가 위치가 표시됩니다.</div>'; return; }
   const vals=bands.flatMap(b=>[b.lo,b.hi]).concat(px?[px]:[]).concat(A.hi52?[A.hi52]:[]).concat(A.lo52?[A.lo52]:[]).filter(v=>v>0);
   const mn=Math.min(...vals)/1.6, mx=Math.max(...vals)*1.6; const L0=Math.log(mn), L1=Math.log(mx);
-  const W=Math.max(320,box.clientWidth||600), H=250, left=12, right=W-12, axY=150; const X=v=>left+(Math.log(v)-L0)/(L1-L0)*(right-left);
+  const W=Math.max(320,box.clientWidth||600), H=200, left=14, right=W-14, axY=160; const X=v=>left+(Math.log(v)-L0)/(L1-L0)*(right-left);
   let h=`<svg width="${W}" height="${H}" style="max-width:100%;font-family:inherit">`;
   // 눈금
   const ticks=[]; for(let e=Math.floor(Math.log10(mn));e<=Math.ceil(Math.log10(mx));e++) for(const m of [1,2,5]){ const v=m*Math.pow(10,e); if(v>=mn&&v<=mx) ticks.push(v); }
@@ -258,18 +258,17 @@ function ladder(A,R){
   ticks.forEach(v=>{ h+=`<line x1="${X(v)}" y1="${axY}" x2="${X(v)}" y2="${axY+5}" stroke="#98a2b3"/><text x="${X(v)}" y="${axY+17}" font-size="9.5" fill="#667085" text-anchor="middle">${f0(v)}</text>`; });
   // 밴드(한 축 위에 3단 레인)
   bands.forEach((b,i)=>{ const y=axY-18-i*0; const x1=X(b.lo), x2=Math.max(X(b.hi),x1+3); const lane=axY-14-(bands.length-1-i)*0; h+=`<rect x="${x1}" y="${axY-13}" width="${x2-x1}" height="12" fill="${b.f}" stroke="${b.c}" stroke-width="1.5" rx="2"/>`; });
-  // 밴드 라벨(겹침 방지: 위쪽 2줄 교대)
-  bands.forEach((b,i)=>{ const xm=(X(b.lo)+X(b.hi))/2; const ty=axY-24-(i%2)*14; const rel=px?` ${fp((b.lo/px-1)*100)}~${fp((b.hi/px-1)*100)}`:''; h+=`<text x="${xm}" y="${ty}" font-size="10.5" font-weight="700" fill="${b.c}" text-anchor="middle">${b.n} ${f0(b.lo)}~${f0(b.hi)}<tspan font-weight="400" fill="#475467">${rel}</tspan></text>`; });
+  // 밴드 라벨: 밴드마다 고유 줄(겹침 없음) + 밴드 중심에서 라벨로 가는 안내선
+  bands.forEach((b,i)=>{ let xm=(X(b.lo)+X(b.hi))/2; const ty=axY-24-i*14; const rel=px?` ${fp((b.lo/px-1)*100)}~${fp((b.hi/px-1)*100)}`:''; const anchor=xm<left+120?'start':xm>right-120?'end':'middle'; h+=`<line x1="${xm}" y1="${axY-13}" x2="${xm}" y2="${ty+2}" stroke="${b.c}" stroke-width="0.8" stroke-dasharray="1,2"/><text x="${xm}" y="${ty}" font-size="10.5" font-weight="700" fill="${b.c}" text-anchor="${anchor}" style="paint-order:stroke" stroke="#fff" stroke-width="3">${b.n} ${f0(b.lo)}~${f0(b.hi)}<tspan font-weight="400" fill="#475467">${rel}</tspan></text>`; });
   // 52주 고저
   [[A.lo52,'52주 저'],[A.hi52,'52주 고']].forEach(([v,n])=>{ if(!v) return; h+=`<line x1="${X(v)}" y1="${axY-2}" x2="${X(v)}" y2="${axY+28}" stroke="#98a2b3" stroke-dasharray="2,2"/><text x="${X(v)}" y="${axY+40}" font-size="9.5" fill="#667085" text-anchor="middle">${n} ${f0(v)}</text>`; });
   // 현재가
   if(px){ const x=X(px); const inB=bands.find(b=>px>=b.lo&&px<=b.hi); let pos; if(inB) pos=`${inB.n} 범위 안`; else { const above=bands.filter(b=>px>b.hi).sort((a,b)=>b.hi-a.hi)[0], below=bands.filter(b=>px<b.lo).sort((a,b)=>a.lo-b.lo)[0]; pos=(above&&below)?`${above.n} 상단(${fp((px/above.hi-1)*100)})과 ${below.n} 하단(${fp((px/below.lo-1)*100)}) 사이`:above?`${above.n} 상단보다 ${fp((px/above.hi-1)*100)} 위`:below?`${below.n} 하단보다 ${fp((px/below.lo-1)*100)} 아래`:''; }
-    h+=`<line x1="${x}" y1="${axY-62}" x2="${x}" y2="${axY+8}" stroke="#1a1f2e" stroke-width="2"/><polygon points="${x-6},${axY-70} ${x+6},${axY-70} ${x},${axY-62}" fill="#1a1f2e"/>`;
-    const anchor=x>(left+right)/2?'end':'start'; h+=`<text x="${x+(anchor==='end'?-8:8)}" y="${axY-76}" font-size="12" font-weight="800" fill="#1a1f2e" text-anchor="${anchor}">현재가 ${f0(px)}</text><text x="${x+(anchor==='end'?-8:8)}" y="${axY-90}" font-size="10.5" fill="#475467" text-anchor="${anchor}">${pos}</text>`;
-    // 현재가→각 밴드 거리표
-    h+=`<text x="${left}" y="${H-28}" font-size="10.5" fill="#475467">현재가 기준 거리: ${bands.map(b=>`${b.n} ${fp((b.lo/px-1)*100)}~${fp((b.hi/px-1)*100)}`).join(' · ')}</text>`;
-    h+=`<text x="${left}" y="${H-12}" font-size="10" fill="#98a2b3">읽는 법: 현재가가 어느 밴드 위에 서 있는지가 핵심 — 정상화 위면 가설 대비 비쌈(다음 연도 이익·더 높은 성장 반영 중), Floor 아래면 가설 유지 시 싸다</text>`; }
-  h+='</svg>'; box.innerHTML=h;
+    h+=`<line x1="${x}" y1="${axY-70}" x2="${x}" y2="${axY+8}" stroke="#1a1f2e" stroke-width="2"/><polygon points="${x-6},${axY-78} ${x+6},${axY-78} ${x},${axY-70}" fill="#1a1f2e"/>`;
+    const anchor=x>(left+right)/2?'end':'start'; h+=`<text x="${x+(anchor==='end'?-8:8)}" y="${axY-84}" font-size="12" font-weight="800" fill="#1a1f2e" text-anchor="${anchor}">현재가 ${f0(px)}</text><text x="${x+(anchor==='end'?-8:8)}" y="${axY-98}" font-size="10.5" fill="#475467" text-anchor="${anchor}">${pos}</text>`; }
+  h+='</svg>';
+  if(px) h+=`<div class="mini" style="margin-top:2px">현재가 기준 거리: ${bands.map(b=>`<b style="color:${b.c}">${b.n}</b> ${fp((b.lo/px-1)*100)}~${fp((b.hi/px-1)*100)}`).join(' · ')}</div><div class="mini" style="color:#98a2b3">읽는 법: 현재가가 어느 밴드 위에 서 있는지가 핵심 — 정상화보다 위면 가설 대비 비쌈(그 이후 연도 이익·더 높은 성장을 반영 중), Floor보다 아래면 가설 유지 시 싸다</div>`;
+  box.innerHTML=h;
 }
 
 // ───── 계산
@@ -354,6 +353,9 @@ function triangulate(w,A,R,Q){
   const pe3=perHist(CMP,3); const selfLow=pe3.length?[pct(pe3,.1),pct(pe3,.2)]:null; const peerMin=views.peer.lo; const mktLow=views.regime.lo;
   const bearCands=[selfLow&&selfLow[1], peerMin, lo!=null?lo*0.65:null].filter(x=>x!=null); let bear=bearCands.length?[Math.min(...bearCands), pct(bearCands,.5)]:null; if(bear&&bear[1]-bear[0]<1) bear=[bear[0]*0.85,bear[0]*1.1];
   const stressCands=[selfLow&&selfLow[0], mktLow, lo!=null?lo*0.4:null].filter(x=>x!=null); let stress=stressCands.length?[Math.min(...stressCands), pct(stressCands,.5)]:null; if(stress&&stress[1]-stress[0]<1) stress=[stress[0]*0.85,stress[0]*1.1];
+  // 순서 강제: Stress < Bear < 정상화 (시장 PER 등 큰 값이 섞여 역전되는 것 방지)
+  if(bear&&lo!=null){ bear[1]=Math.min(bear[1],lo*0.9); bear[0]=Math.min(bear[0],bear[1]*0.85); }
+  if(stress&&bear){ stress[1]=Math.min(stress[1],bear[0]*0.9); stress[0]=Math.min(stress[0],stress[1]*0.8); }
   const spread=[]; for(const [k] of VIEWS){ const v=views[k]; if(v&&v.lo!=null) spread.push([v.lo,v.hi]); }
   const disp=spread.length?Math.max(...spread.map(x=>x[1]))/Math.max(1,Math.min(...spread.map(x=>x[0]))):null;
   return {views, lo, hi, best, tot, conv, converge, bear, stress, selfLow, disp, grid};

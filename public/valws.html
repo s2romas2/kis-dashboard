@@ -33,7 +33,7 @@ select.tag { padding:1px 4px; font-size:11px; border-radius:8px; }
 .kv div:nth-child(odd) { color:#667085; }
 .pos { color:#0f7b3f; font-weight:700; } .neg { color:#d92d20; font-weight:700; }
 .vd { font-size:13.5px; padding:10px 14px; border-radius:10px; line-height:1.7; }
-.vd.u { background:#dcfce7; color:#14532d; } .vd.m { background:#fef9c3; color:#713f12; } .vd.o { background:#fee2e2; color:#7f1d1d; } .vd.x { background:#e4e7ec; color:#475467; }
+.vd.d { background:#eef2ff; color:#3730a3; } .vd.u { background:#dcfce7; color:#14532d; } .vd.m { background:#fef9c3; color:#713f12; } .vd.o { background:#fee2e2; color:#7f1d1d; } .vd.x { background:#e4e7ec; color:#475467; }
 .G { display:inline-block; padding:1px 8px; border-radius:8px; font-weight:800; font-size:12px; color:#fff; }
 .G1 { background:#0f7b3f; } .G2 { background:#3ab35e; } .G3 { background:#f0b429; color:#1a1f2e; } .G4 { background:#d92d20; } .G0 { background:#98a2b3; }
 .HG { display:inline-block; padding:2px 10px; border-radius:10px; font-weight:800; font-size:12px; }
@@ -69,7 +69,7 @@ abbr { text-decoration:underline dotted; cursor:help; }
 <div class="bar">
   <input id="q" placeholder="종목명·코드로 추가 (예: 327260)" style="width:220px"> <button class="b pri" id="open">열기/추가</button>
   <button class="b" id="exp">내보내기(JSON)</button> <button class="b" id="imp">불러오기</button> <input type="file" id="impf" accept=".json" style="display:none">
-  <span class="mini" id="stmsg">입력은 이 브라우저(localStorage)에 저장됩니다.</span>
+  <span class="mini" id="stmsg">입력은 이 브라우저(localStorage)에 저장됩니다.</span> <span class="mini">· ☁ 서버 저장하면 모든 기기에서 보이고, 관심종목 등록 시 매일 07:10 컨센·DART·SEC 자동수집</span>
 </div>
 
 <div id="ws" style="display:none">
@@ -77,7 +77,8 @@ abbr { text-decoration:underline dotted; cursor:help; }
 <div class="card">
   <div class="hero" id="hero"></div>
   <div id="verdict" style="margin-top:10px"></div>
-  <div class="bar" style="margin-top:8px"><button class="b seed" id="loadSeed">🔁 시드(Claude 리서치) 값으로 되돌리기</button> <button class="b warn" id="snap">📌 스냅샷 저장(변화 추적)</button> <button class="b" id="delws">워크시트 삭제</button> <span class="mini" id="seedInfo"></span></div>
+  <div class="bar" style="margin-top:8px"><button class="b seed" id="loadSeed">🔁 시드(Claude 리서치) 값으로 되돌리기</button> <button class="b warn" id="snap">📌 스냅샷 저장(변화 추적)</button> <button class="b" id="delws">워크시트 삭제</button> <span style="display:inline-block;border-left:1px solid #d0d5dd;margin:0 4px;height:18px;vertical-align:middle"></span> <button class="b pri" id="cloud">☁ 서버 저장(모든 기기)</button> <label class="mini" style="cursor:pointer"><input type="checkbox" id="cloudWatch" checked> 관심종목 등록(매일 자동수집)</label> <span class="mini" id="cloudInfo"></span> <span class="mini" id="seedInfo"></span></div>
+  <div id="draftNote"></div>
 </div>
 
 <details open><summary>📄 13개 질문 보고서 <small>자동 계산값 + 내가 적은 근거를 질문 순서로</small></summary><div class="card q13" id="q13"></div></details>
@@ -85,7 +86,7 @@ abbr { text-decoration:underline dotted; cursor:help; }
 <div class="grid3">
   <div class="card"><h3>분기 매출·영업이익 <small>DART 연결, 억원 · 선 = OPM</small></h3><div class="ch"><canvas id="cQ"></canvas></div></div>
   <div class="card"><h3>연간 실적 + 컨센(E) + 내 시나리오 <small>억원</small></h3><div class="ch"><canvas id="cA"></canvas></div></div>
-  <div class="card"><h3>주당가치 범위 vs 현재가 <small>현실희석 EPS × PER 범위</small></h3><div class="ch"><canvas id="cV"></canvas></div></div>
+  <div class="card"><h3>주당가치 사다리 vs 현재가 <small>현실희석 EPS × PER 범위 · 로그 눈금(작은 값도 보이게)</small></h3><div class="ch" id="cVbox" style="height:auto;min-height:230px"></div></div>
 </div>
 <div class="grid3">
   <div class="card"><h3>제품군별 매출 구성(Base) <small>억원</small></h3><div class="ch"><canvas id="cP"></canvas></div></div>
@@ -161,7 +162,7 @@ const AUNITS={'억원':1,'백만원':0.01,'만원':0.0001,'매출직접':null};
 const QUNITS={'대':1,'개':1,'천개':1000,'만개':10000,'톤':1,'억(매출)':1};
 const KEY='valws_v3', OLDKEY='valws_v2';
 const VIEWS=[['self','① 자기 과거 PER','mkt'],['peer','② 직접 동종업체','mkt'],['anchor','③ 고객·대장주','mkt'],['chain','④ 인접 밸류체인','mkt'],['growth','⑤ 성장률 대비(PEG)','fund'],['roic','⑥ ROIC·FCF 조정','fund'],['dcf','⑦ DCF 암시 PER','fund'],['regime','⑧ 시장 국면(섹터·시장)','mkt']];
-let AUTO={}, SV={}, HEGE={}, SEED={}, COST=null, CMP=null, SECV=null, WS={}, CUR=null, SAVET=null, CH={}, TRI=null;
+let AUTO={}, SV={}, HEGE={}, SEED={}, USER={}, COST=null, CMP=null, SECV=null, WS={}, CUR=null, SAVET=null, CH={}, TRI=null;
 const num=v=>{const x=parseFloat(String(v??'').replace(/,/g,'')); return isNaN(x)?null:x;};
 const f0=v=>v==null?'—':Math.round(v).toLocaleString(), f1=v=>v==null?'—':Number(v).toFixed(1), fp=v=>v==null?'—':(v>0?'+':'')+Number(v).toFixed(0)+'%', fp1=v=>v==null?'—':(v>0?'+':'')+Number(v).toFixed(1)+'%';
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -172,7 +173,7 @@ const qunitSel=(v)=>`<select data-f="unit" style="font-size:11px;padding:1px 3px
 const qm=p=>QUNITS[p.unit]??1;
 function load(){ try{ WS=JSON.parse(localStorage.getItem(KEY))||null; if(!WS){ WS=JSON.parse(localStorage.getItem(OLDKEY))||{}; } }catch(e){ WS={}; } for(const c in WS) migrate(WS[c]); }
 function migrate(w){ const d=blank(w.code||''); for(const k in d) if(w[k]===undefined) w[k]=d[k]; for(const p of w.prods||[]){ if(p.qTag==='인터뷰') p.qTag='회사발언'; if(p.aTag==='인터뷰') p.aTag='회사발언'; } for(const k of ['tamTag','oTag','capaTag','mTag','shTag','cagrTag']) if(w[k]==='인터뷰') w[k]='회사발언'; if(!w.wt) w.wt={}; if(!w.vis) w.vis={}; }
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify(WS)); document.getElementById('stmsg').textContent='저장됨 '+new Date().toLocaleTimeString(); }catch(e){} }
+function save(){ try{ if(CUR&&WS[CUR]) WS[CUR].localAt=new Date().toISOString(); localStorage.setItem(KEY, JSON.stringify(WS)); document.getElementById('stmsg').textContent='저장됨 '+new Date().toLocaleTimeString(); }catch(e){} }
 function blank(code){ return {code, grade:0, year:'', thesis:'', tam:'', tamTag:'미확인', vis:{}, visWhy:'', prods:[{name:'',unit:'대',aUnit:'억원',qB:'',qR:'',qS:'',qTag:'미확인',aB:'',aR:'',aS:'',aTag:'미확인',q0:'',a0:'',memo:''}], oB:0,oR:0,oS:0,oTag:'확인', capa:'',capaTag:'미확인', mB:'',mR:'',mS:'',mTag:'미확인', mHintMemo:'', nB:0,nR:0,nS:0, tax:22, minor:0, shB:'', shD:0, shM:0, shTag:'확인', cagr:'', cagrTag:'미확인', dur:'', durWhy:'', fcfConv:70, disc:10, gTerm:3, pNL:'',pNH:'',pRL:'',pRH:'',pSL:'',pSH:'', pWhy:'', wt:{}, wtWhy:'', snaps:[], fromSeed:false }; }
 function applySeed(code){ const s=SEED.map&&SEED.map[code]; if(!s) return false; const keep=(WS[code]||{}).snaps||[]; WS[code]=JSON.parse(JSON.stringify(s)); migrate(WS[code]); WS[code].snaps=keep; WS[code].fromSeed=true; WS[code].seedDate=SEED.updated; return true; }
 
@@ -181,7 +182,9 @@ function autoFor(code){
   const a=AUTO.map&&AUTO.map[code]||{}, sv=SV.map&&SV.map[code]||null, hg=HEGE.rows&&HEGE.rows.find(r=>r.c===code)||null;
   const info=a.info||{};
   const px=sv?sv[3]:num(info['전일']); const cap=sv?sv[2]:null;
-  const ann=a.annual||{cols:[],rows:{}}; const ac=ann.cols||[]; const fy1=ac.find(c=>c[1]); const fy0=[...ac].reverse().find(c=>!c[1]);
+  let ann=a.annual||{cols:[],rows:{}}; const w=WS[code]||{}; const D=w.draft||null;
+  if(!(ann.cols||[]).length&&D&&D.years){ ann={cols:D.years.map(y=>[y+'.12',false]), rows:{'매출액':D.rev,'영업이익':D.op,'당기순이익':D.ni,'EPS':D.eps}}; }
+  const ac=ann.cols||[]; const fy1=ac.find(c=>c[1]); const fy0=[...ac].reverse().find(c=>!c[1]);
   const g=(row,key)=>key&&ann.rows[row]?ann.rows[row][key]:null;
   const fin=(a.fin||[]).slice(); const annF=fin.filter(f=>/^\d{4}$/.test(f.period)).sort((x,y)=>x.period.localeCompare(y.period)); const ytd=fin.filter(f=>/Q/.test(f.period)).sort((x,y)=>x.period.localeCompare(y.period));
   return {name:a.name||(hg&&hg.n)||code, px, cap, per:sv?sv[1]:num(info['PER']), pbr:sv?sv[0]:num(info['PBR']), roe:sv?sv[4]:null,
@@ -209,6 +212,64 @@ function quality(A){
     opG:(prev&&prev.op&&last.op!=null&&prev.op>0)?(last.op/prev.op-1)*100:null};
   if(cur&&pyq){ o.ytd={p:cur.period, rev:cur.rev, op:cur.op, cfo:cur.cfo, fcf:fcf(cur), ni:cur.ni, incr:(cur.rev!=null&&pyq.rev!=null&&cur.op!=null&&pyq.op!=null&&cur.rev!==pyq.rev)?(cur.op-pyq.op)/(cur.rev-pyq.rev)*100:null, revG:(pyq.rev?(cur.rev/pyq.rev-1)*100:null), opG:(pyq.op>0&&cur.op!=null?(cur.op/pyq.op-1)*100:null), netDebt:(cur.debt||0)-(cur.cash||0), roic:roic(cur)!=null?roic(cur)*(cur.period.endsWith('Q2')?2:cur.period.endsWith('Q1')?4:cur.period.endsWith('Q3')?4/3:1):null, intexp:cur.intexp, inv:cur.inv, recv:cur.recv}; }
   return o;
+}
+
+// ───── 자동 초안: 시드 없는 종목은 최근 4분기 실적(hege)·연간(cost)·PER 시계열(compare)로 1차 값을 채운다 — 태그 '역산', 사람이 검토·교체
+function makeDraft(code){
+  const w=blank(code); const hg=(HEGE.rows||[]).find(r=>r.c===code); const sv=SV.map&&SV.map[code]; const px=sv?sv[3]:null, cap=sv?sv[2]:null;
+  const yr=new Date().getFullYear()+1; w.year=yr+'E'; w.grade=4; w.draft={at:new Date().toISOString().slice(0,10)};
+  const rows=(COST&&COST.rows||[]).filter(r=>r.rev); if(rows.length){ w.draft.years=rows.map(r=>String(r.y)); const sh=(px&&cap)?cap*1e8/px:null; w.draft.rev={}; w.draft.op={}; w.draft.ni={}; w.draft.eps={}; rows.forEach(r=>{ const k=r.y+'.12'; w.draft.rev[k]=r.rev/1e8; w.draft.op[k]=r.op/1e8; w.draft.ni[k]=r.ni!=null?r.ni/1e8:null; w.draft.eps[k]=(r.ni!=null&&sh)?r.ni/sh:null; }); }
+  if(!hg||!hg.rev||hg.rev.length<4) { w.draft.note='분기 실적(hege) 없음 — 수동 입력 필요'; return w; }
+  const rv=hg.rev.slice(-4), op=hg.op.slice(-4); const ttmR=rv.reduce((a,b)=>a+(b||0),0), ttmO=op.reduce((a,b)=>a+(b||0),0);
+  const rgs=(hg.rgs||[]).slice(-4).filter(x=>x!=null); const g=rgs.length?Math.max(-20,Math.min(60,pct(rgs,.5))):10; // 최근 4분기 매출 YoY 중앙값(−20~60% 캡)
+  const n=1.5; const grow=(r)=>ttmR*Math.pow(1+r/100,n); // TTM(최근 4분기, 중간연도)→차년도 = 약 1.5년 외삽
+  const opmT=ttmR?ttmO/ttmR*100:null; const opms=hg.rev.map((v,i)=>v&&hg.op[i]!=null?hg.op[i]/v*100:null).filter(x=>x!=null); const opmPos=opms.filter(x=>x>0);
+  const mB=opmT!=null&&opmT>0?opmT:(opmPos.length?pct(opmPos,.5):5); const mR=opmPos.length?Math.min(mB,pct(opmPos,.25)):mB*0.7; const mS=opmPos.length?Math.max(0.5,pct(opmPos,0)):mB*0.4;
+  w.prods=[{name:'전체 매출(초안: TTM '+f0(ttmR)+'억 × 성장 외삽)',unit:'억(매출)',aUnit:'매출직접',qB:Math.round(grow(g)),qR:Math.round(grow(g/2)),qS:Math.round(grow(Math.min(g,0))),qTag:'역산',aB:'',aR:'',aS:'',aTag:'역산',q0:'',a0:'',memo:`최근 4분기 매출 YoY 중앙값 ${fp(g)} → Base 1.5년 외삽 / Bear 절반 / Stress 0% 성장. 제품군 Q×ASP로 교체할 것`, qSrc:[{t:'DART 분기 실적(헤게모니 수집) 최근 4분기 합 '+f0(ttmR)+'억, 매출 YoY '+(hg.rgs||[]).slice(-4).map(fp).join('·'),u:'https://dart.fss.or.kr/dsab007/main.do?option=corp&textCrpNm='+code}]}];
+  w.mB=+mB.toFixed(1); w.mR=+mR.toFixed(1); w.mS=+mS.toFixed(1); w.mTag='역산'; w.mSrc=[{t:`TTM OPM ${f1(opmT)}% (최근 9분기 OPM 25%분위 ${opmPos.length?f1(pct(opmPos,.25)):'—'}% · 최저 ${opmPos.length?f1(pct(opmPos,0)):'—'}%)`,u:''}];
+  w.shB=(px&&cap)?Math.round(cap*1e8/px/1000):''; w.shTag='역산'; w.shSrc=[{t:'시총÷주가(KIS) — CB/BW 희석은 관심종목 등록 후 DART 자동수집',u:''}];
+  w.dur=2; w.durWhy='자동 초안: 최근 추세 외삽이라 지속기간 2년만 가정(미검증)'; w.cagrTag='역산';
+  w.thesis='🤖 자동 초안 — 최근 4분기 실적 추세를 외삽한 1차 값입니다. 제품군 Q×ASP·OPM 근거·지속기간을 공시/회사발언으로 교체하세요.';
+  w.draft.g=g; w.draft.ttmR=ttmR; w.draft.ttmO=ttmO; w.draft.n=n;
+  return w;
+}
+function draftPer(code,w){ // 초안 PER: 삼각측량 제안 → 없으면 자기 과거 25~75% → 없으면 시장 PER
+  const A=autoFor(code); const Q=quality(A); const R=calc(w,A); const t=triangulate(w,A,R,Q);
+  let lo=t.lo, hi=t.hi, why='';
+  if(lo!=null){ why=`삼각측량 제안 ${f1(lo)}~${f1(hi)}배(${t.converge?'수렴':'비수렴'})`; }
+  else { const pe=perHist(CMP,3); if(pe.length>20){ lo=pct(pe,.25); hi=pct(pe,.75); why=`자기 과거 3년 PER 25~75% 구간`; } else { const k=(SECV&&SECV.all||[]).find(x=>x.raw==='코스닥'); const m=k&&k.per?k.per:15; lo=m*0.8; hi=m*1.2; why=`PER 근거 없음 → 시장(코스닥) PER ${f1(m)}배 ±20%`; } }
+  w.pNL=+lo.toFixed(1); w.pNH=+hi.toFixed(1);
+  const b=t.bear||[lo*0.6,lo*0.75], st=t.stress||[lo*0.35,lo*0.45]; w.pRL=+b[0].toFixed(1); w.pRH=+b[1].toFixed(1); w.pSL=+st[0].toFixed(1); w.pSH=+st[1].toFixed(1);
+  w.pWhy='자동 초안: '+why+' · Bear/Stress는 '+(t.bear?'삼각측량 제안':'정상화×0.6~0.75 / ×0.35~0.45')+' — 검토 필요';
+  w.pSrc=[{t:'자동 초안(삼각측량·자기 과거 PER·시장 PER 순)',u:''}];
+}
+// ───── 주당가치 사다리(로그 눈금) — Stress·Floor·정상화 밴드와 현재가·52주 고저를 한 축에 위치시킴
+function ladder(A,R){
+  const box=document.getElementById('cVbox'); const px=A.px; const sc=[['S','Stress','#d92d20','#fecaca'],['R','Floor(Bear)','#b45309','#fde68a'],['B','정상화(Base)','#0f7b3f','#bbf7d0']];
+  const bands=sc.map(([k,n,c,f])=>({k,n,c,f,lo:R.out[k].vL,hi:R.out[k].vH})).filter(b=>b.lo!=null&&b.lo>0);
+  if(!bands.length){ box.innerHTML='<div class="mini" style="padding:20px">Base EPS·PER 범위가 있어야 그려집니다 — 위 입력(또는 자동 초안)을 채우면 현재가 위치가 표시됩니다.</div>'; return; }
+  const vals=bands.flatMap(b=>[b.lo,b.hi]).concat(px?[px]:[]).concat(A.hi52?[A.hi52]:[]).concat(A.lo52?[A.lo52]:[]).filter(v=>v>0);
+  const mn=Math.min(...vals)/1.6, mx=Math.max(...vals)*1.6; const L0=Math.log(mn), L1=Math.log(mx);
+  const W=Math.max(320,box.clientWidth||600), H=250, left=12, right=W-12, axY=150; const X=v=>left+(Math.log(v)-L0)/(L1-L0)*(right-left);
+  let h=`<svg width="${W}" height="${H}" style="max-width:100%;font-family:inherit">`;
+  // 눈금
+  const ticks=[]; for(let e=Math.floor(Math.log10(mn));e<=Math.ceil(Math.log10(mx));e++) for(const m of [1,2,5]){ const v=m*Math.pow(10,e); if(v>=mn&&v<=mx) ticks.push(v); }
+  h+=`<line x1="${left}" y1="${axY}" x2="${right}" y2="${axY}" stroke="#98a2b3"/>`;
+  ticks.forEach(v=>{ h+=`<line x1="${X(v)}" y1="${axY}" x2="${X(v)}" y2="${axY+5}" stroke="#98a2b3"/><text x="${X(v)}" y="${axY+17}" font-size="9.5" fill="#667085" text-anchor="middle">${f0(v)}</text>`; });
+  // 밴드(한 축 위에 3단 레인)
+  bands.forEach((b,i)=>{ const y=axY-18-i*0; const x1=X(b.lo), x2=Math.max(X(b.hi),x1+3); const lane=axY-14-(bands.length-1-i)*0; h+=`<rect x="${x1}" y="${axY-13}" width="${x2-x1}" height="12" fill="${b.f}" stroke="${b.c}" stroke-width="1.5" rx="2"/>`; });
+  // 밴드 라벨(겹침 방지: 위쪽 2줄 교대)
+  bands.forEach((b,i)=>{ const xm=(X(b.lo)+X(b.hi))/2; const ty=axY-24-(i%2)*14; const rel=px?` ${fp((b.lo/px-1)*100)}~${fp((b.hi/px-1)*100)}`:''; h+=`<text x="${xm}" y="${ty}" font-size="10.5" font-weight="700" fill="${b.c}" text-anchor="middle">${b.n} ${f0(b.lo)}~${f0(b.hi)}<tspan font-weight="400" fill="#475467">${rel}</tspan></text>`; });
+  // 52주 고저
+  [[A.lo52,'52주 저'],[A.hi52,'52주 고']].forEach(([v,n])=>{ if(!v) return; h+=`<line x1="${X(v)}" y1="${axY-2}" x2="${X(v)}" y2="${axY+28}" stroke="#98a2b3" stroke-dasharray="2,2"/><text x="${X(v)}" y="${axY+40}" font-size="9.5" fill="#667085" text-anchor="middle">${n} ${f0(v)}</text>`; });
+  // 현재가
+  if(px){ const x=X(px); const inB=bands.find(b=>px>=b.lo&&px<=b.hi); let pos; if(inB) pos=`${inB.n} 범위 안`; else { const above=bands.filter(b=>px>b.hi).sort((a,b)=>b.hi-a.hi)[0], below=bands.filter(b=>px<b.lo).sort((a,b)=>a.lo-b.lo)[0]; pos=(above&&below)?`${above.n} 상단(${fp((px/above.hi-1)*100)})과 ${below.n} 하단(${fp((px/below.lo-1)*100)}) 사이`:above?`${above.n} 상단보다 ${fp((px/above.hi-1)*100)} 위`:below?`${below.n} 하단보다 ${fp((px/below.lo-1)*100)} 아래`:''; }
+    h+=`<line x1="${x}" y1="${axY-62}" x2="${x}" y2="${axY+8}" stroke="#1a1f2e" stroke-width="2"/><polygon points="${x-6},${axY-70} ${x+6},${axY-70} ${x},${axY-62}" fill="#1a1f2e"/>`;
+    const anchor=x>(left+right)/2?'end':'start'; h+=`<text x="${x+(anchor==='end'?-8:8)}" y="${axY-76}" font-size="12" font-weight="800" fill="#1a1f2e" text-anchor="${anchor}">현재가 ${f0(px)}</text><text x="${x+(anchor==='end'?-8:8)}" y="${axY-90}" font-size="10.5" fill="#475467" text-anchor="${anchor}">${pos}</text>`;
+    // 현재가→각 밴드 거리표
+    h+=`<text x="${left}" y="${H-28}" font-size="10.5" fill="#475467">현재가 기준 거리: ${bands.map(b=>`${b.n} ${fp((b.lo/px-1)*100)}~${fp((b.hi/px-1)*100)}`).join(' · ')}</text>`;
+    h+=`<text x="${left}" y="${H-12}" font-size="10" fill="#98a2b3">읽는 법: 현재가가 어느 밴드 위에 서 있는지가 핵심 — 정상화 위면 가설 대비 비쌈(다음 연도 이익·더 높은 성장 반영 중), Floor 아래면 가설 유지 시 싸다</text>`; }
+  h+='</svg>'; box.innerHTML=h;
 }
 
 // ───── 계산
@@ -324,8 +385,8 @@ function charts(code,A,R){
   const cols=A.cols||[]; const labels=cols.map(c=>c[0].slice(0,4)+(c[1]?'E':'')); const rv=cols.map(c=>A.g('매출액',c[0])), op=cols.map(c=>A.g('영업이익',c[0])); const yr=(w.year||'').replace(/[^0-9]/g,'')||'시나리오';
   const L=[...labels, yr+' Base', yr+' Bear', yr+' Stress']; const RV=[...rv, R.out.B.rev, R.out.R.rev, R.out.S.rev]; const OP=[...op, R.out.B.op, R.out.R.op, R.out.S.op];
   mk('cA',{type:'bar',data:{labels:L,datasets:[{label:'매출',data:RV,backgroundColor:L.map((l,i)=>i<labels.length?(cols[i][1]?'#93c5fd':'#c7d2fe'):(i===labels.length?'#0f7b3f':i===labels.length+1?'#f0b429':'#d92d20'))},{label:'영업이익',data:OP,backgroundColor:L.map((l,i)=>i<labels.length?'#6366f1':'#1a2a4a')}]},options:baseOpt});
-  const sc=[['S','Stress'],['R','Floor(Bear)'],['B','정상화(Base)']]; const vals=sc.map(([k])=>R.out[k].vL!=null?[R.out[k].vL,R.out[k].vH]:[null,null]); const px=A.px; const allv=vals.flat().filter(v=>v!=null).concat(px?[px]:[]); const mx=allv.length?Math.max(...allv)*1.15:100;
-  mk('cV',{type:'bar',data:{labels:sc.map(x=>x[1]),datasets:[{label:'주당가치 범위',data:vals,backgroundColor:['#fecaca','#fde68a','#bbf7d0'],borderColor:['#d92d20','#f0b429','#0f7b3f'],borderWidth:1.5,borderSkipped:false}]},options:{...baseOpt,indexAxis:'y',scales:{x:{min:0,max:mx,ticks:{font:{size:10},callback:v=>f0(v)}},y:{ticks:{font:{size:11}}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>f0(c.raw[0])+' ~ '+f0(c.raw[1])+'원'}}}},
+  ladder(A,R);
+  if(false) mk('cV',{type:'bar',data:{labels:sc.map(x=>x[1]),datasets:[{label:'주당가치 범위',data:vals,backgroundColor:['#fecaca','#fde68a','#bbf7d0'],borderColor:['#d92d20','#f0b429','#0f7b3f'],borderWidth:1.5,borderSkipped:false}]},options:{...baseOpt,indexAxis:'y',scales:{x:{min:0,max:mx,ticks:{font:{size:10},callback:v=>f0(v)}},y:{ticks:{font:{size:11}}}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>f0(c.raw[0])+' ~ '+f0(c.raw[1])+'원'}}}},
     plugins:[{id:'pxline',afterDraw(ch){ if(!px) return; const x=ch.scales.x.getPixelForValue(px); const ctx=ch.ctx; ctx.save(); ctx.strokeStyle='#1a1f2e'; ctx.setLineDash([4,3]); ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(x,ch.chartArea.top); ctx.lineTo(x,ch.chartArea.bottom); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle='#1a1f2e'; ctx.font='bold 11px sans-serif'; ctx.textAlign=x>ch.chartArea.right-80?'right':'left'; ctx.fillText('현재가 '+f0(px),x+(x>ch.chartArea.right-80?-4:4),ch.chartArea.top+12); ctx.restore(); }}]});
   const pr=R.prods.map(p=>({n:p.name||'제품',v:prodRev(p,'B')||0})); if(num(w.oB)) pr.push({n:'기타',v:num(w.oB)});
   mk('cP',{type:'doughnut',data:{labels:pr.map(p=>p.n),datasets:[{data:pr.map(p=>p.v),backgroundColor:['#1a2a4a','#0f7b3f','#f0b429','#6366f1','#d92d20','#98a2b3','#14b8a6']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{boxWidth:10,font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+': '+f0(c.raw)+'억 ('+(c.raw/pr.reduce((s,p)=>s+p.v,0)*100).toFixed(0)+'%)'}}}}});
@@ -500,16 +561,22 @@ function renderOut(code){
 function renderList(){
   const tb=document.querySelector('#wl tbody'); const codes=Object.keys(WS);
   tb.innerHTML=codes.length?codes.map(c=>{const w=WS[c], A=autoFor(c), Q=quality(A), R=calc(w,A), v=verdict(w,A,R), HG=highGrowth(w,A,R,Q); const B=R.out.B, Rr=R.out.R, S=R.out.S;
-    return `<tr data-c="${c}" style="cursor:pointer"><td class="l"><b>${esc(A.name)}</b> <span class="mini">${c}</span>${w.fromSeed?' <span class="tag t회사발언" title="Claude 리서치 시드">시드</span>':''}</td><td>${gradeB(w.grade)}</td><td><span class="HG ${HG.cls}" style="font-size:11px">${HG.label}</span></td><td>${f0(A.px)}</td><td>${f0(B.eps.dil)}</td><td>${fp(R.cagrF)}</td><td>${B.vL!=null?f0(B.vL)+'~'+f0(B.vH):'—'}</td><td>${Rr.vL!=null?f0(Rr.vL)+'~'+f0(Rr.vH):'—'}</td><td>${S.vL!=null?f0(S.vL)+'~'+f0(S.vH):'—'}</td><td class="${v.toF<0?'neg':'pos'}">${fp(v.toF)}</td><td class="${v.toN<0?'neg':'pos'}">${fp(v.toN)}</td><td class="l"><span class="vd ${v.cls}" style="padding:1px 8px;font-size:11.5px">${v.cls==='x'?'산출 전':v.cls==='u'?'Floor 이하/구간':v.cls==='m'?'Floor~정상화':'정상화 초과'}</span></td></tr>`;}).join(''):'<tr><td colspan="12" class="l mini" style="padding:16px">저장된 워크시트 없음</td></tr>';
+    return `<tr data-c="${c}" style="cursor:pointer"><td class="l"><b>${esc(A.name)}</b> <span class="mini">${c}</span>${w.fromSeed?' <span class="tag t회사발언" title="Claude 리서치 시드">시드</span>':''}${w.draft?' <span class="tag t역산" title="자동 초안">초안</span>':''}${USER.map&&USER.map[c]?' <span title="서버 저장됨">☁</span>':''}</td><td>${gradeB(w.grade)}</td><td><span class="HG ${HG.cls}" style="font-size:11px">${HG.label}</span></td><td>${f0(A.px)}</td><td>${f0(B.eps.dil)}</td><td>${fp(R.cagrF)}</td><td>${B.vL!=null?f0(B.vL)+'~'+f0(B.vH):'—'}</td><td>${Rr.vL!=null?f0(Rr.vL)+'~'+f0(Rr.vH):'—'}</td><td>${S.vL!=null?f0(S.vL)+'~'+f0(S.vH):'—'}</td><td class="${v.toF<0?'neg':'pos'}">${fp(v.toF)}</td><td class="${v.toN<0?'neg':'pos'}">${fp(v.toN)}</td><td class="l"><span class="vd ${v.cls}" style="padding:1px 8px;font-size:11.5px">${v.cls==='x'?'산출 전':v.cls==='u'?'Floor 이하/구간':v.cls==='m'?'Floor~정상화':'정상화 초과'}</span></td></tr>`;}).join(''):'<tr><td colspan="12" class="l mini" style="padding:16px">저장된 워크시트 없음</td></tr>';
   tb.querySelectorAll('tr[data-c]').forEach(tr=>tr.onclick=()=>openWs(tr.dataset.c));
 }
 async function openWs(code){
-  if(!WS[code]){ if(!applySeed(code)) WS[code]=blank(code); }
   CUR=code; await loadAux(code);
+  let fresh=false;
+  if(!WS[code]){ if(USER.map&&USER.map[code]){ WS[code]=JSON.parse(JSON.stringify(USER.map[code])); migrate(WS[code]); } else if(!applySeed(code)){ WS[code]=makeDraft(code); fresh=true; } }
+  if(fresh&&WS[code].draft&&WS[code].prods[0]&&num(WS[code].prods[0].qB)!=null){ draftPer(code,WS[code]); }
   const {A}=renderAuto(code);
   document.getElementById('wsTitle').innerHTML=`${esc(A.name)} <span class="mini">${code}</span>`;
   document.getElementById('ws').style.display='';
   renderInputs(code); renderOut(code); save();
+  const w=WS[code]; const dn=document.getElementById('draftNote');
+  dn.innerHTML=w.draft?`<div class="vd d" style="margin-top:8px">🤖 <b>자동 초안</b>(${esc(w.draft.at||'')}) — ${w.draft.note?esc(w.draft.note):`최근 4분기 매출 ${f0(w.draft.ttmR)}억·영익 ${f0(w.draft.ttmO)}억, 매출 YoY 중앙값 ${fp(w.draft.g)}를 ${w.draft.n}년 외삽한 1차 값. 태그는 모두 '역산'`}. 컨센·DART 재무제표·CB/BW는 <b>☁ 서버 저장 + 관심종목 등록</b> 후 다음 07:10 수집부터 채워집니다. 제품군 Q×ASP로 바꾸고 싶으면 제품 표의 초안 행을 지우고 입력하세요.</div>`:'';
+  document.getElementById('cloudInfo').innerHTML=(USER.map&&USER.map[code])?`☁ 서버 ${esc((USER.map[code].savedAt||'').slice(0,16).replace('T',' '))}`:'<span style="color:#b45309">☁ 서버 미저장(이 브라우저만)</span>';
+  document.getElementById('cloudWatch').checked=!(AUTO.codes||[]).includes(code);
   document.getElementById('ws').scrollIntoView({behavior:'smooth'});
 }
 document.getElementById('ws').addEventListener('input',e=>{
@@ -521,7 +588,7 @@ document.getElementById('ws').addEventListener('input',e=>{
   else if(t.id==='grade'){ w.grade=+t.value; }
   else if(t.id&&t.id.startsWith('v_')){ w.vis[t.id.slice(2)]=t.checked; }
   else if(t.id){ w[t.id]=t.value; if(t.tagName==='SELECT'&&t.classList.contains('tag')) t.className='tag t'+t.value; }
-  w.fromSeed=false;
+  w.fromSeed=false; if(tr&&w.draft&&t.dataset.f==='name') { w.draft=null; document.getElementById('draftNote').innerHTML=''; }
   clearTimeout(SAVET); SAVET=setTimeout(()=>{ save(); if(tr&&(t.dataset.f==='aUnit'||t.dataset.f==='unit')) renderInputs(CUR); else if(tr){ const p=w.prods[+tr.dataset.i]; [11,12,13].forEach((ci,j)=>{const v=prodRev(p,['B','R','S'][j]); tr.children[ci].textContent=v==null?'—':f0(v);}); } renderOut(CUR); },400);
 });
 document.getElementById('ws').addEventListener('click',e=>{ if(!CUR) return; const w=WS[CUR]; if(e.target.dataset.del!=null){ w.prods.splice(+e.target.dataset.del,1); if(!w.prods.length) w.prods.push(blank(CUR).prods[0]); renderInputs(CUR); renderOut(CUR); save(); } });
@@ -530,7 +597,17 @@ document.getElementById('applyTri').onclick=()=>{ const w=WS[CUR]; const t=TRI; 
   const hits=VIEWS.filter(([k])=>{const v=t.views[k]; return v&&v.lo!=null&&v.lo<=t.hi&&v.hi>=t.lo;}).map(([k,l])=>l.replace(/^[①-⑧] /,'')); w.pWhy=`삼각측량: ${hits.length}개 관점(${hits.join('·')})이 ${f1(t.lo)}~${f1(t.hi)}배에서 겹침(${t.converge?'시장·펀더멘털 수렴':'비수렴'}). Bear는 자기 과거 하위 10~20%·피어 저점·정상화×0.65, Stress는 자기 하위 10%·시장 PER·정상화×0.4 중 보수값. ${new Date().toISOString().slice(0,10)}`; w.fromSeed=false; renderInputs(CUR); renderOut(CUR); save(); };
 document.getElementById('loadSeed').onclick=()=>{ if(!(SEED.map&&SEED.map[CUR])){ alert('이 종목의 시드가 없습니다'); return; } if(!confirm('내 입력값을 시드 값으로 덮어씁니다(스냅샷 유지). 진행할까요?')) return; applySeed(CUR); renderInputs(CUR); renderOut(CUR); save(); };
 document.getElementById('snap').onclick=()=>{ const w=WS[CUR], A=autoFor(CUR), R=calc(w,A); const B=R.out.B, Rr=R.out.R; (w.snaps=w.snaps||[]).push({ts:new Date().toISOString().slice(0,10), px:A.px, eps:B.eps.dil, pl:B.pl, nL:B.vL, nH:B.vH, fL:Rr.vL, fH:Rr.vH, cagr:R.cagrF}); save(); renderOut(CUR); };
-document.getElementById('delws').onclick=()=>{ if(confirm('이 워크시트를 삭제할까요?')){ delete WS[CUR]; CUR=null; save(); document.getElementById('ws').style.display='none'; renderList(); } };
+document.getElementById('delws').onclick=async()=>{ const onSrv=USER.map&&USER.map[CUR]; if(!confirm('이 워크시트를 삭제할까요?'+(onSrv?' (서버 저장본도 함께 삭제)':''))) return; if(onSrv){ const r=await cloudSave({del:true}); if(!r) return; delete USER.map[CUR]; } delete WS[CUR]; CUR=null; save(); document.getElementById('ws').style.display='none'; renderList(); };
+async function cloudSave(opt){ opt=opt||{}; let pass=localStorage.getItem('valws_pass')||''; if(!pass){ pass=prompt('서버 저장 비밀번호(Render VALWS_PASS)'); if(!pass) return null; }
+  const w=WS[CUR]; const A=autoFor(CUR); const body={pass, code:CUR, name:A.name, ws:opt.del?null:w, del:!!opt.del, watch:!opt.del&&document.getElementById('cloudWatch').checked};
+  const b=document.getElementById('cloud'); b.disabled=true; b.textContent='☁ 저장 중…';
+  try{ const r=await fetch('/api/valws/save',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)}); const j=await r.json().catch(()=>({error:r.status}));
+    if(!r.ok||j.error){ if(r.status===403) localStorage.removeItem('valws_pass'); alert('저장 실패: '+(j.error||r.status)); return null; }
+    localStorage.setItem('valws_pass',pass); if(!opt.del){ USER.map=USER.map||{}; USER.map[CUR]=JSON.parse(JSON.stringify(w)); USER.map[CUR].savedAt=new Date().toISOString(); }
+    document.getElementById('cloudInfo').innerHTML=opt.del?'':`☁ 서버 저장됨 ${new Date().toLocaleTimeString()}${j.watch==='added'?' · 관심종목 등록 → 수집 워크플로가 곧 돌아갑니다(2~6분 뒤 새로고침)':j.watch==='exists'?' · 관심종목 이미 등록':''}`;
+    return j; }
+  catch(e){ alert('저장 실패: '+e.message); return null; } finally{ b.disabled=false; b.textContent='☁ 서버 저장(모든 기기)'; } }
+document.getElementById('cloud').onclick=()=>cloudSave();
 document.getElementById('open').onclick=()=>{ const q=document.getElementById('q').value.trim(); let code=null; if(/^\d{6}$/.test(q)) code=q; else if(q){ const hit=(HEGE.rows||[]).find(r=>r.n===q)||(HEGE.rows||[]).find(r=>r.n.includes(q)); if(hit) code=hit.c; else { for(const c in (AUTO.map||{})) if((AUTO.map[c].name||'').includes(q)) { code=c; break; } } } if(!code){ alert('종목을 찾지 못했습니다. 6자리 코드를 입력하세요.'); return; } openWs(code); };
 document.getElementById('q').onkeydown=e=>{ if(e.key==='Enter') document.getElementById('open').click(); };
 document.getElementById('exp').onclick=()=>{ const b=new Blob([JSON.stringify(WS,null,1)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='valws_'+new Date().toISOString().slice(0,10)+'.json'; a.click(); };
@@ -539,8 +616,9 @@ document.getElementById('impf').onchange=e=>{ const f=e.target.files[0]; if(!f) 
 
 (async function init(){
   load();
-  const [a,s,h,sv,sd]=await Promise.all([fetchJ('/data/valws_auto.json'),fetchJ('/data/stockvals.json'),fetchJ('/data/hege.json'),fetchJ('/data/sectorval.json'),fetchJ('/data/valws_seed.json')]);
-  AUTO=a||{map:{}}; SV=s||{map:{}}; HEGE=h||{rows:[],quarters:[]}; SECV=sv; SEED=sd||{map:{}};
+  const [a,s,h,sv,sd,us]=await Promise.all([fetchJ('/data/valws_auto.json'),fetchJ('/data/stockvals.json'),fetchJ('/data/hege.json'),fetchJ('/data/sectorval.json'),fetchJ('/data/valws_seed.json'),fetchJ('/data/valws_user.json')]);
+  AUTO=a||{map:{}}; SV=s||{map:{}}; HEGE=h||{rows:[],quarters:[]}; SECV=sv; SEED=sd||{map:{}}; USER=us||{map:{}};
+  for(const c of Object.keys(USER.map||{})){ const u=USER.map[c], l=WS[c]; if(!l||!(l.localAt)||(u.savedAt&&u.savedAt>l.localAt)){ const keep=(l||{}).snaps||[]; WS[c]=JSON.parse(JSON.stringify(u)); migrate(WS[c]); if(keep.length&&!(WS[c].snaps||[]).length) WS[c].snaps=keep; } }
   document.getElementById('upd').innerHTML=`자동: 컨센·DART 재무제표·CB/BW·SEC 앵커 ${esc(AUTO.updated||'없음')} (관심 ${(AUTO.codes||[]).length}종목) · 시세 ${esc(SV.updated||'')} · 분기실적 ${esc(HEGE.updated||'')} · 시드 ${esc(SEED.updated||'없음')} — 가격·컨센·공시는 매일 자동, Q·ASP·OPM·성장·배수는 실적 시즌마다 사람이`;
   for(const c of Object.keys(SEED.map||{})){
     if(!WS[c]){ applySeed(c); continue; }

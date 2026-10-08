@@ -218,6 +218,14 @@ def main():
             targets[x['code']] = x.get('name', x['code'])
     except Exception:
         pass
+    # 밸류 워크시트 종목(watch·seed·user 저장본) 포함 — PER 밴드·자기 과거 PER 관점에 필요
+    for f in ('public/data/valws_watch.json', 'public/data/valws_seed.json', 'public/data/valws_user.json'):
+        try:
+            j = json.load(open(f, encoding='utf-8'))
+            for c in (j.get('codes') or []) + list((j.get('map') or {}).keys()):
+                if c not in targets: targets[c] = c
+        except Exception:
+            pass
     # 시총 상위 300 추가 (stockvals 기반)
     try:
         sv = json.load(open('public/data/stockvals.json', encoding='utf-8'))['map']

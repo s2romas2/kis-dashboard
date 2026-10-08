@@ -52,6 +52,13 @@ canvas { max-width:100%; } .ch { position:relative; height:230px; }
 abbr { text-decoration:underline dotted; cursor:help; }
 .q13 ol { margin-left:18px; } .q13 li { margin-bottom:6px; } .q13 b { color:#1a2a4a; }
 .chk label { display:inline-flex; align-items:center; gap:4px; margin-right:10px; font-size:12px; }
+.easy { background:#f0f9ff; color:#075985; border-left:3px solid #38bdf8; padding:4px 10px; font-size:12px; margin:2px 0 8px; border-radius:0 8px 8px 0; line-height:1.6; }
+.evbar { display:flex; height:10px; border-radius:5px; overflow:hidden; background:#e4e7ec; }
+.evbar i { display:block; height:100%; }
+.warnx { color:#b42318; font-weight:800; }
+a.lk { color:#1d4ed8; text-decoration:none; font-weight:700; } a.lk:hover { text-decoration:underline; }
+.q13t td { white-space:normal; vertical-align:top; } .q13t td.q { font-weight:800; color:#1a2a4a; min-width:150px; } .q13t td.e { color:#075985; background:#f8fdff; min-width:160px; }
+textarea.wide { width:100%; min-height:44px; font-size:12px; }
 .bandbar { position:relative; height:26px; background:#f1f5f9; border-radius:6px; margin:4px 0; }
 .bandbar i { position:absolute; top:4px; height:18px; border-radius:4px; opacity:.85; }
 @media (max-width:800px){ .hero{grid-template-columns:1fr 1fr} th,td{padding:5px 5px;font-size:11.5px} }
@@ -81,36 +88,42 @@ abbr { text-decoration:underline dotted; cursor:help; }
   <div id="draftNote"></div>
 </div>
 
-<details open><summary>📄 13개 질문 보고서 <small>자동 계산값 + 내가 적은 근거를 질문 순서로</small></summary><div class="card q13" id="q13"></div></details>
+<details open><summary>📄 13개 질문 보고서 <small>숫자 · 근거(태그·링크) · 쉬운 말을 질문 순서로</small></summary><div class="card q13" id="q13"></div></details>
+<details open><summary>📎 근거 표 <small>모든 숫자 = 값 · 태그 · 어떻게 구했나(공식) · 출처 링크 — 하나라도 비면 자동으로 '미확인' 강등</small></summary><div class="card" id="evCard"></div></details>
 
 <div class="grid3">
-  <div class="card"><h3>분기 매출·영업이익 <small>DART 연결, 억원 · 선 = OPM</small></h3><div class="ch"><canvas id="cQ"></canvas></div></div>
-  <div class="card"><h3>연간 실적 + 컨센(E) + 내 시나리오 <small>억원</small></h3><div class="ch"><canvas id="cA"></canvas></div></div>
-  <div class="card"><h3>주당가치 사다리 vs 현재가 <small>현실희석 EPS × PER 범위 · 로그 눈금(작은 값도 보이게)</small></h3><div class="ch" id="cVbox" style="height:auto;min-height:230px"></div></div>
+  <div class="card"><h3>분기 매출·영업이익 <small>DART 연결, 억원 · 선 = OPM</small></h3><div class="easy">쉬운 말: 막대가 커지는데 노란 선(마진)도 같이 오르면 "팔수록 더 남는" 구간</div><div class="ch"><canvas id="cQ"></canvas></div></div>
+  <div class="card"><h3>연간 실적 + 컨센(E) + 내 시나리오 <small>억원</small></h3><div class="easy">쉬운 말: 과거 실적(연한 파랑) → 증권사 예상(E) → 내 시나리오 3개(초록·노랑·빨강)가 한 줄에 — 내 Base가 증권사보다 높으면 내가 더 낙관적인 것</div><div class="ch"><canvas id="cA"></canvas></div></div>
+  <div class="card"><h3>주당가치 사다리 vs 현재가 <small>현실희석 EPS × PER 범위 · 로그 눈금(작은 값도 보이게)</small></h3><div class="easy">쉬운 말: 현재가(▼)가 어느 색 칸 위에 서 있나 — 초록 위면 비쌈, 노랑·빨강 아래면 가설 유지 시 쌈</div><div class="ch" id="cVbox" style="height:auto;min-height:230px"></div></div>
 </div>
 <div class="grid3">
-  <div class="card"><h3>제품군별 매출 구성(Base) <small>억원</small></h3><div class="ch"><canvas id="cP"></canvas></div></div>
-  <div class="card" id="cBandCard"><h3>주가 vs PER 밴드 <small>3년</small></h3><div class="ch"><canvas id="cB"></canvas></div></div>
-  <div class="card"><h3>컨센 EPS 추세 <small>"시장 예상 EPS가 올라가는지 내려가는지" (일별 기록)</small></h3><div class="ch" id="cRbox"><canvas id="cR"></canvas></div></div>
+  <div class="card"><h3>제품군별 매출 구성(Base) <small>억원</small></h3><div class="easy">쉬운 말: 어느 제품이 매출을 끌고 가나 — 큰 조각의 근거가 약하면 전체가 약한 것</div><div class="ch"><canvas id="cP"></canvas></div></div>
+  <div class="card" id="cBandCard"><h3>주가 vs PER 밴드 <small>3년 · 점선 = 과거 PER 하위10%·중앙·상위10% 배수로 그린 가격</small></h3><div class="easy">쉬운 말: 검은 선(주가)이 빨간 점선 위면 과거 기준으로 비싼 구간, 초록 점선 아래면 싼 구간</div><div class="ch"><canvas id="cB"></canvas></div></div>
+  <div class="card"><h3>컨센 EPS 추세 <small>"시장 예상 EPS가 올라가는지 내려가는지" (일별 기록)</small></h3><div class="easy">쉬운 말: 증권사들이 예상 이익을 올리는 중이면(선이 우상향) 주가가 버틸 힘이 있는 것</div><div class="ch" id="cRbox"><canvas id="cR"></canvas></div></div>
+</div>
+<div class="grid3">
+  <div class="card"><h3>EPS 성장률 비교 <small>내 CAGR이 남들보다 얼마나 공격적인가</small></h3><div class="easy" id="cGeasy">쉬운 말: 내 막대가 증권사·과거 실적·고객사보다 훨씬 높으면 "내가 너무 낙관적"이라는 뜻</div><div class="ch"><canvas id="cG"></canvas></div><div class="mini" id="cGsrc"></div></div>
+  <div class="card"><h3>근거 수준 분포 <small>워크시트의 모든 숫자가 어떤 근거 위에 서 있나</small></h3><div class="easy">쉬운 말: 초록이 많을수록 "공시·회사 말"에 기반, 빨강·회색이 많을수록 "내 추측"에 기반</div><div id="evDist"></div></div>
+  <div class="card"><h3>가시성 등급 (자동 계산) <small>매출 비중 × Q·ASP 근거 수준</small></h3><div class="easy">쉬운 말: 매출을 만드는 숫자들이 얼마나 "확인된" 것인가 — 1 공시로 확인 · 2 회사 말 · 3 역산 · 4 추측</div><div id="gradeBox"></div></div>
 </div>
 
 <div class="grid">
  <div class="card"><h3>시세·밸류 (자동)</h3><div class="kv" id="autoKv"></div></div>
- <div class="card"><h3>성장의 질 (자동, DART 전체재무제표) <small>ROIC·FCF·순차입·운전자본</small></h3><div class="kv" id="qualKv"></div></div>
+ <div class="card"><h3>성장의 질 (자동, DART 전체재무제표) <small>ROIC·FCF·순차입·운전자본</small></h3><div class="easy">쉬운 말: 이익이 "진짜 현금"으로 들어오는지(FCF), 빌린 돈이 과한지(순차입), 재고·외상이 매출보다 빨리 쌓이는지(경고)</div><div class="kv" id="qualKv"></div></div>
  <div class="card"><h3>비용구조·국면·지표 적합성 (자동)</h3><div class="kv" id="autoKv2"></div></div>
 </div>
 
-<div class="card"><h3>📐 PER 삼각측량 <small>8개 관점의 범위가 겹치는 곳을 정상화 PER로 · 시장가격 계열(①②③④⑧)과 펀더멘털 계열(⑤⑥⑦)이 함께 가리킬 때만 '수렴'</small></h3><div id="tri"></div></div>
+<div class="card"><h3>📐 PER 삼각측량 <small>8개 관점의 범위가 겹치는 곳을 정상화 PER로 · 시장가격 계열(①②③④⑧)과 펀더멘털 계열(⑤⑥⑦)이 함께 가리킬 때만 '수렴'</small></h3><div class="easy" id="triEasy">쉬운 말: PER은 "이익 1원에 얼마를 쳐주나"라는 기대값이라 정답이 없음 → 심판 8명(관점)에게 물어 겹치는 구간을 쓴다</div><div id="tri"></div></div>
 
 <div class="grid">
- <div class="card"><h3>EPS 성장 분해 <small>FY0 실적 → 대상연도 Base: 무엇이 EPS를 키우나</small></h3><div id="decomp"></div></div>
- <div class="card"><h3>PER 소화표 <small>"PER이 낮아지는 방법이 주가 하락인가, EPS 성장인가"</small></h3><div id="digest"></div></div>
- <div class="card"><h3>크로스체크 <small>컨센 ↔ 내 Q×ASP</small></h3><div id="cross"></div></div>
+ <div class="card"><h3>EPS 성장 분해 <small>FY0 실적 → 대상연도 Base: 무엇이 EPS를 키우나</small></h3><div class="easy">쉬운 말: EPS가 오르는 이유를 "더 많이 팔아서(Q)·더 비싸게 팔아서(ASP)·마진이 좋아져서·주식수가 변해서"로 쪼갬</div><div id="decomp"></div></div>
+ <div class="card"><h3>PER 소화표 <small>"PER이 낮아지는 방법이 주가 하락인가, EPS 성장인가"</small></h3><div class="easy">쉬운 말: 지금 주가 그대로 두고 이익만 늘면 몇 년 뒤 PER이 몇 배가 되나 — 금방 낮아지면 "성장이 비싼 값을 소화"</div><div id="digest"></div></div>
+ <div class="card"><h3>크로스체크 <small>컨센 ↔ 내 Q×ASP</small></h3><div class="easy">쉬운 말: 증권사 매출 예상을 내 단가로 나누면 몇 대를 팔아야 하나 — 공장 능력·고객 수요로 가능한 숫자인지 검산</div><div id="cross"></div></div>
 </div>
 
 <details open><summary>✍️ 입력 — Q·ASP·OPM·주식수·성장·배수 (수정 즉시 저장)</summary>
 <div class="card">
-  <div class="row"><label>가시성 등급</label><select id="grade"><option value="0">미정</option><option value="1">1 명확(공시·거래처 공시)</option><option value="2">2 간접·부분(회사발언)</option><option value="3">3 추산·역산 가능</option><option value="4">4 역산 어려움</option></select>
+  <div class="row"><label>가시성 등급</label><select id="grade"><option value="0">자동(근거 수준으로 계산)</option><option value="1">1 명확(공시·거래처 공시)</option><option value="2">2 간접·부분(회사발언)</option><option value="3">3 추산·역산 가능</option><option value="4">4 역산 어려움</option></select>
   <label>대상 연도</label><input id="year" class="s" placeholder="2027E"> <label>핵심 가설</label><input id="thesis" style="flex:1;min-width:260px"></div>
   <div class="row"><label>산업 TAM</label><input id="tam" style="flex:1;min-width:260px" placeholder="현재 TAM / 3~5년 TAM / CAGR / 성장동인 / 기술전환 / 침투율 / 병목 / 경쟁구조"> <select class="tag" id="tamTag"></select></div>
   <div class="row chk"><label>성장 가시성 체크</label>
@@ -119,15 +132,16 @@ abbr { text-decoration:underline dotted; cursor:help; }
 </div>
 <div class="card">
   <b>제품군별 Q × ASP</b> <span class="mini">ASP 단위(억원·백만원·만원) 또는 '매출직접'(Q칸에 매출 억원). 가격·마진이 다른 제품은 행 분리, Mix 불명확할 때만 Blended. 기간·범위 일치(Run-rate×52주 금지). 공시 없으면 외부자료로 역산·회사발언·업계 범위로 채우고 태그로 근거 수준 표시.</span>
-  <div class="tw" style="margin-top:6px"><table id="prodT"><thead><tr><th class="l">제품군</th><th class="l">Q단위</th><th>Q Base</th><th>Bear</th><th>Stress</th><th class="l">Q근거</th><th class="l">ASP단위</th><th>ASP Base</th><th>Bear</th><th>Stress</th><th class="l">ASP근거</th><th>매출 Base</th><th>Bear</th><th>Stress</th><th>FY0 Q</th><th>FY0 ASP</th><th class="l">근거 메모</th><th>📎</th><th></th></tr></thead><tbody></tbody></table></div>
+  <div class="tw" style="margin-top:6px"><table id="prodT"><thead><tr><th class="l">제품군</th><th class="l">Q단위</th><th>Q Base</th><th>Bear</th><th>Stress</th><th class="l">Q근거</th><th class="l">Q 어떻게 구했나(공식)</th><th class="l">ASP단위</th><th>ASP Base</th><th>Bear</th><th>Stress</th><th class="l">ASP근거</th><th class="l">ASP 어떻게 구했나(공식)</th><th>매출 Base</th><th>Bear</th><th>Stress</th><th>FY0 Q</th><th>FY0 ASP</th><th class="l">근거 메모</th><th>📎</th><th></th></tr></thead><tbody></tbody></table></div>
   <div class="row"><button class="b" id="addP">+ 제품군</button> <label>기타매출(억)</label> B <input class="s" id="oB"> R <input class="s" id="oR"> S <input class="s" id="oS"> <select class="tag" id="oTag"></select>
    <label>CAPA 상한(참고)</label><input id="capa" style="width:220px"> <select class="tag" id="capaTag"></select> <span class="mini">FY0 Q·ASP는 성장 분해용(선택)</span></div>
 </div>
 <div class="card">
-  <div class="row"><b>OPM(%)</b> Base <input class="s" id="mB"> Bear <input class="s" id="mR"> Stress <input class="s" id="mS"> <select class="tag" id="mTag"></select> <input id="mHintMemo" style="flex:1;min-width:240px" placeholder="OPM 근거"> <span class="mini" id="mHint"></span></div>
+  <div class="row"><b>OPM(%)</b> Base <input class="s" id="mB"> Bear <input class="s" id="mR"> Stress <input class="s" id="mS"> <select class="tag" id="mTag"></select> <input id="mHintMemo" style="flex:1;min-width:240px" placeholder="OPM 어떻게 구했나(공식: 예 ADS 39%×믹스 38% + 본업 2.5%)"> <span class="mini" id="mHint"></span></div>
   <div class="row"><b>영업외손익(억)</b> B <input class="s" id="nB"> R <input class="s" id="nR"> S <input class="s" id="nS"> <label>세율(%)</label><input class="s" id="tax"> <label>비지배 비중(%)</label><input class="s" id="minor"> <span class="mini" id="intHint"></span></div>
-  <div class="row"><b>주식수(천주)</b> Basic <input class="n" id="shB"> <label>현실 희석 추가</label><input class="n" id="shD"> <label>최대 희석 추가</label><input class="n" id="shM"> <select class="tag" id="shTag"></select> <span class="mini" id="bondHint"></span></div>
+  <div class="row"><b>주식수(천주)</b> Basic <input class="n" id="shB"> <label>현실 희석 추가</label><input class="n" id="shD"> <label>최대 희석 추가</label><input class="n" id="shM"> <select class="tag" id="shTag"></select> <input id="shHow" style="flex:1;min-width:220px" placeholder="주식수 어떻게 구했나(공식: 시총÷주가, CB 전환주식 합)"> <span class="mini" id="bondHint"></span></div>
   <div class="row"><b>EPS 성장</b> <label>대상연도 이후 2~3년 EPS CAGR(%)</label><input class="s" id="cagr"> <select class="tag" id="cagrTag"></select> <label>고성장 지속 연수</label><input class="xs" id="dur"> <input id="durWhy" style="flex:1;min-width:240px" placeholder="지속기간 근거(수주잔고·고객 CAPEX 일정·CAPA 램프·신제품)"> <span class="mini" id="cagrHint"></span></div>
+  <div class="row"><label>CAGR 어떻게 구했나(공식)</label><input id="cagrHow" style="flex:1;min-width:300px" placeholder="예: 증권사 2025~28 EPS CAGR 73%를 가시성 할인해 35% / 2027 Base EPS → 2029 컨센 없음 → 고객 증산 계획 ÷ 3년"></div>
   <div class="row"><b>DCF 가정</b> <label>FCF 전환율(순이익→현금, %)</label><input class="s" id="fcfConv"> <label>할인율(%)</label><input class="s" id="disc"> <label>영구성장률(%)</label><input class="s" id="gTerm"> <span class="mini">"회계상 이익이 실제 현금으로 얼마나 들어오는가"는 성장의 질 카드의 실측값 참고</span></div>
   <div class="row"><b>PER 배수</b> 정상화 <input class="s" id="pNL">~<input class="s" id="pNH"> &nbsp; Bear <input class="s" id="pRL">~<input class="s" id="pRH"> &nbsp; Stress <input class="s" id="pSL">~<input class="s" id="pSH"> <button class="b sm" id="applyTri">삼각측량 제안값 적용</button></div>
   <div class="row"><label>배수 근거</label><input id="pWhy" style="flex:1;min-width:300px"></div>
@@ -167,14 +181,24 @@ const num=v=>{const x=parseFloat(String(v??'').replace(/,/g,'')); return isNaN(x
 const f0=v=>v==null?'—':Math.round(v).toLocaleString(), f1=v=>v==null?'—':Number(v).toFixed(1), fp=v=>v==null?'—':(v>0?'+':'')+Number(v).toFixed(0)+'%', fp1=v=>v==null?'—':(v>0?'+':'')+Number(v).toFixed(1)+'%';
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const T=(v)=>v==='인터뷰'?'회사발언':(v||'미확인');
+const SCORE={'확인':1,'회사발언':2,'증권사':2,'역산':3,'가정':4,'미확인':4};
+const EASYTAG={'확인':'공시·IR로 확인된 숫자','회사발언':'회사가 직접 말한 숫자','증권사':'증권사 추정치','역산':'공개 숫자에서 계산해 낸 값','가정':'근거를 적고 내가 정한 값','미확인':'근거가 없어 쓸 수 없는 값'};
+// 근거 4칸 검증: 값·태그·공식·링크 — 링크 없거나(역산·가정은 공식도 없으면) '미확인' 강등
+function evid(tag,how,src){ tag=T(tag); const links=(src||[]).filter(x=>x&&x.u).length; const iss=[]; if(tag==='미확인') return {eff:'미확인',iss:['근거 없음'],links,tag};
+  if(!links) iss.push('출처 링크 없음'); if((tag==='역산'||tag==='가정')&&!String(how||'').trim()) iss.push(tag==='역산'?'역산 공식 없음':'가정 사유 없음');
+  return {eff:iss.length?'미확인':tag, iss, links, tag}; }
+const EVq=p=>evid(p.qTag,p.qHow||p.memo,p.qSrc), EVa=p=>evid(p.aTag,p.aHow,p.aSrc);
+const tagH=(e)=>`<span class="tag t${e.eff}" title="${esc((e.iss||[]).join(', '))}">${e.eff}${e.iss&&e.iss.length&&e.tag!=='미확인'?'⚠':''}</span>${e.iss&&e.iss.length&&e.tag!=='미확인'?` <span class="mini warnx">(${esc(e.tag)}→강등: ${esc(e.iss.join('·'))})</span>`:''}`;
+const lks=(arr,n)=>(arr||[]).filter(x=>x&&x.u).slice(0,n||3).map((x,i)=>`<a class="lk" href="${esc(x.u)}" target="_blank" rel="noopener" title="${esc(x.t)}">🔗${i+1}</a>`).join(' ')||'<span class="mini warnx">링크 없음</span>';
+const NAV=c=>`https://finance.naver.com/item/main.naver?code=${c}`;
 const tagSel=(f,v)=>`<select class="tag ${'t'+T(v)}" data-f="${f}">${TAGS.map(t=>`<option ${t===T(v)?'selected':''}>${t}</option>`).join('')}</select>`;
 const unitSel=(v)=>`<select data-f="aUnit" style="font-size:11px;padding:1px 3px">${Object.keys(AUNITS).map(u=>`<option ${u===(v||'억원')?'selected':''}>${u}</option>`).join('')}</select>`;
 const qunitSel=(v)=>`<select data-f="unit" style="font-size:11px;padding:1px 3px">${Object.keys(QUNITS).map(u=>`<option ${u===(v||'대')?'selected':''}>${u}</option>`).join('')}</select>`;
 const qm=p=>QUNITS[p.unit]??1;
 function load(){ try{ WS=JSON.parse(localStorage.getItem(KEY))||null; if(!WS){ WS=JSON.parse(localStorage.getItem(OLDKEY))||{}; } }catch(e){ WS={}; } for(const c in WS) migrate(WS[c]); }
-function migrate(w){ const d=blank(w.code||''); for(const k in d) if(w[k]===undefined) w[k]=d[k]; for(const p of w.prods||[]){ if(p.qTag==='인터뷰') p.qTag='회사발언'; if(p.aTag==='인터뷰') p.aTag='회사발언'; } for(const k of ['tamTag','oTag','capaTag','mTag','shTag','cagrTag']) if(w[k]==='인터뷰') w[k]='회사발언'; if(!w.wt) w.wt={}; if(!w.vis) w.vis={}; }
+function migrate(w){ const d=blank(w.code||''); for(const k in d) if(w[k]===undefined) w[k]=d[k]; for(const p of w.prods||[]){ if(p.qHow===undefined) p.qHow=''; if(p.aHow===undefined) p.aHow=''; } for(const p of w.prods||[]){ if(p.qTag==='인터뷰') p.qTag='회사발언'; if(p.aTag==='인터뷰') p.aTag='회사발언'; } for(const k of ['tamTag','oTag','capaTag','mTag','shTag','cagrTag']) if(w[k]==='인터뷰') w[k]='회사발언'; if(!w.wt) w.wt={}; if(!w.vis) w.vis={}; }
 function save(){ try{ if(CUR&&WS[CUR]) WS[CUR].localAt=new Date().toISOString(); localStorage.setItem(KEY, JSON.stringify(WS)); document.getElementById('stmsg').textContent='저장됨 '+new Date().toLocaleTimeString(); }catch(e){} }
-function blank(code){ return {code, grade:0, year:'', thesis:'', tam:'', tamTag:'미확인', vis:{}, visWhy:'', prods:[{name:'',unit:'대',aUnit:'억원',qB:'',qR:'',qS:'',qTag:'미확인',aB:'',aR:'',aS:'',aTag:'미확인',q0:'',a0:'',memo:''}], oB:0,oR:0,oS:0,oTag:'확인', capa:'',capaTag:'미확인', mB:'',mR:'',mS:'',mTag:'미확인', mHintMemo:'', nB:0,nR:0,nS:0, tax:22, minor:0, shB:'', shD:0, shM:0, shTag:'확인', cagr:'', cagrTag:'미확인', dur:'', durWhy:'', fcfConv:70, disc:10, gTerm:3, pNL:'',pNH:'',pRL:'',pRH:'',pSL:'',pSH:'', pWhy:'', wt:{}, wtWhy:'', snaps:[], fromSeed:false }; }
+function blank(code){ return {code, grade:0, year:'', thesis:'', tam:'', tamTag:'미확인', vis:{}, visWhy:'', prods:[{name:'',unit:'대',aUnit:'억원',qB:'',qR:'',qS:'',qTag:'미확인',qHow:'',aB:'',aR:'',aS:'',aTag:'미확인',aHow:'',q0:'',a0:'',memo:''}], oB:0,oR:0,oS:0,oTag:'확인', capa:'',capaTag:'미확인', mB:'',mR:'',mS:'',mTag:'미확인', mHintMemo:'', nB:0,nR:0,nS:0, tax:22, minor:0, shB:'', shD:0, shM:0, shTag:'확인', cagr:'', cagrTag:'미확인', cagrHow:'', shHow:'', dur:'', durWhy:'', fcfConv:70, disc:10, gTerm:3, pNL:'',pNH:'',pRL:'',pRH:'',pSL:'',pSH:'', pWhy:'', wt:{}, wtWhy:'', snaps:[], fromSeed:false }; }
 function applySeed(code){ const s=SEED.map&&SEED.map[code]; if(!s) return false; const keep=(WS[code]||{}).snaps||[]; WS[code]=JSON.parse(JSON.stringify(s)); migrate(WS[code]); WS[code].snaps=keep; WS[code].fromSeed=true; WS[code].seedDate=SEED.updated; return true; }
 
 // ───── 자동 데이터
@@ -226,8 +250,9 @@ function makeDraft(code){
   const opmT=ttmR?ttmO/ttmR*100:null; const opms=hg.rev.map((v,i)=>v&&hg.op[i]!=null?hg.op[i]/v*100:null).filter(x=>x!=null); const opmPos=opms.filter(x=>x>0);
   const mB=opmT!=null&&opmT>0?opmT:(opmPos.length?pct(opmPos,.5):5); const mR=opmPos.length?Math.min(mB,pct(opmPos,.25)):mB*0.7; const mS=opmPos.length?Math.max(0.5,pct(opmPos,0)):mB*0.4;
   w.prods=[{name:'전체 매출(초안: TTM '+f0(ttmR)+'억 × 성장 외삽)',unit:'억(매출)',aUnit:'매출직접',qB:Math.round(grow(g)),qR:Math.round(grow(g/2)),qS:Math.round(grow(Math.min(g,0))),qTag:'역산',aB:'',aR:'',aS:'',aTag:'역산',q0:'',a0:'',memo:`최근 4분기 매출 YoY 중앙값 ${fp(g)} → Base 1.5년 외삽 / Bear 절반 / Stress 0% 성장. 제품군 Q×ASP로 교체할 것`, qSrc:[{t:'DART 분기 실적(헤게모니 수집) 최근 4분기 합 '+f0(ttmR)+'억, 매출 YoY '+(hg.rgs||[]).slice(-4).map(fp).join('·'),u:'https://dart.fss.or.kr/dsab007/main.do?option=corp&textCrpNm='+code}]}];
-  w.mB=+mB.toFixed(1); w.mR=+mR.toFixed(1); w.mS=+mS.toFixed(1); w.mTag='역산'; w.mSrc=[{t:`TTM OPM ${f1(opmT)}% (최근 9분기 OPM 25%분위 ${opmPos.length?f1(pct(opmPos,.25)):'—'}% · 최저 ${opmPos.length?f1(pct(opmPos,0)):'—'}%)`,u:''}];
-  w.shB=(px&&cap)?Math.round(cap*1e8/px/1000):''; w.shTag='역산'; w.shSrc=[{t:'시총÷주가(KIS) — CB/BW 희석은 관심종목 등록 후 DART 자동수집',u:''}];
+  w.prods[0].qHow=`최근 4분기 매출 합 ${f0(ttmR)}억 × (1+${fp(g)})^1.5 = ${f0(grow(g))}억 (성장률 = 최근 4분기 매출 YoY 중앙값)`;
+  w.mB=+mB.toFixed(1); w.mR=+mR.toFixed(1); w.mS=+mS.toFixed(1); w.mTag='역산'; w.mHintMemo=`TTM 영익 ${f0(ttmO)}억 ÷ TTM 매출 ${f0(ttmR)}억 = ${f1(opmT)}% / Bear = 최근 9분기 OPM 25%분위 / Stress = 최저`; w.mSrc=[{t:`DART 분기 실적(헤게모니 수집) TTM OPM ${f1(opmT)}%`,u:'https://dart.fss.or.kr/dsab007/main.do?option=corp&textCrpNm='+code}];
+  w.shB=(px&&cap)?Math.round(cap*1e8/px/1000):''; w.shTag='역산'; w.shHow=`시총 ${f0(cap)}억 ÷ 주가 ${f0(px)}원 = ${f0(cap&&px?cap*1e8/px/1000:null)}천주`; w.shSrc=[{t:'KIS 시세(시총·주가) — CB/BW 희석은 관심종목 등록 후 DART 자동수집',u:NAV(code)}];
   w.dur=2; w.durWhy='자동 초안: 최근 추세 외삽이라 지속기간 2년만 가정(미검증)'; w.cagrTag='역산';
   w.thesis='🤖 자동 초안 — 최근 4분기 실적 추세를 외삽한 1차 값입니다. 제품군 Q×ASP·OPM 근거·지속기간을 공시/회사발언으로 교체하세요.';
   w.draft.g=g; w.draft.ttmR=ttmR; w.draft.ttmO=ttmO; w.draft.n=n;
@@ -280,10 +305,10 @@ function calc(w,A){
     let rev=0, ok=true;
     for(const p of prods){ const r=prodRev(p,k); if(r==null){ ok=false; if(k==='B') miss.push((p.name||'제품')+' Q/ASP'); continue; } rev+=r; }
     if(k==='B'&&prods.length===0){ ok=false; miss.push('제품군 없음'); }
-    if(k==='B') prods.filter(p=>T(p.qTag)==='미확인'||(AUNITS[p.aUnit||'억원']!==null&&T(p.aTag)==='미확인')).forEach(p=>{ ok=false; miss.push((p.name||'제품')+' 근거 미확인'); });
+    if(k==='B') prods.forEach(p=>{ const q=EVq(p); if(q.eff==='미확인'){ ok=false; miss.push((p.name||'제품')+' Q 근거('+q.iss.join('·')+')'); } if(AUNITS[p.aUnit||'억원']!==null){ const a=EVa(p); if(a.eff==='미확인'){ ok=false; miss.push((p.name||'제품')+' ASP 근거('+a.iss.join('·')+')'); } } });
     rev+=num(w['o'+k])||0;
     const m=num(w['m'+k]); if(m==null){ ok=false; if(k==='B') miss.push('OPM'); }
-    if(k==='B'&&T(w.mTag)==='미확인'){ ok=false; miss.push('OPM 근거 미확인'); }
+    if(k==='B'){ const me=evid(w.mTag,w.mHintMemo,w.mSrc); if(me.eff==='미확인'){ ok=false; miss.push('OPM 근거('+me.iss.join('·')+')'); } }
     const op=(ok&&m!=null)?rev*m/100:null; const n=num(w['n'+k])||0; const tax=num(w.tax)??22; const minor=num(w.minor)||0;
     const pre=op==null?null:op+n; const ni=pre==null?null:pre*(pre>0?(1-tax/100):1)*(1-minor/100);
     const shB=num(w.shB), shD=num(w.shD)||0, shM=num(w.shM)||0;
@@ -298,6 +323,31 @@ function calc(w,A){
   const cagr0=(n&&n>0&&A.eps0&&A.eps0>0&&out.B.eps.dil)?(Math.pow(out.B.eps.dil/A.eps0,1/n)-1)*100:null;
   return {out, miss:[...new Set(miss)], prods, n, cagr0, cagrF:num(w.cagr)??cagr0};
 }
+function autoGrade(w,R){ let tot=0,acc=0; const rows=[]; for(const p of R.prods){ const rv=prodRev(p,'B')||0; const q=EVq(p); const direct=AUNITS[p.aUnit||'억원']===null; const a=direct?null:EVa(p); const sc=Math.max(SCORE[q.eff],a?SCORE[a.eff]:1); rows.push({n:p.name||'제품',rv,sc,q,a}); tot+=rv; acc+=rv*sc; }
+  const g=tot?Math.min(4,Math.max(1,Math.round(acc/tot))):0; return {g, rows, tot, avg:tot?acc/tot:null, manual:+w.grade||0, use:(+w.grade||0)||g}; }
+function evAll(w,R){ const items=[]; for(const p of R.prods){ items.push({k:'Q · '+(p.name||'제품'), v:`${esc(p.qB)} ${esc(p.unit)}`, e:EVq(p), how:p.qHow||p.memo, src:p.qSrc, easy:'몇 개 파나'}); if(AUNITS[p.aUnit||'억원']!==null) items.push({k:'ASP · '+(p.name||'제품'), v:`${esc(p.aB)} ${esc(p.aUnit)}`, e:EVa(p), how:p.aHow, src:p.aSrc, easy:'하나에 얼마 받나'}); }
+  items.push({k:'OPM', v:`${esc(w.mB)}%`, e:evid(w.mTag,w.mHintMemo,w.mSrc), how:w.mHintMemo, src:w.mSrc, easy:'매출 100원 중 몇 원 남나'});
+  items.push({k:'주식수·희석', v:`${f0(num(w.shB))}+${f0(num(w.shD))}천주`, e:evid(w.shTag,w.shHow,w.shSrc), how:w.shHow, src:w.shSrc, easy:'이익을 몇 명이 나누나(CB 전환 포함)'});
+  items.push({k:'EPS CAGR', v:`${esc(w.cagr)}% × ${esc(w.dur)}년`, e:evid(w.cagrTag,w.cagrHow||w.durWhy,w.cagrSrc), how:w.cagrHow||w.durWhy, src:w.cagrSrc, easy:'이익이 매년 몇 % 늘고 몇 년 가나'});
+  items.push({k:'PER 배수', v:`${esc(w.pNL)}~${esc(w.pNH)}배`, e:evid(w.pNL!==''?'역산':'미확인',w.pWhy,w.pSrc), how:w.pWhy, src:w.pSrc, easy:'이익 1원에 얼마 쳐주나'});
+  items.push({k:'산업 TAM', v:'', e:evid(w.tamTag,w.tam,w.tamSrc), how:w.tam, src:w.tamSrc, easy:'시장 전체가 얼마나 크고 빨리 크나'});
+  items.push({k:'가시성 체크', v:Object.values(w.vis||{}).filter(Boolean).length+'/6', e:evid(Object.values(w.vis||{}).some(Boolean)?'확인':'미확인',w.visWhy,w.visSrc), how:w.visWhy, src:w.visSrc, easy:'계약·수주·고객 투자처럼 "눈에 보이는" 근거'});
+  return items; }
+function renderEvidence(code,A,R){
+  const w=WS[code]; const items=evAll(w,R); const G=autoGrade(w,R);
+  let h='<div class="tw"><table><tr><th class="l">항목</th><th>값</th><th class="l">근거 수준</th><th class="l w" style="min-width:260px">어떻게 구했나 (공식·과정)</th><th class="l">출처 링크</th><th class="l">쉬운 말</th></tr>';
+  for(const it of items) h+=`<tr><td class="l"><b>${it.k}</b></td><td>${it.v}</td><td class="l">${tagH(it.e)}</td><td class="l w">${esc(it.how||'')||'<span class="warnx">— 비어 있음</span>'}</td><td class="l">${lks(it.src,4)}</td><td class="l mini">${it.easy} — ${EASYTAG[it.e.eff]}</td></tr>`;
+  h+='</table></div>';
+  const bad=items.filter(it=>it.e.iss&&it.e.iss.length&&it.e.tag!=='미확인');
+  h+=`<div class="mini" style="margin-top:6px">규칙: 확인·회사발언·증권사는 <b>링크 1개↑</b>, 역산·가정은 <b>공식(또는 사유) + 링크</b>가 있어야 그 태그로 인정. ${bad.length?`<span class="warnx">⚠ ${bad.length}개 항목이 조건 미달로 '미확인' 강등 → 입력 카드에서 공식·링크를 채우면 복구</span>`:'✅ 모든 항목이 조건 충족'}</div>`;
+  document.getElementById('evCard').innerHTML=h;
+  // 분포
+  const cnt={}; for(const t of TAGS) cnt[t]=0; items.forEach(it=>cnt[it.e.eff]++); const n=items.length||1; const col={'확인':'#15803d','회사발언':'#059669','증권사':'#2563eb','역산':'#d97706','가정':'#dc2626','미확인':'#98a2b3'};
+  document.getElementById('evDist').innerHTML=`<div class="evbar">${TAGS.map(t=>`<i style="width:${cnt[t]/n*100}%;background:${col[t]}" title="${t} ${cnt[t]}"></i>`).join('')}</div><div class="mini" style="margin-top:6px">${TAGS.map(t=>`<span class="tag t${t}">${t}</span> ${cnt[t]}`).join(' &nbsp; ')} · 총 ${n}개 항목</div><div class="mini" style="margin-top:4px">${TAGS.map(t=>`<b>${t}</b>: ${EASYTAG[t]}`).join(' · ')}</div>`;
+  // 가시성
+  document.getElementById('gradeBox').innerHTML=`<div style="font-size:15px;margin:4px 0">자동 ${gradeB(G.g)} <span class="mini">매출가중 평균 ${G.avg!=null?G.avg.toFixed(2):'—'}</span>${G.manual?` · 수동 지정 ${gradeB(G.manual)} <span class="mini">(수동이 우선 — 자동으로 돌리려면 입력의 가시성 등급을 '자동'으로)</span>`:''}</div><div class="tw"><table><tr><th class="l">제품군</th><th>Base 매출</th><th>비중</th><th class="l">Q</th><th class="l">ASP</th><th>점수</th></tr>${G.rows.map(r=>`<tr><td class="l">${esc(r.n)}</td><td>${f0(r.rv)}</td><td>${G.tot?(r.rv/G.tot*100).toFixed(0):'—'}%</td><td class="l">${tagH(r.q)}</td><td class="l">${r.a?tagH(r.a):'<span class="mini">매출직접</span>'}</td><td>${r.sc}</td></tr>`).join('')}</table></div><div class="mini" style="margin-top:4px">점수 = Q와 ASP 중 약한 쪽(확인1·회사발언2·증권사2·역산3·가정4·미확인4) → 매출 비중으로 평균 → 반올림</div>`;
+  return G;
+}
 function highGrowth(w,A,R,Q){
   const c=[]; const cagr=R.cagrF; const hg=A.hg;
   c.push({k:'EPS CAGR 20%↑', ok:cagr!=null&&cagr>=20, v:cagr!=null?fp(cagr):'—'});
@@ -309,7 +359,7 @@ function highGrowth(w,A,R,Q){
 }
 function verdict(w,A,R){
   const px=A.px, B=R.out.B, Rr=R.out.R, S=R.out.S;
-  if(!B.ok||R.miss.length) return {cls:'x', t:'아직 산출 전 — 채울 것: '+R.miss.join(', ')+'. 공시가 없으면 회사발언·업계 범위·역산으로 채우고 태그로 근거 수준을 남기세요(근거가 전혀 없을 때만 미확인).'};
+  if(!B.ok||R.miss.length) return {cls:'x', t:'아직 산출 전 — 채울 것: '+R.miss.join(', ')+'. 모든 숫자는 값·태그·공식·출처 링크 4칸이 있어야 인정됩니다(📎 근거 표 참고). 공시가 없으면 회사발언·업계 범위·역산으로 채우되 링크와 공식을 남기세요.'};
   if(B.vL==null||B.vH==null) return {cls:'x', t:'정상화 PER 범위를 입력하면 가치가 계산됩니다(아래 삼각측량 제안값 적용 가능).'};
   if(!px) return {cls:'x', t:'현재가 없음'};
   const toF=Rr.vL!=null?(Rr.vL/px-1)*100:null, toN=(B.vH/px-1)*100, toNL=(B.vL/px-1)*100, toS=S.vL!=null?(S.vL/px-1)*100:null;
@@ -330,17 +380,23 @@ function triangulate(w,A,R,Q){
     const rows=Object.keys(byY).sort().slice(-6).map(y=>{const ps=byY[y]; const k4=y+'Q4', k4p=(y-1)+'Q4'; const g=(niByQ[k4]&&niByQ[k4p]&&niByQ[k4p]>0)?(niByQ[k4]/niByQ[k4p]-1)*100:null; return {y, p25:pct(ps,.25), p50:pct(ps,.5), p75:pct(ps,.75), g};});
     const sim=rows.filter(r=>r.g!=null&&cagr!=null&&Math.abs(r.g-cagr)<=15); const use=sim.length?sim:rows.slice(-3);
     const lo=pct(use.map(r=>r.p25),.5), hi=pct(use.map(r=>r.p75),.5);
-    views.self={lo,hi,rows, note:sim.length?`현재 예상 성장률(${fp(cagr)})과 ±15%p 이내였던 ${sim.map(r=>r.y).join('·')}년 PER 25~75% 구간`:`비슷한 성장률 시기 없음 → 최근 3년 25~75% 구간`, src:'종목 PBR·PER 시계열(compare) + TTM 순이익'}; }
-  else views.self={lo:null,hi:null,note:'PER 시계열 없음(수집 365종목만)'};
+    views.self={lo,hi,rows, note:sim.length?`현재 예상 성장률(${fp(cagr)})과 ±15%p 이내였던 ${sim.map(r=>r.y).join('·')}년의 PER 25~75% 구간`:`비슷한 성장률 시기 없음 → 최근 3년 PER 25~75% 구간`, src:'종목 PER 일별 시계열(compare) + 분기 순이익', detail:rows.map(r=>`${r.y}: ${f1(r.p25)}~${f1(r.p75)}배(중앙 ${f1(r.p50)}) · 순이익 YoY ${fp(r.g)}`).join(' | ')+` · <a class="lk" href="#cBandCard">밴드 차트</a> · <a class="lk" href="${NAV(w.code)}" target="_blank">네이버</a>`, easy:'이 회사가 과거에 받던 배수(비슷한 성장률 시기 우선)'}; }
+  else views.self={lo:null,hi:null,note:'PER 시계열 없음 — 수집 대상(시총 상위 300 + 워크시트 종목)에 다음 수집부터 포함', src:'compare', easy:'이 회사가 과거에 받던 배수'};
   const perOf=c=>{const s=SV.map&&SV.map[c]; return s&&s[1]!=null&&s[1]>0&&s[1]<150?s[1]:null;}; const nameOf=c=>(AUTO.map&&AUTO.map[c]&&AUTO.map[c].name)||((HEGE.rows||[]).find(r=>r.c===c)||{}).n||c;
-  for(const [k,list] of [['peer',A.peers.length?A.peers:A.naverPeers.map(p=>p.c).slice(0,5)],['chain',A.chain]]){ const ps=list.map(c=>({c,n:nameOf(c),p:perOf(c)})); const v=ps.map(x=>x.p).filter(x=>x!=null); views[k]={lo:v.length?Math.min(...v):null, hi:v.length?Math.max(...v):null, rows:ps, note:v.length?`${v.length}개사 현재 PER(트레일링) ${f1(Math.min(...v))}~${f1(Math.max(...v))}배 — 적자·미산출 제외`:'산출 가능한 종목 없음(적자·미산출)', src:'KIS 전종목 밸류(stockvals)'}; }
-  { const v=A.anchors.map(a=>a.per_ttm).filter(x=>x!=null&&x>0&&x<200); views.anchor={lo:v.length?Math.min(...v):null, hi:v.length?Math.max(...v):null, rows:A.anchors, note:v.length?`SEC TTM 기준 ${f1(Math.min(...v))}~${f1(Math.max(...v))}배 — 그대로 복사 금지: 공급사가 고객보다 성장률·마진·ROIC가 높은지, 단일고객·소형주 위험이 큰지로 가감`:'앵커 없음', src:'SEC EDGAR XBRL + Yahoo'}; }
-  if(cagr!=null&&cagr>0){ const g=Math.min(cagr,50); const [a,b]=dur>=3?[1.0,1.5]:[0.8,1.2]; views.growth={lo:g*a,hi:g*b,note:`EPS CAGR ${fp(cagr)}(50% 캡) × PEG ${a}~${b}(지속 ${dur||'?'}년${dur>=3?' → 1.0~1.5':' → 지속기간 짧아 0.8~1.2'})`, src:'내 Base EPS·CAGR 입력'}; } else views.growth={lo:null,hi:null,note:'EPS CAGR 없음(대상연도·Base EPS 또는 CAGR 입력)'};
-  if(views.growth.lo!=null){ let f=1, why=[]; const r=Q&&(Q.ytd&&Q.ytd.roic!=null?Q.ytd.roic:Q.roic); if(r!=null){ if(r>=15){f*=1.1;why.push(`ROIC ${f1(r)}% ≥15% ×1.1`);} else if(r<8){f*=0.8;why.push(`ROIC ${f1(r)}% <8% ×0.8`);} else why.push(`ROIC ${f1(r)}% 중립`);} const fc=Q&&Q.fcfConv; if(fc!=null&&fc<50){f*=0.9;why.push(`FCF 전환 ${f0(fc)}% <50% ×0.9`);} const nd=Q&&(Q.ytd?Q.ytd.netDebt:Q.netDebt); if(nd!=null&&B.op&&nd>3*B.op){f*=0.9;why.push(`순차입 ${f0(nd)}억 > 영익 3배 ×0.9`);} views.roic={lo:views.growth.lo*f,hi:views.growth.hi*f,note:(why.join(', ')||'재무제표 없음 → 조정 없음'),src:'DART 전체재무제표'}; } else views.roic={lo:null,hi:null,note:'⑤ 없음'};
+  const whyNo=c=>{ const s=SV.map&&SV.map[c]; const hg=(HEGE.rows||[]).find(r=>r.c===c); const op=hg&&hg.op&&hg.op.slice(-4); const ttm=op&&op.length?op.reduce((a,b)=>a+(b||0),0):null; if(ttm!=null&&ttm<=0) return `적자: 최근 4분기 영업이익 합 ${f0(ttm)}억 → PER 계산 불가`; if(s&&s[1]!=null&&s[1]>=150) return `PER ${f1(s[1])}배: 이익이 거의 0이라 숫자가 의미 없음(150배↑ 제외)`; if(!s) return 'KIS 밸류 수집 대상 아님'; return 'PER 미제공: 최근 4분기 순이익 ≤0(KIS 트레일링 EPS 없음)'; };
+  for(const [k,list] of [['peer',A.peers.length?A.peers:A.naverPeers.map(p=>p.c).slice(0,5)],['chain',A.chain]]){ const ps=list.map(c=>({c,n:nameOf(c),p:perOf(c),why:perOf(c)==null?whyNo(c):''})); const v=ps.map(x=>x.p).filter(x=>x!=null);
+    const used=ps.filter(x=>x.p!=null), ex=ps.filter(x=>x.p==null);
+    views[k]={lo:v.length?Math.min(...v):null, hi:v.length?Math.max(...v):null, rows:ps, note:v.length?`${v.length}개사 현재 PER(트레일링 = 현재가 ÷ 최근 4분기 EPS) 중 최저~최고`:'PER을 계산할 수 있는 종목이 없음', src:'KIS 전종목 밸류(stockvals) · 매일 수집',
+      detail:`<div>사용: ${used.map(x=>`<a class="lk" href="${NAV(x.c)}" target="_blank">${esc(x.n)}</a> ${f1(x.p)}배`).join(' · ')||'없음'}</div>${ex.length?`<div>제외: ${ex.map(x=>`<a class="lk" href="${NAV(x.c)}" target="_blank">${esc(x.n)}</a> — ${esc(x.why)}`).join(' · ')}</div>`:''}`,
+      easy:k==='peer'?'같은 업종 다른 회사가 지금 받는 배수':'앞뒤 공급망 회사가 지금 받는 배수'}; }
+  { const v=A.anchors.map(a=>a.per_ttm).filter(x=>x!=null&&x>0&&x<200); views.anchor={lo:v.length?Math.min(...v):null, hi:v.length?Math.max(...v):null, rows:A.anchors, note:v.length?`SEC 공시(10-Q/10-K) 최근 4분기 순이익 기준 ${f1(Math.min(...v))}~${f1(Math.max(...v))}배 — 그대로 복사 금지: 공급사가 고객보다 성장률·마진·ROIC가 높은지, 단일고객·소형주 위험이 큰지로 가감`:'앵커 없음(valws_watch.json anchors)', src:'SEC EDGAR XBRL + Yahoo 시세',
+      detail:A.anchors.map(a=>`<a class="lk" href="${esc(a.url||'#')}" target="_blank">${esc(a.t)}</a>(${esc(a.role)}) ${a.per_ttm?f1(a.per_ttm)+'배':'—'}${a.anomaly&&a.anomaly.length?' ⚠일회성 분기 제외·연율화':''} · 매출 YoY ${fp(a.rev_yoy)}`).join(' | '), easy:'고객·대장주가 받는 배수 — 납품사가 고객보다 비싸면 이상'}; }
+  if(cagr!=null&&cagr>0){ const g=Math.min(cagr,50); const [a,b]=dur>=3?[1.0,1.5]:[0.8,1.2]; views.growth={lo:g*a,hi:g*b,note:`EPS CAGR ${fp(cagr)}(50% 캡) × PEG ${a}~${b}(지속 ${dur||'?'}년${dur>=3?' → 1.0~1.5':' → 지속기간 짧아 0.8~1.2'})`, src:'내 CAGR 입력', detail:`공식: PER = 성장률 × PEG. 피터 린치 기준 PEG 1.0이 적정, 고성장 지속 시 1.5까지 · <a class="lk" href="#cagr">CAGR 입력</a> ${lks(w.cagrSrc,3)}`, easy:'성장률만큼 쳐주면 — 연 30% 크면 30배 전후'}; } else views.growth={lo:null,hi:null,note:'EPS CAGR 없음(대상연도·Base EPS 또는 CAGR 입력)', easy:'성장률만큼 쳐주면'};
+  if(views.growth.lo!=null){ let f=1, why=[]; const r=Q&&(Q.ytd&&Q.ytd.roic!=null?Q.ytd.roic:Q.roic); if(r!=null){ if(r>=15){f*=1.1;why.push(`ROIC ${f1(r)}% ≥15% ×1.1`);} else if(r<8){f*=0.8;why.push(`ROIC ${f1(r)}% <8% ×0.8`);} else why.push(`ROIC ${f1(r)}% 중립`);} const fc=Q&&Q.fcfConv; if(fc!=null&&fc<50){f*=0.9;why.push(`FCF 전환 ${f0(fc)}% <50% ×0.9`);} const nd=Q&&(Q.ytd?Q.ytd.netDebt:Q.netDebt); if(nd!=null&&B.op&&nd>3*B.op){f*=0.9;why.push(`순차입 ${f0(nd)}억 > 영익 3배 ×0.9`);} views.roic={lo:views.growth.lo*f,hi:views.growth.hi*f,note:(why.join(', ')||'재무제표 없음 → 조정 없음'),src:'DART 전체재무제표', detail:`공식: ⑤ 범위 × 조정계수 ${f.toFixed(2)} (ROIC 15%↑ ×1.1 / 8% 미만 ×0.8 · FCF 전환 50% 미만 ×0.9 · 순차입이 영익 3배↑ ×0.9) · <a class="lk" href="https://dart.fss.or.kr/dsab007/main.do?option=corp&textCrpNm=${encodeURIComponent(A.name)}" target="_blank">DART</a>`, easy:'돈 버는 질(투자 대비 이익·현금 전환·빚)로 ⑤를 깎거나 올림'}; } else views.roic={lo:null,hi:null,note:'⑤ 없음', easy:'돈 버는 질로 가감'};
   if(B.ni!=null&&B.ni>0&&B.eps.dil&&cagr!=null){ const conv=(num(w.fcfConv)??70)/100, r0=(num(w.disc)??10)/100, gT=(num(w.gTerm)??3)/100, n=R.n||1; const sh=(num(w.shB)||0)+(num(w.shD)||0); const nd=Q?(Q.ytd?Q.ytd.netDebt:Q.netDebt):0;
     const run=(r)=>{ const g=cagr/100; let fc=B.ni*conv; let pv=fc/Math.pow(1+r,n); const hold=Math.max(0,dur-1), fade=5; let t=n; for(let i=0;i<hold;i++){ t++; fc*=1+g; pv+=fc/Math.pow(1+r,t); } for(let i=1;i<=fade;i++){ t++; const gi=g+(gT-g)*i/fade; fc*=1+gi; pv+=fc/Math.pow(1+r,t); } const tv=fc*(1+gT)/(r-gT); pv+=tv/Math.pow(1+r,t); return (pv-(nd||0))*1e8/(sh*1000); };
-    const vL=run(r0+0.01), vH=run(r0-0.01); views.dcf={lo:vL/B.eps.dil, hi:vH/B.eps.dil, value:[vL,vH], note:`Base 순이익×전환율 ${f0(conv*100)}% → ${dur||1}년 ${fp(cagr)} 성장 후 5년에 걸쳐 ${f0(gT*100)}%로 감속, 할인율 ${f0(r0*100)}±1%, 순차입 ${f0(nd)}억 차감 → 주당 ${f0(vL)}~${f0(vH)}원 ÷ Base EPS. ※ 내 Q·ASP 가정과 같은 뿌리라 '검산'이지 독립 근거 아님`, src:'내 시나리오'}; } else views.dcf={lo:null,hi:null,note:'Base 순이익·CAGR 필요'};
-  { const all=SECV&&SECV.all?SECV.all:[]; const k=all.find(x=>x.raw==='코스피'), d=all.find(x=>x.raw==='코스닥'); const secName=A.hg&&A.hg.sec; let secPer=null; if(SECV&&SECV.map&&secName){ const key=Object.keys(SECV.map).find(x=>x.includes(secName.slice(0,2))); if(key) secPer=SECV.map[key].per; } const v=[k&&k.per,d&&d.per,secPer].filter(x=>x!=null&&x>0); views.regime={lo:v.length?Math.min(...v):null,hi:v.length?Math.max(...v):null,note:`코스피 ${f1(k&&k.per)}·코스닥 ${f1(d&&d.per)}${secPer?'·업종 '+f1(secPer):''}배 — 현재 국면을 '정상'으로 착각하지 말 것(금리 고점 국면)`, src:'KRX 시장·업종 PER(sectorval)'}; }
+    const vL=run(r0+0.01), vH=run(r0-0.01); views.dcf={lo:vL/B.eps.dil, hi:vH/B.eps.dil, value:[vL,vH], note:`Base 순이익×전환율 ${f0(conv*100)}% → ${dur||1}년 ${fp(cagr)} 성장 후 5년에 걸쳐 ${f0(gT*100)}%로 감속, 할인율 ${f0(r0*100)}±1%, 순차입 ${f0(nd)}억 차감 → 주당 ${f0(vL)}~${f0(vH)}원 ÷ Base EPS. ※ 내 Q·ASP 가정과 같은 뿌리라 '검산'이지 독립 근거 아님`, src:'내 시나리오', detail:`공식: 주당가치 = Σ 미래 FCF ÷ (1+할인율)^t + 종료가치 − 순차입 → ÷ Base EPS = 암시 PER · <a class="lk" href="#fcfConv">DCF 가정 입력</a>`, easy:'미래에 벌 현금을 오늘 값으로 바꾸면 이익의 몇 배인가'}; } else views.dcf={lo:null,hi:null,note:'Base 순이익·CAGR 필요', easy:'미래 현금을 오늘 값으로'};
+  { const all=SECV&&SECV.all?SECV.all:[]; const k=all.find(x=>x.raw==='코스피'), d=all.find(x=>x.raw==='코스닥'); const secName=A.hg&&A.hg.sec; let secPer=null; if(SECV&&SECV.map&&secName){ const key=Object.keys(SECV.map).find(x=>x.includes(secName.slice(0,2))); if(key) secPer=SECV.map[key].per; } const v=[k&&k.per,d&&d.per,secPer].filter(x=>x!=null&&x>0); views.regime={lo:v.length?Math.min(...v):null,hi:v.length?Math.max(...v):null,note:`코스피 ${f1(k&&k.per)}·코스닥 ${f1(d&&d.per)}${secPer?'·업종 '+f1(secPer):''}배 — 현재 국면을 '정상'으로 착각하지 말 것(금리 고점 국면)`, src:'KRX 시장·업종 PER(sectorval)', detail:`<a class="lk" href="https://data.krx.co.kr/contents/MDC/MDI/mdiLoader/index.cmd?menuId=MDC0201020506" target="_blank">KRX 지수 PER</a> · 시장 전체 배수는 '바닥'(Stress)의 참고값`, easy:'지금 시장 전체 분위기 — 시장이 싸면 개별주도 눌림'}; }
   const hasQ=!!(Q&&(Q.roic!=null||Q.fcfConv!=null)); if(hasQ) views.growth.note+=' → ⑥에 ROIC·FCF 조정 반영(겹침 계산은 ⑥만 사용)'; else views.roic.note+=' → 재무제표 없어 ⑤와 동일(겹침 계산 제외)';
   const wt=k=>{ if(k==='growth'&&hasQ) return 0; if(k==='roic'&&!hasQ) return 0; const v=num((w.wt||{})[k]); return v==null?1:v;}; const grid=new Array(121).fill(0); let tot=0;
   for(const [k] of VIEWS){ const v=views[k]; if(!v||v.lo==null||v.hi==null) continue; const ww=wt(k); if(!ww) continue; tot+=ww; for(let p=Math.max(1,Math.floor(v.lo));p<=Math.min(120,Math.ceil(v.hi));p++) grid[p]+=ww; }
@@ -363,17 +419,17 @@ function triangulate(w,A,R,Q){
 function renderTri(code,A,R,Q){
   const w=WS[code]; const t=triangulate(w,A,R,Q); TRI=t;
   const bar=(lo,hi,color)=>{ if(lo==null) return ''; const L=Math.min(100,lo), W=Math.max(1,Math.min(100,hi)-Math.min(100,lo)); return `<div class="bandbar"><i style="left:${L}%;width:${W}%;background:${color}"></i>${t.lo!=null?`<i style="left:${Math.min(100,t.lo)}%;width:${Math.max(1,Math.min(100,t.hi)-Math.min(100,t.lo))}%;background:transparent;border:2px solid #1a1f2e;opacity:1"></i>`:''}</div>`; };
-  let h='<div class="tw"><table><tr><th class="l">관점</th><th class="l">계열</th><th>범위(배)</th><th class="l" style="min-width:220px">0 ─────────── 100배 (검은 테두리 = 제안 구간)</th><th>가중치</th><th class="l w">근거 · 출처</th></tr>';
-  for(const [k,label,typ] of VIEWS){ const v=t.views[k]||{}; const ww=(w.wt||{})[k]; h+=`<tr><td class="l"><b>${label}</b></td><td class="l">${typ==='mkt'?'시장가격':'펀더멘털'}</td><td>${v.lo!=null?f1(v.lo)+'~'+f1(v.hi):'—'}</td><td class="l">${bar(v.lo,v.hi,typ==='mkt'?'#93c5fd':'#86efac')}</td><td><input class="xs" data-wt="${k}" value="${ww??''}" placeholder="1" title="0=제외, 1=기본, 2~3=중요"></td><td class="l w" style="max-width:420px">${esc(v.note||'')}${v.src?` <span class="mini">(${esc(v.src)})</span>`:''}</td></tr>`; }
+  const wsum=VIEWS.map(([k,l])=>{const v=num((w.wt||{})[k]); return v==null||v===1?null:`${l.slice(0,1)} ${v===0?'제외':v+'배'}`;}).filter(Boolean);
+  let h='<div class="tw"><table><tr><th class="l">관점</th><th class="l">쉬운 말</th><th>범위(배)</th><th class="l" style="min-width:200px">0 ─────── 100배 (검은 테두리 = 제안)</th><th>가중치</th><th class="l w" style="min-width:300px">숫자가 어디서 왔나 · 링크</th></tr>';
+  for(const [k,label,typ] of VIEWS){ const v=t.views[k]||{}; const ww=(w.wt||{})[k]; h+=`<tr><td class="l"><b>${label}</b><br><span class="mini">${typ==='mkt'?'시장가격 계열':'펀더멘털 계열'}</span></td><td class="l w mini" style="max-width:170px;color:#075985">${esc(v.easy||'')}</td><td>${v.lo!=null?f1(v.lo)+'~'+f1(v.hi):'—'}</td><td class="l">${bar(v.lo,v.hi,typ==='mkt'?'#93c5fd':'#86efac')}</td><td><input class="xs" data-wt="${k}" value="${ww??''}" placeholder="1" title="0=제외, 1=기본, 2~3=중요"></td><td class="l w" style="max-width:460px">${esc(v.note||'')}${v.src?` <span class="mini">(${esc(v.src)})</span>`:''}${v.detail?`<div class="mini" style="margin-top:2px">${v.detail}</div>`:''}</td></tr>`; }
   h+='</table></div>';
-  const self=t.views.self; if(self&&self.rows) h+=`<div class="mini" style="margin-top:6px">자기 과거 연도별: ${self.rows.map(r=>`${r.y} PER ${f1(r.p25)}~${f1(r.p75)}(중앙 ${f1(r.p50)}) / 순이익 YoY ${fp(r.g)}`).join(' · ')}</div>`;
-  const anc=t.views.anchor; if(anc&&anc.rows&&anc.rows.length) h+=`<div class="mini">앵커: ${anc.rows.map(a=>`${esc(a.t)}(${esc(a.role)}) PER ${a.per_ttm?f1(a.per_ttm):'—'}${a.anomaly&&a.anomaly.length?'⚠':''} · 매출 YoY ${fp(a.rev_yoy)}`).join(' | ')} — ⚠ = 일회성 거액 손익 분기 제외·연율화</div>`;
-  const pr=t.views.peer; if(pr&&pr.rows) h+=`<div class="mini">피어: ${pr.rows.map(x=>`${esc(x.n)} ${x.p?f1(x.p):'—'}`).join(' · ')} / 인접체인: ${(t.views.chain.rows||[]).map(x=>`${esc(x.n)} ${x.p?f1(x.p):'—'}`).join(' · ')}</div>`;
+  const nIn=VIEWS.filter(([k])=>{const v=t.views[k]; return v&&v.lo!=null&&t.lo!=null&&v.lo<=t.hi&&v.hi>=t.lo;}).length, nAll=VIEWS.filter(([k])=>t.views[k]&&t.views[k].lo!=null).length;
+  document.getElementById('triEasy').innerHTML=t.lo!=null?`쉬운 말: 심판 ${nAll}명 중 <b>${nIn}명이 ${f1(t.lo)}~${f1(t.hi)}배</b>에 동의${t.converge?' — 시장 쪽 심판과 펀더멘털 쪽 심판이 모두 포함돼 믿을 만함':t.conv.fund===0?' — 그런데 시장 쪽 심판뿐, 성장·현금 쪽 심판은 동의 안 함(시장이 그렇게 줄 뿐)':t.conv.mkt===0?' — 펀더멘털 쪽만 동의, 시장은 다른 값을 매기는 중':' — 절반쯤만 동의'}. 가중치: ${wsum.length?wsum.join(' · '):'모두 1배'}`:'쉬운 말: 심판들이 아직 값을 못 냄 — EPS CAGR·대상연도·Base를 채우면 계산';
   h+=`<div class="vd ${t.converge?'u':t.lo!=null?'m':'x'}" style="margin-top:8px">`;
   if(t.lo!=null){ h+=`<b>제안 정상화 PER ${f1(t.lo)}~${f1(t.hi)}배</b> — 시장가격 계열 ${t.conv.mkt}/${t.conv.mktN}개, 펀더멘털 계열 ${t.conv.fund}/${t.conv.fundN}개가 이 구간과 겹침 → ${t.converge?'<b>수렴</b>(두 계열이 함께 가리킴)':t.conv.fund===0?'<b>시장만 겹침</b> — 시장이 그렇게 주고 있을 뿐, 성장·현금흐름이 뒷받침하지 않음':t.conv.mkt===0?'<b>펀더멘털만 겹침</b> — 시장은 다른 가격을 매기는 중(과열 또는 소외)':'부분 수렴'}. 관점 간 분산 ${t.disp?f1(t.disp)+'배':'—'}${t.disp&&t.disp>3?' — 흩어짐 큼, 밴드를 넓게':''}.`;
     h+=`<br>Bear 제안 ${t.bear?f1(t.bear[0])+'~'+f1(t.bear[1]):'—'}배 (근거: 자기 과거 하위 10~20% ${t.selfLow?f1(t.selfLow[0])+'~'+f1(t.selfLow[1]):'없음'}, 피어 최저 ${f1(t.views.peer.lo)}, 정상화 하단×0.65) · Stress 제안 ${t.stress?f1(t.stress[0])+'~'+f1(t.stress[1]):'—'}배 (자기 하위 10%, 시장 PER ${f1(t.views.regime.lo)}, 정상화 하단×0.4)`; }
   else h+='관점 범위가 없어 제안 불가 — EPS CAGR·대상연도·Base 입력 후 재계산';
-  h+='</div><div class="row"><label>가중치 근거</label><input id="wtWhy" style="flex:1;min-width:300px" value="'+esc(w.wtWhy||'')+'" placeholder="예: RF는 고객·광통신 피어·성장률 비중↑, 소재주는 ROIC·FCF 비중↑"></div>';
+  h+=`</div><div style="margin-top:8px"><b>가중치 설정</b> <span class="mini">${wsum.length?wsum.join(' · '):'모두 기본 1배'} — 0=제외, 2~3=중요. 이 종목에서 어떤 심판 말을 더 믿을지</span><textarea id="wtWhy" class="wide" rows="2" placeholder="예: RF는 고객·광통신 피어·성장률 비중↑, 소재주는 ROIC·FCF 비중↑">${esc(w.wtWhy||'')}</textarea></div>`;
   document.getElementById('tri').innerHTML=h;
 }
 
@@ -396,7 +452,16 @@ function charts(code,A,R){
   if(CMP&&CMP.px&&CMP.per&&CMP.per.length>50){ const cut=new Date(); cut.setFullYear(cut.getFullYear()-3); const c=cut.toISOString().slice(0,10); const pxs=CMP.px.filter(x=>x[0]>=c); const pe=perHist(CMP,3); const p10=pct(pe,.1),p50=pct(pe,.5),p90=pct(pe,.9); const perMap=new Map(CMP.per.map(x=>[x[0],x[1]])); const eps=pxs.map(x=>{const pr=perMap.get(x[0]); return pr&&pr>0?x[1]/pr:null;}); const step=Math.max(1,Math.floor(pxs.length/150)); const lab=pxs.filter((_,i)=>i%step===0).map(x=>x[0].slice(2,7)); const pick=a=>a.filter((_,i)=>i%step===0);
     if(!card.querySelector('canvas')) card.querySelector('.ch').innerHTML='<canvas id="cB"></canvas>';
     mk('cB',{type:'line',data:{labels:lab,datasets:[{label:'주가',data:pick(pxs.map(x=>x[1])),borderColor:'#1a1f2e',borderWidth:1.5,pointRadius:0},{label:'PER '+f1(p10)+'x',data:pick(eps.map(e=>e?e*p10:null)),borderColor:'#0f7b3f',borderDash:[3,3],borderWidth:1,pointRadius:0},{label:'PER '+f1(p50)+'x',data:pick(eps.map(e=>e?e*p50:null)),borderColor:'#f0b429',borderDash:[3,3],borderWidth:1,pointRadius:0},{label:'PER '+f1(p90)+'x',data:pick(eps.map(e=>e?e*p90:null)),borderColor:'#d92d20',borderDash:[3,3],borderWidth:1,pointRadius:0}]},options:{...baseOpt,scales:{x:{ticks:{font:{size:9},maxTicksLimit:8}},y:{ticks:{font:{size:10}}}}}}); }
-  else { if(CH.cB){CH.cB.destroy(); delete CH.cB;} card.querySelector('.ch').innerHTML='<div class="mini" style="padding:20px">PER 시계열 없음(수집 365종목만) — 컨센·피어·앵커 배수로 대체</div>'; }
+  else { if(CH.cB){CH.cB.destroy(); delete CH.cB;} card.querySelector('.ch').innerHTML=`<div class="mini" style="padding:20px">이 종목의 PER 일별 시계열이 아직 없습니다 — 수집 대상(시총 상위 300)에 워크시트 종목을 자동 포함하도록 바꿨으니 다음 수집(평일 장 마감 후)부터 그려집니다. 그때까지는 <a class="lk" href="${NAV(code)}" target="_blank">네이버 종목 페이지</a>의 PER 참고</div>`; }
+  // EPS 성장률 비교
+  { const bars=[]; const src=[]; if(num(w.cagr)!=null) bars.push(['내 CAGR('+esc(w.year||'')+' 이후)',num(w.cagr),'#1a2a4a']); if(R.cagr0!=null) bars.push(['FY0→'+esc(w.year||'Base')+' 계산',R.cagr0,'#6366f1']);
+    const E=A.ann&&A.ann.rows&&A.ann.rows['EPS']; const cols=(A.cols||[]).filter(c=>!c[1]); if(E&&cols.length>=3){ const a=E[cols[cols.length-3][0]], b=E[cols[cols.length-1][0]]; if(a>0&&b>0) bars.push(['과거 2년 실적 EPS CAGR',(Math.pow(b/a,1/2)-1)*100,'#98a2b3']); }
+    if(A.eps0>0&&A.cEps>0) bars.push(['컨센 '+A.fy1.slice(0,4)+'E EPS 성장',(A.cEps/A.eps0-1)*100,'#2563eb']);
+    (A.anchors||[]).forEach(a=>{ if(a.rev_yoy!=null) bars.push([a.t+' 매출 YoY(SEC)',a.rev_yoy,'#0f7b3f']); });
+    const hg=A.hg; if(hg&&hg.og!=null&&Math.abs(hg.og)<500) bars.push(['최근분기 영익 YoY',hg.og,'#f0b429']);
+    const el=document.getElementById('cG'); if(bars.length){ el.style.display=''; mk('cG',{type:'bar',data:{labels:bars.map(b=>b[0]),datasets:[{data:bars.map(b=>b[1]),backgroundColor:bars.map(b=>b[2])}]},options:{...baseOpt,indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fp1(c.raw)}}},scales:{x:{ticks:{font:{size:10},callback:v=>v+'%'}},y:{ticks:{font:{size:10}}}}}}); } else { if(CH.cG){CH.cG.destroy(); delete CH.cG;} }
+    document.getElementById('cGsrc').innerHTML=`근거: ${esc(w.cagrHow||w.durWhy||'공식 미입력')} ${lks(w.cagrSrc,4)} · 컨센 <a class="lk" href="${NAV(code)}" target="_blank">네이버</a>`;
+    const mine=num(w.cagr); const others=bars.filter(b=>!b[0].startsWith('내 ')).map(b=>b[1]); if(mine!=null&&others.length){ const mx=Math.max(...others); document.getElementById('cGeasy').innerHTML=`쉬운 말: 내 CAGR ${fp(mine)}은 비교 대상 최고치(${fp(mx)})보다 ${mine>mx?'<b class="warnx">높음 — 내가 가장 낙관적, 근거가 그만큼 강해야 함</b>':'낮거나 같음 — 보수적인 편'}`; } }
   const hs=A.hist||[]; const cR=document.getElementById('cRbox');
   if(hs.length>=2){ if(!cR.querySelector('canvas')) cR.innerHTML='<canvas id="cR"></canvas>'; mk('cR',{type:'line',data:{labels:hs.map(x=>x[0].slice(5)),datasets:[{label:'FY1 컨센 EPS',data:hs.map(x=>x[1]),borderColor:'#1a2a4a',tension:.2,pointRadius:2,yAxisID:'y'},{label:'FY1 컨센 영익(억)',data:hs.map(x=>x[3]),borderColor:'#0f7b3f',borderDash:[3,3],tension:.2,pointRadius:2,yAxisID:'y2'}]},options:{...baseOpt,scales:{x:{ticks:{font:{size:9},maxTicksLimit:8}},y:{ticks:{font:{size:10}}},y2:{position:'right',grid:{drawOnChartArea:false},ticks:{font:{size:10}}}}}}); }
   else { if(CH.cR){CH.cR.destroy(); delete CH.cR;} cR.innerHTML=`<div class="mini" style="padding:20px">기록 ${hs.length}일 — 매일 07:10 수집이 쌓이면 추세가 그려집니다${hs.length?` (현재 FY1 EPS ${f0(hs[0][1])}원)`:''}</div>`; }
@@ -467,15 +532,15 @@ function renderSources(code){
 }
 function renderInputs(code){
   const w=WS[code];
-  for(const id of ['year','thesis','tam','visWhy','oB','oR','oS','capa','mB','mR','mS','mHintMemo','nB','nR','nS','tax','minor','shB','shD','shM','cagr','dur','durWhy','fcfConv','disc','gTerm','pNL','pNH','pRL','pRH','pSL','pSH','pWhy']) document.getElementById(id).value=w[id]??'';
+  for(const id of ['year','thesis','tam','visWhy','oB','oR','oS','capa','mB','mR','mS','mHintMemo','nB','nR','nS','tax','minor','shB','shD','shM','shHow','cagr','cagrHow','dur','durWhy','fcfConv','disc','gTerm','pNL','pNH','pRL','pRH','pSL','pSH','pWhy']) document.getElementById(id).value=w[id]??'';
   document.getElementById('grade').value=w.grade||0;
   for(const k of ['lta','order','capex','qual','rec','capa']) document.getElementById('v_'+k).checked=!!(w.vis||{})[k];
   for(const id of ['tamTag','oTag','capaTag','mTag','shTag','cagrTag']){ const el=document.getElementById(id); el.innerHTML=TAGS.map(t=>`<option ${t===T(w[id])?'selected':''}>${t}</option>`).join(''); el.className='tag t'+T(w[id]); }
   const tb=document.querySelector('#prodT tbody');
   tb.innerHTML=w.prods.map((p,i)=>{const r=(k)=>{const v=prodRev(p,k); return v==null?'—':f0(v);}; const direct=AUNITS[p.aUnit||'억원']===null;
     return `<tr data-i="${i}"><td class="l"><input data-f="name" value="${esc(p.name)}" style="width:150px"></td><td class="l">${qunitSel(p.unit)}</td>
-    <td><input class="s" data-f="qB" value="${esc(p.qB)}"></td><td><input class="s" data-f="qR" value="${esc(p.qR)}"></td><td><input class="s" data-f="qS" value="${esc(p.qS)}"></td><td class="l">${tagSel('qTag',p.qTag)}</td>
-    <td class="l">${unitSel(p.aUnit)}</td><td><input class="s" data-f="aB" value="${esc(p.aB)}" ${direct?'disabled':''}></td><td><input class="s" data-f="aR" value="${esc(p.aR)}" ${direct?'disabled':''}></td><td><input class="s" data-f="aS" value="${esc(p.aS)}" ${direct?'disabled':''}></td><td class="l">${direct?'<span class="mini">—</span>':tagSel('aTag',p.aTag)}</td>
+    <td><input class="s" data-f="qB" value="${esc(p.qB)}"></td><td><input class="s" data-f="qR" value="${esc(p.qR)}"></td><td><input class="s" data-f="qS" value="${esc(p.qS)}"></td><td class="l">${tagSel('qTag',p.qTag)}${EVq(p).iss.length&&T(p.qTag)!=='미확인'?'<span class="warnx" title="'+esc(EVq(p).iss.join(','))+'">⚠</span>':''}</td><td class="l"><input data-f="qHow" value="${esc(p.qHow||'')}" style="width:220px" placeholder="공식: 매출 700억 ÷ ASP 5만원 = 140만개" title="${esc(p.qHow||'')}"></td>
+    <td class="l">${unitSel(p.aUnit)}</td><td><input class="s" data-f="aB" value="${esc(p.aB)}" ${direct?'disabled':''}></td><td><input class="s" data-f="aR" value="${esc(p.aR)}" ${direct?'disabled':''}></td><td><input class="s" data-f="aS" value="${esc(p.aS)}" ${direct?'disabled':''}></td><td class="l">${direct?'<span class="mini">—</span>':tagSel('aTag',p.aTag)+(EVa(p).iss.length&&T(p.aTag)!=='미확인'?'<span class="warnx" title="'+esc(EVa(p).iss.join(','))+'">⚠</span>':'')}</td><td class="l">${direct?'<span class="mini">—</span>':`<input data-f="aHow" value="${esc(p.aHow||'')}" style="width:200px" placeholder="공식·사유: 대표 인터뷰 3.5억 / 업계 범위 중간값" title="${esc(p.aHow||'')}">`}</td>
     <td>${r('B')}</td><td>${r('R')}</td><td>${r('S')}</td><td><input class="s" data-f="q0" value="${esc(p.q0??'')}" placeholder="FY0"></td><td><input class="s" data-f="a0" value="${esc(p.a0??'')}" ${direct?'disabled':''}></td><td class="l"><input data-f="memo" value="${esc(p.memo)}" style="width:240px" title="${esc(p.memo)}"></td><td><a href="#srcCard" style="text-decoration:none">${(p.qSrc||[]).length+(p.aSrc||[]).length||'—'}</a></td><td><span class="del" data-del="${i}">✕</span></td></tr>`;}).join('');
   renderSources(code);
   document.getElementById('mHint').textContent=COST?`최근 OPM ${(COST.rows[COST.rows.length-1].op/COST.rows[COST.rows.length-1].rev*100).toFixed(1)}%, 레버리지 ${COST.cls.lev}배`:'';
@@ -509,29 +574,30 @@ function digest(w,A,R){
 function renderQ13(w,A,R,Q,HG,v){
   const B=R.out.B, Rr=R.out.R, S=R.out.S; const t=TRI||{};
   const vis=['lta','order','capex','qual','rec','capa'].filter(k=>(w.vis||{})[k]).map(k=>({lta:'장기계약',order:'확정수주',capex:'고객 CAPEX',qual:'Qualification',rec:'반복매출',capa:'설치 CAPA'})[k]);
+  const E=(tag,how,src)=>tagH(evid(tag,how,src))+' '+lks(src,3);
   const items=[
-    ['산업은 얼마나 성장하는가?', w.tam?esc(w.tam)+` <span class="tag t${T(w.tamTag)}">${T(w.tamTag)}</span>`:'<span class="mini">TAM 미입력</span>'],
-    ['회사는 산업보다 더 빨리 성장할 수 있는가?', (A.hg?`최근 분기 매출 YoY ${fp(A.hg.rg)} / 영익 ${fp(A.hg.og)} (${A.hg.ph}국면). `:'')+(w.thesis?esc(w.thesis):'')],
-    ['실제 Q가 증가할 근거는?', R.prods.map(p=>`${esc(p.name)}: ${esc(p.qB)} ${esc(p.unit)} <span class="tag t${T(p.qTag)}">${T(p.qTag)}</span>`).join(' · ')+(vis.length?` · 가시성: ${vis.join('·')}`:'')],
-    ['ASP는 유지·상승·하락 중?', R.prods.filter(p=>AUNITS[p.aUnit||'억원']!==null).map(p=>`${esc(p.name)}: ${esc(p.aB)}${esc(p.aUnit)} (Bear ${esc(p.aR)}·Stress ${esc(p.aS)}) <span class="tag t${T(p.aTag)}">${T(p.aTag)}</span>`).join(' · ')||'<span class="mini">단가 행 없음</span>'],
-    ['Q×ASP로 향후 매출은?', `${esc(w.year)} Base ${f0(B.rev)}억 (Bear ${f0(Rr.rev)} · Stress ${f0(S.rev)})${A.cRev?` · 컨센 ${A.fy1.slice(0,4)}E ${f0(A.cRev)}억`:''}`],
-    ['매출 증가가 영업이익 증가로 얼마나 연결되나?', `OPM ${f1(B.m)}% (FY0 ${A.rev0&&A.op0?f1(A.op0/A.rev0*100):'—'}%)${Q&&Q.incr!=null?` · FY 늘어난 매출 중 남는 이익 ${f0(Q.incr)}%`:''}${Q&&Q.ytd&&Q.ytd.incr!=null?` · 올해 누적 ${f0(Q.ytd.incr)}%`:''}`],
-    ['정상화 순이익과 희석 EPS는?', `순이익 ${f0(B.ni)}억 → EPS Basic ${f0(B.eps.basic)} / 현실희석 <b>${f0(B.eps.dil)}</b> / 최대희석 ${f0(B.eps.max)}원`],
-    ['향후 2~3년 EPS CAGR과 근거는?', `${fp(R.cagrF)}${w.cagr?` <span class="tag t${T(w.cagrTag)}">${T(w.cagrTag)}</span>`:' (FY0→Base 계산값)'}${R.cagr0!=null?` · FY0→${esc(w.year)} 계산 ${fp(R.cagr0)}`:''}`],
-    ['높은 성장이 몇 년 지속되나?', w.dur?`${esc(w.dur)}년 — ${esc(w.durWhy||'근거 미입력')}`:'<span class="mini">미입력</span>'],
-    ['ROIC·FCF로 본 성장의 질은?', Q?`ROIC ${f1(Q.roic)}%${Q.ytd&&Q.ytd.roic!=null?`(올해 ${f1(Q.ytd.roic)}%)`:''} · FCF ${f0(Q.fcf)}억(전환율 ${f0(Q.fcfConv)}%) · 순차입 ${f0(Q.ytd?Q.ytd.netDebt:Q.netDebt)}억 · 재고 ${fp(Q.invG)}/채권 ${fp(Q.recvG)} vs 매출 ${fp(Q.revG)}`:'<span class="mini">DART 재무제표 수집 전</span>'],
-    ['현재 PER은 성장률·지속기간 감안 시 비싼가?', `현재가÷Base EPS ${A.px&&B.eps.dil?f1(A.px/B.eps.dil):'—'}배 vs 삼각측량 제안 ${t.lo!=null?f1(t.lo)+'~'+f1(t.hi):'—'}배(${t.converge?'수렴':'비수렴'}) · 적용 정상화 ${B.pl||'?'}~${B.ph||'?'}배 — ${esc(w.pWhy||'')}`],
-    ['Base / Bear / Stress 가치는?', `정상화 ${B.vL!=null?f0(B.vL)+'~'+f0(B.vH):'—'} · Floor ${Rr.vL!=null?f0(Rr.vL)+'~'+f0(Rr.vH):'—'} · Stress ${S.vL!=null?f0(S.vL)+'~'+f0(S.vH):'—'}원 (현재 ${f0(A.px)}원) → ${v.t}`],
-    ['하락 시 멀티플 하락인지 실적 훼손인지 체크포인트는?', `① ${R.prods.map(p=>esc(p.name)).join('·')} Q(발주·출하) 유지 여부 ② ASP·Mix ③ OPM ${f1(B.m)}% 유지 ④ 고객(${A.anchors.map(a=>a.t).join('·')||'앵커'}) 가이던스·CAPEX ⑤ 컨센 EPS 추세 — 이들이 유지되면 멀티플 축소(스냅샷 비교), 하나라도 꺾이면 바닥값 재계산`],
+    ['산업은 얼마나 성장하는가?', w.tam?esc(w.tam):'<span class="mini">TAM 미입력</span>', E(w.tamTag,w.tam,w.tamSrc), '시장 전체가 크고 있나 — 파이가 커야 회사도 큰다'],
+    ['회사는 산업보다 더 빨리 성장할 수 있는가?', (A.hg?`최근 분기 매출 YoY ${fp(A.hg.rg)} / 영익 ${fp(A.hg.og)} (${A.hg.ph}국면). `:'')+(w.thesis?esc(w.thesis):''), (A.hg?`<a class="lk" href="/hege.html" target="_blank">헤게모니 4국면(DART 분기)</a>`:'')+' '+lks(w.visSrc,2), '시장보다 빨리 크면 점유율을 뺏는 중 — 그 이유(독점·기술·고객)가 가설'],
+    ['실제 Q가 증가할 근거는?', R.prods.map(p=>`${esc(p.name)}: <b>${esc(p.qB)} ${esc(p.unit)}</b>${p.qHow||p.memo?`<br><span class="mini">공식: ${esc(p.qHow||p.memo)}</span>`:''}`).join('<br>')+(vis.length?`<br>가시성: ${vis.join('·')}`:''), R.prods.map(p=>`${esc(p.name).slice(0,10)} ${tagH(EVq(p))} ${lks(p.qSrc,3)}`).join('<br>'), '몇 개를 파나 — 계약·수주·고객 투자처럼 눈에 보이는 근거가 있어야 확인'],
+    ['ASP는 유지·상승·하락 중?', R.prods.filter(p=>AUNITS[p.aUnit||'억원']!==null).map(p=>`${esc(p.name)}: <b>${esc(p.aB)}${esc(p.aUnit)}</b> (Bear ${esc(p.aR)}·Stress ${esc(p.aS)})${p.aHow?`<br><span class="mini">공식: ${esc(p.aHow)}</span>`:''}`).join('<br>')||'<span class="mini">단가 행 없음(매출직접)</span>', R.prods.filter(p=>AUNITS[p.aUnit||'억원']!==null).map(p=>`${esc(p.name).slice(0,10)} ${tagH(EVa(p))} ${lks(p.aSrc,3)}`).join('<br>'), '하나에 얼마 받나 — 비공개면 "매출÷수량"으로 역산하고 식을 남김'],
+    ['Q×ASP로 향후 매출은?', `${esc(w.year)} Base <b>${f0(B.rev)}억</b> (Bear ${f0(Rr.rev)} · Stress ${f0(S.rev)})${A.cRev?` · 컨센 ${A.fy1.slice(0,4)}E ${f0(A.cRev)}억`:''}`, `공식: Σ(Q×ASP) + 기타매출 · 컨센 <a class="lk" href="${NAV(w.code)}" target="_blank">네이버</a>`, '수량 × 단가를 제품마다 곱해 더한 것 — 증권사 숫자와 비교'],
+    ['매출 증가가 영업이익 증가로 얼마나 연결되나?', `OPM <b>${f1(B.m)}%</b> (FY0 ${A.rev0&&A.op0?f1(A.op0/A.rev0*100):'—'}%)${Q&&Q.incr!=null?` · FY 늘어난 매출 중 남는 이익 ${f0(Q.incr)}%`:''}${Q&&Q.ytd&&Q.ytd.incr!=null?` · 올해 누적 ${f0(Q.ytd.incr)}%`:''}${w.mHintMemo?`<br><span class="mini">공식: ${esc(w.mHintMemo)}</span>`:''}`, E(w.mTag,w.mHintMemo,w.mSrc), '매출 100원 늘 때 이익이 몇 원 느나 — 고정비형이면 가파르게 늘고, 가파르게 줄기도 함'],
+    ['정상화 순이익과 희석 EPS는?', `순이익 ${f0(B.ni)}억 → EPS Basic ${f0(B.eps.basic)} / 현실희석 <b>${f0(B.eps.dil)}</b> / 최대희석 ${f0(B.eps.max)}원${w.shHow?`<br><span class="mini">공식: ${esc(w.shHow)}</span>`:''}`, E(w.shTag,w.shHow,w.shSrc), '이익을 주식 수로 나눈 것 — CB·BW가 주식으로 바뀌면 내 몫이 줄어듦(희석)'],
+    ['향후 2~3년 EPS CAGR과 근거는?', `<b>${fp(R.cagrF)}</b>${w.cagr?'':' (FY0→Base 계산값)'}${R.cagr0!=null?` · FY0→${esc(w.year)} 계산 ${fp(R.cagr0)}`:''}${w.cagrHow?`<br><span class="mini">공식: ${esc(w.cagrHow)}</span>`:''}`, E(w.cagrTag,w.cagrHow||w.durWhy,w.cagrSrc)+' · <a class="lk" href="#cG">비교 차트</a>', '이익이 매년 몇 %씩 느나 — 위 "EPS 성장률 비교" 차트에서 남들과 견줌'],
+    ['높은 성장이 몇 년 지속되나?', w.dur?`<b>${esc(w.dur)}년</b> — ${esc(w.durWhy||'근거 미입력')}`:'<span class="mini">미입력</span>', lks(w.cagrSrc,3)+' '+lks(w.visSrc,2), '빠른 성장이 몇 년 가나 — 고객 증설 일정·공장 완공·계약 기간이 근거'],
+    ['ROIC·FCF로 본 성장의 질은?', Q?`ROIC <b>${f1(Q.roic)}%</b>${Q.ytd&&Q.ytd.roic!=null?`(올해 ${f1(Q.ytd.roic)}%)`:''} · FCF ${f0(Q.fcf)}억(전환율 ${f0(Q.fcfConv)}%) · 순차입 ${f0(Q.ytd?Q.ytd.netDebt:Q.netDebt)}억 · 재고 ${fp(Q.invG)}/채권 ${fp(Q.recvG)} vs 매출 ${fp(Q.revG)}`:'<span class="mini">DART 재무제표 수집 전</span>', Q?`<span class="tag t확인">확인</span> <a class="lk" href="https://dart.fss.or.kr/dsab007/main.do?option=corp&textCrpNm=${encodeURIComponent(A.name)}" target="_blank">DART 전체재무제표</a> · <a class="lk" href="#finT">추출표</a>`:'', '투자한 돈이 얼마나 이익을 내나(ROIC) · 이익이 현금으로 들어오나(FCF) · 빚이 과한가'],
+    ['현재 PER은 성장률·지속기간 감안 시 비싼가?', `현재가÷Base EPS <b>${A.px&&B.eps.dil?f1(A.px/B.eps.dil):'—'}배</b> vs 삼각측량 제안 ${t.lo!=null?f1(t.lo)+'~'+f1(t.hi):'—'}배(${t.converge?'수렴':'비수렴'}) · 적용 정상화 ${B.pl||'?'}~${B.ph||'?'}배${w.pWhy?`<br><span class="mini">근거: ${esc(w.pWhy)}</span>`:''}`, lks(w.pSrc,3)+' · <a class="lk" href="#tri">삼각측량</a>', '지금 가격이 이익의 몇 배인가를 심판 8명의 범위와 비교'],
+    ['Base / Bear / Stress 가치는?', `정상화 <b>${B.vL!=null?f0(B.vL)+'~'+f0(B.vH):'—'}</b> · Floor ${Rr.vL!=null?f0(Rr.vL)+'~'+f0(Rr.vH):'—'} · Stress ${S.vL!=null?f0(S.vL)+'~'+f0(S.vH):'—'}원 (현재 ${f0(A.px)}원) → ${v.t}`, '공식: EPS(현실희석) × PER 범위 · <a class="lk" href="#cVbox">사다리 차트</a>', '가설이 맞으면 얼마짜리 주식인가 — 현재가가 어느 칸에 있나'],
+    ['하락 시 멀티플 하락인지 실적 훼손인지 체크포인트는?', `① ${R.prods.map(p=>esc(p.name)).join('·')} Q(발주·출하) 유지 여부 ② ASP·Mix ③ OPM ${f1(B.m)}% 유지 ④ 고객(${A.anchors.map(a=>a.t).join('·')||'앵커'}) 가이던스·CAPEX ⑤ 컨센 EPS 추세 — 이들이 유지되면 멀티플 축소(스냅샷 비교), 하나라도 꺾이면 바닥값 재계산`, '<a class="lk" href="#hist">스냅샷 비교</a> · <a class="lk" href="#cRbox">컨센 추세</a>', '주가가 빠질 때 "싸진 것"(이익 그대로)인지 "망가진 것"(이익 꺾임)인지 구분하는 체크리스트'],
   ];
-  document.getElementById('q13').innerHTML=`<div style="margin-bottom:6px"><span class="HG ${HG.cls}">${HG.label}</span> <span class="mini">${HG.c.map(c=>`${c.ok?'✅':'⬜'} ${c.k}(${c.v})`).join(' · ')}</span></div><ol>${items.map(([q,a])=>`<li><b>${q}</b><br>${a}</li>`).join('')}</ol>`;
+  document.getElementById('q13').innerHTML=`<div style="margin-bottom:6px"><span class="HG ${HG.cls}">${HG.label}</span> <span class="mini">${HG.c.map(c=>`${c.ok?'✅':'⬜'} ${c.k}(${c.v})`).join(' · ')}</span></div><div class="tw"><table class="q13t"><tr><th class="l">#</th><th class="l">질문</th><th class="l w">답 (숫자 · 공식)</th><th class="l">근거 수준 · 링크</th><th class="l">쉬운 말</th></tr>${items.map(([q,a,ev,easy],i)=>`<tr><td class="l">${i+1}</td><td class="l q">${q}</td><td class="l w" style="min-width:320px">${a}</td><td class="l w" style="min-width:170px">${ev||''}</td><td class="l e">${easy||''}</td></tr>`).join('')}</table></div>`;
 }
 function renderOut(code){
   const w=WS[code], A=autoFor(code), Q=quality(A), R=calc(w,A); const B=R.out.B, Rr=R.out.R, S=R.out.S;
   renderTri(code,A,R,Q);
-  const v=verdict(w,A,R); const HG=highGrowth(w,A,R,Q);
+  const v=verdict(w,A,R); const HG=highGrowth(w,A,R,Q); const G=renderEvidence(code,A,R);
   document.getElementById('hero').innerHTML=`
-    <div class="k"><div class="t">현재가 · 시총</div><div class="v">${f0(A.px)}원</div><div class="s">${A.cap?(A.cap>=10000?(A.cap/10000).toFixed(2)+'조':f0(A.cap)+'억'):'—'} · 가시성 ${gradeB(w.grade)} · <span class="HG ${HG.cls}">${HG.label}</span> · ${esc(w.year||'')}</div></div>
+    <div class="k"><div class="t">현재가 · 시총</div><div class="v">${f0(A.px)}원</div><div class="s">${A.cap?(A.cap>=10000?(A.cap/10000).toFixed(2)+'조':f0(A.cap)+'억'):'—'} · 가시성 ${gradeB(G.use)}${G.manual?'':'<span class="mini">(자동)</span>'} · <span class="HG ${HG.cls}">${HG.label}</span> · ${esc(w.year||'')}</div></div>
     <div class="k"><div class="t">정상화 가치(Base)</div><div class="v">${B.vL!=null?f0(B.vL)+'~'+f0(B.vH):'—'}</div><div class="s">EPS ${f0(B.eps.dil)}원 × ${B.pl||'?'}~${B.ph||'?'}배 · 상단까지 <span class="${v.toN<0?'neg':'pos'}">${fp(v.toN)}</span> · EPS CAGR ${fp(R.cagrF)}</div></div>
     <div class="k"><div class="t">Floor(Bear)</div><div class="v">${Rr.vL!=null?f0(Rr.vL)+'~'+f0(Rr.vH):'—'}</div><div class="s">EPS ${f0(Rr.eps.dil)}원 × ${Rr.pl||'?'}~${Rr.ph||'?'}배 · 하단까지 <span class="${v.toF<0?'neg':'pos'}">${fp(v.toF)}</span></div></div>
     <div class="k"><div class="t">Stress</div><div class="v">${S.vL!=null?f0(S.vL)+'~'+f0(S.vH):'—'}</div><div class="s">EPS ${f0(S.eps.dil)}원 × ${S.pl||'?'}~${S.ph||'?'}배 · <span class="${v.toS<0?'neg':'pos'}">${fp(v.toS)}</span></div></div>`;
@@ -563,7 +629,7 @@ function renderOut(code){
 function renderList(){
   const tb=document.querySelector('#wl tbody'); const codes=Object.keys(WS);
   tb.innerHTML=codes.length?codes.map(c=>{const w=WS[c], A=autoFor(c), Q=quality(A), R=calc(w,A), v=verdict(w,A,R), HG=highGrowth(w,A,R,Q); const B=R.out.B, Rr=R.out.R, S=R.out.S;
-    return `<tr data-c="${c}" style="cursor:pointer"><td class="l"><b>${esc(A.name)}</b> <span class="mini">${c}</span>${w.fromSeed?' <span class="tag t회사발언" title="Claude 리서치 시드">시드</span>':''}${w.draft?' <span class="tag t역산" title="자동 초안">초안</span>':''}${USER.map&&USER.map[c]?' <span title="서버 저장됨">☁</span>':''}</td><td>${gradeB(w.grade)}</td><td><span class="HG ${HG.cls}" style="font-size:11px">${HG.label}</span></td><td>${f0(A.px)}</td><td>${f0(B.eps.dil)}</td><td>${fp(R.cagrF)}</td><td>${B.vL!=null?f0(B.vL)+'~'+f0(B.vH):'—'}</td><td>${Rr.vL!=null?f0(Rr.vL)+'~'+f0(Rr.vH):'—'}</td><td>${S.vL!=null?f0(S.vL)+'~'+f0(S.vH):'—'}</td><td class="${v.toF<0?'neg':'pos'}">${fp(v.toF)}</td><td class="${v.toN<0?'neg':'pos'}">${fp(v.toN)}</td><td class="l"><span class="vd ${v.cls}" style="padding:1px 8px;font-size:11.5px">${v.cls==='x'?'산출 전':v.cls==='u'?'Floor 이하/구간':v.cls==='m'?'Floor~정상화':'정상화 초과'}</span></td></tr>`;}).join(''):'<tr><td colspan="12" class="l mini" style="padding:16px">저장된 워크시트 없음</td></tr>';
+    return `<tr data-c="${c}" style="cursor:pointer"><td class="l"><b>${esc(A.name)}</b> <span class="mini">${c}</span>${w.fromSeed?' <span class="tag t회사발언" title="Claude 리서치 시드">시드</span>':''}${w.draft?' <span class="tag t역산" title="자동 초안">초안</span>':''}${USER.map&&USER.map[c]?' <span title="서버 저장됨">☁</span>':''}</td><td>${gradeB(autoGrade(w,R).use)}</td><td><span class="HG ${HG.cls}" style="font-size:11px">${HG.label}</span></td><td>${f0(A.px)}</td><td>${f0(B.eps.dil)}</td><td>${fp(R.cagrF)}</td><td>${B.vL!=null?f0(B.vL)+'~'+f0(B.vH):'—'}</td><td>${Rr.vL!=null?f0(Rr.vL)+'~'+f0(Rr.vH):'—'}</td><td>${S.vL!=null?f0(S.vL)+'~'+f0(S.vH):'—'}</td><td class="${v.toF<0?'neg':'pos'}">${fp(v.toF)}</td><td class="${v.toN<0?'neg':'pos'}">${fp(v.toN)}</td><td class="l"><span class="vd ${v.cls}" style="padding:1px 8px;font-size:11.5px">${v.cls==='x'?'산출 전':v.cls==='u'?'Floor 이하/구간':v.cls==='m'?'Floor~정상화':'정상화 초과'}</span></td></tr>`;}).join(''):'<tr><td colspan="12" class="l mini" style="padding:16px">저장된 워크시트 없음</td></tr>';
   tb.querySelectorAll('tr[data-c]').forEach(tr=>tr.onclick=()=>openWs(tr.dataset.c));
 }
 async function openWs(code){
@@ -591,7 +657,7 @@ document.getElementById('ws').addEventListener('input',e=>{
   else if(t.id&&t.id.startsWith('v_')){ w.vis[t.id.slice(2)]=t.checked; }
   else if(t.id){ w[t.id]=t.value; if(t.tagName==='SELECT'&&t.classList.contains('tag')) t.className='tag t'+t.value; }
   w.fromSeed=false; if(tr&&w.draft&&t.dataset.f==='name') { w.draft=null; document.getElementById('draftNote').innerHTML=''; }
-  clearTimeout(SAVET); SAVET=setTimeout(()=>{ save(); if(tr&&(t.dataset.f==='aUnit'||t.dataset.f==='unit')) renderInputs(CUR); else if(tr){ const p=w.prods[+tr.dataset.i]; [11,12,13].forEach((ci,j)=>{const v=prodRev(p,['B','R','S'][j]); tr.children[ci].textContent=v==null?'—':f0(v);}); } renderOut(CUR); },400);
+  clearTimeout(SAVET); SAVET=setTimeout(()=>{ save(); if(tr&&(t.dataset.f==='aUnit'||t.dataset.f==='unit')) renderInputs(CUR); else if(tr){ const p=w.prods[+tr.dataset.i]; [13,14,15].forEach((ci,j)=>{const v=prodRev(p,['B','R','S'][j]); tr.children[ci].textContent=v==null?'—':f0(v);}); } renderOut(CUR); },400);
 });
 document.getElementById('ws').addEventListener('click',e=>{ if(!CUR) return; const w=WS[CUR]; if(e.target.dataset.del!=null){ w.prods.splice(+e.target.dataset.del,1); if(!w.prods.length) w.prods.push(blank(CUR).prods[0]); renderInputs(CUR); renderOut(CUR); save(); } });
 document.getElementById('addP').onclick=()=>{ WS[CUR].prods.push(blank(CUR).prods[0]); renderInputs(CUR); save(); };

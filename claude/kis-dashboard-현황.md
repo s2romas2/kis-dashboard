@@ -1,4 +1,4 @@
-# kis-dashboard 프로젝트 현황 (2026-09-16 기준)
+# kis-dashboard 프로젝트 현황 (2026-10-10 기준)
 
 > 이 파일이 원본. 프로젝트 지식(앱 업로드)·다운로드 폴더 사본은 더 이상 갱신하지 않음 — 작업 결과는 `claude/` 안의 파일을 직접 수정해 커밋한다.
 
@@ -10,6 +10,20 @@
 - **9/10 PC 세션 반영 경로 확립**: 로컬 클론 `C:\Users\ladea\Downloads\kis-dashboard` (Git for Windows 2.55 설치, git-credential-manager 브라우저 로그인 완료 → 이후 push 무인증). 클라우드 세션은 push 403·PC 폴더 불가 → 대시보드 반영은 PC 세션에서
 - **9/13 예비 반영 경로(셸 고장 시)**: Cowork PC 세션의 Linux 셸이 9/8 Windows 업데이트 문제로 기동 불가(git·python 전부 불가)일 때, **Chrome 확장(1번 브라우저, github.com 로그인 s2romas2) → GitHub 웹 "Upload files"** 로 반영 가능. 폴더별 1커밋(`/upload/main/<폴더>`), 파일은 프로젝트 문서 경로에서 file_upload로 1개씩(여러 개 한 번에 올리면 분류기가 차단). 이름 변경은 업로드 후 `/edit/main/<경로>` 파일명 필드 수정 → 같은 이름이 이미 있으면 먼저 `/delete/main/<경로>`로 제거 후 재시도. 검증은 raw.githubusercontent.com fetch + JSON.parse로 대체. **⚠ 웹 업로드 전 반드시 원격의 최신 파일(raw)과 로컬 사본을 대조할 것 — 9/15 새벽 작업에서 로컬 클론이 9/12 상태라 9/13 웹 커밋(ranktable.html e3c8623·현황 문서 bc0b5e2)을 덮어썼다가 재병합함**
 - **9/11~ 셸 마운트 고장 시 우회**: `C:\Users\ladea\Downloads\kis-apply\stepN.bat`(PowerShell로 python·git 실행, stepN.log 기록)을 탐색기 더블클릭. 절차는 `claude/README-반영방법.md`. **무인 예약작업 중엔 computer-use 승인 불가** → 9/12 valalert.py는 Chrome(Claude in Chrome) GitHub 웹 업로드(github.com/…/upload/main, file_upload)로 직접 커밋(7a01026). 단 이 경우 로컬 클론이 dirty가 되어 다음 stepN.bat 은 `git checkout -- <파일>` 후 pull 필요(step6·step7에 반영). 미추적 파일(claude/ 신규 문서)은 웹 업로드하면 pull 충돌 → 로컬 bat 커밋으로만
+
+## ⚖️ 반도체 peer 상대밸류 (10/10 신설 — semipeer.html + semipeer.py + semipeer_def.json, 메뉴: 종목분석)
+- **목적**: "peer보다 멀티플은 낮은데 이익 체력은 같거나 좋은 기업" 찾기. EPS 절대값은 주식 수가 달라 기업 간 비교 불가 → 세 짝으로 비교: **PER ↔ 순이익 성장률 / PBR ↔ ROE / PSR ↔ 영업이익률** (+보조 P/OP ↔ 영업이익 성장률). 멀티플이 10% 이상 낮고 체력이 같거나 높으면(성장률 5%p·ROE·OPM 1%p 허용) "저평가 신호". 싼 쪽 체력이 0 이하(적자·역성장)면 판정 보류
+- **peer 정의가 핵심**(사용자 지시: 경쟁사를 잘못 정하면 밸류 평가가 틀림 → 선정 근거 필수): 쌍마다 5기준(제품 동일성·고객 중복·매출 비중·사업모델·단계·실적 드라이버) 0~2점 + 근거 인용. **A = 합계 8↑ & 제품 2 / B = 6↑ & 제품 1↑ / C = 그 외(참고용, 판정 제외)**. 189사·71묶음·229쌍 → A 9·B 54·C 166. 자료에 없는 항목은 null(0점 계산, 화면 "—")
+- 범위: 소부장 맵 146사 + 맵 밖 43사(삼성전자·SK하이닉스·DB하이텍·팹리스·디자인하우스·IP·유통·맵 밖 소부장 10사)
+- 원자료: `tools/semipeer/raw/b1~b10.json`(배치별) → `tools/semipeer/merge_def.py` → `public/data/semipeer_def.json`. 작성 지침·스키마는 `tools/semipeer/SPEC.md`. **쌍을 추가·수정하려면 raw를 고치고 merge_def.py 재실행**(push 시 워크플로 자동 실행)
+- 근거 893건: 소부장 맵 요약(semidetail, 바탕 리포트 링크 부착) 497 · DART 공시 175 · 리포트 원문 163 · 전문매체 44 · 일반 뉴스 14(보조 표시). bundle 인용은 semidetail 원문과 글자 대조(검증기), 웹 인용 311건은 URL 재수집 후 대조해 불일치 0
+- **판정**: A·B쌍의 (저평가 신호 수 − 고평가 신호 수, PER·PBR·PSR 3짝) 가중 평균(A 1.0·B 0.6) → +2↑ 저밸류 후보 / +1↑ 약한 저밸류 / −1↓ 약한 고밸류 / −2↓ 고밸류 주의. 최근 4분기 영업적자·순손실 = 판정 보류, A·B peer 없음 = "직접 peer 없음"(106사). 근거 강도 ●●●(A 있고 peer 2↑)/●●○/●○○(B 하나)
+- **국면 필터**: hege.json(투자의 定石 4국면) 조인 — 1국면 신규·2국면 초입·국면별 버튼, 국면 열·n분기 유지·둔화 플래그
+- **semipeer.py 데이터**: ①DART fnlttMultiAcnt(50사×5보고서=약 20콜)로 TTM 매출·영업이익·순이익·자본(TTM = 올해 누적 + 전년 연간 − 전년 동기 누적, 전년 TTM도 같은 식 → 성장률) ②DART fnlttSinglAcntAll(연결만, 종목당 3콜≈570콜)로 지배주주 순이익·자본 — 전체 대비 0.2~1.25배 벗어나면 버림 ③시총 stockvals.json(+우선주 6사는 네이버 시총 합산) ④선행 PER·CAGR은 peg.json, 맵 밖은 네이버 컨센(증권사 추정 태그) ⑤hege.json. 재무 캐시는 semipeer.json의 `fin`에 6일 TTL(분기 바뀌면 즉시 갱신), `REFRESH=1` 또는 workflow_dispatch 입력 refresh=1로 강제
+- **대체 경로**: DART 실패·키 없음이면 KIS 전년 확정 PER·PBR·ROE(basis=FY0) + hege.json 매출·영업이익으로 계산하고 화면에 "전년 확정 실적 기준" 경고. 10/10 최초 커밋의 semipeer.json은 이 FY0 시드(로컬 OFFLINE=1 생성) — 첫 워크플로 실행에서 TTM으로 바뀌는지 `n_ttm`·`fin_meta`·`debug` 확인할 것
+- 워크플로 `semipeer.yml`: 평일 19:10 KST(stockvals 18:20 뒤)·토 09:30 KST(hege 뒤)·semipeer.py/semipeer_def.json push 시. 빈 결과 가드(시세 붙은 종목이 기존의 1/3 미만이면 저장 생략, DART 산출이 대상의 1/3 미만이면 캐시 유지)
+- 검증: 단위 테스트(TTM 누적 산식·1분기 누적 필드 없음·지배주주 파서 id 밑줄/콜론·포괄손익 귀속 행 무시·성장률 캡·쌍 판정 7종) 통과, Playwright 렌더(데스크톱·모바일 390px, 콘솔 오류 0, 툴팁, 필터, 해시 진입 `#종목코드`)
+- 한계·후속: ①DART 지배주주 파서는 실데이터 첫 실행 검증 필요 ②peer 106사는 A·B 없음 — cust/mix null(자료 미확인)을 사업보고서로 채우면 등급이 오를 쌍 있음(고영–펨트론, 레이크머티리얼즈–디엔에프, 원익IPS–유진테크 등) ③해외 peer는 이름만 표시(멀티플 미계산) ④맵 밖 nopeer 중 교차 후보: 다원넥스뷰↔레이저쎌·프로텍, 위드텍↔저스템·워트 ⑤12월 결산이 아닌 기업은 분기 매핑 주의
 
 ## 🗂️ 업종 랭크테이블 업그레이드 (9/15 새벽 무인 예약작업 kis-ranktable-upgrade — 커밋 079e3d0·f233305·f89c2d8·bf858bf·4145297·477a0cf)
 - 실행 환경: 셸 마운트 고장 + 무인 중 computer-use 승인 불가 + 내장 브라우저는 GitHub 미로그인(upload 페이지 "push access 필요") → 코드·yml·문서는 로컬 클론에 Write로 작성한 뒤 **Claude in Chrome(처음엔 미연결, 재시도 후 연결) GitHub 웹 업로드(github.com/…/upload/main/<폴더>, file_upload)로 6커밋**: 워크플로 3종(leaders 55분·sectorstocks 35분·sectorval 신규) → ranktable.html → 현황 문서 → leaders.py(A) → sectorval.py(C) → sectorstocks.py(D) 순(yml 먼저 올려야 push 트리거 실행이 새 timeout을 씀). **로컬 클론은 dirty 상태** → `C:\Users\ladea\Downloads\kis-apply\rank.bat`(동기화 전용: 로컬 수정본 checkout·미추적 sectorval.py/yml 삭제·pull) 더블클릭 후 rank.log 확인 필요. py_compile은 못 돌렸고 서브에이전트 정독 리뷰만 함(성장주 단계의 stale `m` 버그 1건 발견·수정) → 워크플로 첫 실행 로그로 문법 오류 여부 확인

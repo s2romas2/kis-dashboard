@@ -26,6 +26,7 @@
     { t: '종목분석', items: [
       ['/valuefilter.html', '🎯 밸류 필터', 'PBR·PER·배당 조건 검색 + 엑셀'],
       ['/peg.html', '📏 소부장 PEG 밸류', '선행 PER ÷ 순이익 성장률 (린치 기준 등급)'],
+      ['/semipeer.html', '⚖️ 반도체 peer 상대밸류', 'peer보다 싼데 이익 체력은 같거나 좋은 기업 · peer 선정 근거 · 국면 필터'],
       ['/valws.html', '🧮 밸류 워크시트', 'Q×ASP → EPS → 정상화·Floor·Stress 가치 (근거 태그·가시성 등급)'],
       ['/bands.html', '📉 밴드·V차트', 'PER·PBR·PSR 밴드 + V차트 + 비용구조'],
       ['/deep.html', '🔬 종목 딥다이브', '품목별 매출·판가·물량·가동률·수주'],

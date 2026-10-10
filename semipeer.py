@@ -8,7 +8,8 @@
 #               TTM = 올해 누적 + 전년 연간 − 전년 동기 누적 (EPS 절대값은 기업 간 비교 불가 → 쓰지 않음)
 #   시세        : stockvals.json(KIS 일일 수집) 시총·현재가.  우선주 상장사는 우선주 시총을 더해 보정
 #   선행(증권사 추정): peg.json(소부장 맵) / 그 밖은 네이버 컨센서스(FnGuide)
-#   국면        : hege.json (투자의 定石 헤게모니 4국면)
+#   국면·분기 추이: hege.json (투자의 定石 헤게모니 4국면, 최근 8분기 매출·영업이익)
+#   공정 구분   : semipeer_def.json의 stage(전공정·후공정·전후·공통 인프라·칩 제조·설계·모듈유통)
 #   비교 3쌍    : PER ↔ 순이익 성장률 · PBR ↔ ROE · PSR ↔ 영업이익률  (+ 보조: P/OP ↔ 영업이익 성장률)
 #   기준(basis) 우선순위: TTM = DART 최근 4분기(확인값) > TTMN = 네이버(FnGuide) 최근 4분기 주당순이익·주당순자산(DART 수집 전 임시·교차확인용)
 #                        > FY0 = KIS 전년 확정 실적. 쌍 비교는 두 기업이 함께 가진 가장 좋은 기준으로 맞춘다.
@@ -391,7 +392,7 @@ def main():
     for c in codes:
         d = DEF['co'][c]; v = sv.get(c); f = fin.get(c) or {}; h = hege.get(c) or {}; pg = peg.get(c) or {}
         g0 = GMAP.get((d.get('gids') or [None])[0]) or {}
-        r = {'n': d['n'], 'pure': d.get('pure'), 'gids': d.get('gids') or [], 'top': g0.get('top'), 'seg': g0.get('seg'), 'map': bool(d.get('map')), 'flags': []}
+        r = {'n': d['n'], 'pure': d.get('pure'), 'gids': d.get('gids') or [], 'top': g0.get('top'), 'seg': g0.get('seg'), 'map': bool(d.get('map')), 'stage': d.get('stage') or 'etc', 'procs': d.get('procs') or [], 'flags': []}
         if not v or not v[2]:
             r['flags'].append('시세 없음'); co[c] = r; continue
         kpbr, kper, cap0, px = v[0], v[1], v[2], v[3]
@@ -411,6 +412,11 @@ def main():
         ni_tot = f.get('ni'); ni = f.get('ni_p', ni_tot); eq = f.get('eq_p', f.get('eq'))
         r['asof'] = asof; r['fs'] = f.get('fs') or h.get('fs')
         r['rev'] = rnd(rev, 0); r['op'] = rnd(op, 0)
+        r['rev0'] = rnd(rev0, 0); r['op0'] = rnd(op0, 0)                 # 1년 전 같은 기간(직전 4분기 합산)
+        # 분기 추이(최근 8분기 매출·영업이익, hege.json = DART 주요계정)
+        if h.get('rev') and h.get('ql'):
+            k = min(8, len(h['ql']), len(h['rev']), len(h['op']))
+            r['ql'] = h['ql'][-k:]; r['rq'] = h['rev'][-k:]; r['oq'] = h['op'][-k:]
         r['psr'] = rnd(div(cap, rev)) if rev and rev > 0 else None
         r['por'] = rnd(div(cap, op)) if op and op > 0 else None
         r['opm'] = rnd(div(op, rev) * 100, 1) if (rev and rev > 0 and op is not None) else None
@@ -418,6 +424,7 @@ def main():
         bv = {}
         if ni is not None and eq:
             r['ni'] = rnd(ni, 0); r['eq'] = rnd(eq, 0)
+            r['ni_t'] = rnd(ni_tot, 0); r['ni0'] = rnd(f.get('ni_prev'), 0)   # 연결 순이익 전체(비지배 포함)와 1년 전 값
             bv['TTM'] = [rnd(cap / ni) if ni > 0 else None, rnd(cap / eq) if eq > 0 else None,
                          rnd(ni / eq * 100, 1) if eq > 0 else None]      # ROE = 최근 4분기 순이익 ÷ 기말 자본
             r['npm'] = rnd(ni / rev * 100, 1) if rev and rev > 0 else None

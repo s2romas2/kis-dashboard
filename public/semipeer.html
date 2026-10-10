@@ -7,7 +7,7 @@
 <style>
 * { box-sizing:border-box; margin:0; padding:0; }
 body { font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; background:#f4f6fa; color:#1a1f2e; }
-.wrap { max-width:1320px; margin:0 auto; padding:18px 14px 60px; }
+.wrap { max-width:1480px; margin:0 auto; padding:18px 14px 60px; }
 h1 { font-size:22px; margin:10px 0 4px; }
 .sub { color:#667085; font-size:13px; margin-bottom:12px; line-height:1.6; }
 .lg { background:#fff; border:1px solid #e4e7ec; border-radius:12px; padding:12px 14px; margin-bottom:12px; font-size:12.5px; line-height:1.8; }
@@ -31,8 +31,16 @@ th { background:#f8fafc; color:#475467; font-size:11.5px; cursor:pointer; user-s
 th.s { color:#1a2a4a; } th small { font-weight:500; color:#98a2b3; }
 td.l, th.l { text-align:left; }
 td .nm { font-weight:800; } td .code { color:#98a2b3; font-size:11px; margin-left:4px; }
+td .tl { display:block; margin-top:3px; } td .tl > span:first-child { margin-left:0; }
 .tag { display:inline-block; font-size:10.5px; padding:1px 6px; border-radius:8px; background:#eef2ff; color:#3730a3; margin-left:4px; }
 .tag.low { background:#fff1e6; color:#b45309; }
+.stg { display:inline-block; font-size:10.5px; font-weight:800; padding:1px 6px; border-radius:8px; margin-left:4px; }
+.stg.pre { background:#dbeafe; color:#1d4ed8; } .stg.post { background:#fee2e2; color:#b42318; } .stg.both { background:#ede9fe; color:#6d28d9; }
+.stg.infra { background:#f1f5f9; color:#475467; } .stg.chip { background:#1a2a4a; color:#fff; } .stg.design { background:#ccfbf1; color:#0f766e; }
+.stg.dist { background:#fef3c7; color:#92400e; } .stg.etc { background:#fff; color:#667085; border:1px dashed #c3c9d4; }
+.fin { display:grid; grid-template-columns:minmax(0,5fr) minmax(0,6fr); gap:10px; margin:8px 0 2px; align-items:start; }
+.fin .ch h4 { margin-bottom:4px; }
+.ft { font-size:12px; border-radius:8px; } .ft th, .ft td { padding:5px 9px; cursor:default; } .ft small { color:#98a2b3; font-weight:500; }
 .fl { display:inline-block; font-size:10.5px; padding:1px 6px; border-radius:8px; margin-left:3px; font-weight:800; }
 .fl.n1 { background:#dbeafe; color:#1d4ed8; } .fl.e2 { background:#dcfce7; color:#15803d; } .fl.sl { background:#fef3c7; color:#b45309; } .fl.st { background:#f1f5f9; color:#475467; }
 .sg { display:inline-block; padding:2px 9px; border-radius:10px; font-weight:800; font-size:11.5px; }
@@ -87,7 +95,7 @@ tr.d > td { background:#fbfcfe; padding:14px; white-space:normal; text-align:lef
 .gb { background:#f8fafc; border:1px solid #e4e7ec; border-radius:10px; padding:9px 12px; font-size:12px; line-height:1.7; margin-top:8px; color:#344054; }
 .gb b { color:#1a2a4a; }
 h5 { font-size:13px; margin:14px 0 2px; color:#1a2a4a; }
-@media (max-width:900px){ .charts{grid-template-columns:1fr} .why dt{float:none;width:auto} .why dd{margin-left:0} }
+@media (max-width:900px){ .charts{grid-template-columns:1fr} .fin{grid-template-columns:1fr} .why dt{float:none;width:auto} .why dd{margin-left:0} }
 @media (max-width:700px){ th,td{padding:6px 5px;font-size:11.5px} }
 </style>
 <script src="/nav.js" defer></script>
@@ -108,7 +116,9 @@ h5 { font-size:13px; margin:14px 0 2px; color:#1a2a4a; }
   <span class="gr A">A</span> 합계 8점↑ + 제품 동일 → 직접 비교 &nbsp; <span class="gr B">B</span> 6점↑ → 차이를 감안한 조건부 비교 &nbsp; <span class="gr C">C</span> 그 외 → <b>참고용, 판정에 쓰지 않음</b><br>
   <b>판정</b> — A·B등급 쌍에서 세 짝의 (저평가 신호 수 − 고평가 신호 수)를 가중 평균(A 1.0, B 0.6):
   <span class="sg under2">저밸류 후보</span> +2 이상 &nbsp;<span class="sg under1">약한 저밸류</span> +1 이상 &nbsp;<span class="sg mid">중립</span> &nbsp;<span class="sg over1">약한 고밸류</span> −1 이하 &nbsp;<span class="sg over2">고밸류 주의</span> −2 이하 &nbsp;<span class="sg loss">적자 · 판정 보류</span> &nbsp;<span class="sg nopeer">직접 peer 없음</span>
-  <details><summary>국면 필터 · 숫자 기준 더 보기</summary>
+  <details><summary>공정 구분 · 국면 필터 · 숫자 기준 더 보기</summary>
+    <b>공정 구분</b> — <span class="stg pre">전공정</span> 웨이퍼 위에 회로를 만드는 단계(노광·식각·증착·세정 등) <span class="stg post">후공정</span> 만든 칩을 검사하고 포장하는 단계(EDS 테스트·패키징·기판) <span class="stg both">전·후공정</span> 양쪽에 모두 납품 <span class="stg infra">공통 인프라</span> 팹 설비(가스·배기·이송·클린룸) <span class="stg chip">칩 제조</span> 직접 칩을 만드는 IDM·파운드리 <span class="stg design">설계</span> 공장 없이 설계만 하는 팹리스·디자인하우스·IP <span class="stg dist">모듈·유통</span>. 소부장 맵 기업은 맵의 분류를 그대로 쓰고, 그 밖의 기업은 사업 내용으로 분류했습니다.<br>
+    <b>실적</b> — 매출·영업이익·순이익은 DART 최근 4분기 합산(억원)입니다. 순이익은 연결 재무제표면 지배주주 몫 기준이고, 1년 전 값과의 증감은 연결 순이익 전체 기준입니다.<br>
     <b>국면</b>(투자의 定石 헤게모니 4국면, 분기 YoY) — <span class="ph p1">1</span> 매출만 증가(턴어라운드 초기) <span class="ph p2">2</span> 영업이익 증가율 &gt; 매출 증가율(영업레버리지) <span class="ph p3">3</span> 영업이익 증가율 &lt; 매출 증가율(헤게모니 상실 신호) <span class="ph p4">4</span> 매출·영업이익 모두 감소 <span class="ph p0">0</span> 매출 감소·영업이익 증가 · <span class="fl n1">1국면 신규</span> <span class="fl e2">2국면 초입</span>이 핵심 구간<br>
     <b>숫자</b> — <span id="basisTxt"></span><br>
     <b>근거 강도</b> ●●● A등급 peer가 있고 peer가 둘 이상 / ●●○ A가 하나 있거나 B가 둘 이상 / ●○○ B 하나뿐 — 한 쌍만으로 나온 판정은 약하게 보세요.<br>
@@ -127,6 +137,7 @@ h5 { font-size:13px; margin:14px 0 2px; color:#1a2a4a; }
 <div class="bar">
   <select id="top"><option value="">분야 전체</option></select>
   <select id="grp"><option value="">세부 묶음 전체</option></select>
+  <select id="stg"><option value="">공정 전체</option><option value="pre">전공정 (전·후 겸업 포함)</option><option value="post">후공정 (전·후 겸업 포함)</option><option value="both">전·후공정 겸업만</option><option value="infra">공통 인프라</option><option value="chip">칩 제조(IDM·파운드리)</option><option value="design">설계(팹리스·IP)</option><option value="dist">모듈·유통</option></select>
   <select id="cap"><option value="0">시총 전체</option><option value="1000">1천억↑</option><option value="3000">3천억↑</option><option value="10000">1조↑</option></select>
   <select id="cf"><option value="0">근거 강도 전체</option><option value="2">●●○ 이상</option><option value="3">●●● 만</option></select>
   <input id="q" placeholder="종목명·코드 검색">
@@ -134,7 +145,7 @@ h5 { font-size:13px; margin:14px 0 2px; color:#1a2a4a; }
 </div>
 <div id="gbox"></div>
 <div class="tw"><table id="t"><thead><tr>
-  <th class="l" data-k="n">종목</th><th data-k="score" class="s">판정<br><small>점수</small></th><th data-k="conf">근거<br><small>강도</small></th><th class="l" data-k="ph">국면</th><th data-k="cap">시총</th>
+  <th class="l" data-k="n">종목</th><th data-k="score" class="s">판정<br><small>점수</small></th><th data-k="conf">근거<br><small>강도</small></th><th class="l" data-k="ph">국면</th><th data-k="cap">시총</th><th data-k="rev">매출<br><small>최근 4분기·억</small></th><th data-k="op">영업이익<br><small>억</small></th><th data-k="ni">순이익<br><small>억</small></th>
   <th data-k="per">PER</th><th data-k="disc">peer 대비<br><small>PER 차이</small></th><th data-k="gq">이익<br><small>성장률</small></th>
   <th data-k="pbr">PBR</th><th data-k="roe">ROE</th><th data-k="psr">PSR</th><th data-k="opm">영업<br><small>이익률</small></th><th data-k="fper">선행 PER<br><small>증권사 추정</small></th><th data-k="np">peer 수<br><small>A · B · C</small></th>
 </tr></thead><tbody id="tb"></tbody></table></div>
@@ -142,7 +153,11 @@ h5 { font-size:13px; margin:14px 0 2px; color:#1a2a4a; }
 </div>
 <div class="tip" id="tip"></div>
 <script>
-let D=null, DEF=null, CAT='under', PH='all', SK='score', SA=-1, Q='', TOP='', GRP='', CAP=0, CF=0, OPEN=null;
+let D=null, DEF=null, CAT='under', PH='all', SK='score', SA=-1, Q='', TOP='', GRP='', CAP=0, CF=0, STG='', OPEN=null;
+const STN={pre:'전공정',post:'후공정',both:'전·후공정',infra:'공통 인프라',chip:'칩 제조',design:'설계',dist:'모듈·유통',etc:'기타'};
+const stg=s=>s?'<span class="stg '+s+'">'+(STN[s]||s)+'</span>':'';
+const fw=v=>v==null?'<span class="mu">—</span>':'<span'+(v<0?' class="neg"':'')+'>'+(Math.abs(v)>=10000?(v/10000).toFixed(Math.abs(v)>=1000000?0:1)+'조':Math.round(v).toLocaleString())+'</span>';
+const fwt=v=>v==null?'—':(Math.abs(v)>=10000?(v/10000).toFixed(Math.abs(v)>=1000000?0:1)+'조':Math.round(v).toLocaleString()+'억');
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fcap=v=>v==null?'—':(v>=10000?(v/10000).toFixed(v>=100000?0:1)+'조':Math.round(v).toLocaleString()+'억');
@@ -191,6 +206,7 @@ function rows(){
   else if(PH!=='all') r=r.filter(x=>String(x.ph)===PH);
   if(TOP) r=r.filter(x=>(x.gids||[]).some(g=>(D.gm[g]||{}).top===TOP));
   if(GRP) r=r.filter(x=>(x.gids||[]).includes(GRP));
+  if(STG) r=r.filter(x=>STG==='pre'?(x.stage==='pre'||x.stage==='both'):STG==='post'?(x.stage==='post'||x.stage==='both'):x.stage===STG);
   if(CAP) r=r.filter(x=>(x.cap||0)>=CAP);
   if(CF) r=r.filter(x=>(x.conf||0)>=CF);
   if(Q) r=r.filter(x=>(x.n||'').includes(Q)||(x.c||'').includes(Q));
@@ -213,17 +229,17 @@ function render(){
   for(const x of r){
     const dc=x.disc==null?'<span class="mu">—</span>':'<span class="'+(x.disc<0?'pos':'neg')+'" title="A·B등급 peer PER 중앙값 '+fxt(x.peer_per)+' 대비">'+(x.disc>0?'+':'')+x.disc+'%</span>';
     h+=`<tr class="r${OPEN===x.c?' open':''}" data-c="${x.c}">
-      <td class="l"><span class="nm">${esc(x.n)}</span><span class="code">${x.c}</span>${x.seg?'<span class="tag">'+esc(x.seg)+'</span>':''}${PURE[x.pure]||''}</td>
+      <td class="l"><span class="nm">${esc(x.n)}</span><span class="code">${x.c}</span><span class="tl">${stg(x.stage)}${x.seg?'<span class="tag">'+esc(x.seg)+'</span>':''}${PURE[x.pure]||''}</span></td>
       <td><span class="sg ${x.sig}">${SIG[x.sig]||x.sig}</span>${x.score!=null?' <span class="mu">'+(x.score>0?'+':'')+x.score.toFixed(1)+'</span>':''}</td>
-      <td>${conf(x.conf)}</td><td class="l">${phCell(x)}</td><td>${fcap(x.cap)}</td>
+      <td>${conf(x.conf)}</td><td class="l">${phCell(x)}</td><td>${fcap(x.cap)}</td><td>${fw(x.rev)}</td><td>${fw(x.op)}</td><td>${fw(x.ni)}</td>
       <td>${fx(x.per)}</td><td>${dc}</td><td title="${x.gqk==='ni'?'순이익 성장률(최근 4분기 vs 1년 전)':'영업이익 성장률(최근 4분기 vs 1년 전)'}">${fgh(x.gq)}${x.gq!=null&&x.gqk==='op'?'<small class="mu"> 영익</small>':''}</td>
       <td>${fx(x.pbr,2)}</td><td>${fp(x.roe)}</td><td>${fx(x.psr,2)}</td><td>${fp(x.opm)}</td><td>${fx(x.fper)}</td>
       <td><b>${x.nA||0}</b> · ${x.nB||0} · <span class="mu">${x.nC||0}</span></td></tr>`;
-    if(OPEN===x.c) h+=`<tr class="d"><td colspan="14" id="dt"><div class="din">${detail(x)}</div></td></tr>`;
+    if(OPEN===x.c) h+=`<tr class="d"><td colspan="17" id="dt"><div class="din">${detail(x)}</div></td></tr>`;
   }
-  $('tb').innerHTML=h||'<tr><td colspan="14" class="l" style="padding:18px;color:#667085">조건에 맞는 기업이 없습니다. 판정·국면 필터를 "전체"로 바꿔 보세요.</td></tr>';
+  $('tb').innerHTML=h||'<tr><td colspan="17" class="l" style="padding:18px;color:#667085">조건에 맞는 기업이 없습니다. 판정·국면 필터를 "전체"로 바꿔 보세요.</td></tr>';
   gbox();
-  if(OPEN&&$('dt')) drawCharts(OPEN);
+  if(OPEN&&$('dt')){ drawCharts(OPEN); drawQbar(OPEN); }
 }
 function gbox(){
   const b=$('gbox'); if(!GRP||!DEF){b.innerHTML='';return;}
@@ -257,6 +273,10 @@ function pairCard(p, c){
     ${cmpRow('PSR','psr',a,b,'psr','opm','영업이익률',R('psr'),2)}
     ${cmpRow('P/OP <small class="mu">보조</small>','por',a,b,'por','g_op','영업이익 성장률',R('por'),1,'g')}
     ${R('fwd')?`<tr><td class="l"><b>선행 PER</b> <small class="mu">증권사 추정</small></td><td>${fxt((me.fwd||{}).per_f12)}</td><td>${fxt((ot.fwd||{}).per_f12)}</td><td class="l mu">순이익 성장률(추정)</td><td>${fg((me.fwd||{}).cagr2!=null?me.fwd.cagr2:(me.fwd||{}).g1)}</td><td>${fg((ot.fwd||{}).cagr2!=null?ot.fwd.cagr2:(ot.fwd||{}).g1)}</td><td class="l"><span class="rs ${R('fwd')}" title="${RSD[R('fwd')]}">${RS[R('fwd')]}</span></td></tr>`:''}
+    </tbody></table></div>
+    <div class="cmpw"><table class="cmp ft"><thead><tr><th class="l">실적 <small>최근 4분기·억</small></th><th>매출</th><th>영업이익</th><th>영업이익률</th><th>순이익</th><th>순이익률</th></tr></thead><tbody>
+    <tr><td class="l"><b>${esc(me.n)}</b></td><td>${fw(me.rev)}</td><td>${fw(me.op)}</td><td>${fpt(me.opm)}</td><td>${fw(me.ni)}</td><td>${fpt(me.npm)}</td></tr>
+    <tr><td class="l"><b>${esc(ot.n||o)}</b> ${stg(ot.stage)}</td><td>${fw(ot.rev)}</td><td>${fw(ot.op)}</td><td>${fpt(ot.opm)}</td><td>${fw(ot.ni)}</td><td>${fpt(ot.npm)}</td></tr>
     </tbody></table></div><div class="pm mu">비교 기준: ${BSL[p.bs]||'—'}</div>`;
   if(dp){
     h+=`<button class="tg" data-tg="1">왜 이 점수인가 · 근거 ${dp.ev.length}건 보기 ▾</button><div class="why"><dl>${DEF.criteria.map(k=>`<dt>${k.name} ${dp.score[k.id]==null?'—':dp.score[k.id]}</dt><dd>${esc(dp.why[k.id])}</dd>`).join('')}</dl>
@@ -280,6 +300,8 @@ function detail(x){
     <span class="m">기준 ${BSL[x.basis]||'—'}${x.fs?' · '+(x.fs==='CFS'?'연결':'별도'):''}</span>
     <span class="m">${x.map?'<a class="tg" href="/semi.html">소부장 맵</a> · ':''}<a class="tg" href="/hege.html">4국면</a> · <a class="tg" href="/valws.html">밸류 워크시트</a></span></div>`;
   if(dc&&dc.main) h+=`<div class="pm" style="margin-bottom:8px"><b>주력 사업</b> ${esc(dc.main)}${dc.global?` · <b>해외 peer(자료에 실명)</b> ${dc.global.map(esc).join(', ')}`:''}</div>`;
+  h+=`<div class="pm" style="margin-bottom:8px"><b>공정</b> ${stg(x.stage)}${(x.procs||[]).length?' '+x.procs.map(esc).join(' · '):''}</div>`;
+  h+=finBlock(x);
   if(x.flags&&x.flags.length) h+=`<div class="warn">${x.flags.map(f=>'⚠ '+esc(f)).join('<br>')}</div>`;
   if(dc&&dc.nopeer) h+=`<div class="gb"><b>국내 상장 직접 peer 없음</b> — ${esc(dc.nopeer)}</div>`;
   if(x.sig==='nopeer'&&ps.length) h+=`<div class="gb">A·B등급 peer가 없어 판정하지 않았습니다. 아래 C등급 쌍은 "흔히 같이 비교되지만 직접 비교하면 안 되는 이유"를 보여 주는 참고 자료입니다.</div>`;
@@ -291,6 +313,42 @@ function detail(x){
   if(DEF) for(const gid of x.gids||[]){ const g=DEF.groups.find(z=>z.id===gid), m=D.gm[gid]||{}; if(!g) continue;
     h+=`<div class="gb"><b>묶음: ${esc(g.name)}</b> (중앙값 PER ${fxt(m.per)} · PBR ${fxt(m.pbr,2)} · PSR ${fxt(m.psr,2)} — 등급과 무관한 참고)<br><b>왜 이 묶음인가</b> ${esc(g.basis)}<br><b>비교할 때 주의</b> ${esc(g.caution)}</div>`; }
   return h;
+}
+// ───── 실적 블록: 최근 4분기 vs 1년 전 표 + 분기 매출·영업이익 막대
+function finBlock(x){
+  if(x.rev==null&&x.op==null&&x.ni==null) return '';
+  const row=(lab,cur,prev,g,extra)=>`<tr><td class="l"><b>${lab}</b>${extra||''}</td><td>${fw(cur)}</td><td>${fw(prev)}</td><td>${fgh(g)}</td></tr>`;
+  const niAll=x.ni_t!=null?x.ni_t:x.ni, part=x.ni!=null&&x.ni_t!=null&&x.ctrl!=null&&x.ctrl<99.5;
+  const niNote=part?` <small>이 중 지배주주 몫 ${fwt(x.ni)}(${Math.round(x.ctrl)}%) — PER·ROE는 이 값 기준</small>`:'';
+  const npmAll=(niAll!=null&&x.rev)?niAll/x.rev*100:null;
+  let h=`<div class="fin"><div><table class="cmp ft" style="min-width:0;width:100%"><thead><tr><th class="l">실적 <small>억원</small></th><th>최근 4분기<br><small>${esc(x.asof||'')}까지</small></th><th>1년 전<br><small>같은 기간</small></th><th>증감</th></tr></thead><tbody>
+    ${row('매출',x.rev,x.rev0,x.g_rev)}
+    ${row('영업이익',x.op,x.op0,x.g_op,x.opm!=null?` <small>이익률 ${fpt(x.opm)}</small>`:'')}
+    ${row('순이익',niAll,x.ni0,x.g_ni,(npmAll!=null?` <small>이익률 ${fpt(npmAll)}</small>`:'')+niNote)}
+    </tbody></table>${x.ni==null?'<div class="pm mu">순이익은 DART 최근 4분기 수집 전이라 비어 있습니다.</div>':''}</div>`;
+  if(x.ql&&x.ql.length>=2) h+=`<div class="ch"><h4>분기 매출 · 영업이익 <span class="mu" style="font-weight:500">(억원)</span></h4><svg id="qbar" viewBox="0 0 520 190" role="img" aria-label="분기 매출과 영업이익 막대 차트"></svg>
+    <div class="leg" style="margin:0 2px 2px"><span><i style="background:#2563eb;border-radius:2px"></i>매출</span><span><i style="background:#0f7b3f;border-radius:2px"></i>영업이익</span><span class="mu">막대에 마우스를 올리면 수치</span></div></div>`;
+  return h+'</div>';
+}
+function drawQbar(c){
+  const x=D.co[c], svg=$('qbar'); if(!svg||!x.ql) return;
+  const W=520,H=190,L=46,R=8,T=10,B=24, n=x.ql.length;
+  const vals=[...x.rq,...x.oq].filter(v=>v!=null); if(!vals.length) return;
+  const yt=nice(Math.min(0,...vals),Math.max(0,...vals),4), y0=yt[0], y1=yt[yt.length-1];
+  const Y=v=>H-B-(v-y0)/(y1-y0)*(H-T-B), gw=(W-L-R)/n, bw=Math.min(22,gw*0.34);
+  const ft=v=>Math.abs(v)>=10000?(v/10000).toFixed(Math.abs(y1)>=100000?0:1)+'조':v.toLocaleString();
+  let s='';
+  for(const v of yt) s+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="${v===0?'#c3c9d4':'#eef0f4'}"/><text x="${L-6}" y="${Y(v)+3.5}" text-anchor="end" font-size="10" fill="#667085">${ft(v)}</text>`;
+  const bar=(cx,v,col)=>{ if(v==null) return ''; const yv=Y(v), yz=Y(0), top=Math.min(yv,yz), hh=Math.max(1,Math.abs(yz-yv)), r=Math.min(3,hh/2,bw/2);
+    return v>=0?`<path d="M${cx},${top+hh} v${-(hh-r)} q0,${-r} ${r},${-r} h${bw-2*r} q${r},0 ${r},${r} v${hh-r} z" fill="${col}"/>`
+               :`<path d="M${cx},${top} v${hh-r} q0,${r} ${r},${r} h${bw-2*r} q${r},0 ${r},${-r} v${-(hh-r)} z" fill="${col}"/>`; };
+  for(let i=0;i<n;i++){
+    const gx=L+gw*i, cx=gx+gw/2, rv=x.rq[i], ov=x.oq[i];
+    const opm=(rv&&ov!=null)?' (이익률 '+(ov/rv*100).toFixed(1)+'%)':'';
+    s+=`<g data-tip="${esc(x.ql[i]+'|매출 '+(rv==null?'—':fwt(rv))+'|영업이익 '+(ov==null?'—':fwt(ov))+opm)}"><rect x="${gx}" y="${T}" width="${gw}" height="${H-T-B}" fill="transparent"/>${bar(cx-bw-1,rv,'#2563eb')}${bar(cx+1,ov,'#0f7b3f')}
+      <text x="${cx}" y="${H-8}" text-anchor="middle" font-size="10" fill="#667085">${esc(x.ql[i])}</text></g>`;
+  }
+  svg.innerHTML=s;
 }
 // ───── 산점도(SVG): x = 이익 체력, y = 멀티플
 const CH={per:{m:'per',q:null,ml:'PER',ql:'이익 성장률',d:1,pct:'g'},pbr:{m:'pbr',q:'roe',ml:'PBR',ql:'ROE',d:2},psr:{m:'psr',q:'opm',ml:'PSR',ql:'영업이익률',d:2}};
@@ -338,7 +396,7 @@ document.addEventListener('mousemove',e=>{const g=e.target.closest&&e.target.clo
 function openCo(c, scroll){
   if(!D.co[c]) return;
   OPEN=c;
-  if(!rows().some(x=>x.c===c)){ CAT='all'; PH='all'; TOP=''; GRP=''; CAP=0; CF=0; Q=''; $('q').value=''; $('top').value=''; $('cap').value='0'; $('cf').value='0'; fillGrp(); syncBtns(); }
+  if(!rows().some(x=>x.c===c)){ CAT='all'; PH='all'; TOP=''; GRP=''; CAP=0; CF=0; STG=''; Q=''; $('q').value=''; $('top').value=''; $('cap').value='0'; $('cf').value='0'; $('stg').value=''; fillGrp(); syncBtns(); }
   render();
   if(scroll){ const tr=document.querySelector('tr.r[data-c="'+c+'"]'); if(tr) tr.scrollIntoView({block:'start',behavior:'smooth'}); }
   try{ history.replaceState(null,'','#'+c); }catch(e){}
@@ -360,6 +418,7 @@ $('q').addEventListener('input',e=>{Q=e.target.value.trim(); if(Q&&CAT!=='all'){
 $('top').addEventListener('change',e=>{TOP=e.target.value; fillGrp(); render();});
 $('grp').addEventListener('change',e=>{GRP=e.target.value; render();});
 $('cap').addEventListener('change',e=>{CAP=+e.target.value; render();});
+$('stg').addEventListener('change',e=>{STG=e.target.value; render();});
 $('cf').addEventListener('change',e=>{CF=+e.target.value; render();});
 window.addEventListener('hashchange',()=>{const c=location.hash.slice(1); if(D&&D.co[c]&&OPEN!==c) openCo(c,true);});
 fetch('/data/semipeer.json').then(r=>r.json()).then(d=>{

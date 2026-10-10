@@ -83,6 +83,25 @@ TOP = {'메모리': '메모리·파운드리', '파운드리': '메모리·파�
        '파츠': '소재·부품', '소재': '소재·부품', '후공정소재': '소재·부품',
        '테스트장비': '후공정·테스트·기판', '테스트하우스': '후공정·테스트·기판', '테스트부품': '후공정·테스트·기판', '쏘캠': '후공정·테스트·기판',
        '패키징장비': '후공정·테스트·기판', '유리기판': '후공정·테스트·기판', '기판': '후공정·테스트·기판', '인프라': '인프라', '기타': '기타'}
+PROC = {k: v for k, v in sm.get('procs') or []}
+STAGE_NAME = {'pre': '전공정', 'post': '후공정', 'both': '전·후공정', 'infra': '공통 인프라',
+              'chip': '칩 제조(IDM·파운드리)', 'design': '설계(팹리스·디자인하우스·IP)', 'dist': '모듈·유통', 'etc': '기타'}
+STAGE_EXTRA = {
+    # 칩 제조: 설계부터 전·후공정까지 직접 하는 종합반도체(IDM)와 웨이퍼 위탁생산(파운드리)
+    '005930': 'chip', '000660': 'chip', '000990': 'chip', '092220': 'chip', '429270': 'chip',
+    # 설계: 공장 없이 칩·IP를 설계(팹리스·디자인하우스·IP)
+    '080220': 'design', '032580': 'design', '440110': 'design', '399720': 'design', '200710': 'design', '445090': 'design',
+    '117670': 'design', '045970': 'design', '394280': 'design', '094360': 'design', '432720': 'design', '396270': 'design',
+    '087600': 'design', '054450': 'design', '094170': 'design', '303030': 'design', '464500': 'design', '108320': 'design',
+    '452430': 'design', '418420': 'design', '102120': 'design', '052860': 'design',
+    # 모듈·유통: 완성된 칩을 모듈·SSD로 조립하거나 유통
+    '226590': 'dist', '078350': 'dist', '093520': 'dist', '077500': 'dist', '142210': 'dist', '254490': 'dist',
+    # 맵 밖 소부장
+    '388210': 'pre', '482630': 'pre', '417500': 'pre',                      # 식각 실리콘 파츠 / 포토레지스트 원료 / 증착 전구체
+    '119830': 'post', '219130': 'post', '323350': 'post', '036710': 'post', '355150': 'post',   # 테스트 대행 / 프로브카드 PCB / 프로브카드 본딩 장비 / 기판 지주 / 패키지 부품
+    '348350': 'infra',                                                    # 클린룸 오염 모니터링
+    '007660': 'etc',                                                      # AI 서버·네트워크 장비용 기판(반도체 공정 밖)
+}
 names = {}
 def nm(c):
     if c in names: return names[c]
@@ -130,6 +149,12 @@ for c, e in co.items():
     it = smi.get(c)
     if it: e['cat'] = it.get('cat'); e['prod'] = it.get('prod')
     e['map'] = c in smi
+    # 공정 구분: 소부장 맵 기업은 맵의 전/후/양/공 분류를 그대로, 맵 밖 기업은 STAGE_EXTRA(사업 내용 기준 수기 분류)
+    if it:
+        e['stage'] = {'전': 'pre', '후': 'post', '양': 'both', '공': 'infra'}.get(it.get('g'), 'etc')
+        e['procs'] = [PROC.get(x, x) for x in it.get('p') or []]
+    else:
+        e['stage'] = STAGE_EXTRA.get(c, 'etc')
 pairs.sort(key=lambda p: (-p['sum'], p['gid']))
 out = {'updated': datetime.date.today().isoformat(),
        'criteria': [
@@ -140,6 +165,7 @@ out = {'updated': datetime.date.today().isoformat(),
            {'id': 'driver', 'name': '실적 드라이버', 'd': '2 실적을 움직이는 전방 변수가 같음 / 1 일부 겹침 / 0 다름'}],
        'grade_rule': {'A': '합계 8점 이상이고 제품 동일성 2점 — 멀티플 직접 비교 가능', 'B': '합계 6점 이상이고 제품 동일성 1점 이상 — 차이를 감안한 조건부 비교',
                       'C': '그 외 — 참고용. 저밸류 판정에 쓰지 않음', 'null': '점수가 비어 있으면 자료에서 확인하지 못한 항목(0점으로 계산)'},
+       'stage_name': STAGE_NAME,
        'stats': {'groups': len(groups), 'pairs': len(pairs), 'companies': len(co),
                  'A': sum(1 for p in pairs if p['grade'] == 'A'), 'B': sum(1 for p in pairs if p['grade'] == 'B'), 'C': sum(1 for p in pairs if p['grade'] == 'C')},
        'groups': groups, 'pairs': pairs, 'co': co}

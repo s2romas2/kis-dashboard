@@ -1,0 +1,43 @@
+name: 반도체 peer 상대밸류 (일일)
+on:
+  schedule:
+    - cron: '10 10 * * 1-5'   # 19:10 KST — 시세(stockvals 18:20)·PEG 수집 뒤
+    - cron: '30 0 * * 6'      # 토 09:30 KST — 헤게모니 국면(토 07:00) 갱신 뒤
+  workflow_dispatch:
+    inputs:
+      refresh:
+        description: 'DART 재무 강제 갱신 (1 입력)'
+        required: false
+        default: ''
+  push:
+    paths: ['semipeer.py', 'public/data/semipeer_def.json']
+permissions:
+  contents: write
+concurrency:
+  group: semipeer-cache
+  cancel-in-progress: false
+jobs:
+  semipeer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 수집·계산
+        env:
+          DART_API_KEY: ${{ secrets.DART_KEY }}
+          REFRESH: ${{ github.event.inputs.refresh }}
+        run: python semipeer.py
+      - name: 결과 커밋
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          cp public/data/semipeer.json /tmp/semipeer.json || true
+          git fetch origin main && git reset --hard origin/main
+          cp /tmp/semipeer.json public/data/semipeer.json || true
+          git add public/data/semipeer.json 2>/dev/null || true
+          git commit -m "반도체 peer 상대밸류 갱신" || echo "변경 없음"
+          git push || (git fetch origin main && git reset --hard origin/main && cp /tmp/semipeer.json public/data/semipeer.json && git add public/data/semipeer.json && git commit -m "반도체 peer 상대밸류 갱신" && git push) || true

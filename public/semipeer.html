@@ -112,7 +112,7 @@ h5 { font-size:13px; margin:14px 0 2px; color:#1a2a4a; }
     <b>국면</b>(투자의 定石 헤게모니 4국면, 분기 YoY) — <span class="ph p1">1</span> 매출만 증가(턴어라운드 초기) <span class="ph p2">2</span> 영업이익 증가율 &gt; 매출 증가율(영업레버리지) <span class="ph p3">3</span> 영업이익 증가율 &lt; 매출 증가율(헤게모니 상실 신호) <span class="ph p4">4</span> 매출·영업이익 모두 감소 <span class="ph p0">0</span> 매출 감소·영업이익 증가 · <span class="fl n1">1국면 신규</span> <span class="fl e2">2국면 초입</span>이 핵심 구간<br>
     <b>숫자</b> — <span id="basisTxt"></span><br>
     <b>근거 강도</b> ●●● A등급 peer가 있고 peer가 둘 이상 / ●●○ A가 하나 있거나 B가 둘 이상 / ●○○ B 하나뿐 — 한 쌍만으로 나온 판정은 약하게 보세요.<br>
-    <b>성장률 표시</b> — 흑자전환·500% 초과는 +500%, 적자전환·적자확대는 −200%로 표시합니다. 성장률 5%p, ROE·영업이익률 1%p 이내 차이는 같은 것으로 봅니다.
+    <b>성장률</b> — 흑자전환·500% 초과는 +500%, 적자전환·적자확대는 −200%로 표시합니다. 성장률 5%p, ROE·영업이익률 1%p 이내 차이는 같은 것으로 봅니다. 300%가 넘는 성장률은 기저효과라 300%로 놓고 비교하고, PER이 150배를 넘으면(이익이 0에 가까움) PER 비교에서 뺍니다.
   </details>
 </div>
 <div class="sum" id="sum"></div>
@@ -155,6 +155,7 @@ const fgh=v=>v==null?'<span class="mu">—</span>':'<span class="'+(v>0?'pos':v<
 const SIG={under2:'저밸류 후보',under1:'약한 저밸류',mid:'중립',over1:'약한 고밸류',over2:'고밸류 주의',loss:'적자 · 판정 보류',nopeer:'직접 peer 없음',nodata:'시세 없음'};
 const RS={win:'저평가 신호',lose:'고평가 신호',disc:'할인 이유 있음',prem:'프리미엄 이유 있음',par:'비슷',neg:'판정 보류(적자·역성장)',na:'계산 불가'};
 const RSD={win:'멀티플이 10% 이상 낮고 이익 체력은 같거나 좋음',lose:'멀티플이 10% 이상 높은데 이익 체력은 같거나 낮음',disc:'싸지만 이익 체력이 peer보다 약함',prem:'비싸지만 이익 체력이 peer보다 좋음',par:'멀티플 차이가 10% 미만',neg:'싼 쪽의 이익 체력이 0 이하라 저평가로 보지 않음',na:'적자 등으로 멀티플을 계산할 수 없음'};
+const BSL={TTM:'DART 최근 4분기 합산(확인값)',TTMN:'네이버(FnGuide) 최근 4분기 주당순이익·주당순자산',FY0:'전년 확정 실적(KIS)'};
 const PURE={high:'',mid:'<span class="tag low" title="반도체가 주요 사업 중 하나">겸업</span>',low:'<span class="tag low" title="반도체가 전사 매출의 일부 — 전사 멀티플이 반도체 사업 가치를 그대로 반영하지 않음">반도체 비중 작음</span>',unknown:''};
 const phb=p=>p==null?'<span class="ph pN">—</span>':'<span class="ph p'+p+'">'+p+'</span>';
 const conf=n=>n?'<span class="cf" title="근거 강도">'+'●'.repeat(n)+'<i>'+'●'.repeat(3-n)+'</i></span>':'<span class="mu">—</span>';
@@ -168,11 +169,11 @@ function prep(){
   fillGrp();
   const c=D.count||{}, f=D.fin_meta||{};
   $('sum').innerHTML=['under2','under1','mid','over1','over2','loss','nopeer'].map(k=>`<div><span class="sg ${k}">${SIG[k]}</span><b>${c[k]||0}</b></div>`).join('');
-  const ttm=D.n_ttm||0;
-  $('upd').innerHTML=`대상 <b>${D.n}</b>개사 · 계산 ${esc(D.updated)} · 시세 ${esc(D.price_updated||'—')} · 재무 ${ttm?`DART 최근 4분기 합산(${esc(f.asof||'')}, ${ttm}개사)`:'전년 확정 실적 기준(DART 최근 4분기 수집 전)'} · 국면 ${esc(D.hege_q||'—')} 기준`;
-  $('basisTxt').innerHTML=ttm
-    ? `PER·PBR·ROE·순이익 성장률은 <b>DART 공시의 최근 4분기 합산(확인값)</b> — 올해 누적 + 전년 연간 − 전년 동기 누적. 연결 재무제표는 지배주주 몫 기준(확인 못 한 종목은 경고 표시). 시총은 KIS 일일 시세, 우선주 상장사는 우선주 시총 포함. 선행 PER은 증권사 추정(컨센서스)이라 참고용.`
-    : `지금은 <b>전년 확정 실적 기준</b>(KIS PER·PBR·ROE)이고 PSR·영업이익률·영업이익 성장률만 DART 최근 4분기 합산입니다. 다음 자동 수집에서 DART 최근 4분기 순이익·자본으로 바뀝니다. 선행 PER은 증권사 추정(컨센서스)이라 참고용.`;
+  const ttm=D.n_ttm||0, ttmn=D.n_ttmn||0, fy0=D.n-ttm-ttmn;
+  const bl=[ttm?`DART 최근 4분기 ${ttm}개사(${esc(f.asof||'')})`:'', ttmn?`네이버(FnGuide) 최근 4분기 ${ttmn}개사`:'', fy0>0?`전년 확정 ${fy0}개사`:''].filter(Boolean).join(' · ');
+  $('upd').innerHTML=`대상 <b>${D.n}</b>개사 · 계산 ${esc(D.updated)} · 시세 ${esc(D.price_updated||'—')} · PER·PBR·ROE 기준: ${bl} · 국면 ${esc(D.hege_q||'—')} 기준`;
+  $('basisTxt').innerHTML=`PER·PBR·ROE는 종목마다 가장 좋은 기준을 씁니다. <b>① DART 최근 4분기 합산(확인값)</b> — 올해 누적 + 전년 연간 − 전년 동기 누적, 연결은 지배주주 몫 기준, 순이익 성장률 포함. <b>② 네이버(FnGuide) 최근 4분기</b> 주당순이익·주당순자산 기준 — DART 수집 전이거나 실패했을 때 쓰고, DART 값의 교차확인(20% 이상 차이 나면 경고)에도 씁니다. <b>③ 전년 확정 실적(KIS)</b> — 둘 다 없을 때. 쌍 비교는 두 기업이 함께 가진 가장 좋은 기준으로 맞춥니다. PSR·영업이익률·영업이익 성장률은 DART 최근 4분기 합산, 시총은 KIS 일일 시세(우선주 상장사는 우선주 시총 포함), 선행 PER은 증권사 추정(컨센서스)이라 참고용입니다.`
+    +(ttm?'':' <b>지금은 DART 수집 전이라 ② 기준이며, 이 경우 PER의 짝은 순이익 성장률 대신 영업이익 성장률을 씁니다.</b>');
 }
 function fillGrp(){
   const s=$('grp'); s.innerHTML='<option value="">세부 묶음 전체</option>';
@@ -241,7 +242,7 @@ function pairCard(p, c){
   const R=k=>{const v=(p.res||{})[k]; return v==null?null:(flip?FL[v]:v);};
   const dp=DEF?DEF.pairs.find(x=>(x.a===p.a&&x.b===p.b)):null;
   const useNi=me.g_ni!=null&&ot.g_ni!=null&&p.bs==='TTM';
-  const M=(r)=>p.bs==='FY0'&&r.basis==='TTM'?Object.assign({},r,{per:r.kper>0?r.kper:null,pbr:r.kpbr}):r;
+  const M=(r)=>{const v=(r.bv||{})[p.bs]; return v?Object.assign({},r,{per:v[0],pbr:v[1],roe:v[2]}):r;};
   const a=M(me), b=M(ot);
   let h=`<div class="pc ${p.g}"><div class="hd"><span class="gr ${p.g}">${p.g}</span><b>${esc(ot.n||o)}</b><span class="code">${o}</span>
     <span class="sc">peer 적합도 ${p.sum}/10${p.capr&&p.capr>=10?' · 시총 '+p.capr.toFixed(0)+'배 차이(체급 다름)':''}${p.g==='C'?' · <b>참고용 — 판정에 쓰지 않음</b>':''}</span>
@@ -256,7 +257,7 @@ function pairCard(p, c){
     ${cmpRow('PSR','psr',a,b,'psr','opm','영업이익률',R('psr'),2)}
     ${cmpRow('P/OP <small class="mu">보조</small>','por',a,b,'por','g_op','영업이익 성장률',R('por'),1,'g')}
     ${R('fwd')?`<tr><td class="l"><b>선행 PER</b> <small class="mu">증권사 추정</small></td><td>${fxt((me.fwd||{}).per_f12)}</td><td>${fxt((ot.fwd||{}).per_f12)}</td><td class="l mu">순이익 성장률(추정)</td><td>${fg((me.fwd||{}).cagr2!=null?me.fwd.cagr2:(me.fwd||{}).g1)}</td><td>${fg((ot.fwd||{}).cagr2!=null?ot.fwd.cagr2:(ot.fwd||{}).g1)}</td><td class="l"><span class="rs ${R('fwd')}" title="${RSD[R('fwd')]}">${RS[R('fwd')]}</span></td></tr>`:''}
-    </tbody></table></div>${p.bs==='FY0'?'<div class="pm">※ 이 쌍은 전년 확정 실적(KIS) 기준 PER·PBR로 비교했습니다.</div>':''}`;
+    </tbody></table></div><div class="pm mu">비교 기준: ${BSL[p.bs]||'—'}</div>`;
   if(dp){
     h+=`<button class="tg" data-tg="1">왜 이 점수인가 · 근거 ${dp.ev.length}건 보기 ▾</button><div class="why"><dl>${DEF.criteria.map(k=>`<dt>${k.name} ${dp.score[k.id]==null?'—':dp.score[k.id]}</dt><dd>${esc(dp.why[k.id])}</dd>`).join('')}</dl>
       <ul class="ev">${dp.ev.map(evHtml).join('')}</ul></div>`;
@@ -276,7 +277,7 @@ function detail(x){
   const ps=(D.pairsOf[x.c]||[]).slice().sort((a,b)=>(a.g<b.g?-1:a.g>b.g?1:b.sum-a.sum));
   const dc=DEF?DEF.co[x.c]:null;
   let h=`<div class="dh"><h3>${esc(x.n)} <span class="code">${x.c}</span></h3><span class="sg ${x.sig}">${SIG[x.sig]}</span>${x.score!=null?`<span class="m">점수 ${(x.score>0?'+':'')+x.score.toFixed(2)} · 근거 강도 ${conf(x.conf)}</span>`:''}
-    <span class="m">기준 ${x.basis==='TTM'?'DART 최근 4분기('+esc(x.asof||'')+')':'전년 확정 실적(KIS)'}${x.fs?' · '+(x.fs==='CFS'?'연결':'별도'):''}</span>
+    <span class="m">기준 ${BSL[x.basis]||'—'}${x.fs?' · '+(x.fs==='CFS'?'연결':'별도'):''}</span>
     <span class="m">${x.map?'<a class="tg" href="/semi.html">소부장 맵</a> · ':''}<a class="tg" href="/hege.html">4국면</a> · <a class="tg" href="/valws.html">밸류 워크시트</a></span></div>`;
   if(dc&&dc.main) h+=`<div class="pm" style="margin-bottom:8px"><b>주력 사업</b> ${esc(dc.main)}${dc.global?` · <b>해외 peer(자료에 실명)</b> ${dc.global.map(esc).join(', ')}`:''}</div>`;
   if(x.flags&&x.flags.length) h+=`<div class="warn">${x.flags.map(f=>'⚠ '+esc(f)).join('<br>')}</div>`;

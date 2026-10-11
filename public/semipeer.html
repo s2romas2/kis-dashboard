@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>반도체 peer 상대밸류 — peer보다 싼데 이익 체력은 같거나 좋은 기업</title>
+<title>반도체 peer 상대밸류 — 경쟁사 대비 저PER과 지표별 비교</title>
 <style>
 * { box-sizing:border-box; margin:0; padding:0; }
 body { font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; background:#f4f6fa; color:#1a1f2e; }
@@ -27,6 +27,7 @@ h1 { font-size:22px; margin:10px 0 4px; }
 .cnt { font-size:12px; color:#667085; margin-left:auto; }
 table { width:100%; border-collapse:collapse; background:#fff; border:1px solid #e4e7ec; border-radius:12px; overflow:hidden; font-size:12.5px; }
 th, td { padding:7px 8px; border-bottom:1px solid #eef0f4; text-align:right; white-space:nowrap; }
+#t > thead > tr > th, #t > tbody > tr.r > td { padding-left:5px; padding-right:5px; }
 th { background:#f8fafc; color:#475467; font-size:11.5px; cursor:pointer; user-select:none; }
 th.s { color:#1a2a4a; } th small { font-weight:500; color:#98a2b3; }
 td.l, th.l { text-align:left; }
@@ -44,7 +45,18 @@ td .tl { display:block; margin-top:3px; } td .tl > span:first-child { margin-lef
 .fl { display:inline-block; font-size:10.5px; padding:1px 6px; border-radius:8px; margin-left:3px; font-weight:800; }
 .fl.n1 { background:#dbeafe; color:#1d4ed8; } .fl.e2 { background:#dcfce7; color:#15803d; } .fl.sl { background:#fef3c7; color:#b45309; } .fl.st { background:#f1f5f9; color:#475467; }
 .sg { display:inline-block; padding:2px 9px; border-radius:10px; font-weight:800; font-size:11.5px; }
-.sg.under2 { background:#0f7b3f; color:#fff; } .sg.under1 { background:#dcfce7; color:#15803d; } .sg.mid { background:#f1f5f9; color:#475467; }
+.sg.lowper { background:#0f7b3f; color:#fff; } .sg.midper { background:#f1f5f9; color:#475467; } .sg.highper { background:#fee2e2; color:#b42318; }
+.sg.noper { background:#fff; color:#667085; border:1px dashed #c3c9d4; }
+.mk { font-size:10px; margin-left:2px; font-weight:800; } .mk.g { color:#0f7b3f; } .mk.b { color:#d92d20; }
+.tc { display:inline-block; font-size:11px; font-weight:800; padding:1px 7px; border-radius:9px; background:#f1f5f9; color:#475467; }
+.tc.g { background:#dcfce7; color:#15803d; } .tc.b { background:#fee2e2; color:#b42318; }
+.wn { display:inline-block; font-size:11px; font-weight:700; padding:1px 7px; border-radius:9px; background:#fef3c7; color:#92400e; margin-right:4px; }
+.wi { font-size:10.5px; font-weight:800; color:#b45309; margin-left:4px; cursor:help; }
+.tiles { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:6px; margin:6px 0 10px; }
+.tile { background:#fff; border:1px solid #e4e7ec; border-radius:10px; padding:7px 10px; font-size:12px; line-height:1.55; }
+.tile .k { color:#667085; font-size:11px; } .tile .v { font-size:15px; font-weight:800; } .tile .p { color:#667085; font-size:11.5px; }
+.two { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-start; }
+.bar button.tf.on { background:#2f6df6; border-color:#2f6df6; color:#fff; }
 .sg.over1 { background:#fee2e2; color:#b42318; } .sg.over2 { background:#d92d20; color:#fff; } .sg.loss { background:#fef3c7; color:#92400e; }
 .sg.nopeer, .sg.nodata { background:#fff; color:#667085; border:1px dashed #c3c9d4; }
 .cf { letter-spacing:1px; color:#1a2a4a; font-size:11px; } .cf i { color:#d0d5dd; font-style:normal; }
@@ -105,33 +117,34 @@ h5 { font-size:13px; margin:14px 0 2px; color:#1a2a4a; }
 </head>
 <body>
 <div class="wrap">
-<h1>⚖️ 반도체 peer 상대밸류 — peer보다 싼데 이익 체력은 같거나 좋은 기업</h1>
+<h1>⚖️ 반도체 peer 상대밸류 — 경쟁사 대비 저PER과 지표별 비교</h1>
 <div class="sub" id="upd">불러오는 중…</div>
 <div class="lg">
-  <b>무엇을 찾나</b> — 같은 일을 하는 경쟁사(peer)보다 멀티플은 낮은데, 그 멀티플을 설명하는 이익 체력은 같거나 더 좋은 기업. EPS 절대값은 주식 수가 달라 기업끼리 비교할 수 없으므로 아래 세 짝으로 봅니다.
-  <table>
-    <tr><th>멀티플</th><th>짝지어 보는 이익 체력</th><th>저평가 신호가 되는 조건</th></tr>
-    <tr><td><b>PER</b> (시총 ÷ 순이익)</td><td>순이익 성장률</td><td>peer보다 PER이 10% 이상 낮고 성장률은 같거나 높음</td></tr>
-    <tr><td><b>PBR</b> (시총 ÷ 자본)</td><td>ROE (자본으로 이익을 얼마나 내는가)</td><td>peer보다 PBR이 10% 이상 낮고 ROE는 같거나 높음</td></tr>
-    <tr><td><b>PSR</b> (시총 ÷ 매출)</td><td>영업이익률 (매출에서 이익이 얼마나 남는가)</td><td>peer보다 PSR이 10% 이상 낮고 영업이익률은 같거나 높음</td></tr>
-  </table>
+  <b>무엇을 보여 주나</b> — 종합 점수를 매기지 않습니다. 같은 일을 하는 경쟁사(peer)와 지표를 하나씩 비교해 <b>낮다 · 비슷하다 · 높다</b>라는 사실만 표시하고, 판단은 직접 하시도록 했습니다.<br>
+  <b>대표 표시는 PER 하나</b> — <span class="sg lowper">저PER</span> peer보다 PER이 10% 이상 낮음 &nbsp;<span class="sg midper">비슷</span> &nbsp;<span class="sg highper">고PER</span> 10% 이상 높음 &nbsp;<span class="sg loss">적자·이익 미미</span> PER을 쓸 수 없음 &nbsp;<span class="sg noper">peer PER 없음</span> 비교 상대가 적자 &nbsp;<span class="sg nopeer">직접 peer 없음</span><br>
+  <b>나머지는 꼬리표</b> — PBR · PSR · ROE(자본으로 이익을 얼마나 내는가) · 영업이익률 · 이익 성장률 · ROA(자산으로 이익을 얼마나 내는가) · 부채비율을 각각 peer 중앙값과 비교합니다. 숫자 옆 화살표가 꼬리표입니다: <span class="mk g">▼</span> peer보다 낮아서 유리(멀티플·부채) <span class="mk b">▲</span> 높아서 불리, <span class="mk g">▲</span> peer보다 높아서 유리(ROE·이익률·성장률) <span class="mk b">▼</span> 낮아서 불리. 화살표가 없으면 비슷하거나 비교할 수 없는 경우입니다.<br>
+  <b>저PER에는 이유가 있을 수 있습니다</b> — <span class="wn">이익 급증</span> 이익이 1년 새 3배 넘게 뛰었거나 흑자전환(호황 정점에서 PER이 가장 낮게 보임) <span class="wn">영업외 이익</span> 순이익이 영업이익보다 30% 넘게 큼 <span class="wn">3·4국면</span> <span class="wn">비교 상대 1곳</span> 같은 경고를 함께 붙입니다.<br>
   <b>peer는 누구인가</b> — 같은 분야라는 이유만으로 묶지 않습니다. 쌍마다 <b>제품 동일성 · 고객 중복 · 매출 비중 · 사업모델·단계 · 실적 드라이버</b> 5개 기준을 0~2점으로 매기고 근거 원문을 붙였습니다.
-  <span class="gr A">A</span> 합계 8점↑ + 제품 동일 → 직접 비교 &nbsp; <span class="gr B">B</span> 6점↑ → 차이를 감안한 조건부 비교 &nbsp; <span class="gr C">C</span> 그 외 → <b>참고용, 판정에 쓰지 않음</b><br>
-  <b>판정</b> — A·B등급 쌍에서 세 짝의 (저평가 신호 수 − 고평가 신호 수)를 가중 평균(A 1.0, B 0.6):
-  <span class="sg under2">저밸류 후보</span> +2 이상 &nbsp;<span class="sg under1">약한 저밸류</span> +1 이상 &nbsp;<span class="sg mid">중립</span> &nbsp;<span class="sg over1">약한 고밸류</span> −1 이하 &nbsp;<span class="sg over2">고밸류 주의</span> −2 이하 &nbsp;<span class="sg loss">적자·이익 미미 · 판정 보류</span> &nbsp;<span class="sg nopeer">직접 peer 없음</span>
+  <span class="gr A">A</span> 합계 8점↑ + 제품 동일 → 직접 비교 &nbsp; <span class="gr B">B</span> 6점↑ → 차이를 감안한 조건부 비교 &nbsp; <span class="gr C">C</span> 그 외 → <b>꼬리표에 쓰지 않고 숫자만 나란히</b>
   <details><summary>공정 구분 · 국면 필터 · 숫자 기준 더 보기</summary>
     <b>공정 구분</b> — <span class="stg pre">전공정</span> 웨이퍼 위에 회로를 만드는 단계(노광·식각·증착·세정 등) <span class="stg post">후공정</span> 만든 칩을 검사하고 포장하는 단계(EDS 테스트·패키징·기판) <span class="stg both">전·후공정</span> 양쪽에 모두 납품 <span class="stg infra">공통 인프라</span> 팹 설비(가스·배기·이송·클린룸) <span class="stg chip">칩 제조</span> 직접 칩을 만드는 IDM·파운드리 <span class="stg design">설계</span> 공장 없이 설계만 하는 팹리스·디자인하우스·IP <span class="stg dist">모듈·유통</span>. 소부장 맵 기업은 맵의 분류를 그대로 쓰고, 그 밖의 기업은 사업 내용으로 분류했습니다.<br>
     <b>실적</b> — 매출·영업이익·순이익은 DART 최근 4분기 합산(억원)입니다. 순이익은 연결 재무제표면 지배주주 몫 기준이고, 1년 전 값과의 증감은 연결 순이익 전체 기준입니다.<br>
     <b>국면</b>(투자의 定石 헤게모니 4국면, 분기 YoY) — <span class="ph p1">1</span> 매출만 증가(턴어라운드 초기) <span class="ph p2">2</span> 영업이익 증가율 &gt; 매출 증가율(영업레버리지) <span class="ph p3">3</span> 영업이익 증가율 &lt; 매출 증가율(헤게모니 상실 신호) <span class="ph p4">4</span> 매출·영업이익 모두 감소 <span class="ph p0">0</span> 매출 감소·영업이익 증가 · <span class="fl n1">1국면 신규</span> <span class="fl e2">2국면 초입</span>이 핵심 구간<br>
     <b>숫자</b> — <span id="basisTxt"></span><br>
-    <b>근거 강도</b> ●●● A등급 peer가 있고 peer가 둘 이상 / ●●○ A가 하나 있거나 B가 둘 이상 / ●○○ B 하나뿐 — 한 쌍만으로 나온 판정은 약하게 보세요.<br>
-    <b>성장률</b> — 흑자전환·500% 초과는 +500%, 적자전환·적자확대는 −200%로 표시합니다. 성장률 5%p, ROE·영업이익률 1%p 이내 차이는 같은 것으로 봅니다. 300%가 넘는 성장률은 기저효과라 300%로 놓고 비교하고, PER이 150배를 넘으면(이익이 0에 가까움) PER 비교에서 뺍니다.
+    <b>근거 강도</b> ●●● A등급 peer가 있고 peer가 둘 이상 / ●●○ A가 하나 있거나 B가 둘 이상 / ●○○ B 하나뿐 — 한 쌍만으로 붙은 꼬리표는 약하게 보세요.<br>
+    <b>꼬리표 기준</b> — A·B등급 peer와 쌍마다 비교한 값의 중앙값. PER·PBR·PSR은 peer의 90% 이하면 낮음·110% 이상이면 높음, ROE·영업이익률·ROA는 1%p, 성장률은 5%p, 부채비율은 20%p 넘게 차이 나면 높음/낮음.<br>
+    <b>성장률</b> — 흑자전환·500% 초과는 +500%, 적자전환·적자확대는 −200%로 표시합니다. 300%가 넘는 성장률은 기저효과라 300%로 놓고 비교하고, PER이 150배를 넘으면(이익이 0에 가까움) PER 비교에서 뺍니다. ROA는 연결 순이익 전체 ÷ 자산총계, 부채비율은 부채총계 ÷ 자본총계입니다.
   </details>
 </div>
 <div class="sum" id="sum"></div>
 <div class="bar">
-  <span class="lab">판정</span>
-  <button data-c="under" class="hot on">★ 저밸류 (후보 + 약한)</button><button data-c="under2">저밸류 후보</button><button data-c="mid">중립</button><button data-c="over">고밸류</button><button data-c="loss">적자 보류</button><button data-c="nopeer">직접 peer 없음</button><button data-c="all">전체</button>
+  <span class="lab">PER</span>
+  <button data-c="lowper" class="hot on">★ 저PER</button><button data-c="midper">비슷</button><button data-c="highper">고PER</button><button data-c="loss">적자·이익 미미</button><button data-c="noper">peer PER 없음</button><button data-c="nopeer">직접 peer 없음</button><button data-c="all">전체</button>
+</div>
+<div class="bar" id="tagbar">
+  <span class="lab">꼬리표</span>
+  <button class="tf" data-t="pbr:low">저PBR</button><button class="tf" data-t="psr:low">저PSR</button><button class="tf" data-t="roe:high">고ROE</button><button class="tf" data-t="opm:high">고마진</button><button class="tf" data-t="g:high">고성장</button><button class="tf" data-t="roa:high">고ROA</button><button class="tf" data-t="debt:low">저부채</button><button class="tf" data-t="nowarn">경고 없음</button>
+  <span class="mini" style="font-size:11.5px;color:#667085">여러 개 누르면 모두 해당하는 기업만</span>
 </div>
 <div class="bar" id="phbar">
   <span class="lab">국면</span>
@@ -148,15 +161,14 @@ h5 { font-size:13px; margin:14px 0 2px; color:#1a2a4a; }
 </div>
 <div id="gbox"></div>
 <div class="tw"><table id="t"><thead><tr>
-  <th class="l" data-k="n">종목</th><th data-k="score" class="s">판정<br><small>점수</small></th><th data-k="conf">근거<br><small>강도</small></th><th class="l" data-k="ph">국면</th><th data-k="cap">시총</th><th data-k="rev">매출<br><small>최근 4분기·억</small></th><th data-k="op">영업이익<br><small>억</small></th><th data-k="ni">순이익<br><small>억</small></th>
-  <th data-k="per">PER</th><th data-k="disc">peer 대비<br><small>PER 차이</small></th><th data-k="gq">이익<br><small>성장률</small></th>
-  <th data-k="pbr">PBR</th><th data-k="roe">ROE</th><th data-k="psr">PSR</th><th data-k="opm">영업<br><small>이익률</small></th><th data-k="fper">선행 PER<br><small>증권사 추정</small></th><th data-k="np">peer 수<br><small>A · B · C</small></th>
+  <th class="l" data-k="n">종목</th><th data-k="disc" class="s">PER 꼬리표<br><small>peer 대비 차이</small></th><th data-k="conf">근거<br><small>강도</small></th><th class="l" data-k="ph">국면</th><th data-k="cap">시총</th><th data-k="rev">매출<br><small>최근 4분기·억</small></th><th data-k="op">영업이익<br><small>억</small></th><th data-k="ni">순이익<br><small>억</small></th>
+  <th data-k="per">PER</th><th data-k="pbr">PBR</th><th data-k="psr">PSR</th><th data-k="roe">ROE</th><th data-k="opm">영업<br><small>이익률</small></th><th data-k="gq">이익<br><small>성장률</small></th><th data-k="roa">ROA</th><th data-k="debt">부채<br><small>비율</small></th><th data-k="fper">선행 PER<br><small>증권사 추정</small></th><th data-k="np">peer 수<br><small>A · B · C</small></th>
 </tr></thead><tbody id="tb"></tbody></table></div>
-<div class="note">⚠️ 계량 비교일 뿐 매수·매도 판단이 아닙니다. peer보다 싼 데에는 이유가 있을 수 있습니다 — 각 쌍의 "왜 이 점수인가"와 "프리미엄·할인 구조"를 반드시 같이 읽으세요. C등급 쌍은 "같이 비교되지만 직접 비교하면 안 되는 이유"를 보여 주는 참고 자료입니다. peer 근거는 증권사·한국IR협의회 리포트 원문, DART 사업·반기보고서, 전문매체 인용이며, 점수가 비어 있는 항목(—)은 자료에서 확인하지 못한 것입니다(0점으로 계산). 순이익에는 일회성 영업외 손익이 섞일 수 있어 P/OP(시총 ÷ 영업이익)를 함께 표시합니다.</div>
+<div class="note">⚠️ 지표를 나란히 놓은 비교일 뿐 매수·매도 판단이 아닙니다. PER이 낮은 데에는 이유가 있을 수 있습니다 — 경고 꼬리표와 각 쌍의 "왜 이 기업과 비교하나", "프리미엄·할인 구조"를 반드시 같이 읽으세요. C등급 쌍은 "같이 비교되지만 직접 비교하면 안 되는 이유"를 보여 주는 참고 자료입니다. peer 근거는 증권사·한국IR협의회 리포트 원문, DART 사업·반기보고서, 전문매체 인용이며, 점수가 비어 있는 항목(—)은 자료에서 확인하지 못한 것입니다(0점으로 계산). 순이익에는 일회성 영업외 손익이 섞일 수 있어 P/OP(시총 ÷ 영업이익)를 함께 표시합니다.</div>
 </div>
 <div class="tip" id="tip"></div>
 <script>
-let D=null, DEF=null, CAT='under', PH='all', SK='score', SA=-1, Q='', TOP='', GRP='', CAP=0, CF=0, STG='', OPEN=null;
+let D=null, DEF=null, CAT='lowper', PH='all', SK='disc', SA=1, TAGF=new Set(), Q='', TOP='', GRP='', CAP=0, CF=0, STG='', OPEN=null;
 const STN={pre:'전공정',post:'후공정',both:'전·후공정',infra:'공통 인프라',chip:'칩 제조',design:'설계',dist:'모듈·유통',etc:'기타'};
 const stg=s=>s?'<span class="stg '+s+'">'+(STN[s]||s)+'</span>':'';
 const fw=v=>v==null?'<span class="mu">—</span>':'<span'+(v<0?' class="neg"':'')+'>'+(Math.abs(v)>=10000?(v/10000).toFixed(Math.abs(v)>=1000000?0:1)+'조':Math.round(v).toLocaleString())+'</span>';
@@ -170,23 +182,40 @@ const fp=(v,d=1)=>v==null?'<span class="mu">—</span>':Number(v).toFixed(d)+'%'
 const fpt=(v,d=1)=>v==null?'—':Number(v).toFixed(d)+'%';
 const fg=v=>v==null?'—':(v>=500?'흑전·500%↑':v<=-200?'적전·확대':(v>0?'+':'')+Number(v).toFixed(0)+'%');
 const fgh=v=>v==null?'<span class="mu">—</span>':'<span class="'+(v>0?'pos':v<0?'neg':'')+'">'+fg(v)+'</span>';
-const SIG={under2:'저밸류 후보',under1:'약한 저밸류',mid:'중립',over1:'약한 고밸류',over2:'고밸류 주의',loss:'적자·이익 미미 · 판정 보류',nopeer:'직접 peer 없음',nodata:'시세 없음'};
-const RS={win:'저평가 신호',lose:'고평가 신호',disc:'할인 이유 있음',prem:'프리미엄 이유 있음',par:'비슷',neg:'판정 보류(적자·역성장)',na:'계산 불가'};
-const RSD={win:'멀티플이 10% 이상 낮고 이익 체력은 같거나 좋음',lose:'멀티플이 10% 이상 높은데 이익 체력은 같거나 낮음',disc:'싸지만 이익 체력이 peer보다 약함',prem:'비싸지만 이익 체력이 peer보다 좋음',par:'멀티플 차이가 10% 미만',neg:'싼 쪽의 이익 체력이 0 이하라 저평가로 보지 않음',na:'적자 등으로 멀티플을 계산할 수 없음'};
+const SIG={lowper:'저PER',midper:'비슷',highper:'고PER',loss:'적자·이익 미미',noper:'peer PER 없음',nopeer:'직접 peer 없음',nodata:'시세 없음'};
+const SIGD={lowper:'A·B등급 peer보다 PER이 10% 이상 낮음',midper:'peer와 PER 차이가 10% 미만',highper:'peer보다 PER이 10% 이상 높음',loss:'최근 4분기 적자이거나 PER 150배 초과 — PER 꼬리표를 붙이지 않음',noper:'A·B등급 peer가 적자·이익 미미라 PER을 비교할 수 없음',nopeer:'A·B등급 peer가 없음 — C등급 쌍은 숫자만 참고',nodata:'시세 없음'};
+// 꼬리표 정의: good = 유리한 방향
+const TG={per:{n:'PER',lo:'저PER',hi:'고PER',good:'low',u:'x',d:1},pbr:{n:'PBR',lo:'저PBR',hi:'고PBR',good:'low',u:'x',d:2},psr:{n:'PSR',lo:'저PSR',hi:'고PSR',good:'low',u:'x',d:2},
+  roe:{n:'ROE',lo:'저ROE',hi:'고ROE',good:'high',u:'p',d:1},opm:{n:'영업이익률',lo:'저마진',hi:'고마진',good:'high',u:'p',d:1},g:{n:'이익 성장률',lo:'저성장',hi:'고성장',good:'high',u:'g',d:0},
+  roa:{n:'ROA',lo:'저ROA',hi:'고ROA',good:'high',u:'p',d:1},debt:{n:'부채비율',lo:'저부채',hi:'고부채',good:'low',u:'p',d:0}};
+const TGK=['per','pbr','psr','roe','opm','g','roa','debt'];
+const WN={peak:['이익 급증','이익이 1년 새 3배 넘게 뛰었거나 흑자전환 — 호황 정점에서는 PER이 가장 낮게 보입니다'],nonop:['영업외 이익','순이익이 영업이익보다 30% 넘게 큼 — 일회성 이익일 수 있어 P/OP를 함께 보세요'],ph34:['3·4국면','헤게모니 국면이 3(이익 증가율 둔화) 또는 4(매출·이익 감소)'],one:['비교 상대 1곳','B등급 peer 하나만으로 붙은 꼬리표'],pure:['반도체 비중 작음','전사 멀티플이 반도체 사업 가치를 그대로 반영하지 않음'],xchk:['PER 교차확인 차이','DART 기준과 네이버(FnGuide) PER이 20% 넘게 다름']};
+const fv=(k,v)=>{ if(v==null) return '—'; const t=TG[k]; return t.u==='x'?Number(v).toFixed(t.d)+'배':t.u==='g'?fg(v):Number(v).toFixed(t.d)+'%'; };
+// 숫자 옆 화살표: 태그가 low/high일 때만
+const mk=(k,tag,pm)=>{ if(!tag||tag==='mid') return ''; const t=TG[k]; const good=(tag===t.good); return `<span class="mk ${good?'g':'b'}" title="peer 중앙값 ${fv(k,pm)} → ${tag==='low'?t.lo:t.hi}">${tag==='low'?'▼':'▲'}</span>`; };
+const chip=(k,tag)=>{ if(!tag) return ''; const t=TG[k]; if(tag==='mid') return `<span class="tc">${t.n} 비슷</span>`; return `<span class="tc ${tag===t.good?'g':'b'}">${tag==='low'?t.lo:t.hi}</span>`; };
+const warns=x=>(x.warn||[]).map(w=>`<span class="wn" title="${esc((WN[w]||[])[1]||'')}">${esc((WN[w]||[w])[0])}</span>`).join('');
+// 한 쌍에서 두 값 비교(화면 계산 — 서버 규칙과 같은 기준)
+function cmpMark(k,a,b){ const th=D.th||{cheap:.9,dear:1.1,tol:{roe:1,opm:1,roa:1,g:5,debt:20},gcap:300,permax:150}; const t=TG[k]; if(a==null||b==null) return '';
+  let tag=null;
+  if(t.u==='x'){ if(a<=0||b<=0) return ''; if(k==='per'&&(a>th.permax||b>th.permax)) return '<span class="tc">비교 제외</span>'; const r=a/b; tag=r<=th.cheap?'low':r>=th.dear?'high':'mid'; }
+  else { let x=a,y=b; if(k==='g'){x=Math.min(a,th.gcap);y=Math.min(b,th.gcap);} const d=x-y, tol=th.tol[k]!=null?th.tol[k]:(k==='debt'?20:1); tag=d>=tol?'high':d<=-tol?'low':'mid'; }
+  if(tag==='mid') return '<span class="tc">비슷</span>';
+  return `<span class="tc ${tag===t.good?'g':'b'}">${tag==='low'?'낮음':'높음'}</span>`; }
 const BSL={TTM:'DART 최근 4분기 합산(확인값)',TTMN:'네이버(FnGuide) 최근 4분기 주당순이익·주당순자산',FY0:'전년 확정 실적(KIS)'};
 const PURE={high:'',mid:'<span class="tag low" title="반도체가 주요 사업 중 하나">겸업</span>',low:'<span class="tag low" title="반도체가 전사 매출의 일부 — 전사 멀티플이 반도체 사업 가치를 그대로 반영하지 않음">반도체 비중 작음</span>',unknown:''};
 const phb=p=>p==null?'<span class="ph pN">—</span>':'<span class="ph p'+p+'">'+p+'</span>';
 const conf=n=>n?'<span class="cf" title="근거 강도">'+'●'.repeat(n)+'<i>'+'●'.repeat(3-n)+'</i></span>':'<span class="mu">—</span>';
 const nm=c=>(D.co[c]||{}).n||c;
 function prep(){
-  for(const c in D.co){const r=D.co[c]; r.c=c; r.gq=r.g_ni!=null?r.g_ni:r.g_op; r.gqk=r.g_ni!=null?'ni':'op'; r.fper=(r.fwd||{}).per_f12; r.np=(r.nA||0)*100+(r.nB||0)*10+(r.nC||0)/100;}
+  for(const c in D.co){const r=D.co[c]; r.c=c; r.gq=r.g_ni!=null?r.g_ni:r.g_op; r.gqk=r.g_ni!=null?'ni':'op'; r.fper=(r.fwd||{}).per_f12; r.np=(r.nA||0)*100+(r.nB||0)*10+(r.nC||0)/100; r.tags=r.tags||{}; r.pm=r.pm||{};}
   D.pairsOf={}; for(const p of D.pairs){(D.pairsOf[p.a]=D.pairsOf[p.a]||[]).push(p);(D.pairsOf[p.b]=D.pairsOf[p.b]||[]).push(p);}
   D.gm={}; for(const g of D.groups) D.gm[g.id]=g;
   const tops=[...new Set(D.groups.map(g=>g.top).filter(Boolean))];
   for(const x of tops){const o=document.createElement('option');o.textContent=x;$('top').appendChild(o);}
   fillGrp();
   const c=D.count||{}, f=D.fin_meta||{};
-  $('sum').innerHTML=['under2','under1','mid','over1','over2','loss','nopeer'].map(k=>`<div><span class="sg ${k}">${SIG[k]}</span><b>${c[k]||0}</b></div>`).join('');
+  $('sum').innerHTML=['lowper','midper','highper','loss','noper','nopeer'].map(k=>`<div title="${SIGD[k]}"><span class="sg ${k}">${SIG[k]}</span><b>${c[k]||0}</b></div>`).join('');
   const ttm=D.n_ttm||0, ttmn=D.n_ttmn||0, fy0=D.n-ttm-ttmn;
   const bl=[ttm?`DART 최근 4분기 ${ttm}개사(${esc(f.asof||'')})`:'', ttmn?`네이버(FnGuide) 최근 4분기 ${ttmn}개사`:'', fy0>0?`전년 확정 ${fy0}개사`:''].filter(Boolean).join(' · ');
   $('upd').innerHTML=`대상 <b>${D.n}</b>개사 · 계산 ${esc(D.updated)} · 시세 ${esc(D.price_updated||'—')} · PER·PBR·ROE 기준: ${bl} · 국면 ${esc(D.hege_q||'—')} 기준`;
@@ -201,9 +230,8 @@ function fillGrp(){
 }
 function rows(){
   let r=Object.values(D.co);
-  if(CAT==='under') r=r.filter(x=>x.sig==='under2'||x.sig==='under1');
-  else if(CAT==='over') r=r.filter(x=>x.sig==='over2'||x.sig==='over1');
-  else if(CAT!=='all') r=r.filter(x=>x.sig===CAT);
+  if(CAT!=='all') r=r.filter(x=>x.sig===CAT);
+  for(const t of TAGF){ if(t==='nowarn') r=r.filter(x=>!(x.warn&&x.warn.length)); else { const [k,v]=t.split(':'); r=r.filter(x=>(x.tags||{})[k]===v); } }
   if(PH==='hot') r=r.filter(x=>x.new1||x.entry2);
   else if(PH==='e2') r=r.filter(x=>x.entry2);
   else if(PH!=='all') r=r.filter(x=>String(x.ph)===PH);
@@ -230,17 +258,21 @@ function render(){
   document.querySelectorAll('#t th').forEach(th=>th.classList.toggle('s',th.dataset.k===SK));
   let h='';
   for(const x of r){
-    const dc=x.disc==null?'<span class="mu">—</span>':'<span class="'+(x.disc<0?'pos':'neg')+'" title="A·B등급 peer PER 중앙값 '+fxt(x.peer_per)+' 대비">'+(x.disc>0?'+':'')+x.disc+'%</span>';
+    const T=x.tags, P=x.pm, nw=(x.warn||[]).length;
+    const dc=(x.disc!=null&&(x.sig==='lowper'||x.sig==='midper'||x.sig==='highper'))?' <span class="'+(x.disc<0?'pos':x.disc>0?'neg':'mu')+'" title="A·B등급 peer PER 중앙값 '+fv('per',P.per)+' 대비">'+(x.disc>0?'+':'')+x.disc+'%</span>':'';
+    const wi=nw?`<span class="wi" title="${esc((x.warn||[]).map(w=>(WN[w]||[w])[0]).join(' · '))}">⚠${nw}</span>`:'';
     h+=`<tr class="r${OPEN===x.c?' open':''}" data-c="${x.c}">
       <td class="l"><span class="nm">${esc(x.n)}</span><span class="code">${x.c}</span><a class="wsl" data-ws="1" href="/valws.html?c=${x.c}" title="밸류 워크시트에서 열기">🧮</a><span class="tl">${stg(x.stage)}${x.seg?'<span class="tag">'+esc(x.seg)+'</span>':''}${PURE[x.pure]||''}</span></td>
-      <td><span class="sg ${x.sig}">${SIG[x.sig]||x.sig}</span>${x.score!=null&&x.sig!=='loss'?' <span class="mu">'+(x.score>0?'+':'')+x.score.toFixed(1)+'</span>':''}</td>
+      <td><span class="sg ${x.sig}" title="${SIGD[x.sig]||''}">${SIG[x.sig]||x.sig}</span>${dc}${wi}</td>
       <td>${conf(x.conf)}</td><td class="l">${phCell(x)}</td><td>${fcap(x.cap)}</td><td>${fw(x.rev)}</td><td>${fw(x.op)}</td><td>${fw(x.ni)}</td>
-      <td>${fx(x.per)}</td><td>${dc}</td><td title="${x.gqk==='ni'?'순이익 성장률(최근 4분기 vs 1년 전)':'영업이익 성장률(최근 4분기 vs 1년 전)'}">${fgh(x.gq)}${x.gq!=null&&x.gqk==='op'?'<small class="mu"> 영익</small>':''}</td>
-      <td>${fx(x.pbr,2)}</td><td>${fp(x.roe)}</td><td>${fx(x.psr,2)}</td><td>${fp(x.opm)}</td><td>${fx(x.fper)}</td>
+      <td>${fx(x.per)}${mk('per',x.sig==='loss'?null:T.per,P.per)}</td><td>${fx(x.pbr,2)}${mk('pbr',T.pbr,P.pbr)}</td><td>${fx(x.psr,2)}${mk('psr',T.psr,P.psr)}</td>
+      <td>${fp(x.roe)}${mk('roe',T.roe,P.roe)}</td><td>${fp(x.opm)}${mk('opm',T.opm,P.opm)}</td>
+      <td title="${x.gqk==='ni'?'순이익 성장률(최근 4분기 vs 1년 전)':'영업이익 성장률(최근 4분기 vs 1년 전)'}">${fgh(x.gq)}${x.gq!=null&&x.gqk==='op'?'<small class="mu"> 영익</small>':''}${mk('g',T.g,P.g)}</td>
+      <td>${fp(x.roa)}${mk('roa',T.roa,P.roa)}</td><td>${fp(x.debt,0)}${mk('debt',T.debt,P.debt)}</td><td>${fx(x.fper)}</td>
       <td><b>${x.nA||0}</b> · ${x.nB||0} · <span class="mu">${x.nC||0}</span></td></tr>`;
-    if(OPEN===x.c) h+=`<tr class="d"><td colspan="17" id="dt"><div class="din">${detail(x)}</div></td></tr>`;
+    if(OPEN===x.c) h+=`<tr class="d"><td colspan="18" id="dt"><div class="din">${detail(x)}</div></td></tr>`;
   }
-  $('tb').innerHTML=h||'<tr><td colspan="17" class="l" style="padding:18px;color:#667085">조건에 맞는 기업이 없습니다. 판정·국면 필터를 "전체"로 바꿔 보세요.</td></tr>';
+  $('tb').innerHTML=h||'<tr><td colspan="18" class="l" style="padding:18px;color:#667085">조건에 맞는 기업이 없습니다. PER·꼬리표·국면 필터를 풀어 보세요.</td></tr>';
   gbox();
   if(OPEN&&$('dt')){ drawCharts(OPEN); drawQbar(OPEN); }
 }
@@ -250,39 +282,35 @@ function gbox(){
   b.innerHTML=`<div class="gb"><b>${esc(g.name)}</b> — 묶음 중앙값(등급과 무관한 참고): PER ${fxt(m.per)} · PBR ${fxt(m.pbr,2)} · PSR ${fxt(m.psr,2)}<br><b>왜 이 묶음인가</b> ${esc(g.basis)}<br><b>비교할 때 주의</b> ${esc(g.caution)}</div>`;
 }
 // ───── 상세
-function cmpRow(lab, tid, me, ot, mk, qk, qlab, res, dM, pct){
-  const q=v=>pct==='g'?fg(v):fpt(v);
-  return `<tr><td class="l"><b>${lab}</b></td><td>${fxt(me[mk],dM)}</td><td>${fxt(ot[mk],dM)}</td><td class="l mu">${qlab}</td><td>${q(me[qk])}</td><td>${q(ot[qk])}</td>
-    <td class="l"><span class="rs ${res}" title="${RSD[res]||''}">${RS[res]||res}</span></td></tr>`;
-}
 function pairCard(p, c){
-  const o=p.a===c?p.b:p.a, me=D.co[c], ot=D.co[o]||{}; const flip=p.a!==c;
-  const FL={win:'lose',lose:'win',disc:'prem',prem:'disc',par:'par',na:'na',neg:'neg'};
-  const R=k=>{const v=(p.res||{})[k]; return v==null?null:(flip?FL[v]:v);};
+  const o=p.a===c?p.b:p.a, me=D.co[c], ot=D.co[o]||{};
   const dp=DEF?DEF.pairs.find(x=>(x.a===p.a&&x.b===p.b)):null;
   const useNi=me.g_ni!=null&&ot.g_ni!=null&&p.bs==='TTM';
-  const M=(r)=>{const v=(r.bv||{})[p.bs]; return v?Object.assign({},r,{per:v[0],pbr:v[1],roe:v[2]}):r;};
+  const M=(r)=>{const v=(r.bv||{})[p.bs]; const o2=Object.assign({},r); if(v){o2.per=v[0];o2.pbr=v[1];o2.roe=v[2];} o2.g=useNi?r.g_ni:r.g_op; o2.fper=(r.fwd||{}).per_f12; return o2;};
   const a=M(me), b=M(ot);
-  let h=`<div class="pc ${p.g}"><div class="hd"><span class="gr ${p.g}">${p.g}</span><b>${esc(ot.n||o)}</b><span class="code">${o}</span>
-    <span class="sc">peer 적합도 ${p.sum}/10${p.capr&&p.capr>=10?' · 시총 '+p.capr.toFixed(0)+'배 차이(체급 다름)':''}${p.g==='C'?' · <b>참고용 — 판정에 쓰지 않음</b>':''}</span>
+  let h=`<div class="pc ${p.g}"><div class="hd"><span class="gr ${p.g}">${p.g}</span><b>${esc(ot.n||o)}</b><span class="code">${o}</span>${stg(ot.stage)}
+    <span class="sc">peer 적합도 ${p.sum}/10${p.capr&&p.capr>=10?' · 시총 '+p.capr.toFixed(0)+'배 차이(체급 다름)':''}${p.g==='C'?' · <b>참고용 — 꼬리표에 쓰지 않음</b>':''}</span>
     <a class="tg" href="#${o}" data-go="${o}">이 기업 보기 →</a></div>`;
   if(dp){
     h+=`<div class="cr">${DEF.criteria.map(k=>{const v=dp.score[k.id]; return `<span class="${v===2?'t':v===0?'z':v==null?'u':''}" title="${esc(k.d)}">${k.name}<b>${v==null?'—':v}</b></span>`;}).join('')}</div>
       <div class="vd">▸ ${esc(dp.verdict)}</div>${dp.premium?`<div class="pm">프리미엄·할인 구조: ${esc(dp.premium)}</div>`:''}`;
   }
-  h+=`<div class="cmpw"><table class="cmp"><thead><tr><th class="l">멀티플</th><th>${esc(me.n)}</th><th>${esc(ot.n||o)}</th><th class="l">이익 체력</th><th>${esc(me.n)}</th><th>${esc(ot.n||o)}</th><th class="l">결과</th></tr></thead><tbody>
-    ${cmpRow('PER','per',a,b,'per',useNi?'g_ni':'g_op',useNi?'순이익 성장률':'영업이익 성장률',R('per'),1,'g')}
-    ${cmpRow('PBR','pbr',a,b,'pbr','roe','ROE',R('pbr'),2)}
-    ${cmpRow('PSR','psr',a,b,'psr','opm','영업이익률',R('psr'),2)}
-    ${cmpRow('P/OP <small class="mu">보조</small>','por',a,b,'por','g_op','영업이익 성장률',R('por'),1,'g')}
-    ${R('fwd')?`<tr><td class="l"><b>선행 PER</b> <small class="mu">증권사 추정</small></td><td>${fxt((me.fwd||{}).per_f12)}</td><td>${fxt((ot.fwd||{}).per_f12)}</td><td class="l mu">순이익 성장률(추정)</td><td>${fg((me.fwd||{}).cagr2!=null?me.fwd.cagr2:(me.fwd||{}).g1)}</td><td>${fg((ot.fwd||{}).cagr2!=null?ot.fwd.cagr2:(ot.fwd||{}).g1)}</td><td class="l"><span class="rs ${R('fwd')}" title="${RSD[R('fwd')]}">${RS[R('fwd')]}</span></td></tr>`:''}
+  const row=(k,lab,ka)=>`<tr><td class="l"><b>${lab||TG[k].n}</b></td><td>${fv(k,a[ka||k])}</td><td>${fv(k,b[ka||k])}</td><td class="l">${cmpMark(k,a[ka||k],b[ka||k])}</td></tr>`;
+  const xr=(lab,va,vb,d)=>`<tr><td class="l"><b>${lab}</b></td><td>${va==null?'—':Number(va).toFixed(d)+'배'}</td><td>${vb==null?'—':Number(vb).toFixed(d)+'배'}</td><td class="l">${(va>0&&vb>0)?cmpMark('psr',va,vb):''}</td></tr>`;
+  const pr=(lab,va,vb)=>`<tr><td class="l"><b>${lab}</b></td><td>${fpt(va)}</td><td>${fpt(vb)}</td><td class="l">${cmpMark('opm',va,vb)}</td></tr>`;
+  const mr=(lab,va,vb)=>`<tr><td class="l"><b>${lab}</b></td><td>${fw(va)}</td><td>${fw(vb)}</td><td class="l mu">${(va>0&&vb>0)?(va/vb>=1?(va/vb).toFixed(1)+'배':'1/'+(vb/va).toFixed(1)):''}</td></tr>`;
+  const hd=`<thead><tr><th class="l">지표</th><th>${esc(me.n)}</th><th>${esc(ot.n||o)}</th><th class="l">${esc(me.n)}이(가)</th></tr></thead>`;
+  h+=`<div class="two"><div class="cmpw"><table class="cmp ft" style="min-width:0">${hd}<tbody>
+    ${row('per')}${row('pbr')}${row('psr')}${xr('P/OP <small>시총÷영업이익</small>',a.por,b.por,1)}${(a.fper&&b.fper)?xr('선행 PER <small>증권사 추정</small>',a.fper,b.fper,1):''}
     </tbody></table></div>
-    <div class="cmpw"><table class="cmp ft"><thead><tr><th class="l">실적 <small>최근 4분기·억</small></th><th>매출</th><th>영업이익</th><th>영업이익률</th><th>순이익</th><th>순이익률</th></tr></thead><tbody>
-    <tr><td class="l"><b>${esc(me.n)}</b></td><td>${fw(me.rev)}</td><td>${fw(me.op)}</td><td>${fpt(me.opm)}</td><td>${fw(me.ni)}</td><td>${fpt(me.npm)}</td></tr>
-    <tr><td class="l"><b>${esc(ot.n||o)}</b> ${stg(ot.stage)}</td><td>${fw(ot.rev)}</td><td>${fw(ot.op)}</td><td>${fpt(ot.opm)}</td><td>${fw(ot.ni)}</td><td>${fpt(ot.npm)}</td></tr>
-    </tbody></table></div><div class="pm mu">비교 기준: ${BSL[p.bs]||'—'}</div>`;
+    <div class="cmpw"><table class="cmp ft" style="min-width:0">${hd}<tbody>
+    ${row('roe')}${row('opm')}${pr('순이익률',a.npm,b.npm)}${row('g',useNi?'순이익 성장률':'영업이익 성장률')}${row('roa')}${row('debt')}
+    </tbody></table></div>
+    <div class="cmpw"><table class="cmp ft" style="min-width:0"><thead><tr><th class="l">규모 <small>최근 4분기·억</small></th><th>${esc(me.n)}</th><th>${esc(ot.n||o)}</th><th class="l">배율</th></tr></thead><tbody>
+    ${mr('시총',a.cap,b.cap)}${mr('매출',a.rev,b.rev)}${mr('영업이익',a.op,b.op)}${mr('순이익',a.ni,b.ni)}
+    </tbody></table></div></div><div class="pm mu">PER·PBR·ROE 비교 기준: ${BSL[p.bs]||'—'}</div>`;
   if(dp){
-    h+=`<button class="tg" data-tg="1">왜 이 점수인가 · 근거 ${dp.ev.length}건 보기 ▾</button><div class="why"><dl>${DEF.criteria.map(k=>`<dt>${k.name} ${dp.score[k.id]==null?'—':dp.score[k.id]}</dt><dd>${esc(dp.why[k.id])}</dd>`).join('')}</dl>
+    h+=`<button class="tg" data-tg="1">왜 이 기업과 비교하나 · 근거 ${dp.ev.length}건 보기 ▾</button><div class="why"><dl>${DEF.criteria.map(k=>`<dt>${k.name} ${dp.score[k.id]==null?'—':dp.score[k.id]}</dt><dd>${esc(dp.why[k.id])}</dd>`).join('')}</dl>
       <ul class="ev">${dp.ev.map(evHtml).join('')}</ul></div>`;
   } else h+='<div class="pm mu">근거 불러오는 중…</div>';
   return h+'</div>';
@@ -299,23 +327,34 @@ function evHtml(e){
 function detail(x){
   const ps=(D.pairsOf[x.c]||[]).slice().sort((a,b)=>(a.g<b.g?-1:a.g>b.g?1:b.sum-a.sum));
   const dc=DEF?DEF.co[x.c]:null;
-  let h=`<div class="dh"><h3>${esc(x.n)} <span class="code">${x.c}</span></h3><span class="sg ${x.sig}">${SIG[x.sig]}</span>${x.score!=null&&x.sig!=='loss'?`<span class="m">점수 ${(x.score>0?'+':'')+x.score.toFixed(2)} · 근거 강도 ${conf(x.conf)}</span>`:''}
+  let h=`<div class="dh"><h3>${esc(x.n)} <span class="code">${x.c}</span></h3><span class="sg ${x.sig}" title="${SIGD[x.sig]||''}">${SIG[x.sig]}</span>${(x.disc!=null&&/per$/.test(x.sig)&&x.sig!=='noper')?`<span class="m">peer 대비 PER ${(x.disc>0?'+':'')+x.disc}%</span>`:''}${x.conf?`<span class="m">근거 강도 ${conf(x.conf)}</span>`:''}
     <span class="m">기준 ${BSL[x.basis]||'—'}${x.fs?' · '+(x.fs==='CFS'?'연결':'별도'):''}</span>
     <span class="m">${x.map?'<a class="tg" href="/semi.html">소부장 맵</a> · ':''}<a class="tg" href="/hege.html">국면 분류 메뉴</a></span>
     <a class="wsb" data-ws="1" href="/valws.html?c=${x.c}" title="이 기업을 밸류 워크시트에 넣고 그 메뉴로 이동">🧮 밸류 워크시트에서 열기 →</a></div>`;
   if(dc&&dc.main) h+=`<div class="pm" style="margin-bottom:8px"><b>주력 사업</b> ${esc(dc.main)}${dc.global?` · <b>해외 peer(자료에 실명)</b> ${dc.global.map(esc).join(', ')}`:''}</div>`;
   h+=`<div class="pm" style="margin-bottom:8px"><b>공정</b> ${stg(x.stage)}${(x.procs||[]).length?' '+x.procs.map(esc).join(' · '):''}</div>`;
+  h+=tagTiles(x);
   h+=finBlock(x);
   if(x.flags&&x.flags.length) h+=`<div class="warn">${x.flags.map(f=>'⚠ '+esc(f)).join('<br>')}</div>`;
   if(dc&&dc.nopeer) h+=`<div class="gb"><b>국내 상장 직접 peer 없음</b> — ${esc(dc.nopeer)}</div>`;
-  if(x.sig==='nopeer'&&ps.length) h+=`<div class="gb">A·B등급 peer가 없어 판정하지 않았습니다. 아래 C등급 쌍은 "흔히 같이 비교되지만 직접 비교하면 안 되는 이유"를 보여 주는 참고 자료입니다.</div>`;
+  if(x.sig==='nopeer'&&ps.length) h+=`<div class="gb">A·B등급 peer가 없어 꼬리표를 붙이지 않았습니다. 아래 C등급 쌍은 숫자만 나란히 놓은 것으로, "흔히 같이 비교되지만 직접 비교하면 안 되는 이유"를 보여 주는 참고 자료입니다.</div>`;
   if(ps.length){
     h+=`<div class="charts">${[['per','PER ↔ 이익 성장률'],['pbr','PBR ↔ ROE'],['psr','PSR ↔ 영업이익률']].map(([k,t])=>`<div class="ch"><h4>${t}</h4><div class="cs">오른쪽 아래일수록 체력 대비 쌈</div><svg id="sc_${k}" viewBox="0 0 400 260" role="img" aria-label="${t} 산점도"></svg></div>`).join('')}</div>
       <div class="leg"><span><i style="background:#d9480f"></i>${esc(x.n)}</span><span><i style="background:#2563eb"></i>A·B등급 peer</span><span><i style="background:#fff;border:1.5px dashed #98a2b3"></i>C등급(참고)</span><span class="mu">점에 마우스를 올리면 수치</span></div>`;
-    h+=`<h5>peer ${ps.length}쌍 — A·B등급이 판정 근거, C등급은 참고</h5>`+ps.map(p=>pairCard(p,x.c)).join('');
+    h+=`<h5>peer ${ps.length}쌍 — 직접 비교해 보세요 (꼬리표는 A·B등급 기준, C등급은 숫자 참고)</h5>`+ps.map(p=>pairCard(p,x.c)).join('');
   }
   if(DEF) for(const gid of x.gids||[]){ const g=DEF.groups.find(z=>z.id===gid), m=D.gm[gid]||{}; if(!g) continue;
     h+=`<div class="gb"><b>묶음: ${esc(g.name)}</b> (중앙값 PER ${fxt(m.per)} · PBR ${fxt(m.pbr,2)} · PSR ${fxt(m.psr,2)} — 등급과 무관한 참고)<br><b>왜 이 묶음인가</b> ${esc(g.basis)}<br><b>비교할 때 주의</b> ${esc(g.caution)}</div>`; }
+  return h;
+}
+// ───── peer 대비 한눈에: 지표별 내 값 · peer 중앙값 · 꼬리표
+function tagTiles(x){
+  const T=x.tags||{}, P=x.pm||{}; if(!Object.keys(T).length&&!(x.warn||[]).length) return '';
+  const val={per:x.sig==='loss'?null:x.per,pbr:x.pbr,psr:x.psr,roe:x.roe,opm:x.opm,g:x.gq,roa:x.roa,debt:x.debt};
+  let h=`<h5 style="margin-top:4px">A·B등급 peer 대비 한눈에</h5>`;
+  if((x.warn||[]).length) h+=`<div style="margin:4px 0 2px"><b style="font-size:12px;color:#92400e">저PER을 볼 때 주의</b> ${warns(x)}</div>`;
+  h+=`<div class="tiles">${TGK.map(k=>{ if(val[k]==null&&P[k]==null) return ''; const tag=(k==='per'&&x.sig==='loss')?null:T[k];
+    return `<div class="tile"><div class="k">${TG[k].n}${k==='g'?(x.gqk==='ni'?' <small>순이익</small>':' <small>영업이익</small>'):''}</div><div class="v">${fv(k,val[k])}</div><div class="p">peer ${fv(k,P[k])}</div>${chip(k,tag)||'<span class="tc">비교 불가</span>'}</div>`; }).join('')}</div>`;
   return h;
 }
 // ───── 실적 블록: 최근 4분기 vs 1년 전 표 + 분기 매출·영업이익 막대
@@ -400,7 +439,7 @@ document.addEventListener('mousemove',e=>{const g=e.target.closest&&e.target.clo
 function openCo(c, scroll){
   if(!D.co[c]) return;
   OPEN=c;
-  if(!rows().some(x=>x.c===c)){ CAT='all'; PH='all'; TOP=''; GRP=''; CAP=0; CF=0; STG=''; Q=''; $('q').value=''; $('top').value=''; $('cap').value='0'; $('cf').value='0'; $('stg').value=''; fillGrp(); syncBtns(); }
+  if(!rows().some(x=>x.c===c)){ CAT='all'; PH='all'; TOP=''; GRP=''; CAP=0; CF=0; STG=''; TAGF.clear(); document.querySelectorAll('button[data-t]').forEach(b=>b.classList.remove('on')); Q=''; $('q').value=''; $('top').value=''; $('cap').value='0'; $('cf').value='0'; $('stg').value=''; fillGrp(); syncBtns(); }
   render();
   if(scroll){ const tr=document.querySelector('tr.r[data-c="'+c+'"]'); if(tr) tr.scrollIntoView({block:'start',behavior:'smooth'}); }
   try{ history.replaceState(null,'','#'+c); }catch(e){}
@@ -413,9 +452,10 @@ document.addEventListener('click',e=>{
   if(e.target.closest('[data-ws]')) return;   // 밸류 워크시트로 이동하는 링크는 그대로 통과
   const go=e.target.closest('[data-go]'); if(go){ e.preventDefault(); openCo(go.dataset.go,true); return; }
   const tg=e.target.closest('[data-tg]'); if(tg){ const w=tg.nextElementSibling; w.classList.toggle('on'); tg.textContent=tg.textContent.replace(/[▾▴]/,w.classList.contains('on')?'▴':'▾'); return; }
+  const bt=e.target.closest('button[data-t]'); if(bt){ const t=bt.dataset.t; if(TAGF.has(t)) TAGF.delete(t); else TAGF.add(t); bt.classList.toggle('on',TAGF.has(t)); OPEN=null; render(); return; }
   const bc=e.target.closest('button[data-c]'); if(bc){ CAT=bc.dataset.c; OPEN=null; syncBtns(); render(); return; }
   const bp=e.target.closest('button[data-p]'); if(bp){ PH=bp.dataset.p; OPEN=null; syncBtns(); render(); return; }
-  const th=e.target.closest('#t th[data-k]'); if(th){ const k=th.dataset.k; if(SK===k) SA=-SA; else { SK=k; SA=(k==='n'||k==='per'||k==='pbr'||k==='psr'||k==='disc'||k==='fper'||k==='ph')?1:-1; } render(); return; }
+  const th=e.target.closest('#t th[data-k]'); if(th){ const k=th.dataset.k; if(SK===k) SA=-SA; else { SK=k; SA=(k==='n'||k==='per'||k==='pbr'||k==='psr'||k==='disc'||k==='fper'||k==='ph'||k==='debt')?1:-1; } render(); return; }
   if(e.target.closest('tr.d')) return;
   const tr=e.target.closest('tr.r'); if(tr){ const c=tr.dataset.c; if(OPEN===c){ OPEN=null; render(); try{history.replaceState(null,'',location.pathname);}catch(_){} } else openCo(c,false); }
 });

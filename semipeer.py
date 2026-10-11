@@ -323,9 +323,9 @@ def fwd_from_fy(fy, cap):
     return o
 
 # ───────── peer 대비 꼬리표(사실 표시) — 합산 점수는 만들지 않는다
-CHEAP = 0.9    # 멀티플·부채비율: peer의 90% 이하면 "낮음", 110% 이상이면 "높음"
+CHEAP = 0.9    # 멀티플(PER·PBR·PSR): peer의 90% 이하면 "낮음", 110% 이상이면 "높음"
 DEAR = 1.1
-TOL = {'roe': 1.0, 'opm': 1.0, 'roa': 1.0, 'g': 5.0}   # 이익 체력: peer와의 차이(%p)가 이 안이면 "비슷"
+TOL = {'roe': 1.0, 'opm': 1.0, 'roa': 1.0, 'g': 5.0, 'debt': 20.0}   # peer와의 차이(%p)가 이 안이면 "비슷" — 부채비율은 15% vs 11% 같은 작은 차이를 '고부채'로 부르지 않도록 20%p
 G_CAP = 300    # 성장률 비교 상한(%) — 흑자전환·기저효과로 부풀려진 성장률끼리는 우열을 가리지 않는다
 PER_MAX = 150  # PER이 이보다 크면 이익이 너무 작은 상태 — PER 비교에서 뺀다
 def tag_ratio(ratios):
@@ -341,12 +341,12 @@ def tag_diff(diffs, tol):
 def cmp_pair(mine, theirs):
     """한 쌍에서 지표별 (비율 또는 차이, 상대 값). mine/theirs는 같은 기준으로 맞춘 dict"""
     o = {}
-    for k in ('per', 'pbr', 'psr', 'debt'):
+    for k in ('per', 'pbr', 'psr'):
         a, b = mine.get(k), theirs.get(k)
         if a is None or b is None or a <= 0 or b <= 0: continue
         if k == 'per' and (a > PER_MAX or b > PER_MAX): continue
         o[k] = (a / b, b)
-    for k in ('roe', 'opm', 'roa'):
+    for k in ('roe', 'opm', 'roa', 'debt'):
         a, b = mine.get(k), theirs.get(k)
         if a is None or b is None: continue
         o[k] = (a - b, b)
@@ -524,10 +524,10 @@ def main():
         # 근거 강도: A등급 peer가 있고 peer가 둘 이상이면 3, A가 하나 있거나 B가 둘 이상이면 2, B 하나뿐이면 1
         r['conf'] = 3 if (A['nA'] >= 1 and A['nA'] + A['nB'] >= 2) else 2 if (A['nA'] >= 1 or A['nB'] >= 2) else 1
         tags = {}
-        for k in ('per', 'pbr', 'psr', 'debt'):
+        for k in ('per', 'pbr', 'psr'):
             t = tag_ratio(A['v'].get(k))
             if t: tags[k] = t
-        for k in ('roe', 'opm', 'roa', 'g'):
+        for k in ('roe', 'opm', 'roa', 'g', 'debt'):
             t = tag_diff(A['v'].get(k), TOL[k])
             if t: tags[k] = t
         r['tags'] = tags
@@ -564,7 +564,7 @@ def main():
     out = {'updated': NOW.strftime('%Y-%m-%d %H:%M'), 'price_updated': (load('stockvals.json', {}) or {}).get('updated'),
            'hege_q': hegj.get('asof_quarter'), 'fin_meta': fin_meta, 'n': len(co), 'n_ttm': nb, 'n_ttmn': nbn, 'count': cnt,
            'th': {'cheap': CHEAP, 'dear': DEAR, 'tol': TOL, 'gcap': G_CAP, 'permax': PER_MAX},
-           'rule': {'tag': 'A·B등급 peer와 쌍마다 비교해 (내 값 ÷ peer 값)의 중앙값이 0.9 이하면 낮음, 1.1 이상이면 높음(PER·PBR·PSR·부채비율). ROE·영업이익률·ROA는 1%p, 성장률은 5%p 넘게 차이 나면 높음/낮음',
+           'rule': {'tag': 'A·B등급 peer와 쌍마다 비교해 (내 값 ÷ peer 값)의 중앙값이 0.9 이하면 낮음, 1.1 이상이면 높음(PER·PBR·PSR). ROE·영업이익률·ROA는 1%p, 성장률은 5%p, 부채비율은 20%p 넘게 차이 나면 높음/낮음',
                     'per': '대표 표시는 PER 꼬리표 하나(저PER·비슷·고PER). 최근 4분기 영업적자·순손실이거나 PER 150배 초과면 붙이지 않음. 성장률은 300% 상한으로 비교',
                     'basis': 'TTM = DART 최근 4분기 합산(확인값). TTMN = 네이버(FnGuide) 최근 4분기 주당순이익·주당순자산(DART 수집 전 임시). FY0 = KIS 전년 확정 실적'},
            'co': co, 'pairs': pairs, 'groups': groups, 'fin': fin, 'fwd': fwd, 'prefcap': prefcap, 'nv': nv, 'corpmap': corpcache, 'debug': DEBUG[-40:]}

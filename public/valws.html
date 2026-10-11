@@ -577,7 +577,7 @@ function renderQ13(w,A,R,Q,HG,v){
   const E=(tag,how,src)=>tagH(evid(tag,how,src))+' '+lks(src,3);
   const items=[
     ['산업은 얼마나 성장하는가?', w.tam?esc(w.tam):'<span class="mini">TAM 미입력</span>', E(w.tamTag,w.tam,w.tamSrc), '시장 전체가 크고 있나 — 파이가 커야 회사도 큰다'],
-    ['회사는 산업보다 더 빨리 성장할 수 있는가?', (A.hg?`최근 분기 매출 YoY ${fp(A.hg.rg)} / 영익 ${fp(A.hg.og)} (${A.hg.ph}국면). `:'')+(w.thesis?esc(w.thesis):''), (A.hg?`<a class="lk" href="/hege.html" target="_blank">헤게모니 4국면(DART 분기)</a>`:'')+' '+lks(w.visSrc,2), '시장보다 빨리 크면 점유율을 뺏는 중 — 그 이유(독점·기술·고객)가 가설'],
+    ['회사는 산업보다 더 빨리 성장할 수 있는가?', (A.hg?`최근 분기 매출 YoY ${fp(A.hg.rg)} / 영익 ${fp(A.hg.og)} (${A.hg.ph}국면). `:'')+(w.thesis?esc(w.thesis):''), (A.hg?`<a class="lk" href="/hege.html" target="_blank">헤게모니 국면 분류 보기(DART 분기)</a>`:'')+' '+lks(w.visSrc,2), '시장보다 빨리 크면 점유율을 뺏는 중 — 그 이유(독점·기술·고객)가 가설'],
     ['실제 Q가 증가할 근거는?', R.prods.map(p=>`${esc(p.name)}: <b>${esc(p.qB)} ${esc(p.unit)}</b>${p.qHow||p.memo?`<br><span class="mini">공식: ${esc(p.qHow||p.memo)}</span>`:''}`).join('<br>')+(vis.length?`<br>가시성: ${vis.join('·')}`:''), R.prods.map(p=>`${esc(p.name).slice(0,10)} ${tagH(EVq(p))} ${lks(p.qSrc,3)}`).join('<br>'), '몇 개를 파나 — 계약·수주·고객 투자처럼 눈에 보이는 근거가 있어야 확인'],
     ['ASP는 유지·상승·하락 중?', R.prods.filter(p=>AUNITS[p.aUnit||'억원']!==null).map(p=>`${esc(p.name)}: <b>${esc(p.aB)}${esc(p.aUnit)}</b> (Bear ${esc(p.aR)}·Stress ${esc(p.aS)})${p.aHow?`<br><span class="mini">공식: ${esc(p.aHow)}</span>`:''}`).join('<br>')||'<span class="mini">단가 행 없음(매출직접)</span>', R.prods.filter(p=>AUNITS[p.aUnit||'억원']!==null).map(p=>`${esc(p.name).slice(0,10)} ${tagH(EVa(p))} ${lks(p.aSrc,3)}`).join('<br>'), '하나에 얼마 받나 — 비공개면 "매출÷수량"으로 역산하고 식을 남김'],
     ['Q×ASP로 향후 매출은?', `${esc(w.year)} Base <b>${f0(B.rev)}억</b> (Bear ${f0(Rr.rev)} · Stress ${f0(S.rev)})${A.cRev?` · 컨센 ${A.fy1.slice(0,4)}E ${f0(A.cRev)}억`:''}`, `공식: Σ(Q×ASP) + 기타매출 · 컨센 <a class="lk" href="${NAV(w.code)}" target="_blank">네이버</a>`, '수량 × 단가를 제품마다 곱해 더한 것 — 증권사 숫자와 비교'],
@@ -639,7 +639,7 @@ async function openWs(code){
   else if(WS[code].draft&&!WS[code].draft.v4){ const keep=WS[code].snaps||[]; WS[code]=makeDraft(code); WS[code].snaps=keep; fresh=true; } // v4 이전 초안은 공식·링크 형식으로 재생성
   if(fresh&&WS[code].draft&&WS[code].prods[0]&&num(WS[code].prods[0].qB)!=null){ draftPer(code,WS[code]); }
   const {A}=renderAuto(code);
-  document.getElementById('wsTitle').innerHTML=`${esc(A.name)} <span class="mini">${code}</span>`;
+  document.getElementById('wsTitle').innerHTML=`${esc(A.name)} <span class="mini">${code}</span> <a class="lk" id="spLink" href="/semipeer.html#${code}" style="font-size:12px;font-weight:600;margin-left:8px;display:none">⚖️ peer 상대밸류에서 보기</a>`; updSpLink();
   document.getElementById('ws').style.display='';
   renderInputs(code); renderOut(code); save();
   const w=WS[code]; const dn=document.getElementById('draftNote');
@@ -700,8 +700,16 @@ document.getElementById('impf').onchange=e=>{ const f=e.target.files[0]; if(!f) 
   }
   for(const c of (AUTO.codes||[])) if(!WS[c]) WS[c]=blank(c);
   renderList(); save();
-  const first=Object.keys(WS)[0]; if(first) openWs(first);
+  // 다른 메뉴(반도체 peer 상대밸류 등)에서 넘어온 종목: /valws.html?c=200710 또는 #200710 → 바로 열고 목록에 추가
+  const qc=linkCode();
+  if(qc){ document.getElementById('q').value=qc; await openWs(qc); renderList(); }
+  else { const first=Object.keys(WS)[0]; if(first) openWs(first); }
 })();
+let SPC=null;   // 반도체 peer 상대밸류 대상 종목(있을 때만 되돌아가기 링크 표시)
+function updSpLink(){ const a=document.getElementById('spLink'); if(a) a.style.display=(SPC&&CUR&&SPC[CUR])?'':'none'; }
+fetchJ('/data/semipeer.json').then(j=>{ SPC=(j&&j.co)||{}; updSpLink(); }).catch(()=>{});
+function linkCode(){ let c=''; try{ c=new URLSearchParams(location.search).get('c')||''; }catch(e){} if(!c) c=(location.hash||'').replace('#',''); c=c.trim(); return /^\d{6}$/.test(c)?c:''; }
+window.addEventListener('hashchange',async()=>{ const c=linkCode(); if(c&&c!==CUR){ document.getElementById('q').value=c; await openWs(c); renderList(); } });
 </script>
 </body>
 </html>

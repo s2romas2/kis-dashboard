@@ -233,7 +233,7 @@ function render(){
     const dc=x.disc==null?'<span class="mu">—</span>':'<span class="'+(x.disc<0?'pos':'neg')+'" title="A·B등급 peer PER 중앙값 '+fxt(x.peer_per)+' 대비">'+(x.disc>0?'+':'')+x.disc+'%</span>';
     h+=`<tr class="r${OPEN===x.c?' open':''}" data-c="${x.c}">
       <td class="l"><span class="nm">${esc(x.n)}</span><span class="code">${x.c}</span><a class="wsl" data-ws="1" href="/valws.html?c=${x.c}" title="밸류 워크시트에서 열기">🧮</a><span class="tl">${stg(x.stage)}${x.seg?'<span class="tag">'+esc(x.seg)+'</span>':''}${PURE[x.pure]||''}</span></td>
-      <td><span class="sg ${x.sig}">${SIG[x.sig]||x.sig}</span>${x.score!=null?' <span class="mu">'+(x.score>0?'+':'')+x.score.toFixed(1)+'</span>':''}</td>
+      <td><span class="sg ${x.sig}">${SIG[x.sig]||x.sig}</span>${x.score!=null&&x.sig!=='loss'?' <span class="mu">'+(x.score>0?'+':'')+x.score.toFixed(1)+'</span>':''}</td>
       <td>${conf(x.conf)}</td><td class="l">${phCell(x)}</td><td>${fcap(x.cap)}</td><td>${fw(x.rev)}</td><td>${fw(x.op)}</td><td>${fw(x.ni)}</td>
       <td>${fx(x.per)}</td><td>${dc}</td><td title="${x.gqk==='ni'?'순이익 성장률(최근 4분기 vs 1년 전)':'영업이익 성장률(최근 4분기 vs 1년 전)'}">${fgh(x.gq)}${x.gq!=null&&x.gqk==='op'?'<small class="mu"> 영익</small>':''}</td>
       <td>${fx(x.pbr,2)}</td><td>${fp(x.roe)}</td><td>${fx(x.psr,2)}</td><td>${fp(x.opm)}</td><td>${fx(x.fper)}</td>
@@ -299,9 +299,9 @@ function evHtml(e){
 function detail(x){
   const ps=(D.pairsOf[x.c]||[]).slice().sort((a,b)=>(a.g<b.g?-1:a.g>b.g?1:b.sum-a.sum));
   const dc=DEF?DEF.co[x.c]:null;
-  let h=`<div class="dh"><h3>${esc(x.n)} <span class="code">${x.c}</span></h3><span class="sg ${x.sig}">${SIG[x.sig]}</span>${x.score!=null?`<span class="m">점수 ${(x.score>0?'+':'')+x.score.toFixed(2)} · 근거 강도 ${conf(x.conf)}</span>`:''}
+  let h=`<div class="dh"><h3>${esc(x.n)} <span class="code">${x.c}</span></h3><span class="sg ${x.sig}">${SIG[x.sig]}</span>${x.score!=null&&x.sig!=='loss'?`<span class="m">점수 ${(x.score>0?'+':'')+x.score.toFixed(2)} · 근거 강도 ${conf(x.conf)}</span>`:''}
     <span class="m">기준 ${BSL[x.basis]||'—'}${x.fs?' · '+(x.fs==='CFS'?'연결':'별도'):''}</span>
-    <span class="m">${x.map?'<a class="tg" href="/semi.html">소부장 맵</a> · ':''}<a class="tg" href="/hege.html">4국면</a></span>
+    <span class="m">${x.map?'<a class="tg" href="/semi.html">소부장 맵</a> · ':''}<a class="tg" href="/hege.html">국면 분류 메뉴</a></span>
     <a class="wsb" data-ws="1" href="/valws.html?c=${x.c}" title="이 기업을 밸류 워크시트에 넣고 그 메뉴로 이동">🧮 밸류 워크시트에서 열기 →</a></div>`;
   if(dc&&dc.main) h+=`<div class="pm" style="margin-bottom:8px"><b>주력 사업</b> ${esc(dc.main)}${dc.global?` · <b>해외 peer(자료에 실명)</b> ${dc.global.map(esc).join(', ')}`:''}</div>`;
   h+=`<div class="pm" style="margin-bottom:8px"><b>공정</b> ${stg(x.stage)}${(x.procs||[]).length?' '+x.procs.map(esc).join(' · '):''}</div>`;

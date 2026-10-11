@@ -525,7 +525,8 @@ def main():
         # 근거 강도: A등급 peer가 있고 peer가 둘 이상이면 3, A가 하나 있거나 B가 둘 이상이면 2, B 하나뿐이면 1
         r['conf'] = 3 if (A['nA'] >= 1 and A['nA'] + A['nB'] >= 2) else 2 if (A['nA'] >= 1 or A['nB'] >= 2) else 1
         loss = (r.get('op') is not None and r['op'] <= 0) or (r.get('basis') == 'TTM' and r.get('ni') is not None and r['ni'] <= 0)
-        if loss: r['sig'] = 'loss'      # 적자 기업은 "싸다"는 판정을 내리지 않는다
+        thin = bool(r.get('per') and r['per'] > PER_MAX)     # 흑자지만 이익이 0에 가까움(PER 150배↑) — 적자 peer보다 PBR·PSR이 낮다는 이유로 "싸다"고 하지 않는다
+        if loss or thin: r['sig'] = 'loss'      # 적자·이익 미미 기업은 "싸다/비싸다" 판정을 내리지 않는다
         else: r['sig'] = 'under2' if sc >= 2 else 'under1' if sc >= 1 else 'over2' if sc <= -2 else 'over1' if sc <= -1 else 'mid'
 
     # 6) 그룹 중앙값(참고 — 등급과 무관하게 같은 묶음 전체)
@@ -543,7 +544,7 @@ def main():
     out = {'updated': NOW.strftime('%Y-%m-%d %H:%M'), 'price_updated': (load('stockvals.json', {}) or {}).get('updated'),
            'hege_q': hegj.get('asof_quarter'), 'fin_meta': fin_meta, 'n': len(co), 'n_ttm': nb, 'n_ttmn': nbn, 'count': cnt,
            'rule': {'cheap': '멀티플이 10% 이상 낮을 때만 "싸다"로 봄', 'tol': '성장률 5%p·ROE 1%p·영업이익률 1%p 이내는 같은 것으로 봄. 성장률은 300%를 상한으로 비교, PER 150배 초과는 PER 비교 제외',
-                    'score': 'A·B등급 쌍마다 PER·PBR·PSR 세 짝에서 (이긴 수 − 진 수)를 구해 가중 평균(A 1.0, B 0.6). +2↑ 저밸류 후보 / +1↑ 약한 저밸류 / −1↓ 약한 고밸류 / −2↓ 고밸류 주의. 최근 4분기 영업적자·순손실이면 판정 보류',
+                    'score': 'A·B등급 쌍마다 PER·PBR·PSR 세 짝에서 (이긴 수 − 진 수)를 구해 가중 평균(A 1.0, B 0.6). +2↑ 저밸류 후보 / +1↑ 약한 저밸류 / −1↓ 약한 고밸류 / −2↓ 고밸류 주의. 최근 4분기 영업적자·순손실이거나 PER 150배 초과(이익 미미)면 판정 보류',
                     'basis': 'TTM = DART 최근 4분기 합산(확인값). TTMN = 네이버(FnGuide) 최근 4분기 주당순이익·주당순자산(DART 수집 전 임시). FY0 = KIS 전년 확정 실적'},
            'co': co, 'pairs': pairs, 'groups': groups, 'fin': fin, 'fwd': fwd, 'prefcap': prefcap, 'nv': nv, 'corpmap': corpcache, 'debug': DEBUG[-40:]}
     # 빈 결과 가드: 시세가 붙은 종목이 기존의 1/3 미만이면 덮어쓰지 않는다

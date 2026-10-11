@@ -10,7 +10,8 @@
 #   선행(증권사 추정): peg.json(소부장 맵) / 그 밖은 네이버 컨센서스(FnGuide)
 #   국면·분기 추이: hege.json (투자의 定石 헤게모니 4국면, 최근 8분기 매출·영업이익)
 #   공정 구분   : semipeer_def.json의 stage(전공정·후공정·전후·공통 인프라·칩 제조·설계·모듈유통)
-#   비교 3쌍    : PER ↔ 순이익 성장률 · PBR ↔ ROE · PSR ↔ 영업이익률  (+ 보조: P/OP ↔ 영업이익 성장률)
+#   표시 방식   : 합산 점수 없이 "사실 꼬리표"만 — 대표는 peer 대비 저PER/비슷/고PER, 그 밖에 PBR·PSR·ROE·영업이익률·성장률·ROA·부채비율을
+#                 각각 peer(A·B등급) 중앙값과 비교해 낮음/비슷/높음으로 표시한다. 판단은 사용자가 한다.
 #   기준(basis) 우선순위: TTM = DART 최근 4분기(확인값) > TTMN = 네이버(FnGuide) 최근 4분기 주당순이익·주당순자산(DART 수집 전 임시·교차확인용)
 #                        > FY0 = KIS 전년 확정 실적. 쌍 비교는 두 기업이 함께 가진 가장 좋은 기준으로 맞춘다.
 #   DART 고유번호 파일(corpCode.xml)이 점검 중일 때를 대비해 tools/semipeer/dartcorp.json(종목코드→고유번호)을 시드로 쓴다.
@@ -29,6 +30,7 @@ UA = {'User-Agent': 'Mozilla/5.0'}
 CTX = ssl.create_default_context(); CTX.check_hostname = False; CTX.verify_mode = ssl.CERT_NONE
 KST = datetime.timezone(datetime.timedelta(hours=9)); NOW = datetime.datetime.now(KST); TODAY = NOW.date()
 EOK = 1e8
+FIN_VER = 2      # 재무 캐시 형식 버전(2: 자산총계·부채총계 추가) — 바뀌면 다음 실행에서 DART를 다시 받는다
 SEED_CORP = os.environ.get('SEED_CORP', 'tools/semipeer/dartcorp.json')
 DEBUG = []
 # 우선주가 따로 상장된 기업: 보통주 시총만 쓰면 PER·PBR이 낮게 나오므로 우선주 시총을 더한다
@@ -101,7 +103,7 @@ def acct_key(nm, sj):
     """주요계정 이름 → (키, 우선순위). 낮을수록 우선."""
     nm = (nm or '').replace(' ', '')
     if sj == 'BS':
-        return ('eq', 0) if nm == '자본총계' else (None, 9)
+        return {'자본총계': ('eq', 0), '자산총계': ('as', 0), '부채총계': ('li', 0)}.get(nm, (None, 9))
     if nm in REV_PRI: return ('rev', REV_PRI[nm])
     if nm.startswith('매출액') or nm.startswith('수익(매출'): return ('rev', 6)
     if nm in ('영업이익', '영업이익(손실)'): return ('op', 0)
@@ -118,7 +120,7 @@ def parse_multi(rows, year, q, store):
         key, pri = acct_key(r.get('account_nm'), sj)
         if key is None or not corp: continue
         amt = tonum(r.get('thstrm_amount')); add = tonum(r.get('thstrm_add_amount'))
-        if key == 'eq': cum = amt
+        if key in ('eq', 'as', 'li'): cum = amt
         elif q == 4: cum = amt
         else: cum = add if add is not None else amt          # 분기·반기보고서 손익: 누적(add) 우선 (1분기는 3개월 = 누적)
         if cum is None: continue
@@ -156,6 +158,8 @@ def ttm_from(store_corp, y, q):
         eq = g(y, q, 'eq'); eq0 = g(y - 1, q, 'eq')
         out['eq'] = None if eq is None else eq / EOK
         out['eq_prev'] = None if eq0 is None else eq0 / EOK
+        for k in ('as', 'li'):                                   # 자산총계·부채총계(기말) — ROA·부채비율용
+            v = g(y, q, k); out[k] = None if v is None else v / EOK
         if ok >= 2 and out['rev'] is not None and out['rev'] > 0:
             return out
     return None
@@ -221,6 +225,11 @@ def collect_fin(codes, prev_fin, prev_corp=None):
         t = ttm_from(store.get(corpmap[c], {}), y, q)
         if not t: continue
         t['asof'] = asof; t['src'] = 'DART'
+        pf = prev_fin.get(c) or {}                              # ② 결과는 같은 분기면 다시 받지 않는다(종목당 3콜 절약)
+        if pf.get('asof') == asof and pf.get('fs') == t['fs'] and (pf.get('b') or 'ni_p' in pf):
+            for k in ('ni_p', 'eq_p'):
+                if k in pf: t[k] = pf[k]
+            t['b'] = 1
         fin[c] = t; n_ok += 1
     log('① 주요계정 TTM 산출 %d종목 (호출 %d, %ds)' % (n_ok, calls, time.time() - T0))
     # ② 지배주주 몫 — 연결 재무제표를 쓰는 종목만
@@ -228,6 +237,9 @@ def collect_fin(codes, prev_fin, prev_corp=None):
         for c in todo:
             t = fin.get(c)
             if not t or t.get('asof') != asof or t.get('fs') != 'CFS': continue
+            if t.get('b'):
+                if 'ni_p' in t: n_p += 1
+                continue
             corp = corpmap[c]; got = {}
             for (yy, qq) in ([(y, 4)] if q == 4 else [(y, q), (y - 1, 4), (y - 1, q)]):
                 r = dart_full(corp, yy, qq); calls += 1; time.sleep(0.2)
@@ -235,6 +247,7 @@ def collect_fin(codes, prev_fin, prev_corp=None):
                 if r is None: got = None; break
                 got[(yy, qq)] = r
             if quota: log('DART 한도 초과 — 지배주주 몫 수집 중단'); break
+            t['b'] = 1
             if not got: continue
             if q == 4: nip = got[(y, 4)].get('ni_p')
             else:
@@ -252,7 +265,7 @@ def collect_fin(codes, prev_fin, prev_corp=None):
         log('② 지배주주 순이익 산출 %d종목 (누적 호출 %d, %ds)' % (n_p, calls, time.time() - T0))
     if n_ok < max(10, len(todo) // 3):
         log('DART 산출 종목이 너무 적음(%d) — 이전 재무 캐시 유지' % n_ok); return prev_fin, None, corpmap
-    return fin, {'asof': asof, 'calls': calls, 'ok': n_ok, 'ctrl': n_p, 'quota': quota, 'date': TODAY.isoformat()}, {c: corpmap[c] for c in codes if c in corpmap}
+    return fin, {'asof': asof, 'calls': calls, 'ok': n_ok, 'ctrl': n_p, 'quota': quota, 'date': TODAY.isoformat(), 'ver': FIN_VER}, {c: corpmap[c] for c in codes if c in corpmap}
 
 # ───────── 네이버(증권사 추정·우선주 시총) — 선행 지표는 "증권사 추정" 태그로만 표시
 def naver_consensus(code):
@@ -309,33 +322,38 @@ def fwd_from_fy(fy, cap):
     o['cagr2'] = rnd(((ni2 / ni0) ** 0.5 - 1) * 100, 1) if (ni0 and ni0 > 0 and ni2 and ni2 > 0) else None
     return o
 
-# ───────── 쌍 비교
-TESTS = [  # (id, 멀티플 키, 체력 키, 체력 허용오차(%p))
-    ('per', 'per', 'g_ni', 5.0),
-    ('pbr', 'pbr', 'roe', 1.0),
-    ('psr', 'psr', 'opm', 1.0),
-    ('por', 'por', 'g_op', 5.0),   # 보조: 영업외손익 왜곡 점검용 — 판정 점수에는 넣지 않음
-]
-CHEAP = 0.9   # 10% 이상 싸야 "싸다"
+# ───────── peer 대비 꼬리표(사실 표시) — 합산 점수는 만들지 않는다
+CHEAP = 0.9    # 멀티플·부채비율: peer의 90% 이하면 "낮음", 110% 이상이면 "높음"
+DEAR = 1.1
+TOL = {'roe': 1.0, 'opm': 1.0, 'roa': 1.0, 'g': 5.0}   # 이익 체력: peer와의 차이(%p)가 이 안이면 "비슷"
 G_CAP = 300    # 성장률 비교 상한(%) — 흑자전환·기저효과로 부풀려진 성장률끼리는 우열을 가리지 않는다
-PER_MAX = 150  # PER이 이보다 크면 이익이 너무 작은 상태 — PER 짝은 계산 불가로 둔다
-def one_test(x, y, mk, qk, tol):
-    """x 입장에서: 'win' 싸고 체력도 같거나 좋음 / 'lose' 반대 / 'disc' 싸지만 체력이 약함(할인 이유 있음) /
-       'prem' 비싸지만 체력이 좋음(프리미엄 이유 있음) / 'par' 멀티플 비슷 /
-       'neg' 싼 쪽의 체력이 0 이하(적자·역성장)라 저평가로 보지 않음 / 'na' 계산 불가"""
-    mx, my, qx, qy = x.get(mk), y.get(mk), x.get(qk), y.get(qk)
-    if mx is None or my is None or mx <= 0 or my <= 0: return 'na'
-    if mk == 'per' and max(mx, my) > PER_MAX: return 'na'      # 이익이 0에 가까워 PER이 폭등한 쪽이 있으면 비교하지 않는다
-    if qx is None or qy is None:
-        return 'par' if (CHEAP <= mx / my <= 1 / CHEAP) else 'na'
-    if qk in ('g_ni', 'g_op', 'q'): qx, qy = min(qx, G_CAP), min(qy, G_CAP)   # 300% 넘는 성장률은 기저효과 — 그 이상은 같은 것으로 본다
-    if mx <= my * CHEAP:
-        if qx < 0 or (qk in ('roe', 'opm') and qx <= 0): return 'neg'
-        return 'win' if qx >= qy - tol else 'disc'
-    if my <= mx * CHEAP:
-        if qy < 0 or (qk in ('roe', 'opm') and qy <= 0): return 'neg'
-        return 'lose' if qy >= qx - tol else 'prem'
-    return 'par'
+PER_MAX = 150  # PER이 이보다 크면 이익이 너무 작은 상태 — PER 비교에서 뺀다
+def tag_ratio(ratios):
+    """내 값 ÷ peer 값의 중앙값으로 낮음/비슷/높음"""
+    if not ratios: return None
+    m = statistics.median(ratios)
+    return 'low' if m <= CHEAP else 'high' if m >= DEAR else 'mid'
+def tag_diff(diffs, tol):
+    """내 값 − peer 값(%p)의 중앙값으로 높음/비슷/낮음"""
+    if not diffs: return None
+    m = statistics.median(diffs)
+    return 'high' if m >= tol else 'low' if m <= -tol else 'mid'
+def cmp_pair(mine, theirs):
+    """한 쌍에서 지표별 (비율 또는 차이, 상대 값). mine/theirs는 같은 기준으로 맞춘 dict"""
+    o = {}
+    for k in ('per', 'pbr', 'psr', 'debt'):
+        a, b = mine.get(k), theirs.get(k)
+        if a is None or b is None or a <= 0 or b <= 0: continue
+        if k == 'per' and (a > PER_MAX or b > PER_MAX): continue
+        o[k] = (a / b, b)
+    for k in ('roe', 'opm', 'roa'):
+        a, b = mine.get(k), theirs.get(k)
+        if a is None or b is None: continue
+        o[k] = (a - b, b)
+    gk = 'g_ni' if (mine.get('g_ni') is not None and theirs.get('g_ni') is not None) else 'g_op'
+    a, b = mine.get(gk), theirs.get(gk)
+    if a is not None and b is not None: o['g'] = (min(a, G_CAP) - min(b, G_CAP), b)
+    return o
 
 def main():
     DEF = load('semipeer_def.json')
@@ -350,7 +368,7 @@ def main():
 
     # 1) 재무 캐시
     fin = prev.get('fin') or {}; fin_meta = prev.get('fin_meta') or {}; corpcache = prev.get('corpmap') or {}
-    need = REFRESH or not fin_meta.get('date')
+    need = REFRESH or not fin_meta.get('date') or fin_meta.get('ver') != FIN_VER
     if not need:
         try: need = (TODAY - datetime.date.fromisoformat(fin_meta['date'])).days >= FIN_TTL_DAYS
         except Exception: need = True
@@ -429,6 +447,8 @@ def main():
                          rnd(ni / eq * 100, 1) if eq > 0 else None]      # ROE = 최근 4분기 순이익 ÷ 기말 자본
             r['npm'] = rnd(ni / rev * 100, 1) if rev and rev > 0 else None
             r['g_ni'] = rnd(growth(ni_tot, f.get('ni_prev')), 1)
+            if f.get('as') and ni_tot is not None: r['roa'] = rnd(ni_tot / f['as'] * 100, 1)        # 연결 순이익 전체 ÷ 자산총계
+            if f.get('li') is not None and f.get('eq'): r['debt'] = rnd(f['li'] / f['eq'] * 100, 0)   # 부채총계 ÷ 자본총계
             if 'ni_p' in f and ni_tot: r['ctrl'] = rnd(ni / ni_tot * 100, 0)
             elif f.get('fs') == 'CFS': r['flags'].append('지배주주 몫 미확인 — 연결 순이익 전체(비지배지분 포함) 기준')
             if ni <= 0: r['flags'].append('최근 4분기 순손실 — PER 계산 불가')
@@ -475,59 +495,59 @@ def main():
         if r.get('ctrl') is not None and r['ctrl'] < 85: r['flags'].append('비지배지분 몫 %d%% 제외(지배주주 순이익 기준)' % (100 - r['ctrl']))
         co[c] = r
 
-    # 4) 쌍 비교
-    W = {'A': 1.0, 'B': 0.6}
-    pairs = []; agg = {c: {'w': 0.0, 's': 0.0, 'nA': 0, 'nB': 0, 'nC': 0, 'pers': [], 'ratios': [], 'peers': []} for c in codes}
+    # 4) 쌍 비교 — A·B등급 peer에 대해서만 지표별 비율·차이를 모은다(C등급은 화면에서 숫자만 나란히 보여 준다)
+    pairs = []; agg = {c: {'nA': 0, 'nB': 0, 'nC': 0, 'v': {}, 'pm': {}} for c in codes}
     for p in DEF['pairs']:
         a, b, g = p['a'], p['b'], p['grade']
         x, y = co.get(a) or {}, co.get(b) or {}
         bx, by = x.get('bv') or {}, y.get('bv') or {}
-        bs = next((b for b in ('TTM', 'TTMN', 'FY0') if b in bx and b in by), None)
-        def at(r, b):
-            if not b or 'bv' not in r: return r
-            v = r['bv'][b]; return dict(r, per=v[0], pbr=v[1], roe=v[2], g_ni=(r.get('g_ni') if b == 'TTM' else None))
+        bs = next((k for k in ('TTM', 'TTMN', 'FY0') if k in bx and k in by), None)
+        def at(r, k):
+            if not k or 'bv' not in r: return r
+            v = r['bv'][k]; return dict(r, per=v[0], pbr=v[1], roe=v[2], g_ni=(r.get('g_ni') if k == 'TTM' else None))
         fx, fy_ = at(x, bs), at(y, bs)
-        res = {}
-        for tid, mk, qk, tol in TESTS:
-            # 순이익 성장률이 없으면(FY0 기준) PER 짝은 영업이익 성장률로 대신한다
-            q2 = 'g_op' if (tid == 'per' and (fx.get('g_ni') is None or fy_.get('g_ni') is None)) else qk
-            res[tid] = one_test(fx, fy_, mk, q2, tol)
-        # 선행 PER ↔ 2년 CAGR (양쪽 다 추정이 있을 때만, 참고)
-        fa, fb = x.get('fwd') or {}, y.get('fwd') or {}
-        if fa.get('per_f12') and fb.get('per_f12'):
-            ga = fa.get('cagr2') if fa.get('cagr2') is not None else fa.get('g1'); gb = fb.get('cagr2') if fb.get('cagr2') is not None else fb.get('g1')
-            res['fwd'] = one_test({'m': fa['per_f12'], 'q': ga}, {'m': fb['per_f12'], 'q': gb}, 'm', 'q', 5.0)
-        core = [res[t] for t in ('per', 'pbr', 'psr')]
-        nval = sum(1 for t in core if t != 'na')
-        sa = sum(1 for t in core if t == 'win') - sum(1 for t in core if t == 'lose')
         capr = None
         if x.get('cap') and y.get('cap'): capr = max(x['cap'], y['cap']) / min(x['cap'], y['cap'])
-        pairs.append({'a': a, 'b': b, 'g': g, 'sum': p['sum'], 'gid': p['gid'], 'bs': bs, 'res': res, 'sa': sa, 'nv': nval, 'capr': rnd(capr, 1)})
-        for me, other, s in ((a, b, sa), (b, a, -sa)):
+        pairs.append({'a': a, 'b': b, 'g': g, 'sum': p['sum'], 'gid': p['gid'], 'bs': bs, 'capr': rnd(capr, 1)})
+        for me, mine, theirs in ((a, fx, fy_), (b, fy_, fx)):
             A = agg[me]; A['n' + g] += 1
-            if g in W and nval > 0:
-                A['w'] += W[g]; A['s'] += W[g] * s
-                mine, theirs = (fx, fy_) if me == a else (fy_, fx)
-                if theirs.get('per') and 0 < theirs['per'] <= PER_MAX:
-                    A['pers'].append(theirs['per'])
-                    if mine.get('per') and 0 < mine['per'] <= PER_MAX: A['ratios'].append(mine['per'] / theirs['per'])
-                A['peers'].append(other)
+            if g not in ('A', 'B') or 'cap' not in mine or 'cap' not in theirs: continue
+            for k, (v, pv) in cmp_pair(mine, theirs).items():
+                A['v'].setdefault(k, []).append(v); A['pm'].setdefault(k, []).append(pv)
 
-    # 5) 종목 판정
+    # 5) 종목별 꼬리표 — PER 꼬리표가 대표 표시(sig), 나머지는 독립 꼬리표
     for c in codes:
         r = co[c]; A = agg[c]
         r['nA'], r['nB'], r['nC'] = A['nA'], A['nB'], A['nC']
         if 'cap' not in r: r['sig'] = 'nodata'; continue
-        if A['pers']: r['peer_per'] = rnd(statistics.median(A['pers']))
-        if A['ratios']: r['disc'] = rnd((statistics.median(A['ratios']) - 1) * 100, 0)      # 쌍마다 같은 기준으로 맞춘 PER 비율의 중앙값
-        if A['w'] <= 0: r['sig'] = 'nopeer'; continue
-        sc = A['s'] / A['w']; r['score'] = rnd(sc, 2)
+        if A['nA'] + A['nB'] == 0: r['sig'] = 'nopeer'; continue
         # 근거 강도: A등급 peer가 있고 peer가 둘 이상이면 3, A가 하나 있거나 B가 둘 이상이면 2, B 하나뿐이면 1
         r['conf'] = 3 if (A['nA'] >= 1 and A['nA'] + A['nB'] >= 2) else 2 if (A['nA'] >= 1 or A['nB'] >= 2) else 1
-        loss = (r.get('op') is not None and r['op'] <= 0) or (r.get('basis') == 'TTM' and r.get('ni') is not None and r['ni'] <= 0)
-        thin = bool(r.get('per') and r['per'] > PER_MAX)     # 흑자지만 이익이 0에 가까움(PER 150배↑) — 적자 peer보다 PBR·PSR이 낮다는 이유로 "싸다"고 하지 않는다
-        if loss or thin: r['sig'] = 'loss'      # 적자·이익 미미 기업은 "싸다/비싸다" 판정을 내리지 않는다
-        else: r['sig'] = 'under2' if sc >= 2 else 'under1' if sc >= 1 else 'over2' if sc <= -2 else 'over1' if sc <= -1 else 'mid'
+        tags = {}
+        for k in ('per', 'pbr', 'psr', 'debt'):
+            t = tag_ratio(A['v'].get(k))
+            if t: tags[k] = t
+        for k in ('roe', 'opm', 'roa', 'g'):
+            t = tag_diff(A['v'].get(k), TOL[k])
+            if t: tags[k] = t
+        r['tags'] = tags
+        r['pm'] = {k: rnd(statistics.median(v), 1 if k in ('roe', 'opm', 'roa', 'g', 'debt') else 2) for k, v in A['pm'].items() if v}
+        if A['v'].get('per'): r['disc'] = rnd((statistics.median(A['v']['per']) - 1) * 100, 0)   # 쌍마다 같은 기준으로 맞춘 PER 비율의 중앙값
+        loss = (r.get('op') is not None and r['op'] <= 0) or (r.get('basis') == 'TTM' and r.get('ni') is not None and r['ni'] <= 0) or r.get('per') is None
+        thin = bool(r.get('per') and r['per'] > PER_MAX)
+        if loss or thin: r['sig'] = 'loss'                  # 적자·이익 미미 — PER 꼬리표를 붙이지 않는다
+        elif 'per' not in tags: r['sig'] = 'noper'          # peer 쪽이 적자·이익 미미라 PER을 비교할 수 없음
+        else: r['sig'] = {'low': 'lowper', 'mid': 'midper', 'high': 'highper'}[tags['per']]
+        # 저PER을 그대로 믿기 전에 볼 것(짧은 경고 코드 — 화면에서 문구로 풀어 쓴다)
+        w = []
+        gq = r.get('g_ni') if r.get('g_ni') is not None else r.get('g_op')
+        if gq is not None and gq >= G_CAP: w.append('peak')                                   # 이익 급증(흑전·300%↑) — 호황 정점일 수 있음
+        if r.get('ni') and r.get('op') and r['op'] > 0 and r['ni'] / r['op'] > 1.3: w.append('nonop')   # 영업외 이익 영향
+        if r.get('ph') in (3, 4): w.append('ph34')                                              # 3·4국면
+        if r['conf'] == 1: w.append('one')                                                      # 비교 상대가 B등급 하나뿐
+        if r.get('pure') == 'low': w.append('pure')                                             # 반도체 비중 작음
+        if any('교차확인' in f for f in r['flags']): w.append('xchk')                             # DART vs 네이버 PER 20%↑ 차이
+        r['warn'] = w
 
     # 6) 그룹 중앙값(참고 — 등급과 무관하게 같은 묶음 전체)
     groups = []
@@ -543,8 +563,9 @@ def main():
     nb = sum(1 for r in co.values() if r.get('basis') == 'TTM'); nbn = sum(1 for r in co.values() if r.get('basis') == 'TTMN')
     out = {'updated': NOW.strftime('%Y-%m-%d %H:%M'), 'price_updated': (load('stockvals.json', {}) or {}).get('updated'),
            'hege_q': hegj.get('asof_quarter'), 'fin_meta': fin_meta, 'n': len(co), 'n_ttm': nb, 'n_ttmn': nbn, 'count': cnt,
-           'rule': {'cheap': '멀티플이 10% 이상 낮을 때만 "싸다"로 봄', 'tol': '성장률 5%p·ROE 1%p·영업이익률 1%p 이내는 같은 것으로 봄. 성장률은 300%를 상한으로 비교, PER 150배 초과는 PER 비교 제외',
-                    'score': 'A·B등급 쌍마다 PER·PBR·PSR 세 짝에서 (이긴 수 − 진 수)를 구해 가중 평균(A 1.0, B 0.6). +2↑ 저밸류 후보 / +1↑ 약한 저밸류 / −1↓ 약한 고밸류 / −2↓ 고밸류 주의. 최근 4분기 영업적자·순손실이거나 PER 150배 초과(이익 미미)면 판정 보류',
+           'th': {'cheap': CHEAP, 'dear': DEAR, 'tol': TOL, 'gcap': G_CAP, 'permax': PER_MAX},
+           'rule': {'tag': 'A·B등급 peer와 쌍마다 비교해 (내 값 ÷ peer 값)의 중앙값이 0.9 이하면 낮음, 1.1 이상이면 높음(PER·PBR·PSR·부채비율). ROE·영업이익률·ROA는 1%p, 성장률은 5%p 넘게 차이 나면 높음/낮음',
+                    'per': '대표 표시는 PER 꼬리표 하나(저PER·비슷·고PER). 최근 4분기 영업적자·순손실이거나 PER 150배 초과면 붙이지 않음. 성장률은 300% 상한으로 비교',
                     'basis': 'TTM = DART 최근 4분기 합산(확인값). TTMN = 네이버(FnGuide) 최근 4분기 주당순이익·주당순자산(DART 수집 전 임시). FY0 = KIS 전년 확정 실적'},
            'co': co, 'pairs': pairs, 'groups': groups, 'fin': fin, 'fwd': fwd, 'prefcap': prefcap, 'nv': nv, 'corpmap': corpcache, 'debug': DEBUG[-40:]}
     # 빈 결과 가드: 시세가 붙은 종목이 기존의 1/3 미만이면 덮어쓰지 않는다

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # 구독 블로거 글 수집 — RSS로 새 글 확인 → 모바일 PostView에서 본문·이미지 추출
 # 블로거 추가: public/blogkeys.json 에 {"id": "블로그ID"} 추가만 하면 됨 (닉네임은 RSS에서 자동)
+# 추천 글 고정: {"id": ..., "pin": ["https://blog.naver.com/ID/글번호"]} — RSS(최근 글)에 없는 옛 글도 한 번 받아서 계속 보관
 import json, re, time, html, urllib.request, sys, os
 
 OUT = 'public/data/blogs.json'
@@ -40,10 +41,23 @@ def clean_par(p_html):
     s = re.sub(r'<span>([\s\S]*?)</span>', r'\1', s)  # 스타일 없는 span 벗기기
     return s.replace('​', '').strip()
 
-def fetch_body(link):
+def page_meta(h):
+    """글 페이지에서 제목·게시일(고정 글용 — RSS에 없는 글)"""
+    t = re.search(r'<meta[^>]+property="og:title"[^>]+content="([^"]*)"', h) or re.search(r'<title>([^<]*)</title>', h)
+    title = html.unescape(t.group(1)).strip() if t else ''
+    title = re.sub(r'\s*[:|]\s*네이버\s*블로그\s*$', '', title)
+    d = (re.search(r'(?:blog_date|se_publishDate|se_date)[^>]*>\s*(20\d{2})\.\s*(\d{1,2})\.\s*(\d{1,2})', h)
+         or re.search(r'(20\d{2})\.\s*(\d{1,2})\.\s*(\d{1,2})\.\s*\d{1,2}:\d{2}', h))
+    date = '%s-%02d-%02d' % (d.group(1), int(d.group(2)), int(d.group(3))) if d else ''
+    return title, date
+
+def fetch_body(link, meta=None):
     """모바일 PostView를 문서 순서대로 파싱 → blocks(문단·이미지 원래 순서, 서식 보존), body(검색용), imgs"""
     u = link.split('?')[0].replace('blog.naver.com', 'm.blog.naver.com')
     h = get(u)
+    if meta is not None:
+        try: meta['t'], meta['d'] = page_meta(h)
+        except Exception: pass
     blocks = []  # {'t':'p','x','h'} | {'t':'img','u'} | {'t':'file','u','nm'} — 문서 순서 유지
     matches = []
     for m in re.finditer(r"se-text-paragraph[^>]*>([\s\S]*?)</p>", h):
@@ -130,6 +144,8 @@ def main():
         cur['name'] = name
         cur['sec'] = b.get('sec', '종합')  # 블로거 주력 분야(산업 필터용)
         known = {p['u'] for p in cur['posts']}
+        normal = [p for p in cur['posts'] if not p.get('pin')]
+        oldest = min((p['d'] for p in normal), default='') if len(normal) >= MAX_POSTS else ''
         items = re.findall(r'<item>([\s\S]*?)</item>', x)
         new_cnt = 0
         fresh = []
@@ -145,11 +161,6 @@ def main():
                 continue
             if new_cnt >= NEW_FETCH_CAP:
                 break
-            try:
-                body, imgs, blocks = fetch_body(link)
-            except Exception as e:
-                DEBUG.append('%s 본문 실패 %s: %s' % (bid, link[-12:], str(e)[:40]))
-                continue
             # 날짜: RFC822 → YYYY-MM-DD
             date = ''
             if d:
@@ -159,6 +170,13 @@ def main():
                     date = dt.strftime('%Y-%m-%d')
                 except Exception:
                     date = d.group(1)[:16]
+            if oldest and re.fullmatch(r'\d{4}-\d{2}-\d{2}', date) and date < oldest:
+                continue   # 보관 한도(MAX_POSTS)가 찬 뒤에는, 어차피 잘려 나갈 옛 글을 매번 다시 받지 않는다
+            try:
+                body, imgs, blocks = fetch_body(link)
+            except Exception as e:
+                DEBUG.append('%s 본문 실패 %s: %s' % (bid, link[-12:], str(e)[:40]))
+                continue
             tags = sorted({name_ for name_, code in stocks
                            if name_ in t.group(1) or name_ in body[:4000]})[:6]
             fresh.append({'t': html.unescape(t.group(1)).strip(), 'u': link, 'd': date,
@@ -166,9 +184,28 @@ def main():
                           'body': body, 'imgs': imgs, 'blocks': blocks, 'tags': tags})
             new_cnt += 1
             time.sleep(0.6)
-        cur['posts'] = sorted(fresh + cur['posts'], key=lambda p: p['d'], reverse=True)[:MAX_POSTS]
+        # 고정(추천) 글: RSS에 없어도 한 번 받아 두고, 보관 한도와 상관없이 유지
+        pins = [u.split('?')[0] for u in (b.get('pin') or [])]
+        pin_new = 0
+        for link in pins:
+            hit = next((p for p in fresh + cur['posts'] if p['u'].split('?')[0] == link), None)
+            if hit: hit['pin'] = True; continue
+            try:
+                meta = {}
+                body, imgs, blocks = fetch_body(link, meta)
+                tags = sorted({name_ for name_, code in stocks if name_ in (meta.get('t') or '') or name_ in body[:4000]})[:6]
+                fresh.append({'t': meta.get('t') or '추천 글', 'u': link, 'd': meta.get('d') or '', 'cat': '', 'body': body,
+                              'imgs': imgs, 'blocks': blocks, 'tags': tags, 'pin': True})
+                pin_new += 1; time.sleep(0.6)
+            except Exception as e:
+                DEBUG.append('%s 고정 글 실패 %s: %s' % (bid, link[-12:], str(e)[:40]))
+        allp = fresh + cur['posts']
+        for p in allp:
+            if p.get('pin') and p['u'].split('?')[0] not in pins: p.pop('pin', None)   # 목록에서 뺀 고정 글은 일반 글로
+        keep = sorted([p for p in allp if not p.get('pin')], key=lambda p: p['d'], reverse=True)[:MAX_POSTS]
+        cur['posts'] = sorted(keep + [p for p in allp if p.get('pin')], key=lambda p: p['d'], reverse=True)
         bloggers[bid] = cur
-        DEBUG.append('%s(%s) 신규 %d · 보관 %d' % (bid, name, new_cnt, len(cur['posts'])))
+        DEBUG.append('%s(%s) 신규 %d%s · 보관 %d' % (bid, name, new_cnt, (' · 고정 %d' % pin_new) if pin_new else '', len(cur['posts'])))
 
     out = {'updated': time.strftime('%Y-%m-%d %H:%M'), 'debug': DEBUG, 'bloggers': bloggers}
     os.makedirs('public/data', exist_ok=True)

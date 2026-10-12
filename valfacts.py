@@ -13,7 +13,7 @@
 import os, sys, json, time, re, io, zipfile, datetime, html, threading, urllib.request, urllib.parse, ssl
 from concurrent.futures import ThreadPoolExecutor
 
-VER = 2
+VER = 3
 KEY = os.environ.get('DART_API_KEY') or os.environ.get('DART_KEY') or ''
 OUTDIR = os.environ.get('OUTDIR', 'public/data/vf')
 IDX = os.environ.get('IDX', 'public/data/valfacts_idx.json')
@@ -90,6 +90,8 @@ def ddoc(rcept):
     _throttle(GAP)
     try:
         b = fetch('%s/document.xml?crtfc_key=%s&rcept_no=%s' % (BASE, KEY, rcept), 90, 2)
+        if b[:2] != b'PK':   # zip이 아니면 DART가 '원문 없음' 등을 돌려준 것 — 네트워크 실패가 아니므로 재시도하지 않는다
+            FAILRUN[0] = 0; log('원문 없음 %s %s' % (rcept, b[:120].decode('utf-8', 'ignore').replace('\n', ' '))); return {}
         z = zipfile.ZipFile(io.BytesIO(b)); out = {}
         for n in z.namelist():
             raw = z.read(n)
@@ -164,7 +166,7 @@ def contracts(corp, old, months=30):
         else:
             try: raws = ddoc(rc)
             except DartFail: partial = True; break   # 받은 데까지만 저장하고 다음 실행에서 이어감
-            if not raws: continue
+            if not raws: d['perr'] = '원문 없음'; docs[rc] = d; continue
             try: d.update(parse_contract(max(raws.values(), key=len)))
             except Exception as e: d['perr'] = repr(e)[:80]
         docs[rc] = d
@@ -310,7 +312,11 @@ def periodic(rows_a):
 
 # ───────── ③ 경영진·지배구조
 CORP_PAT = re.compile(r'\(주\)|㈜|주식회사|유한회사|재단|조합|펀드|투자|홀딩스|\bInc\b|Ltd|LLC|Corp|CO\.|은행|증권|자산운용|공단|연금', re.I)
-KID = re.compile(r'자녀|^자$|子|女|아들|딸|손자|손녀|손주|직계비속|^제$|^매$')
+KID = re.compile(r'자녀|子|女|아들|딸|손자|손녀|손주|직계비속|(의|주)자$|^자$|\(자\)|장남|차남|장녀|차녀')
+SELF = re.compile(r'^(본인|최대주주|최대주주본인|본인\(.*\)|최대주주\(본인\))$')
+FAMILY = re.compile(r'자녀|子|女|아들|딸|배우자|부인|남편|姉|누나|동생|친인척|친족|혈족|인척|사위|며느리|조카|손자|손녀|손주|직계|모친|부친|장남|차남|장녀|차녀|(의|주)자$|^(자|처|형|제|매|부|모)$|\(자\)')
+AMBIG = re.compile(r'^(최대주주의?)?특수관계(인|자)?$')   # 가족인지 임원인지 표기만으로는 알 수 없는 경우
+PERSON = re.compile(r'^[가-힣]{2,4}$')
 def governance(corp, latest, annual):
     g = {}
     y_a = annual[1] if annual else TODAY.year - 1
@@ -326,7 +332,7 @@ def governance(corp, latest, annual):
             if pct is not None: total = pct
             continue
         if pct is None: continue
-        is_corp = bool(CORP_PAT.search(nm)); self_ = rel in ('본인', '최대주주')
+        is_corp = bool(CORP_PAT.search(nm)) or not PERSON.match(nm); self_ = bool(SELF.match(rel))
         keep = self_ or is_corp or re.search(r'임원|계열|관계회사|법인|재단', rel)
         holders.append({'nm': nm if keep else '(' + rel + ')', 'rel': rel, 'pct': pct, 'corp': is_corp, 'self': self_, 'kid': bool(KID.search(rel)) and not is_corp})
     holders.sort(key=lambda x: -x['pct'])
@@ -364,8 +370,8 @@ def governance(corp, latest, annual):
     fam = []
     for x in r:
         rel = re.sub(r'\s+', '', x.get('mxmm_shrholdr_relate') or ''); by = re.search(r'(\d{4})', x.get('birth_ym') or '')
-        if rel == '본인' and by and 'top_birth' not in g: g['top_birth'] = int(by.group(1)); g['top_pos'] = re.sub(r'\s+', '', x.get('ofcps') or '')
-        elif rel and rel not in ('-', '본인', '해당없음', '없음', '해당사항없음', '임원', '등기임원', '계열회사임원', '계열사임원'):
+        if SELF.match(rel) and by and 'top_birth' not in g: g['top_birth'] = int(by.group(1)); g['top_pos'] = re.sub(r'\s+', '', x.get('ofcps') or '')
+        elif rel and (FAMILY.search(rel) or AMBIG.match(rel)) and not re.search(r'임원|계열|회사|법인|직원', rel):
             fam.append({'rel': rel, 'pos': re.sub(r'\s+', '', x.get('ofcps') or ''), 'reg': re.sub(r'\s+', '', x.get('rgist_exctv_at') or ''), 'by': int(by.group(1)) if by else None})
     if r: g['exec_n'] = len(r)
     if fam: g['fam'] = fam[:8]
@@ -402,15 +408,17 @@ def decisions(corp):
     for o in out: o['d'] = ymd((o.get('rc') or '')[:8])
     out.sort(key=lambda x: x.get('rc') or '', reverse=True)
     return out
-def majors(corp, top_nm):
+def majors(corp, top_nm, hsum=None):
     best = {}
     for x in api('majorstock', corp_code=corp):
         nm = re.sub(r'\s+', '', x.get('repror') or ''); d = x.get('rcept_dt') or ''
         if nm not in best or d > best[nm]['d']:
             best[nm] = {'nm': nm, 'pct': tonum(x.get('stkrt')), 'd': d, 'why': _txt(x.get('report_resn') or '')[:40], 'rc': x.get('rcept_no')}
-    out = [v for k, v in best.items() if v['pct'] and v['pct'] >= 5 and k != re.sub(r'\s+', '', top_nm or '') and v['d'] >= (TODAY - datetime.timedelta(days=365 * 3)).isoformat()]
+    tn = re.sub(r'\s+', '', top_nm or '')
+    out = [v for k, v in best.items() if v['pct'] and v['pct'] >= 5 and not (tn and (tn in k or tn in v['why'])) and not (hsum and v['pct'] >= hsum - 3)
+           and '담보' not in v['why'] and v['d'] >= (TODAY - datetime.timedelta(days=365 * 3)).isoformat()]
     for v in out:
-        if not CORP_PAT.search(v['nm']): v['nm'] = '(개인 5% 주주)'
+        if PERSON.match(v['nm']): v['nm'] = '(개인 5% 주주)'
     return sorted(out, key=lambda x: -x['pct'])[:6]
 
 # ───────── ④ 자동 점검 규칙
@@ -420,11 +428,13 @@ def flags(g, dec, maj, con, news):
     pays = [d['payout'] for d in div if d.get('payout') is not None and (d.get('ni') or 0) > 0]
     prof = [d for d in div if (d.get('ni') or 0) > 0]
     txt = ' · '.join('%d년 %s' % (d['y'], ('%.1f%%' % d['payout']) if d.get('payout') is not None else '무배당') for d in div if d.get('ni') is not None)
-    if prof and not pays and all(not d.get('dps') for d in prof):
-        add('bad', '배당', '흑자인데 배당 없음 (%s)' % txt, rc=a_rc)
+    ind0 = (g.get('pay') or {}).get('ind') or []
+    payr = (ind0[0]['amt'] / div[0]['tot'] * 100) if (ind0 and div and div[0].get('tot')) else None
+    if len(prof) >= 2 and all(not d.get('dps') for d in prof):
+        add('warn', '배당', '흑자인데 배당 없음 (%s)' % txt, rc=a_rc)
     elif pays:
         avg = sum(pays) / len(pays)
-        if avg < 5: add('bad', '배당', '배당성향 매우 낮음 — %s (흑자 연도 평균 %.1f%%)' % (txt, avg), rc=a_rc)
+        if avg < 5: add('bad' if (payr or 0) >= 50 else 'warn', '배당', '배당성향 매우 낮음 — %s (흑자 연도 평균 %.1f%%)' % (txt, avg), rc=a_rc)
         elif avg < 10: add('warn', '배당', '배당성향 낮음 — %s (평균 %.1f%%)' % (txt, avg), rc=a_rc)
         elif avg >= 25: add('ok', '배당', '배당성향 %s (평균 %.1f%%)' % (txt, avg), rc=a_rc)
         else: add('info', '배당', '배당성향 %s (평균 %.1f%%)' % (txt, avg), rc=a_rc)
@@ -445,16 +455,31 @@ def flags(g, dec, maj, con, news):
                 add('info', '자녀 지분', '자녀 등 %d명 합 %.2f%% (최대주주 %.2f%%%s)' % (g.get('kid_n') or 0, kid, top['pct'], ', %d년생' % by if by else ''), rc=g.get('h_rc'))
         if g.get('hsum') is not None and g['hsum'] < 20: add('info', '지배력', '최대주주·특수관계인 합 %.2f%% — 지분이 낮아 경영권 분쟁·주주행동에 열려 있음' % g['hsum'], rc=g.get('h_rc'))
     if g.get('fam'):
-        add('info', '가족 임원', '최대주주 특수관계인 임원 %d명: %s' % (len(g['fam']), ', '.join('%s(%s%s)' % (x['pos'], '%d년생·' % x['by'] if x.get('by') else '', x['reg']) for x in g['fam'][:4])), rc=a_rc)
+        add('info', '친족·특수관계인 임원', '최대주주의 친족·특수관계인으로 표기된 임원 %d명: %s' % (len(g['fam']), ', '.join('%s(%s%s)' % (x['pos'], '%d년생·' % x['by'] if x.get('by') else '', x['reg']) for x in g['fam'][:4])), rc=a_rc)
     cut = (TODAY - datetime.timedelta(days=730)).isoformat()
-    for d in dec:
-        if (d.get('d') or '') < cut: continue
-        if d['k'] == '자기주식 처분 결정':
-            add('warn', '자기주식 처분', '%s %s주%s%s, %s — 소각 아님. 목적: %s' % (d['d'], '{:,.0f}'.format(d.get('qty') or 0), ' · 주당 {:,.0f}원'.format(d['prc']) if d.get('prc') else '', ' · %.1f억' % d['amt'] if d.get('amt') else '', d.get('how') or '', d.get('why') or '-'), rc=d.get('rc'))
-        elif d['lv'] == 'ok':
-            add('ok', d['k'], '%s%s%s' % (d['d'], ' · %.0f억' % d['amt'] if d.get('amt') else '', ' · ' + d['why'] if d.get('why') else ''), rc=d.get('rc'))
-        else:
-            add('warn', '희석', '%s %s%s%s' % (d['d'], d['k'], ' %.0f억' % d['amt'] if d.get('amt') else '', ' · 발행주식 대비 %s%%' % d['vs'] if d.get('vs') and d['vs'] != '-' else ''), rc=d.get('rc'))
+    rec = [d for d in dec if (d.get('d') or '') >= cut]
+    tot = lambda L: sum(d.get('amt') or 0 for d in L)
+    COMP = re.compile(r'직원|성과급|상여|보상|스톡옵션|주식매수선택권|사외이사|독립이사|우리사주|보수|RSU|근속|복지')
+    dsp = [d for d in rec if d['k'] == '자기주식 처분 결정']
+    ebd = set(d['d'] for d in rec if d['k'].startswith('교환사채'))
+    comp = [d for d in dsp if COMP.search(d.get('why') or '')]
+    ebs = [d for d in dsp if d not in comp and (d['d'] in ebd or '교환사채' in (d.get('why') or ''))]
+    sale = [d for d in dsp if d not in comp and d not in ebs]
+    if sale:   # 소각이 아닌 외부 매각(블록딜·장내 등) — 건별이 아니라 한 줄로 묶는다
+        d = sale[0]
+        add('warn', '자기주식 매각', '최근 2년 %d건·합 %.0f억 — 소각이 아닌 매각. 최근: %s %s주%s%s, %s · 목적: %s' % (len(sale), tot(sale), d['d'], '{:,.0f}'.format(d.get('qty') or 0), ' · 주당 {:,.0f}원'.format(d['prc']) if d.get('prc') else '', ' · %.1f억' % d['amt'] if d.get('amt') else '', d.get('how') or '', d.get('why') or '-'), rc=d.get('rc'))
+    if comp:
+        add('info', '자기주식 임직원 지급', '최근 2년 %d건·합 %.0f억 (성과급·스톡옵션·이사 보수 등 보상용 처분, 최근 %s)' % (len(comp), tot(comp), comp[0]['d']), rc=comp[0].get('rc'))
+    dil = [d for d in rec if d['lv'] == 'warn' and d['k'] != '자기주식 처분 결정']
+    if dil:
+        kinds = {}
+        for d in dil: kinds.setdefault(d['k'].split('(')[0].replace(' 발행', '').replace(' 결정', ''), []).append(d)
+        d = dil[0]
+        add('warn', '희석·자금조달', '최근 2년 ' + ' · '.join('%s %d건 %.0f억' % (k, len(v), tot(v)) for k, v in kinds.items()) + ' — 최근: %s %s%s%s%s' % (d['d'], d['k'], ' %.0f억' % d['amt'] if d.get('amt') else '', ' · 발행주식 대비 %s%%' % d['vs'] if d.get('vs') and d['vs'] != '-' else '', ' · ' + d['how'] if d.get('how') else '') + (' (자기주식을 대상으로 한 교환사채 포함)' if ebs else ''), rc=d.get('rc'))
+    acq = [d for d in rec if d['lv'] == 'ok']
+    if acq:
+        d = acq[0]; forcomp = all(COMP.search(x.get('why') or '') for x in acq)
+        add('info' if forcomp else 'ok', '자기주식 취득', '최근 2년 %d건·합 %.0f억 (최근 %s%s)' % (len(acq), tot(acq), d['d'], ' · 목적: ' + d['why'] if d.get('why') else '') + (' — 임직원 보상용이라 주주환원으로 보기는 어려움' if forcomp else ''), rc=d.get('rc'))
     t = g.get('tstk') or {}
     if t.get('ret'): add('ok', '자기주식 소각', '%d 사업연도 %s주 소각' % (g.get('a_y') or 0, '{:,.0f}'.format(t['ret'])), rc=a_rc)
     if (t.get('pct') or 0) >= 5 and not t.get('ret'): add('info', '자기주식 보유', '발행주식의 %.1f%% 보유 · 소각 이력(직전 사업연도) 없음' % t['pct'], rc=a_rc)
@@ -465,10 +490,10 @@ def flags(g, dec, maj, con, news):
         if d.get('ncorr', 0) >= 2: add('info', '계약 정정 반복', '%s %s — 정정 %d회(%s)' % (d.get('cd') or d['first'], (d.get('item') or '')[:24], d['ncorr'], ', '.join(d.get('reasons') or [])[:40]), rc=d.get('rc'))
     if (con or {}).get('sum', {}).get('cancel'): add('warn', '계약 해지', '공급계약 해지 공시 %d건' % len(con['sum']['cancel']), rc=con['sum']['cancel'][0]['rc'])
     kc = (news or {}).get('kc') or {}
-    for b, lv, th in (('사고·제재', 'bad', 1), ('승계·증여', 'warn', 1), ('주주행동', 'warn', 2), ('보수·주총', 'warn', 3), ('소송·분쟁', 'info', 1), ('희석·자금조달', 'info', 2), ('지배구조·경영권', 'info', 2), ('주주환원', 'info', 3)):
+    for b, lv, th in (('사고·제재', 'warn', 1), ('승계·증여', 'warn', 1), ('주주행동', 'warn', 2), ('보수·주총', 'warn', 3), ('소송·분쟁', 'info', 1), ('희석·자금조달', 'info', 2), ('지배구조·경영권', 'info', 2), ('주주환원', 'info', 3)):
         if kc.get(b, 0) >= th:
             ex = next((x['t'] for x in news['items'] if b in x['b']), '')
-            add(lv, '뉴스: ' + b, '최근 1년 관련 기사 %d건 — 예: "%s" (사실 여부는 기사·공시로 확인 필요)' % (kc[b], ex[:60]), tag='보도')
+            add(lv, '뉴스: ' + b, '최근 1년 관련 기사 %d건%s (사실 여부는 기사·공시로 확인 필요)' % (kc[b], ' — 예: "%s"' % ex[:60] if ex else ''), tag='보도')
     order = {'bad': 0, 'warn': 1, 'info': 2, 'ok': 3}
     f.sort(key=lambda x: order.get(x['lv'], 9))
     return f
@@ -555,9 +580,8 @@ def load_reports():
 def one(code, name, corp, old, rpts):
     full = FULL or not old or old.get('v') != VER or bool(old.get('inc')) or (int(code) + TODAY.toordinal()) % 7 == 0
     o = {'v': VER, 'code': code, 'name': name, 'corp': corp, 'at': NOW.strftime('%Y-%m-%d %H:%M')}
-    same = bool(old) and old.get('v') == VER   # 형식이 바뀌면 DART 구간은 새로 받는다(뉴스·컨센서스는 이어 씀)
-    for k in ('con', 'biz', 'biz_src', 'gov', 'dec', 'maj', 'full_at'):
-        if same and k in old: o[k] = old[k]
+    for k in ('con', 'biz', 'biz_src', 'gov', 'dec', 'maj', 'full_at'):   # 받지 못하면 기존 값을 지킨다(버전이 달라지면 full=True로 다시 받음)
+        if old and k in old: o[k] = old[k]
     for k in ('news', 'annual', 'rpt'):
         if old and k in old: o[k] = old[k]
     inc = []
@@ -582,11 +606,11 @@ def one(code, name, corp, old, rpts):
             if latest is None and 'gov' not in o: raise DartFail('정기공시 목록 없음')
             rec = [] if full else api('list', corp_code=corp, bgn_de=(TODAY - datetime.timedelta(days=10)).strftime('%Y%m%d'), end_de=TODAY.strftime('%Y%m%d'), page_count=100)
             hot = any(re.search(r'자기주식|전환사채|신주인수권|교환사채|유상증자|대량보유|최대주주', r.get('report_nm') or '') for r in rec)
-            if full or newrep or 'gov' not in o:
-                g = governance(corp, latest, annual); d = decisions(corp); m = majors(corp, ((g.get('holders') or [{}])[0]).get('nm'))
+            if full or newrep or 'gov' not in o or (old or {}).get('v') != VER:
+                g = governance(corp, latest, annual); d = decisions(corp); m = majors(corp, next((h['nm'] for h in g.get('holders') or [] if h.get('self')), ((g.get('holders') or [{}])[0]).get('nm')), g.get('hsum'))
                 o['gov'] = g; o['dec'] = d; o['maj'] = m; o['full_at'] = TODAY.isoformat()
             elif hot:
-                d = decisions(corp); m = majors(corp, ((o['gov'].get('holders') or [{}])[0]).get('nm'))
+                d = decisions(corp); m = majors(corp, next((h['nm'] for h in o['gov'].get('holders') or [] if h.get('self')), ((o['gov'].get('holders') or [{}])[0]).get('nm')), o['gov'].get('hsum'))
                 o['dec'] = d; o['maj'] = m
         except DartFail: inc.append('gov')
     if inc: o['inc'] = inc; STAT['inc'] += 1
@@ -595,6 +619,13 @@ def one(code, name, corp, old, rpts):
     if rpts.get(code): o['rpt'] = rpts[code]
     return o
 def finish(o):
+    g = o.get('gov') or {}; tn = next((h['nm'] for h in g.get('holders') or [] if h.get('self')), ''); hs = g.get('hsum')
+    for h in g.get('holders') or []:
+        h['self'] = bool(SELF.match(h.get('rel') or '')); h['kid'] = bool(KID.search(h.get('rel') or '')) and not h.get('corp')
+    if g.get('holders'):
+        g['kid_pct'] = round(sum(h['pct'] for h in g['holders'] if h['kid']), 2); g['kid_n'] = sum(1 for h in g['holders'] if h['kid'])
+    if g.get('fam'): g['fam'] = [x for x in g['fam'] if (FAMILY.search(x['rel']) or AMBIG.match(x['rel'])) and not re.search(r'임원|계열|회사|법인|직원', x['rel'])]
+    if o.get('maj'): o['maj'] = [m for m in o['maj'] if not (tn and tn in (m.get('why') or '')) and not (hs and m['pct'] >= hs - 3) and '담보' not in (m.get('why') or '')]
     o['flags'] = flags(o.get('gov') or {}, o.get('dec') or [], o.get('maj') or [], o.get('con'), o.get('news'))
     return o
 def idx_row(o):
@@ -630,7 +661,7 @@ def main():
     if any(c not in corpmap for c in codes) and KEY and not STAT['limit']:
         try:
             import xml.etree.ElementTree as ET
-            z = zipfile.ZipFile(io.BytesIO(fetch(BASE + '/corpCode.xml?crtfc_key=' + KEY, 90)))
+            z = zipfile.ZipFile(io.BytesIO(fetch(BASE + '/corpCode.xml?crtfc_key=' + KEY, 60, 1)))
             for el in ET.fromstring(z.read(z.namelist()[0])).iter('list'):
                 scd = (el.findtext('stock_code') or '').strip()
                 if scd in names: corpmap.setdefault(scd, el.findtext('corp_code'))
@@ -648,7 +679,10 @@ def main():
     def work(c):
         if left() < 120: return
         try:
-            done[c] = one(c, names[c], corpmap.get(c), olds[c], rpts)
+            o = one(c, names[c], corpmap.get(c), olds[c], rpts)
+            done[c] = o
+            tmp = dict(o); finish(tmp)
+            json.dump(tmp, open('%s/%s.json' % (OUTDIR, c), 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
         except Exception as e:
             STAT['err'] += 1; log('종목 실패 %s %r' % (c, str(e)[:120]))
     def news_loop():

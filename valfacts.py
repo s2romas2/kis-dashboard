@@ -493,6 +493,7 @@ def name_hit(name, title):
     return bool(re.search(r'(?<![가-힣A-Za-z0-9])' + re.escape(name) + r'(?=' + PART + r'|$)', title))
 def news(name, old):
     if NEWS_FAIL[0] >= 4: return old
+    if old and old.get('at') == TODAY.isoformat(): return old
     seen = {x['t']: x for x in (old or {}).get('items') or []}
     after = (TODAY - datetime.timedelta(days=365)).isoformat()
     for q in (Q1, Q2):
@@ -617,7 +618,16 @@ def main():
             if not names[c]: names[c] = hn.get(c) or c
     except Exception: pass
     codes = [c for c in names if not ONLY or c in ONLY]
-    if any(c not in corpmap for c in codes) and KEY:
+    # GitHub 러너에 따라 OpenDART가 아예 응답하지 않는 경우가 있다(같은 시각 다른 러너는 정상) → 먼저 한 번 찔러 보고, 안 되면 이번 러너에서는 DART를 건너뛴다
+    if KEY:
+        ok = False
+        for i in range(2):
+            try:
+                json.loads(fetch('%s/list.json?%s' % (BASE, urllib.parse.urlencode(dict(crtfc_key=KEY, corp_code='00126380', bgn_de=(TODAY - datetime.timedelta(days=5)).strftime('%Y%m%d'), end_de=TODAY.strftime('%Y%m%d'), page_count=1))), 20, 1).decode('utf-8')); ok = True; break
+            except Exception as e:
+                log('DART 연결 점검 실패 %d회 %r' % (i + 1, str(e)[:60])); time.sleep(8)
+        if not ok: STAT['limit'] = True; STAT['dart_down'] = True; log('이 러너에서는 OpenDART에 연결되지 않음 → DART 구간은 건너뛰고 뉴스·컨센서스만 갱신(다음 시도에서 이어감)')
+    if any(c not in corpmap for c in codes) and KEY and not STAT['limit']:
         try:
             import xml.etree.ElementTree as ET
             z = zipfile.ZipFile(io.BytesIO(fetch(BASE + '/corpCode.xml?crtfc_key=' + KEY, 90)))
@@ -663,6 +673,12 @@ def main():
         json.dump(o, open('%s/%s.json' % (OUTDIR, c), 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
         idx[c] = idx_row(o)
     json.dump({'updated': NOW.strftime('%Y-%m-%d %H:%M'), 'n': len(idx), 'stat': STAT, 'debug': DEBUG[-60:], 'map': idx}, open(IDX, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
+    need = sum(1 for c in codes if not (done.get(c) or olds.get(c)) or (done.get(c) or olds.get(c) or {}).get('inc') or c not in done)
+    finished = '1' if (KEY and not STAT['limit'] and need == 0) else '0'
+    try:
+        if os.environ.get('GITHUB_OUTPUT'): open(os.environ['GITHUB_OUTPUT'], 'a').write('done=%s\n' % finished)
+    except Exception: pass
+    log('완료 여부 done=%s (남은 종목 %d)' % (finished, need))
     log('완료 %d/%d종목(미완 %d) · DART %d콜·원문 %d·실패 %d · 뉴스 %d · %.0f초' % (len(done), len(codes), STAT['inc'], STAT['dart'], STAT['doc'], STAT['err'], STAT['news'], time.time() - T0))
 
 if __name__ == '__main__':

@@ -121,7 +121,7 @@ function render(){
     }
     return `<div class="post">
       <div class="p-head"><span class="dt">${p.d}</span><span class="who">${esc(p.who)}</span>
-        ${p.cat?`<span class="cat">${esc(p.cat)}</span>`:''}
+        ${p.pin?`<span class="cat" title="블로거 추천 목록에 있던 글 — 날짜와 상관없이 보관">📌 추천 글</span>`:''}${p.cat?`<span class="cat">${esc(p.cat)}</span>`:''}
         <span class="p-t"><a href="${p.u}" target="_blank" rel="noopener">${esc(p.t)} ↗</a></span></div>
       ${tags?`<div style="margin-top:5px">${tags}</div>`:''}
       <div class="body ${open?'':'clamp'}" data-key="${encodeURIComponent(key)}">${bodyHtml}</div>

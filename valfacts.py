@@ -13,12 +13,13 @@
 import os, sys, json, time, re, io, zipfile, datetime, html, threading, urllib.request, urllib.parse, ssl
 from concurrent.futures import ThreadPoolExecutor
 
-VER = 1
+VER = 2
 KEY = os.environ.get('DART_API_KEY') or os.environ.get('DART_KEY') or ''
 OUTDIR = os.environ.get('OUTDIR', 'public/data/vf')
 IDX = os.environ.get('IDX', 'public/data/valfacts_idx.json')
 BUDGET = int(os.environ.get('BUDGET_MIN', '50')) * 60
-WORKERS = int(os.environ.get('WORKERS', '6'))
+WORKERS = int(os.environ.get('WORKERS', '3'))
+GAP = float(os.environ.get('DART_GAP', '0.35'))   # DART 호출 간격(초) — 과속하면 IP가 차단돼 타임아웃이 난다
 FULL = os.environ.get('FULL', '') == '1'
 ONLY = [c for c in os.environ.get('ONLY', '').split(',') if c]
 UA = {'User-Agent': 'Mozilla/5.0'}
@@ -26,7 +27,9 @@ CTX = ssl.create_default_context(); CTX.check_hostname = False; CTX.verify_mode 
 KST = datetime.timezone(datetime.timedelta(hours=9)); NOW = datetime.datetime.now(KST); TODAY = NOW.date()
 T0 = time.time()
 BASE = 'https://opendart.fss.or.kr/api'
-DEBUG = []; STAT = {'dart': 0, 'doc': 0, 'news': 0, 'naver': 0, 'err': 0, 'limit': False}
+DEBUG = []; STAT = {'dart': 0, 'doc': 0, 'news': 0, 'naver': 0, 'err': 0, 'limit': False, 'inc': 0}
+FAILRUN = [0]
+class DartFail(Exception): pass   # 네트워크·한도 실패 — '자료 없음'과 구분해서, 실패한 구간은 기존 값을 지키고 다음 실행에서 다시 받는다
 _lock = threading.Lock(); _last = [0.0]
 
 def log(s):
@@ -59,35 +62,44 @@ def fetch(url, timeout=40, tries=3):
         except Exception as e:
             err = e; time.sleep(1.2 * (i + 1))
     raise err
+def _fail(what, e):
+    STAT['err'] += 1
+    with _lock: FAILRUN[0] += 1; n = FAILRUN[0]
+    log('DART 실패 %s %r (연속 %d)' % (what, str(e)[:70], n))
+    if n >= 12: STAT['limit'] = True; log('DART 연속 실패 12회 → 이번 실행은 DART 수집 중단(다음 실행에서 이어감)')
+    elif n % 4 == 0: time.sleep(45)
+    raise DartFail(what)
 def api(name, **kw):
-    """OpenDART JSON → list(없으면 []). 사용한도 초과(020)면 STAT['limit']"""
-    if not KEY or STAT['limit']: return []
-    _throttle(0.11)
+    """OpenDART JSON → list(자료 없으면 []). 네트워크 실패·사용한도 초과는 DartFail"""
+    if not KEY: return []
+    if STAT['limit']: raise DartFail('중단됨')
+    _throttle(GAP)
     try:
-        j = json.loads(fetch('%s/%s.json?%s' % (BASE, name, urllib.parse.urlencode(dict(crtfc_key=KEY, **kw)))).decode('utf-8'))
+        j = json.loads(fetch('%s/%s.json?%s' % (BASE, name, urllib.parse.urlencode(dict(crtfc_key=KEY, **kw))), 25, 2).decode('utf-8'))
     except Exception as e:
-        STAT['err'] += 1; log('api 실패 %s %r' % (name, str(e)[:80])); return []
-    STAT['dart'] += 1
+        _fail(name, e)
+    FAILRUN[0] = 0; STAT['dart'] += 1
     st = j.get('status')
-    if st == '020': STAT['limit'] = True; log('DART 사용한도 초과'); return []
+    if st == '020': STAT['limit'] = True; log('DART 사용한도 초과'); raise DartFail('한도')
     if st not in ('000', '013'): log('api %s status %s %s' % (name, st, j.get('message')))
     return j.get('list') or []
 def ddoc(rcept):
-    """공시 원문 zip → {파일명: 텍스트}"""
-    if not KEY or STAT['limit']: return {}
-    _throttle(0.11)
+    """공시 원문 zip → {파일명: 텍스트}. 실패는 DartFail"""
+    if not KEY: return {}
+    if STAT['limit']: raise DartFail('중단됨')
+    _throttle(GAP)
     try:
-        b = fetch('%s/document.xml?crtfc_key=%s&rcept_no=%s' % (BASE, KEY, rcept), 120)
+        b = fetch('%s/document.xml?crtfc_key=%s&rcept_no=%s' % (BASE, KEY, rcept), 90, 2)
         z = zipfile.ZipFile(io.BytesIO(b)); out = {}
         for n in z.namelist():
             raw = z.read(n)
             t = raw.decode('utf-8', 'ignore')
-            if t.count('�') > 50 or (len(t) < len(raw) * 0.6): t = raw.decode('euc-kr', 'ignore')
+            if t.count('\ufffd') > 50 or (len(t) < len(raw) * 0.6): t = raw.decode('euc-kr', 'ignore')
             out[n] = t
-        STAT['doc'] += 1
-        return out
     except Exception as e:
-        STAT['err'] += 1; log('doc 실패 %s %r' % (rcept, str(e)[:80])); return {}
+        _fail('원문 ' + rcept, e)
+    FAILRUN[0] = 0; STAT['doc'] += 1
+    return out
 
 # ───────── ① 공급계약 공시
 def cells_of(raw):
@@ -141,6 +153,7 @@ def contracts(corp, old, months=30):
         rows += r
         if len(r) < 100: break
     hits = [r for r in rows if '공급계약' in (r.get('report_nm') or '')]
+    partial = False
     for r in hits:
         rc = r['rcept_no']
         if rc in docs: continue
@@ -149,12 +162,11 @@ def contracts(corp, old, months=30):
         if '해지' in nm:
             d['cancel'] = True
         else:
-            raws = ddoc(rc)
-            if raws:
-                try: d.update(parse_contract(max(raws.values(), key=len)))
-                except Exception as e: d['perr'] = repr(e)[:80]
-            else:
-                continue   # 다음 실행에서 재시도
+            try: raws = ddoc(rc)
+            except DartFail: partial = True; break   # 받은 데까지만 저장하고 다음 실행에서 이어감
+            if not raws: continue
+            try: d.update(parse_contract(max(raws.values(), key=len)))
+            except Exception as e: d['perr'] = repr(e)[:80]
         docs[rc] = d
     # 같은 계약(계약일·품목·상대방)은 최신 공시 1건으로 묶고 정정 횟수를 센다
     groups = {}
@@ -185,7 +197,7 @@ def contracts(corp, old, months=30):
             'cps': sorted(cps.items(), key=lambda x: -x[1])[:5],
             'cancel': [{'rc': d['rc'], 'd': d['d'], 'nm': d['nm']} for d in docs.values() if d.get('cancel')],
             'hidden': sum(1 for d in lst if not d.get('amt'))}
-    return {'docs': docs, 'list': lst[:40], 'sum': summ}, rows
+    return {'docs': docs, 'list': lst[:40], 'sum': summ, 'partial': partial}, rows
 
 # ───────── ② 정기보고서 원문 발췌
 def _txt(s): return re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', ' ', s)).replace('\xa0', ' ')).strip()
@@ -540,28 +552,43 @@ def load_reports():
 
 # ───────── 종목 1개
 def one(code, name, corp, old, rpts):
-    full = FULL or not old or old.get('v') != VER or (int(code) + TODAY.toordinal()) % 7 == 0
+    full = FULL or not old or old.get('v') != VER or bool(old.get('inc')) or (int(code) + TODAY.toordinal()) % 7 == 0
     o = {'v': VER, 'code': code, 'name': name, 'corp': corp, 'at': NOW.strftime('%Y-%m-%d %H:%M')}
-    for k in ('con', 'biz', 'biz_src', 'gov', 'dec', 'maj', 'news', 'annual', 'full_at'):
+    same = bool(old) and old.get('v') == VER   # 형식이 바뀌면 DART 구간은 새로 받는다(뉴스·컨센서스는 이어 씀)
+    for k in ('con', 'biz', 'biz_src', 'gov', 'dec', 'maj', 'full_at'):
+        if same and k in old: o[k] = old[k]
+    for k in ('news', 'annual', 'rpt'):
         if old and k in old: o[k] = old[k]
+    inc = []
     if corp and KEY:
-        con, _ = contracts(corp, (old or {}).get('con'))
-        o['con'] = con
-        rows_a = api('list', corp_code=corp, bgn_de=(TODAY - datetime.timedelta(days=500)).strftime('%Y%m%d'), end_de=TODAY.strftime('%Y%m%d'), pblntf_ty='A', page_count=30)
-        latest, annual = periodic(rows_a)
-        newrep = latest and (o.get('biz_src') or {}).get('rc') != latest[0]
-        if latest and (newrep or 'biz' not in o):
-            raws = ddoc(latest[0])
-            if raws:
-                try: o['biz'] = parse_biz(max(raws.values(), key=len)); o['biz_src'] = {'rc': latest[0], 'nm': latest[1]}
-                except Exception as e: log('biz 파싱 실패 %s %r' % (code, str(e)[:80]))
-        rec = [] if full else api('list', corp_code=corp, bgn_de=(TODAY - datetime.timedelta(days=10)).strftime('%Y%m%d'), end_de=TODAY.strftime('%Y%m%d'), page_count=100)
-        hot = any(re.search(r'자기주식|전환사채|신주인수권|교환사채|유상증자|대량보유|최대주주', r.get('report_nm') or '') for r in rec)
-        if hot and not (full or newrep) and 'gov' in o:
-            o['dec'] = decisions(corp); o['maj'] = majors(corp, ((o['gov'].get('holders') or [{}])[0]).get('nm'))
-        if full or newrep or 'gov' not in o:
-            o['gov'] = governance(corp, latest, annual); o['dec'] = decisions(corp)
-            o['maj'] = majors(corp, ((o['gov'].get('holders') or [{}])[0]).get('nm')); o['full_at'] = TODAY.isoformat()
+        try:
+            con, _ = contracts(corp, (old or {}).get('con'))
+            o['con'] = con
+            if con.pop('partial', False): inc.append('con')
+        except DartFail: inc.append('con')
+        latest = annual = None; newrep = False
+        try:
+            rows_a = api('list', corp_code=corp, bgn_de=(TODAY - datetime.timedelta(days=500)).strftime('%Y%m%d'), end_de=TODAY.strftime('%Y%m%d'), pblntf_ty='A', page_count=30)
+            latest, annual = periodic(rows_a)
+            newrep = bool(latest and (o.get('biz_src') or {}).get('rc') != latest[0])
+            if latest and (newrep or 'biz' not in o):
+                raws = ddoc(latest[0])
+                if raws:
+                    try: o['biz'] = parse_biz(max(raws.values(), key=len)); o['biz_src'] = {'rc': latest[0], 'nm': latest[1]}
+                    except Exception as e: log('biz 파싱 실패 %s %r' % (code, str(e)[:80]))
+        except DartFail: inc.append('biz')
+        try:
+            if latest is None and 'gov' not in o: raise DartFail('정기공시 목록 없음')
+            rec = [] if full else api('list', corp_code=corp, bgn_de=(TODAY - datetime.timedelta(days=10)).strftime('%Y%m%d'), end_de=TODAY.strftime('%Y%m%d'), page_count=100)
+            hot = any(re.search(r'자기주식|전환사채|신주인수권|교환사채|유상증자|대량보유|최대주주', r.get('report_nm') or '') for r in rec)
+            if full or newrep or 'gov' not in o:
+                g = governance(corp, latest, annual); d = decisions(corp); m = majors(corp, ((g.get('holders') or [{}])[0]).get('nm'))
+                o['gov'] = g; o['dec'] = d; o['maj'] = m; o['full_at'] = TODAY.isoformat()
+            elif hot:
+                d = decisions(corp); m = majors(corp, ((o['gov'].get('holders') or [{}])[0]).get('nm'))
+                o['dec'] = d; o['maj'] = m
+        except DartFail: inc.append('gov')
+    if inc: o['inc'] = inc; STAT['inc'] += 1
     a = naver_annual(code)
     if a: o['annual'] = a
     if rpts.get(code): o['rpt'] = rpts[code]
@@ -574,7 +601,7 @@ def idx_row(o):
     fy1 = next((c[0] for c in (o.get('annual') or {}).get('cols') or [] if c[1]), None)
     return {'n': o.get('name'), 'cn': s.get('n', 0), 'm12': s.get('m12'), 'open': s.get('open'), 'bl': b.get('eok'),
             'fl': [[f['lv'], f['k']] for f in (o.get('flags') or []) if f['lv'] in ('bad', 'warn')][:8],
-            'nw': (o.get('news') or {}).get('kc') or {}, 'fy1': fy1, 'at': o.get('at')}
+            'nw': (o.get('news') or {}).get('kc') or {}, 'fy1': fy1, 'at': o.get('at'), 'inc': o.get('inc') or []}
 
 def main():
     sp = json.load(open('public/data/semipeer.json', encoding='utf-8'))
@@ -605,11 +632,11 @@ def main():
         except Exception: olds[c] = None
     rpts = load_reports()
     # 파일이 없거나 오래된 종목부터
-    codes.sort(key=lambda c: (olds[c] or {}).get('at') or '')
+    codes.sort(key=lambda c: (0 if (not olds[c] or olds[c].get('inc') or olds[c].get('v') != VER) else 1, (olds[c] or {}).get('at') or ''))
     log('대상 %d종목 · 키 %s · 기존 파일 %d' % (len(codes), '있음' if KEY else '없음', sum(1 for c in codes if olds[c])))
     done = {}
     def work(c):
-        if left() < 120 or STAT['limit']: return
+        if left() < 120: return
         try:
             done[c] = one(c, names[c], corpmap.get(c), olds[c], rpts)
         except Exception as e:
@@ -636,7 +663,7 @@ def main():
         json.dump(o, open('%s/%s.json' % (OUTDIR, c), 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
         idx[c] = idx_row(o)
     json.dump({'updated': NOW.strftime('%Y-%m-%d %H:%M'), 'n': len(idx), 'stat': STAT, 'debug': DEBUG[-60:], 'map': idx}, open(IDX, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
-    log('완료 %d/%d종목 · DART %d콜·원문 %d · 뉴스 %d · %.0f초' % (len(done), len(codes), STAT['dart'], STAT['doc'], STAT['news'], time.time() - T0))
+    log('완료 %d/%d종목(미완 %d) · DART %d콜·원문 %d·실패 %d · 뉴스 %d · %.0f초' % (len(done), len(codes), STAT['inc'], STAT['dart'], STAT['doc'], STAT['err'], STAT['news'], time.time() - T0))
 
 if __name__ == '__main__':
     main()

@@ -9,7 +9,8 @@
 # 원칙: 숫자는 공시·API 값 그대로. 받지 못한 구간은 빈 값으로 덮지 않고 기존 값을 지킨다.
 import os, sys, json, time, re, datetime, urllib.request, urllib.parse, ssl
 
-VER = 2
+VER = 2          # 이력(공시 목록) 규칙 버전
+FV = 3           # 실적 계산 규칙 버전
 KEY = os.environ.get('DART_API_KEY') or os.environ.get('DART_KEY') or ''
 OUT = os.environ.get('OUT', 'public/data/semibook.json')
 BUDGET = int(os.environ.get('BUDGET_MIN', '50')) * 60
@@ -25,7 +26,7 @@ T0 = time.time(); BASE = 'https://opendart.fss.or.kr/api'; EOK = 1e8
 DEBUG = []; STAT = {'dart': 0, 'err': 0, 'limit': False}; FAILRUN = [0]; _last = [0.0]; KEYS = {}
 class DartFail(Exception): pass
 LAB = {}; OLD_LAB = {}   # 분기·연도 라벨(전 종목 공통)
-NAMES = {}; RAW = {}; MISS = {}   # 진단용: 계정명, 매출 원값(3개월·누적)
+NAMES = {}; RAW = {}; MISS = {}; FILL = {}   # 진단용: 계정명, 매출 원값(3개월·누적), 전체 재무제표로 보충한 칸
 
 def log(s):
     s = str(s)[:300]; DEBUG.append(s); print(s, file=sys.stderr, flush=True)
@@ -167,6 +168,32 @@ def collect_fin(corp_of, olds):
             if STAT['limit'] or left() < 240: failed += 1; continue
             try: parse_multi(api('fnlttMultiAcnt', corp_code=','.join(corps[i:i + CHUNK]), bsns_year=y, reprt_code=REPRT[q]), y, q, store)
             except DartFail: failed += 1
+    # 주요계정 API에 매출·영업이익 중 한쪽이 빠진 기간은 전체 재무제표(fnlttSinglAcntAll)에서 표준 계정 ID로 보충한다
+    IDMAP = {'ifrs-full_Revenue': '매출액', 'dart_OperatingIncomeLoss': '영업이익', 'ifrs-full_ProfitLoss': '당기순이익'}
+    nfill = 0
+    for code, corp in corp_of.items():
+        sc = store.get(corp) or {}
+        if not sc: continue
+        has_c = any('rev' in (v.get('CFS') or {}) or 'op' in (v.get('CFS') or {}) for v in sc.values())
+        fs = 'CFS' if has_c else 'OFS'
+        first = min(sc)
+        for (y, q) in ps:
+            if (y, q) < first or nfill >= 80 or STAT['limit'] or left() < 200: continue
+            d = (sc.get((y, q)) or {}).get(fs) or {}
+            if ('rev' in d) == ('op' in d) and (d or (y, q) not in sc): continue
+            try: rows = api('fnlttSinglAcntAll', corp_code=corp, bsns_year=y, reprt_code=REPRT[q], fs_div=fs)
+            except DartFail: failed += 1; continue
+            nfill += 1; add = []
+            for r in rows:
+                if (r.get('sj_div') or '') not in ('IS', 'CIS'): continue
+                nm = IDMAP.get((r.get('account_id') or '').strip())
+                if not nm: continue
+                add.append(dict(r, account_nm=nm, corp_code=corp, fs_div=fs, sj_div='IS'))
+            tmp = {}; parse_multi(add, y, q, tmp)
+            got = ((tmp.get(corp) or {}).get((y, q)) or {}).get(fs) or {}
+            tgt = store.setdefault(corp, {}).setdefault((y, q), {}).setdefault(fs, {})
+            for k, v in got.items():
+                if k not in tgt: tgt[k] = v; FILL.setdefault(code, []).append('%dQ%02d %s' % (q, y % 100, k))
     out = {}
     for code, corp in corp_of.items():
         s = series(store.get(corp) or {}, ps)
@@ -278,7 +305,7 @@ def main():
     except Exception: old = {}
     olds = old.get('co') or {}
     OLD_LAB.update({'ql': old.get('ql') or [], 'ay': old.get('ay') or []}); LAB.update(OLD_LAB)
-    if old.get('v') != VER:                       # 계산 규칙이 바뀌면 예전 실적 값으로 빈칸을 메우지 않는다
+    if old.get('fv') != FV:                       # 계산 규칙이 바뀌면 예전 실적 값으로 빈칸을 메우지 않는다
         for c in olds: olds[c].pop('fin', None); olds[c].pop('fin_at', None)
     codes = [c for c in names if (not ONLY or c in ONLY) and corpmap.get(c)]
     miss = [c for c in names if not corpmap.get(c)]
@@ -322,8 +349,8 @@ def main():
     fin_ok = sum(1 for c in codes if any(v is not None for v in ((co[c].get('fin') or {}).get('rq') or [])))
     done = (fin_failed == 0) and not rest
     ly, lq = latest_quarter()
-    res = {'v': VER, 'updated': NOW.strftime('%Y-%m-%d %H:%M'), 'asof': '%dQ%02d' % (lq, ly % 100), 'y0': Y0, 'n': len(codes), 'fin_ok': fin_ok,
-           'ql': LAB.get('ql') or [], 'ay': LAB.get('ay') or [], 'fin_failed': fin_failed, 'ev_rest': len(rest), 'done': bool(done), 'stat': STAT, 'miss': MISS, 'debug': DEBUG[-40:], 'co': co}
+    res = {'v': VER, 'fv': FV, 'updated': NOW.strftime('%Y-%m-%d %H:%M'), 'asof': '%dQ%02d' % (lq, ly % 100), 'y0': Y0, 'n': len(codes), 'fin_ok': fin_ok,
+           'ql': LAB.get('ql') or [], 'ay': LAB.get('ay') or [], 'fin_failed': fin_failed, 'ev_rest': len(rest), 'done': bool(done), 'stat': STAT, 'miss': MISS, 'fill': FILL, 'debug': DEBUG[-40:], 'co': co}
     os.makedirs(os.path.dirname(OUT) or '.', exist_ok=True)
     json.dump(res, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
     log('완료: 종목 %d · 실적 있는 종목 %d · 이번 실행 이력 %d · 남은 이력 %d · DART %d콜 · 실패 %d · %.0f초' % (len(codes), fin_ok, n_ev, len(rest), STAT['dart'], STAT['err'], time.time() - T0))

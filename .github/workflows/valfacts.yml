@@ -1,7 +1,9 @@
 name: 전 종목 사실 수집 (수주·지배구조·경영진 뉴스)
+# GitHub 러너에 따라 OpenDART가 응답하지 않는 경우가 있어, 끝내지 못하면 새 러너(다른 IP)에서 최대 3번 이어서 시도한다.
 on:
   schedule:
     - cron: '25 20 * * 0-4'   # 월~금 05:25 KST
+    - cron: '25 3 * * 1-5'    # 월~금 12:25 KST (새벽에 못 받은 종목 보충)
   workflow_dispatch: {}
   push:
     paths: ['valfacts.py', '.github/workflows/valfacts.yml']
@@ -11,18 +13,79 @@ concurrency:
   group: valfacts
   cancel-in-progress: false
 jobs:
-  valfacts:
+  try1:
     runs-on: ubuntu-latest
-    timeout-minutes: 110
+    timeout-minutes: 100
+    outputs:
+      done: ${{ steps.run.outputs.done }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main   # 앞선 시도가 커밋한 파일을 이어받기 위해 항상 최신 main
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - name: 수집
+        id: run
         env:
           DART_API_KEY: ${{ secrets.DART_KEY }}
-          BUDGET_MIN: '75'
+          BUDGET_MIN: '70'
+        run: python valfacts.py
+      - name: 결과 커밋
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/vf public/data/valfacts_idx.json 2>/dev/null || true
+          git commit -m "전 종목 사실 수집 갱신" || echo "변경 없음"
+          git pull --rebase origin main || true
+          git push || (git pull --rebase origin main && git push) || true
+  try2:
+    needs: try1
+    if: ${{ always() && needs.try1.outputs.done != '1' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    outputs:
+      done: ${{ steps.run.outputs.done }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main   # 앞선 시도가 커밋한 파일을 이어받기 위해 항상 최신 main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 수집
+        id: run
+        env:
+          DART_API_KEY: ${{ secrets.DART_KEY }}
+          BUDGET_MIN: '70'
+        run: python valfacts.py
+      - name: 결과 커밋
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/vf public/data/valfacts_idx.json 2>/dev/null || true
+          git commit -m "전 종목 사실 수집 갱신" || echo "변경 없음"
+          git pull --rebase origin main || true
+          git push || (git pull --rebase origin main && git push) || true
+  try3:
+    needs: try2
+    if: ${{ always() && needs.try2.result != 'skipped' && needs.try2.outputs.done != '1' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main   # 앞선 시도가 커밋한 파일을 이어받기 위해 항상 최신 main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 수집
+        id: run
+        env:
+          DART_API_KEY: ${{ secrets.DART_KEY }}
+          BUDGET_MIN: '70'
         run: python valfacts.py
       - name: 결과 커밋
         if: always()

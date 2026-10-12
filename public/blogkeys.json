@@ -79,7 +79,7 @@
   {
    "id": "nihil76",
    "name": "nihil",
-   "sec": "2차전지·에너지",
+   "sec": "2차전지",
    "pin": [
     "https://blog.naver.com/nihil76/222921202949"
    ]
@@ -87,7 +87,7 @@
   {
    "id": "energyinfo",
    "name": "energyinfo",
-   "sec": "에너지"
+   "sec": "전력·에너지"
   },
   {
    "id": "ehgur06",
@@ -98,7 +98,7 @@
   {
    "id": "orangeshirts",
    "name": "ruffino",
-   "sec": "방산",
+   "sec": "방산·조선",
    "pin": [
     "https://blog.naver.com/orangeshirts/222647569241"
    ]

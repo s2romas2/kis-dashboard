@@ -216,7 +216,7 @@ function tamFor(code){ const co=SPCO[code]; const M=TAMG.map||{}; const AL=TAMG.
   const ex=ids.find(g=>M[g].scope==='exact')||ids[0]; if(ex) return Object.assign({id:ex,more:ids.filter(g=>g!==ex)},M[ex]); if(co&&M._semi) return Object.assign({id:'_semi',more:[],fallback:true},M._semi,{scope:'parent'}); return null; }
 function rawTable(t){ if(!t||!t.r) return ''; return `<div class="mini" style="margin-top:6px"><b>${esc(t.h||'')}</b> ${esc(t.u||'')}</div><div class="tw"><table class="raw">${t.r.map(r=>'<tr>'+r.map(c=>Array.isArray(c)?`<td colspan="${c[1]}" rowspan="${c[2]}">${esc(c[0])}</td>`:`<td>${esc(c)}</td>`).join('')+'</tr>').join('')}</table></div>`; }
 function autoFill(w,code){ // 자동 초안 보강(v5): 세부분야 TAM · 컨센서스 · 공시 수주
-  const F=FACTS[code]||null; const A=autoFor(code); w.draft=w.draft||{}; w.draft.v4=true; w.draft.v5=true; const got=[];
+  const F=FACTS[code]||null; const A=autoFor(code); w.draft=w.draft||{}; w.draft.v4=true; w.draft.v5=true; w.draft.facts=!!F; const got=[];
   const T=tamFor(code);
   if(T&&!String(w.tam||'').trim()){ w.tam=`[세부분야: ${T.name}${T.scope==='parent'?' — 상위 시장 기준':''}] ${T.tam} ※ 분야 공통 수치 — 이 회사 몫은 수주·점유율로 따로 확인`; w.tamTag=T.tag; w.tamSrc=JSON.parse(JSON.stringify(T.src||[])); got.push('세부분야 TAM'); }
   if(A.cRev&&A.fy1){ const y=A.fy1.slice(0,4); const ttm=w.draft.ttmR||null; const br=ttm?Math.min(A.cRev,ttm):A.cRev*0.85;
@@ -754,7 +754,7 @@ async function openWs(code){
   CUR=code; await loadAux(code);
   let fresh=false;
   if(!WS[code]){ if(USER.map&&USER.map[code]){ WS[code]=JSON.parse(JSON.stringify(USER.map[code])); migrate(WS[code]); } else if(!applySeed(code)){ WS[code]=makeDraft(code); fresh=true; } }
-  else if(WS[code].draft&&!WS[code].draft.v5){ const keep=WS[code].snaps||[]; WS[code]=makeDraft(code); WS[code].snaps=keep; fresh=true; } // v4 이전 초안은 공식·링크 형식으로 재생성
+  else if(WS[code].draft&&(!WS[code].draft.v5||(!WS[code].draft.facts&&FACTS[code]))){ /* 옛 형식이거나, 자동 수집 파일 없이 만든 초안이면 다시 생성 */ const keep=WS[code].snaps||[]; WS[code]=makeDraft(code); WS[code].snaps=keep; fresh=true; } // v4 이전 초안은 공식·링크 형식으로 재생성
   if(fresh&&WS[code].draft&&WS[code].prods[0]&&num(WS[code].prods[0].qB)!=null){ draftPer(code,WS[code]); }
   const {A}=renderAuto(code);
   document.getElementById('wsTitle').innerHTML=`${esc(A.name)} <span class="mini">${code}</span> <a class="lk" id="spLink" href="/semipeer.html#${code}" style="font-size:12px;font-weight:600;margin-left:8px;display:none">⚖️ peer 상대밸류에서 보기</a>`; updSpLink();

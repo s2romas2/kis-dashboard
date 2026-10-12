@@ -9,7 +9,7 @@
 # 원칙: 숫자는 공시·API 값 그대로. 받지 못한 구간은 빈 값으로 덮지 않고 기존 값을 지킨다.
 import os, sys, json, time, re, datetime, urllib.request, urllib.parse, ssl
 
-VER = 1
+VER = 2
 KEY = os.environ.get('DART_API_KEY') or os.environ.get('DART_KEY') or ''
 OUT = os.environ.get('OUT', 'public/data/semibook.json')
 BUDGET = int(os.environ.get('BUDGET_MIN', '50')) * 60
@@ -25,6 +25,7 @@ T0 = time.time(); BASE = 'https://opendart.fss.or.kr/api'; EOK = 1e8
 DEBUG = []; STAT = {'dart': 0, 'err': 0, 'limit': False}; FAILRUN = [0]; _last = [0.0]; KEYS = {}
 class DartFail(Exception): pass
 LAB = {}; OLD_LAB = {}   # 분기·연도 라벨(전 종목 공통)
+NAMES = {}; RAW = {}; MISS = {}   # 진단용: 계정명, 매출 원값(3개월·누적)
 
 def log(s):
     s = str(s)[:300]; DEBUG.append(s); print(s, file=sys.stderr, flush=True)
@@ -93,12 +94,16 @@ def parse_multi(rows, year, q, store):
         if (r.get('sj_div') or '') == 'BS': continue
         key, pri = acct_key(r.get('account_nm'))
         corp = r.get('corp_code'); fs = r.get('fs_div') or 'OFS'
+        if corp: NAMES.setdefault((corp, year, q, fs), []).append((r.get('account_nm') or '').replace(' ', '')[:14])
         if key is None or not corp: continue
         amt = tonum(r.get('thstrm_amount')); add = tonum(r.get('thstrm_add_amount'))
         if amt is None and add is None: continue
+        if key == 'rev': RAW.setdefault(corp, {})[(year, q, fs)] = (amt, add)
         if q == 4: cum, qv = amt, None                      # 사업보고서: 연간
         elif q == 1: cum, qv = (add if add is not None else amt), (amt if amt is not None else add)
-        else: cum, qv = (add if add is not None else amt), (amt if add is not None else None)   # 누적 칸이 없으면 그 값을 누적으로 본다
+        elif add is None: cum, qv = amt, None               # 누적 칸이 없으면 그 값을 누적으로 본다
+        elif amt is None or amt == add: cum, qv = add, None  # 3개월 칸이 누적과 같으면(신규 상장 첫 보고서 등) 3개월값으로 쓰지 않는다
+        else: cum, qv = add, amt
         d = store.setdefault(corp, {}).setdefault((year, q), {}).setdefault(fs, {})
         if key in d and d[key]['pri'] <= pri: continue
         d[key] = {'q': qv, 'cum': cum, 'pri': pri}
@@ -134,6 +139,13 @@ def series(sc, ps):
             if v[0] is not None or v[1] is not None: pick = (fs, v); break
         fs, v = pick or (None, [None, None, None])
         out['ay'].append(y); out['ar'].append(r(v[0])); out['ao'].append(r(v[1])); out['an'].append(r(v[2])); out['fa'].append({'CFS': 'C', 'OFS': 'O'}.get(fs))
+    # 단위 오류 등 터무니없는 값 제거: 분기 매출이 다른 분기 중앙값의 30배를 넘으면 그 분기는 비운다
+    vals = sorted(v for v in out['rq'] if v is not None and v > 0)
+    if len(vals) >= 4:
+        med = vals[len(vals) // 2]
+        for i, v in enumerate(out['rq']):
+            if v is not None and med > 0 and v > med * 30:
+                out['rq'][i] = out['oq'][i] = out['nq'][i] = None; out.setdefault('drop', []).append(out['ql'][i])
     return out
 def merge_series(new, old):
     """새로 받지 못한 칸(None)은 기존 값을 지킨다(라벨 기준)."""
@@ -161,6 +173,14 @@ def collect_fin(corp_of, olds):
         of = (olds.get(code) or {}).get('fin')
         if of: of = dict(of, ql=OLD_LAB.get('ql') or [], ay=OLD_LAB.get('ay') or [], fq=list(of.get('fq') or ''), fa=list(of.get('fa') or ''))
         out[code] = merge_series(s, of)
+        # 진단: 매출·영업이익 중 한쪽만 잡힌 기간의 계정명, 첫 분기가 1분기가 아닌 종목의 매출 원값
+        sc = store.get(corp) or {}; first = next((i for i, v in enumerate(s['rq']) if v is not None or s['oq'][i] is not None), None)
+        if first is not None:
+            for i in range(first, len(ps)):
+                if (s['rq'][i] is None) != (s['oq'][i] is None) and len(MISS) < 60:
+                    y, q = ps[i]; MISS.setdefault(code, {})[s['ql'][i]] = {fs: '|'.join(NAMES.get((corp, y, q, fs)) or [])[:160] for fs in ('CFS', 'OFS') if NAMES.get((corp, y, q, fs))}
+            if first > 0 and ps[first][1] != 1:
+                y, q = ps[first]; MISS.setdefault(code, {})['first ' + s['ql'][first]] = {fs: RAW.get(corp, {}).get((y, q, fs)) for fs in ('CFS', 'OFS') if RAW.get(corp, {}).get((y, q, fs))}
     log('실적: 기간 %d개 × 묶음 %d · 실패 %d · 회사 %d' % (len(ps), (len(corps) + CHUNK - 1) // CHUNK, failed, len(store)))
     return out, failed, ps
 
@@ -219,9 +239,9 @@ def events(corp):
         e = {'d': '%s-%s-%s' % (r['rcept_dt'][:4], r['rcept_dt'][4:6], r['rcept_dt'][6:]), 'c': cat, 'k': t[:60], 'rc': r.get('rcept_no')}
         if fix: e['fix'] = 1
         ev.append(e)
-    det = {}
+    det = {}; bykind = {}
     for nm in sorted(need):
-        for x in api(nm, corp_code=corp, bgn_de=bgn, end_de=TODAY.strftime('%Y%m%d')):
+        for x in api(nm, corp_code=corp, bgn_de='%d0101' % (Y0 - 2), end_de=TODAY.strftime('%Y%m%d')):
             if nm not in KEYS: KEYS[nm] = sorted(k for k, v in x.items() if _clean(v) not in ('', '-'))[:60]
             d = {}
             who = next((_clean(x.get(k)) for k in WHO if _clean(x.get(k)) not in ('', '-')), None)
@@ -237,9 +257,17 @@ def events(corp):
             if pct: d['pct'] = pct
             prc = tonum(x.get('cv_prc') or x.get('ex_prc'))
             if prc: d['prc'] = prc
-            if d: det[x.get('rcept_no')] = d
+            if d: det[x.get('rcept_no')] = d; bykind.setdefault(nm, []).append((x.get('rcept_no') or '', d))
     for e in ev:
-        if e['rc'] in det: e.update(det[e['rc']])
+        if e['rc'] in det: e.update(det[e['rc']]); continue
+        rows = bykind.get(DETAIL.get(e['k']) or '') or []      # 정정 공시는 접수번호가 달라 직접 맞지 않는다 → 같은 종류 중 날짜가 가장 가까운(400일 이내) 공시의 내용을 붙인다
+        if rows and e.get('rc'):
+            try:
+                ed = datetime.date(int(e['rc'][:4]), int(e['rc'][4:6]), int(e['rc'][6:8]))
+                best = min(rows, key=lambda r: abs((datetime.date(int(r[0][:4]), int(r[0][4:6]), int(r[0][6:8])) - ed).days))
+                if abs((datetime.date(int(best[0][:4]), int(best[0][4:6]), int(best[0][6:8])) - ed).days) <= 400:
+                    e.update(best[1]); e['dref'] = best[0]
+            except Exception: pass
     ev.sort(key=lambda e: e['rc'] or '', reverse=True)
     return ev, more
 
@@ -250,6 +278,8 @@ def main():
     except Exception: old = {}
     olds = old.get('co') or {}
     OLD_LAB.update({'ql': old.get('ql') or [], 'ay': old.get('ay') or []}); LAB.update(OLD_LAB)
+    if old.get('v') != VER:                       # 계산 규칙이 바뀌면 예전 실적 값으로 빈칸을 메우지 않는다
+        for c in olds: olds[c].pop('fin', None); olds[c].pop('fin_at', None)
     codes = [c for c in names if (not ONLY or c in ONLY) and corpmap.get(c)]
     miss = [c for c in names if not corpmap.get(c)]
     if miss: log('고유번호 없음(건너뜀): %s' % ','.join(miss))
@@ -269,6 +299,7 @@ def main():
         fin, fin_failed, ps = collect_fin({c: corpmap[c] for c in codes}, olds)
         for c in codes:
             f = fin[c]; LAB['ql'] = f.pop('ql'); LAB['ay'] = f.pop('ay')
+            if not f.get('drop'): f.pop('drop', None)
             f['fq'] = ''.join(x or '-' for x in f['fq']); f['fa'] = ''.join(x or '-' for x in f['fa'])
             co[c]['fin'] = f
         if fin_failed == 0:
@@ -292,7 +323,7 @@ def main():
     done = (fin_failed == 0) and not rest
     ly, lq = latest_quarter()
     res = {'v': VER, 'updated': NOW.strftime('%Y-%m-%d %H:%M'), 'asof': '%dQ%02d' % (lq, ly % 100), 'y0': Y0, 'n': len(codes), 'fin_ok': fin_ok,
-           'ql': LAB.get('ql') or [], 'ay': LAB.get('ay') or [], 'fin_failed': fin_failed, 'ev_rest': len(rest), 'done': bool(done), 'stat': STAT, 'keys': KEYS or old.get('keys') or {}, 'debug': DEBUG[-40:], 'co': co}
+           'ql': LAB.get('ql') or [], 'ay': LAB.get('ay') or [], 'fin_failed': fin_failed, 'ev_rest': len(rest), 'done': bool(done), 'stat': STAT, 'miss': MISS, 'debug': DEBUG[-40:], 'co': co}
     os.makedirs(os.path.dirname(OUT) or '.', exist_ok=True)
     json.dump(res, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
     log('완료: 종목 %d · 실적 있는 종목 %d · 이번 실행 이력 %d · 남은 이력 %d · DART %d콜 · 실패 %d · %.0f초' % (len(codes), fin_ok, n_ev, len(rest), STAT['dart'], STAT['err'], time.time() - T0))

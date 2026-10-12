@@ -239,9 +239,11 @@ function autoFill(w,code){ // 자동 초안 보강(v5): 세부분야 TAM · 컨�
 function renderFacts(code){
   const el=document.getElementById('factCard'); if(!el) return; const F=FACTS[code];
   if(!F){ el.innerHTML=`<div class="mini">이 종목의 자동 수집 파일이 아직 없습니다. 반도체 peer 종목과 워크시트 관심종목은 매일 새벽 수집합니다 — 대상 밖 종목은 관심종목으로 등록하면 다음 수집부터 채워집니다.</div>`; return; }
-  const C=F.con||{}, S=C.sum||{}, B=F.biz||{}; let h='';
+  const C=F.con||{}, S=C.sum||{}, B=F.biz||{}; let h=''; const inc=F.inc||[];
   const yrs=Object.keys(S.by||{}).sort();
-  h+=`<div class="fxs"><b>공급계약 공시</b> ${S.n?`${S.n}건 — ${yrs.map(y=>`${y}년 <b>${f0(S.by[y])}억</b>`).join(' · ')}${S.m12?` · 최근 12개월 <b>${f0(S.m12)}억</b>`:''}${S.open?` · 납기가 남은 계약 <b>${f0(S.open)}억</b>(${S.open_n}건, 이미 납품한 분 포함 가능)`:''}${(S.cps||[]).length?`<br>상대방: ${S.cps.map(x=>`${esc(x[0])} ${f0(x[1])}억`).join(' · ')}`:''}${S.hidden?` · 금액 비공개 ${S.hidden}건`:''}`:'없음 <span class="mini">(최근 30개월. 매출의 일정 비율 미만 계약은 공시 의무가 없어, 소모품·부품 회사는 없는 것이 보통)</span>'} <span class="tag t확인">확인</span></div>`;
+  if(inc.length) h+=`<div class="mini warnx" style="margin-bottom:6px">⏳ DART 응답 지연으로 아직 다 받지 못한 구간: ${inc.map(x=>({con:'공급계약 공시',biz:'정기보고서 표',gov:'지배구조'})[x]||x).join(' · ')} — 다음 수집에서 자동으로 이어 받습니다. 받지 못한 구간은 "없음"이 아니라 "수집 전"입니다.</div>`;
+  if(!F.con) h+=`<div class="fxs"><b>공급계약 공시</b> <span class="mini">수집 전</span></div>`;
+  else h+=`<div class="fxs"><b>공급계약 공시</b> ${inc.includes('con')?'<span class="mini warnx">(일부만 수집)</span> ':''}${S.n?`${S.n}건 — ${yrs.map(y=>`${y}년 <b>${f0(S.by[y])}억</b>`).join(' · ')}${S.m12?` · 최근 12개월 <b>${f0(S.m12)}억</b>`:''}${S.open?` · 납기가 남은 계약 <b>${f0(S.open)}억</b>(${S.open_n}건, 이미 납품한 분 포함 가능)`:''}${(S.cps||[]).length?`<br>상대방: ${S.cps.map(x=>`${esc(x[0])} ${f0(x[1])}억`).join(' · ')}`:''}${S.hidden?` · 금액 비공개 ${S.hidden}건`:''}`:'없음 <span class="mini">(최근 30개월. 매출의 일정 비율 미만 계약은 공시 의무가 없어, 소모품·부품 회사는 없는 것이 보통)</span>'} <span class="tag t확인">확인</span></div>`;
   if((C.list||[]).length) h+=`<div class="tw"><table class="fx"><tr><th>계약일</th><th class="l">품목</th><th>금액(억)</th><th>매출 대비</th><th class="l">상대방</th><th class="l">지역</th><th class="l">기간</th><th class="l">정정</th><th></th></tr>${C.list.slice(0,14).map(d=>`<tr><td>${esc(d.cd||d.first||'')}</td><td class="l">${esc(d.item||'')}</td><td><b>${d.amt!=null?f1(d.amt):'비공개'}</b></td><td>${d.ratio!=null?f1(d.ratio)+'%':'—'}</td><td class="l">${esc(d.cp||'')}</td><td class="l">${esc(d.region||'')}</td><td class="l">${esc(d.from||'')} ~ ${esc(d.to||'')}</td><td class="l">${d.ncorr?`${d.ncorr}회 <span class="mini">${esc((d.reasons||[]).join(', '))}</span>`:''}</td><td>${dlk(d.rc,'원문')}</td></tr>`).join('')}</table></div>`;
   if((S.cancel||[]).length) h+=`<div class="mini warnx">⚠ 계약 해지 공시: ${S.cancel.map(x=>`${esc(x.d)} ${dlk(x.rc,'원문')}`).join(' · ')}</div>`;
   const src=F.biz_src?` <span class="mini">출처: ${dlk(F.biz_src.rc,esc(F.biz_src.nm))} — 표를 고치지 않고 그대로 옮김</span>`:'';
@@ -292,6 +294,7 @@ function renderGov(code){
 function govAuto(F){ // 공시 구조화 자료로 만든 자동 점검 + 경영진 관련 뉴스 반복 언급
   if(!F||(!F.gov&&!F.news)) return ''; const G=F.gov||{}, fl=F.flags||[], N=F.news||{}; let h='';
   const nb=fl.filter(x=>x.lv==='bad').length, nw=fl.filter(x=>x.lv==='warn').length;
+  if(!F.gov) h+=`<div class="mini warnx" style="margin-bottom:6px">⏳ 공시 기반 점검(최대주주·배당·보수·자기주식)은 아직 수집 전입니다 — 지금은 뉴스 언급만 표시합니다.</div>`;
   h+=`<div class="fxs"><b>자동 점검 결과</b> ${nb?`<span class="nwb b">문제 ${nb}</span>`:''}${nw?`<span class="nwb w">주의 ${nw}</span>`:''}${!nb&&!nw?'<span class="nwb">특이 신호 없음</span>':''} <span class="mini">공시(사업보고서·주요사항·지분공시) 숫자에 규칙을 적용한 것 — 판단이 아니라 "볼 곳"을 알려 주는 신호</span></div>`;
   if(fl.length) h+=`<div class="tw"><table class="gv"><tr><th class="l">항목</th><th class="l">내용</th><th class="l">근거</th><th class="l">출처</th></tr>${fl.map(x=>`<tr><td class="k"><i class="gvd ${esc(x.lv)}"></i>${esc(x.k)}</td><td>${esc(x.v)}</td><td><span class="tag t${esc(x.tag)}">${esc(x.tag)}</span></td><td>${x.rc?dlk(x.rc,'공시'):''}</td></tr>`).join('')}</table></div>`;
   const hs=G.holders||[];

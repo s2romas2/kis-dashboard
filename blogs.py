@@ -147,6 +147,7 @@ def main():
         normal = [p for p in cur['posts'] if not p.get('pin')]
         oldest = min((p['d'] for p in normal), default='') if len(normal) >= MAX_POSTS else ''
         items = re.findall(r'<item>([\s\S]*?)</item>', x)
+        if not items: DEBUG.append('%s RSS에 글 없음(비공개 추정)' % bid)
         new_cnt = 0
         fresh = []
         for it in items:
@@ -193,13 +194,15 @@ def main():
             try:
                 meta = {}
                 body, imgs, blocks = fetch_body(link, meta)
+                if not body and not imgs:      # 비공개·삭제된 글은 빈 페이지가 온다 → 저장하지 않는다
+                    DEBUG.append('%s 고정 글 비어 있음(비공개·삭제 추정) %s' % (bid, link[-12:])); continue
                 tags = sorted({name_ for name_, code in stocks if name_ in (meta.get('t') or '') or name_ in body[:4000]})[:6]
                 fresh.append({'t': meta.get('t') or '추천 글', 'u': link, 'd': meta.get('d') or '', 'cat': '', 'body': body,
                               'imgs': imgs, 'blocks': blocks, 'tags': tags, 'pin': True})
                 pin_new += 1; time.sleep(0.6)
             except Exception as e:
                 DEBUG.append('%s 고정 글 실패 %s: %s' % (bid, link[-12:], str(e)[:40]))
-        allp = fresh + cur['posts']
+        allp = [p for p in fresh + cur['posts'] if not (p.get('pin') and not p.get('body') and not p.get('imgs'))]   # 빈 고정 글 정리
         for p in allp:
             if p.get('pin') and p['u'].split('?')[0] not in pins: p.pop('pin', None)   # 목록에서 뺀 고정 글은 일반 글로
         keep = sorted([p for p in allp if not p.get('pin')], key=lambda p: p['d'], reverse=True)[:MAX_POSTS]

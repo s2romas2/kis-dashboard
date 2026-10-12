@@ -61,6 +61,16 @@ a.lk { color:#1d4ed8; text-decoration:none; font-weight:700; } a.lk:hover { text
 textarea.wide { width:100%; min-height:44px; font-size:12px; }
 .bandbar { position:relative; height:26px; background:#f1f5f9; border-radius:6px; margin:4px 0; }
 .bandbar i { position:absolute; top:4px; height:18px; border-radius:4px; opacity:.85; }
+.gv td { white-space:normal; vertical-align:top; text-align:left; } .gv td:nth-child(3), .gv td:nth-child(4) { white-space:nowrap; } .gv td.k { font-weight:800; color:#1a2a4a; min-width:110px; white-space:nowrap; }
+.gvd { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:6px; } .gvd.ok { background:#15803d; } .gvd.info { background:#98a2b3; } .gvd.warn { background:#f0b429; } .gvd.bad { background:#d92d20; }
+.tag.t보도 { background:#dbeafe; color:#1d4ed8; } .tag.t판단 { background:#fef3c7; color:#92400e; } .tag.t의혹 { background:#fee2e2; color:#b42318; }
+.gvg { display:inline-block; margin:0 8px 4px 0; padding:2px 9px; border-radius:9px; background:#f2f4f7; font-size:11.5px; } .gvg b { color:#1a2a4a; }
+.fx td { white-space:normal; vertical-align:top; } .fx td.l { text-align:left; } .fxs { font-size:12.5px; line-height:1.8; margin:2px 0 8px; }
+.raw { border-collapse:collapse; font-size:11px; margin:4px 0 10px; } .raw td { border:1px solid #d0d5dd; padding:2px 6px; white-space:normal; text-align:right; } .raw tr:first-child td { background:#f2f4f7; font-weight:700; text-align:center; }
+.nwb { display:inline-block; margin:0 6px 4px 0; padding:1px 8px; border-radius:9px; font-size:11px; background:#eef2ff; color:#3730a3; font-weight:700; } .nwb.w { background:#fef3c7; color:#92400e; } .nwb.b { background:#fee2e2; color:#b42318; }
+.nwl { font-size:12px; line-height:1.75; } .nwl .d { color:#667085; font-size:11px; margin-right:6px; } .nwl .s { color:#98a2b3; font-size:11px; margin-left:6px; }
+.res { margin-top:8px; padding:8px 12px; border-radius:10px; background:#f8fafc; border:1px solid #e4e7ec; font-size:12.5px; line-height:1.9; } .res.hollow { background:#fff4ed; border-color:#f9c9a8; }
+.res .i { display:inline-block; margin-right:10px; white-space:nowrap; } .rn { display:inline-block; margin-left:5px; padding:0 6px; border-radius:8px; font-size:10.5px; font-weight:800; background:#e4e7ec; color:#475467; } .rn.lo { background:#fee2e2; color:#b42318; } .rn.hi { background:#dcfce7; color:#14532d; }
 @media (max-width:800px){ .hero{grid-template-columns:1fr 1fr} th,td{padding:5px 5px;font-size:11.5px} }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
@@ -85,9 +95,13 @@ textarea.wide { width:100%; min-height:44px; font-size:12px; }
   <div class="hero" id="hero"></div>
   <div id="verdict" style="margin-top:10px"></div>
   <div class="bar" style="margin-top:8px"><button class="b seed" id="loadSeed">🔁 시드(Claude 리서치) 값으로 되돌리기</button> <button class="b warn" id="snap">📌 스냅샷 저장(변화 추적)</button> <button class="b" id="delws">워크시트 삭제</button> <span style="display:inline-block;border-left:1px solid #d0d5dd;margin:0 4px;height:18px;vertical-align:middle"></span> <button class="b pri" id="cloud">☁ 서버 저장(모든 기기)</button> <label class="mini" style="cursor:pointer"><input type="checkbox" id="cloudWatch" checked> 관심종목 등록(매일 자동수집)</label> <span class="mini" id="cloudInfo"></span> <span class="mini" id="seedInfo"></span></div>
+  <div id="resBox"></div>
   <div id="draftNote"></div>
 </div>
 
+<details open><summary>🧑‍💼 경영진·지배구조 체크 <small>투명성·도덕성·주주환원 — 공시로 확인한 사실 / 보도 / 판단 / 의혹을 구분</small></summary><div class="card" id="govCard"></div></details>
+
+<details open><summary>📦 확정 수주·사업 원문 <small>DART 공급계약 공시 · 정기보고서 표 그대로 · 컨센서스·리포트 — 매일 자동 수집</small></summary><div class="card" id="factCard"></div></details>
 <details open><summary>📄 13개 질문 보고서 <small>숫자 · 근거(태그·링크) · 쉬운 말을 질문 순서로</small></summary><div class="card q13" id="q13"></div></details>
 <details open><summary>📎 근거 표 <small>모든 숫자 = 값 · 태그 · 어떻게 구했나(공식) · 출처 링크 — 하나라도 비면 자동으로 '미확인' 강등</small></summary><div class="card" id="evCard"></div></details>
 
@@ -176,7 +190,7 @@ const AUNITS={'억원':1,'백만원':0.01,'만원':0.0001,'매출직접':null};
 const QUNITS={'대':1,'개':1,'천개':1000,'만개':10000,'톤':1,'억(매출)':1};
 const KEY='valws_v3', OLDKEY='valws_v2';
 const VIEWS=[['self','① 자기 과거 PER','mkt'],['peer','② 직접 동종업체','mkt'],['anchor','③ 고객·대장주','mkt'],['chain','④ 인접 밸류체인','mkt'],['growth','⑤ 성장률 대비(PEG)','fund'],['roic','⑥ ROIC·FCF 조정','fund'],['dcf','⑦ DCF 암시 PER','fund'],['regime','⑧ 시장 국면(섹터·시장)','mkt']];
-let AUTO={}, SV={}, HEGE={}, SEED={}, USER={}, COST=null, CMP=null, SECV=null, WS={}, CUR=null, SAVET=null, CH={}, TRI=null;
+let AUTO={}, SV={}, HEGE={}, SEED={}, USER={}, GOV={map:{}}, FACTS={}, FIDX={map:{}}, TAMG={map:{}}, SPCO={}, COST=null, CMP=null, SECV=null, WS={}, CUR=null, SAVET=null, CH={}, TRI=null;
 const num=v=>{const x=parseFloat(String(v??'').replace(/,/g,'')); return isNaN(x)?null:x;};
 const f0=v=>v==null?'—':Math.round(v).toLocaleString(), f1=v=>v==null?'—':Number(v).toFixed(1), fp=v=>v==null?'—':(v>0?'+':'')+Number(v).toFixed(0)+'%', fp1=v=>v==null?'—':(v>0?'+':'')+Number(v).toFixed(1)+'%';
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -195,6 +209,107 @@ const tagSel=(f,v)=>`<select class="tag ${'t'+T(v)}" data-f="${f}">${TAGS.map(t=
 const unitSel=(v)=>`<select data-f="aUnit" style="font-size:11px;padding:1px 3px">${Object.keys(AUNITS).map(u=>`<option ${u===(v||'억원')?'selected':''}>${u}</option>`).join('')}</select>`;
 const qunitSel=(v)=>`<select data-f="unit" style="font-size:11px;padding:1px 3px">${Object.keys(QUNITS).map(u=>`<option ${u===(v||'대')?'selected':''}>${u}</option>`).join('')}</select>`;
 const qm=p=>QUNITS[p.unit]??1;
+// ───── 전 종목 자동 수집(valfacts): 공급계약·정기보고서 원문·지배구조·경영진 뉴스
+const DL=rc=>'https://dart.fss.or.kr/dsaf001/main.do?rcpNo='+rc;
+const dlk=(rc,t)=>rc?`<a class="lk" href="${DL(rc)}" target="_blank" rel="noopener">${t||'공시'}</a>`:'';
+function tamFor(code){ const co=SPCO[code]; const M=TAMG.map||{}; const AL=TAMG.alias||{}; const ids=((co&&co.gids)||[]).map(g=>AL[g]||g).filter(g=>M[g]);
+  const ex=ids.find(g=>M[g].scope==='exact')||ids[0]; if(ex) return Object.assign({id:ex,more:ids.filter(g=>g!==ex)},M[ex]); if(co&&M._semi) return Object.assign({id:'_semi',more:[],fallback:true},M._semi,{scope:'parent'}); return null; }
+function rawTable(t){ if(!t||!t.r) return ''; return `<div class="mini" style="margin-top:6px"><b>${esc(t.h||'')}</b> ${esc(t.u||'')}</div><div class="tw"><table class="raw">${t.r.map(r=>'<tr>'+r.map(c=>Array.isArray(c)?`<td colspan="${c[1]}" rowspan="${c[2]}">${esc(c[0])}</td>`:`<td>${esc(c)}</td>`).join('')+'</tr>').join('')}</table></div>`; }
+function autoFill(w,code){ // 자동 초안 보강(v5): 세부분야 TAM · 컨센서스 · 공시 수주
+  const F=FACTS[code]||null; const A=autoFor(code); w.draft=w.draft||{}; w.draft.v4=true; w.draft.v5=true; const got=[];
+  const T=tamFor(code);
+  if(T&&!String(w.tam||'').trim()){ w.tam=`[세부분야: ${T.name}${T.scope==='parent'?' — 상위 시장 기준':''}] ${T.tam} ※ 분야 공통 수치 — 이 회사 몫은 수주·점유율로 따로 확인`; w.tamTag=T.tag; w.tamSrc=JSON.parse(JSON.stringify(T.src||[])); got.push('세부분야 TAM'); }
+  if(A.cRev&&A.fy1){ const y=A.fy1.slice(0,4); const ttm=w.draft.ttmR||null; const br=ttm?Math.min(A.cRev,ttm):A.cRev*0.85;
+    w.year=y+'E';
+    w.prods=[{name:`전체 매출(초안: ${y}E 증권사 컨센서스)`,unit:'억(매출)',aUnit:'매출직접',qB:Math.round(A.cRev),qR:Math.round(br),qS:Math.round(br*0.8),qTag:'증권사',aB:'',aR:'',aS:'',aTag:'역산',q0:A.rev0!=null?Math.round(A.rev0):'',a0:'',
+      memo:'제품군별 Q×ASP로 나누기 전 단계 — "확정 수주·사업 원문" 카드의 제품 비중 표와 공급계약으로 행을 나눌 것',
+      qHow:`네이버 컨센서스 ${y}E 매출 ${f0(A.cRev)}억 = Base. Bear = ${ttm?'최근 4분기 합 '+f0(ttm)+'억(이미 낸 실적 수준)':'컨센서스의 85%'}, Stress = Bear의 80%`,
+      qSrc:[{t:`네이버 금융 컨센서스 ${y}E 매출 ${f0(A.cRev)}억${A.cOp!=null?'·영업이익 '+f0(A.cOp)+'억':''}`,u:NAV(code)}]}];
+    if(A.cOp!=null&&A.cOp>0){ const m=A.cOp/A.cRev*100; const o=num(w.mB); w.mB=+m.toFixed(1); w.mR=+(o!=null&&o>0?Math.min(m,o):m*0.7).toFixed(1); if(num(w.mS)==null||num(w.mS)>w.mR) w.mS=+(w.mR*0.5).toFixed(1); w.mTag='증권사';
+      w.mHintMemo=`컨센서스 ${y}E 영업이익 ${f0(A.cOp)}억 ÷ 매출 ${f0(A.cRev)}억 = ${f1(m)}% / Bear = ${o!=null&&o>0?'최근 4분기 실제 이익률 '+f1(o)+'%와 비교해 낮은 쪽':'Base의 70%'} / Stress = 최근 9분기 최저 수준`; w.mSrc=[{t:`네이버 금융 컨센서스 ${y}E`,u:NAV(code)}]; }
+    if(!num(w.shB)&&A.shares){ w.shB=Math.round(A.shares); }
+    got.push('컨센서스'); }
+  const s=F&&F.con&&F.con.sum; const bl=F&&F.biz&&F.biz.backlog&&F.biz.backlog.eok;
+  if((s&&s.n)||bl){ w.vis=w.vis||{}; if((s&&s.m12>0)||bl) w.vis.order=true;
+    w.visWhy=[s&&s.n?`공급계약 공시 ${s.n}건`:'', s&&s.m12?`최근 12개월 ${f0(s.m12)}억`:'', s&&s.open?`납기가 남은 계약 ${f0(s.open)}억`:'', bl?`정기보고서 수주잔고 ${f0(bl)}억`:''].filter(Boolean).join(' · ')+' (DART 자동 수집)';
+    w.visSrc=((F.con&&F.con.list)||[]).filter(d=>d.amt).slice(0,3).map(d=>({t:`DART 공급계약 ${d.cd||d.first}: ${d.item} ${f0(d.amt)}억 (${d.cp})`,u:DL(d.rc)}));
+    if(!w.visSrc.length&&F.biz_src) w.visSrc=[{t:'DART '+F.biz_src.nm+' 수주상황',u:DL(F.biz_src.rc)}]; got.push('확정 수주'); }
+  w.thesis=`🤖 자동 초안 — ${got.length?got.join('·')+'까지 자동으로 채웠고, ':''}제품군별 Q×ASP와 성장 지속기간은 아직 조사 전입니다.`;
+  w.draft.got=got; return w; }
+function renderFacts(code){
+  const el=document.getElementById('factCard'); if(!el) return; const F=FACTS[code];
+  if(!F){ el.innerHTML=`<div class="mini">이 종목의 자동 수집 파일이 아직 없습니다. 반도체 peer 종목과 워크시트 관심종목은 매일 새벽 수집합니다 — 대상 밖 종목은 관심종목으로 등록하면 다음 수집부터 채워집니다.</div>`; return; }
+  const C=F.con||{}, S=C.sum||{}, B=F.biz||{}; let h='';
+  const yrs=Object.keys(S.by||{}).sort();
+  h+=`<div class="fxs"><b>공급계약 공시</b> ${S.n?`${S.n}건 — ${yrs.map(y=>`${y}년 <b>${f0(S.by[y])}억</b>`).join(' · ')}${S.m12?` · 최근 12개월 <b>${f0(S.m12)}억</b>`:''}${S.open?` · 납기가 남은 계약 <b>${f0(S.open)}억</b>(${S.open_n}건, 이미 납품한 분 포함 가능)`:''}${(S.cps||[]).length?`<br>상대방: ${S.cps.map(x=>`${esc(x[0])} ${f0(x[1])}억`).join(' · ')}`:''}${S.hidden?` · 금액 비공개 ${S.hidden}건`:''}`:'없음 <span class="mini">(최근 30개월. 매출의 일정 비율 미만 계약은 공시 의무가 없어, 소모품·부품 회사는 없는 것이 보통)</span>'} <span class="tag t확인">확인</span></div>`;
+  if((C.list||[]).length) h+=`<div class="tw"><table class="fx"><tr><th>계약일</th><th class="l">품목</th><th>금액(억)</th><th>매출 대비</th><th class="l">상대방</th><th class="l">지역</th><th class="l">기간</th><th class="l">정정</th><th></th></tr>${C.list.slice(0,14).map(d=>`<tr><td>${esc(d.cd||d.first||'')}</td><td class="l">${esc(d.item||'')}</td><td><b>${d.amt!=null?f1(d.amt):'비공개'}</b></td><td>${d.ratio!=null?f1(d.ratio)+'%':'—'}</td><td class="l">${esc(d.cp||'')}</td><td class="l">${esc(d.region||'')}</td><td class="l">${esc(d.from||'')} ~ ${esc(d.to||'')}</td><td class="l">${d.ncorr?`${d.ncorr}회 <span class="mini">${esc((d.reasons||[]).join(', '))}</span>`:''}</td><td>${dlk(d.rc,'원문')}</td></tr>`).join('')}</table></div>`;
+  if((S.cancel||[]).length) h+=`<div class="mini warnx">⚠ 계약 해지 공시: ${S.cancel.map(x=>`${esc(x.d)} ${dlk(x.rc,'원문')}`).join(' · ')}</div>`;
+  const src=F.biz_src?` <span class="mini">출처: ${dlk(F.biz_src.rc,esc(F.biz_src.nm))} — 표를 고치지 않고 그대로 옮김</span>`:'';
+  if(B.backlog) h+=`<div class="fxs" style="margin-top:8px"><b>수주잔고</b> ${B.backlog.eok!=null?`<b>${f0(B.backlog.eok)}억</b>`:esc(String(B.backlog.raw))} <span class="mini">(수주상황 표 합계 행에서 자동 추출 ${esc(B.backlog.u||'')} — 아래 표로 대조)</span> <span class="tag t확인">확인</span></div>`;
+  const tabs=[['order','수주상황'],['prod','제품 비중'],['sales','매출실적'],['util','가동률'],['capa','생산능력']].filter(x=>B[x[0]]);
+  if(tabs.length||B.order_note||B.cust) h+=`<details ${B.order?'open':''} style="margin-top:6px"><summary style="font-size:12.5px">정기보고서 원문 표 ${tabs.map(x=>x[1]).join(' · ')}${src}</summary>${B.order_note&&!B.order?`<div class="fxs"><b>수주상황</b>: ${esc(B.order_note)}</div>`:''}${tabs.map(x=>rawTable(B[x[0]])).join('')}${B.cust?`<div class="fxs"><b>주요 매출처</b>: ${esc(B.cust)}</div>`:''}</details>`;
+  const A=autoFor(code);
+  if(A.cRev) h+=`<div class="fxs" style="margin-top:8px"><b>증권사 컨센서스</b> ${esc(A.fy1||'')} 매출 <b>${f0(A.cRev)}억</b>${A.cOp!=null?` · 영업이익 <b>${f0(A.cOp)}억</b>`:''}${A.rev0?` (직전 연도 매출 ${f0(A.rev0)}억${A.op0!=null?'·영업이익 '+f0(A.op0)+'억':''})`:''} <span class="tag t증권사">증권사</span> <a class="lk" href="${NAV(code)}" target="_blank">네이버</a></div>`;
+  if((F.rpt||[]).length) h+=`<div class="fxs"><b>최근 증권사 리포트</b><br>${F.rpt.slice(0,5).map(r=>`<span class="mini">${esc(r.d||'')}</span> ${esc(r.b||'')} — ${r.u?`<a class="lk" href="${esc(r.u)}" target="_blank" rel="noopener">${esc(r.t)}</a>`:esc(r.t)}`).join('<br>')}</div>`;
+  const T=tamFor(code); if(T) h+=`<div class="fxs"><b>세부분야 TAM</b> <span class="mini">${esc(T.name)}${T.scope==='parent'?' · 상위 시장 기준':''}</span> ${esc(T.tam)} <span class="tag t${esc(T.tag)}">${esc(T.tag)}</span> ${lks(T.src,4)}</div>`;
+  h+=`<div class="mini">자동 수집 ${esc(F.at||'')} · 공시·API 값 그대로(해석 없음). 제품별 Q×ASP로 나누는 일은 이 자료를 보고 사람이(또는 Claude에게 요청).</div>`;
+  el.innerHTML=h;
+}
+// ───── 리서치 완성도: 이 워크시트가 '조사해서 채운 것'인지 '재무 추세만 외삽한 빈 껍데기'인지 한눈에
+function research(w,code){
+  const real=(w.prods||[]).filter(p=>p.name&&!/^전체 매출\(초안/.test(p.name));
+  const priced=real.filter(p=>AUNITS[p.aUnit||'억원']!==null);
+  const it=[
+    ['산업 TAM', !!String(w.tam||'').trim()&&evid(w.tamTag,w.tam,w.tamSrc).eff!=='미확인', '시장 크기·성장 동인·병목'],
+    ['제품별 Q', real.length>0&&real.every(p=>EVq(p).eff!=='미확인'), '제품군별 수량(수주·출하)'],
+    ['단가(ASP)', priced.length>0&&priced.every(p=>EVa(p).eff!=='미확인'), '단가 — 공시에 없으면 계약금액÷수량 역산'],
+    ['수주·가시성', Object.values(w.vis||{}).some(Boolean)&&(w.visSrc||[]).some(x=>x&&x.u), '수주잔고·공급계약·고객 투자'],
+    ['OPM 근거', !w.draft&&evid(w.mTag,w.mHintMemo,w.mSrc).eff!=='미확인', '이익률을 어떻게 잡았나'],
+    ['성장 지속기간', !w.draft&&!!w.dur&&!!String(w.durWhy||'').trim(), '몇 년 가는 성장인가'],
+    ['경영진 체크', !!(GOV.map&&GOV.map[code])||!!(FACTS[code]&&FACTS[code].gov)||!!(FIDX.map&&FIDX.map[code]), '지배구조·주주환원·제재·뉴스 언급'],
+  ];
+  // 자동 수집으로 채운 칸 표시(🤖): 초안의 TAM·수주, 사람이 조사한 경영진 기록이 없는 경우
+  const auto={}; if(w.draft){ auto['산업 TAM']=1; auto['수주·가시성']=1; auto['제품별 Q']=1; } if(!(GOV.map&&GOV.map[code])) auto['경영진 체크']=1;
+  if(w.draft) it[1][1]=false;   // 초안의 매출 한 줄은 제품별 Q가 아님
+  it.forEach(x=>{ x[3]=x[1]&&auto[x[0]]?'auto':x[1]?'ok':''; });
+  return {it, n:it.filter(x=>x[1]).length, tot:it.length, na:it.filter(x=>x[3]==='auto').length};
+}
+function renderRes(code,w){
+  const el=document.getElementById('resBox'); if(!el) return; const r=research(w,code); const hollow=!!w.draft||r.n<=2;
+  el.innerHTML=`<div class="res ${hollow?'hollow':''}"><b>리서치 완성도 ${r.n}/${r.tot}</b>${r.na?` <span class="mini">(이 중 자동 수집 ${r.na})</span>`:''} ${r.it.map(x=>`<span class="i" title="${esc(x[2])}">${x[3]==='auto'?'🤖':x[1]?'✅':'⬜'} ${x[0]}</span>`).join('')}${hollow?`<br><b style="color:#b42318">⚠ 자동 초안입니다.</b> 🤖 표시는 공시·컨센서스·세부분야 조사에서 자동으로 채운 것이고, ⬜는 아직 비어 있습니다. 매출을 제품별 수량×단가로 나누고 성장이 몇 년 가는지 판단하는 일은 사람 조사가 필요합니다 — Claude에게 "이 종목 워크시트 채워줘"라고 요청하세요. 그 전까지 정상화·Floor 값은 참고만.`:''}</div>`;
+}
+function renderGov(code){
+  const el=document.getElementById('govCard'); if(!el) return; const g=GOV.map&&GOV.map[code];
+  const F=FACTS[code]; const auto=govAuto(F);
+  if(!g){ el.innerHTML=auto||`<div class="mini">아직 자동 수집 전인 종목입니다. 볼 항목: 최대주주·특수관계인 지분 / 승계(자녀 지분·증여) / 대표·등기이사 보수 / 배당·자기주식 / 특수관계자 거래·담보 / 제재 이력 / 주총 운영 / 뉴스에서 반복되는 이야기.</div>`; return; }
+  const TG=GOV.tags||{}; const gr=g.grade||{};
+  el.innerHTML=`<div class="mini" style="margin-bottom:4px"><b>① 조사 기록</b> (Claude 리서치 ${esc(g.asof||'')})</div>`+`<div class="vd ${/낮음|주의/.test(Object.values(gr).join(' '))?'m':'d'}" style="margin-bottom:8px">${esc(g.sum||'')}</div>
+   <div>${Object.keys(gr).map(k=>`<span class="gvg">${esc(k)} <b>${esc(gr[k])}</b></span>`).join('')}</div>
+   <div class="tw"><table class="gv"><tr><th class="l">항목</th><th class="l">내용</th><th class="l">근거 수준</th><th class="l">출처</th></tr>${(g.items||[]).map(x=>`<tr><td class="k"><i class="gvd ${esc(x.lv||'info')}"></i>${esc(x.k)}</td><td>${esc(x.v)}</td><td><span class="tag t${esc(x.tag)}" title="${esc(TG[x.tag]||'')}">${esc(x.tag)}</span></td><td>${lks(x.src,4)}</td></tr>`).join('')}</table></div>
+   <div class="mini" style="margin-top:6px">${Object.keys(TG).map(k=>`<span class="tag t${esc(k)}">${esc(k)}</span> ${esc(TG[k])}`).join(' &nbsp; ')} · 점: <i class="gvd ok"></i>양호 <i class="gvd info"></i>참고 <i class="gvd warn"></i>주의 <i class="gvd bad"></i>문제 · 기준일 ${esc(g.asof||GOV.updated||'')}</div>
+   ${(g.todo||[]).length?`<div class="mini" style="margin-top:4px"><b>아직 확인 못 한 것</b>: ${g.todo.map(esc).join(' · ')}</div>`:''}`+(auto?`<div style="border-top:1px dashed #d0d5dd;margin:12px 0 8px"></div><div class="mini" style="margin-bottom:4px"><b>② 자동 점검</b></div>`+auto:'');
+}
+function govAuto(F){ // 공시 구조화 자료로 만든 자동 점검 + 경영진 관련 뉴스 반복 언급
+  if(!F||(!F.gov&&!F.news)) return ''; const G=F.gov||{}, fl=F.flags||[], N=F.news||{}; let h='';
+  const nb=fl.filter(x=>x.lv==='bad').length, nw=fl.filter(x=>x.lv==='warn').length;
+  h+=`<div class="fxs"><b>자동 점검 결과</b> ${nb?`<span class="nwb b">문제 ${nb}</span>`:''}${nw?`<span class="nwb w">주의 ${nw}</span>`:''}${!nb&&!nw?'<span class="nwb">특이 신호 없음</span>':''} <span class="mini">공시(사업보고서·주요사항·지분공시) 숫자에 규칙을 적용한 것 — 판단이 아니라 "볼 곳"을 알려 주는 신호</span></div>`;
+  if(fl.length) h+=`<div class="tw"><table class="gv"><tr><th class="l">항목</th><th class="l">내용</th><th class="l">근거</th><th class="l">출처</th></tr>${fl.map(x=>`<tr><td class="k"><i class="gvd ${esc(x.lv)}"></i>${esc(x.k)}</td><td>${esc(x.v)}</td><td><span class="tag t${esc(x.tag)}">${esc(x.tag)}</span></td><td>${x.rc?dlk(x.rc,'공시'):''}</td></tr>`).join('')}</table></div>`;
+  const hs=G.holders||[];
+  if(hs.length) h+=`<div class="fxs" style="margin-top:8px"><b>최대주주·특수관계인</b> 합 ${G.hsum!=null?f1(G.hsum)+'%':'—'} <span class="mini">(${esc(G.h_asof||'')} 기준 ${dlk(G.h_rc,'공시')} · 친족 개인은 이름 대신 관계만 표시)</span><br>${hs.slice(0,8).map(x=>`${esc(x.nm)} <span class="mini">${esc(x.rel)}</span> <b>${f1(x.pct)}%</b>`).join(' · ')}${G.minor!=null?` · 소액주주 ${f1(G.minor)}%`:''}</div>`;
+  const dv=G.div||[];
+  if(dv.length) h+=`<div class="tw"><table class="fx" style="max-width:640px"><tr><th>사업연도</th><th>주당배당금</th><th>배당성향</th><th>시가배당률</th><th>배당총액(억)</th><th>순이익(억)</th></tr>${dv.map(d=>`<tr><td>${d.y}</td><td>${d.dps!=null?f0(d.dps)+'원':'—'}</td><td>${d.payout!=null?f1(d.payout)+'%':'—'}</td><td>${d.yield!=null?d.yield+'%':'—'}</td><td>${d.tot!=null?f1(d.tot):'—'}</td><td>${d.ni!=null?f0(d.ni):'—'}</td></tr>`).join('')}</table></div>`;
+  const pay=G.pay||{}; const ts=G.tstk||{};
+  const bits=[]; if(pay.tot) bits.push(`이사·감사 ${f0(pay.n)}명 보수 합 ${f1(pay.tot)}억${(pay.ind||[]).length?' · 5억 이상: '+pay.ind.map(x=>`${esc(x.pos)} ${esc(x.nm)} ${f1(x.amt)}억`).join(', '):' · 5억 이상 수령자 없음'}`);
+  if(ts.end!=null||ts.pct!=null) bits.push(`자기주식 ${ts.end!=null?f0(ts.end)+'주':''}${ts.pct!=null?`(발행주식의 ${f1(ts.pct)}%)`:''}${ts.dsp?` · 직전 사업연도 처분 ${f0(ts.dsp)}주`:''}${ts.ret?` · 소각 ${f0(ts.ret)}주`:''}`);
+  if(bits.length) h+=`<div class="fxs">${bits.join('<br>')} <span class="mini">${dlk(G.a_rc,(G.a_y||'')+' 사업보고서')}</span></div>`;
+  const items=N.items||[]; const kc=N.kc||{}; const ks=Object.keys(kc).sort((a,b)=>kc[b]-kc[a]);
+  h+=`<div class="fxs" style="margin-top:10px"><b>📰 뉴스에서 반복되는 경영진·지배구조 이야기</b> <span class="mini">최근 1년 · 제목에 회사명과 관련 단어가 함께 나온 기사 · 사실 확인 전(의혹 포함) — 여러 번 나오는 주제는 공시로 대조</span><br>${ks.length?ks.map(k=>`<span class="nwb ${k==='사고·제재'?'b':(k==='승계·증여'||k==='주주행동')?'w':''}">${esc(k)} ${kc[k]}</span>`).join(''):'<span class="mini">해당 기사 없음</span>'}</div>`;
+  if(items.length){ const pri=x=>(x.b.includes('사고·제재')?0:x.b.includes('승계·증여')?1:x.b.includes('주주행동')?2:x.b.includes('보수·주총')?3:4);
+    const top=items.slice().sort((a,b)=>pri(a)-pri(b)||String(b.d).localeCompare(String(a.d))).slice(0,12);
+    h+=`<div class="nwl">${top.map(x=>`<div><span class="d">${esc(x.d||'')}</span><a class="lk" href="${esc(x.u)}" target="_blank" rel="noopener">${esc(x.t)}</a><span class="s">${esc(x.s||'')} · ${esc(x.b.join('·'))}</span></div>`).join('')}</div>${items.length>12?`<div class="mini">외 ${items.length-12}건</div>`:''}`; }
+  h+=`<div class="mini" style="margin-top:6px">자동 수집 ${esc(F.at||'')} · <span class="tag t확인">확인</span>공시 <span class="tag t보도">보도</span>언론(미검증 포함)</div>`;
+  return h;
+}
 function load(){ try{ WS=JSON.parse(localStorage.getItem(KEY))||null; if(!WS){ WS=JSON.parse(localStorage.getItem(OLDKEY))||{}; } }catch(e){ WS={}; } for(const c in WS) migrate(WS[c]); }
 function migrate(w){ const d=blank(w.code||''); for(const k in d) if(w[k]===undefined) w[k]=d[k]; for(const p of w.prods||[]){ if(p.qHow===undefined) p.qHow=''; if(p.aHow===undefined) p.aHow=''; } for(const p of w.prods||[]){ if(p.qTag==='인터뷰') p.qTag='회사발언'; if(p.aTag==='인터뷰') p.aTag='회사발언'; } for(const k of ['tamTag','oTag','capaTag','mTag','shTag','cagrTag']) if(w[k]==='인터뷰') w[k]='회사발언'; if(!w.wt) w.wt={}; if(!w.vis) w.vis={}; }
 function save(){ try{ if(CUR&&WS[CUR]) WS[CUR].localAt=new Date().toISOString(); localStorage.setItem(KEY, JSON.stringify(WS)); document.getElementById('stmsg').textContent='저장됨 '+new Date().toLocaleTimeString(); }catch(e){} }
@@ -206,7 +321,7 @@ function autoFor(code){
   const a=AUTO.map&&AUTO.map[code]||{}, sv=SV.map&&SV.map[code]||null, hg=HEGE.rows&&HEGE.rows.find(r=>r.c===code)||null;
   const info=a.info||{};
   const px=sv?sv[3]:num(info['전일']); const cap=sv?sv[2]:null;
-  let ann=a.annual||{cols:[],rows:{}}; const w=WS[code]||{}; const D=w.draft||null;
+  let ann=a.annual||(FACTS[code]&&FACTS[code].annual)||{cols:[],rows:{}}; const w=WS[code]||{}; const D=w.draft||null;
   if(!(ann.cols||[]).length&&D&&D.years){ ann={cols:D.years.map(y=>[y+'.12',false]), rows:{'매출액':D.rev,'영업이익':D.op,'당기순이익':D.ni,'EPS':D.eps}}; }
   const ac=ann.cols||[]; const fy1=ac.find(c=>c[1]); const fy0=[...ac].reverse().find(c=>!c[1]);
   const g=(row,key)=>key&&ann.rows[row]?ann.rows[row][key]:null;
@@ -218,7 +333,7 @@ function autoFor(code){
     hg, bonds:a.bonds||[], peers:(AUTO.peers||{})[code]||[], chain:(AUTO.chain||{})[code]||[], anchors:(AUTO.anchors||{})[code]||[], naverPeers:a.naver_peers||[], quarter:a.quarter, fin, annF, ytd, hist:(AUTO.hist||{})[code]||[]};
 }
 async function fetchJ(u){ try{ const r=await fetch(u+'?r='+Date.now()); if(!r.ok) return null; return await r.json(); }catch(e){ return null; } }
-async function loadAux(code){ COST=await fetchJ('/data/cost/'+code+'.json'); CMP=await fetchJ('/data/compare/'+code+'.json'); }
+async function loadAux(code){ const [c1,c2,f]=await Promise.all([fetchJ('/data/cost/'+code+'.json'),fetchJ('/data/compare/'+code+'.json'),FACTS[code]?Promise.resolve(FACTS[code]):fetchJ('/data/vf/'+code+'.json')]); COST=c1; CMP=c2; if(f) FACTS[code]=f; }
 function pct(arr,p){ if(!arr.length) return null; const s=arr.slice().sort((a,b)=>a-b); return s[Math.min(s.length-1,Math.floor(p*(s.length-1)))]; }
 function perHist(cmp,years){ if(!cmp||!cmp.per) return []; const cut=new Date(); cut.setFullYear(cut.getFullYear()-years); const c=cut.toISOString().slice(0,10); return cmp.per.filter(x=>x[0]>=c&&x[1]!=null&&x[1]>0&&x[1]<200).map(x=>x[1]); }
 
@@ -243,7 +358,7 @@ function makeDraft(code){
   const w=blank(code); const hg=(HEGE.rows||[]).find(r=>r.c===code); const sv=SV.map&&SV.map[code]; const px=sv?sv[3]:null, cap=sv?sv[2]:null;
   const yr=new Date().getFullYear()+1; w.year=yr+'E'; w.grade=0; w.draft={at:new Date().toISOString().slice(0,10), v4:true};
   const rows=(COST&&COST.rows||[]).filter(r=>r.rev); if(rows.length){ w.draft.years=rows.map(r=>String(r.y)); const sh=(px&&cap)?cap*1e8/px:null; w.draft.rev={}; w.draft.op={}; w.draft.ni={}; w.draft.eps={}; rows.forEach(r=>{ const k=r.y+'.12'; w.draft.rev[k]=r.rev/1e8; w.draft.op[k]=r.op/1e8; w.draft.ni[k]=r.ni!=null?r.ni/1e8:null; w.draft.eps[k]=(r.ni!=null&&sh)?r.ni/sh:null; }); }
-  if(!hg||!hg.rev||hg.rev.length<4) { w.draft.note='분기 실적(hege) 없음 — 수동 입력 필요'; return w; }
+  if(!hg||!hg.rev||hg.rev.length<4) { w.draft.note='분기 실적(hege) 없음'; return autoFill(w,code); }
   const rv=hg.rev.slice(-4), op=hg.op.slice(-4); const ttmR=rv.reduce((a,b)=>a+(b||0),0), ttmO=op.reduce((a,b)=>a+(b||0),0);
   const rgs=(hg.rgs||[]).slice(-4).filter(x=>x!=null); const g=rgs.length?Math.max(-20,Math.min(60,pct(rgs,.5))):10; // 최근 4분기 매출 YoY 중앙값(−20~60% 캡)
   const n=1.5; const grow=(r)=>ttmR*Math.pow(1+r/100,n); // TTM(최근 4분기, 중간연도)→차년도 = 약 1.5년 외삽
@@ -256,7 +371,7 @@ function makeDraft(code){
   w.dur=2; w.durWhy='자동 초안: 최근 추세 외삽이라 지속기간 2년만 가정(미검증)'; w.cagrTag='역산';
   w.thesis='🤖 자동 초안 — 최근 4분기 실적 추세를 외삽한 1차 값입니다. 제품군 Q×ASP·OPM 근거·지속기간을 공시/회사발언으로 교체하세요.';
   w.draft.g=g; w.draft.ttmR=ttmR; w.draft.ttmO=ttmO; w.draft.n=n;
-  return w;
+  return autoFill(w,code);
 }
 function draftPer(code,w){ // 초안 PER: 삼각측량 제안 → 없으면 자기 과거 25~75% → 없으면 시장 PER
   const A=autoFor(code); const Q=quality(A); const R=calc(w,A); const t=triangulate(w,A,R,Q);
@@ -597,13 +712,13 @@ function renderOut(code){
   renderTri(code,A,R,Q);
   const v=verdict(w,A,R); const HG=highGrowth(w,A,R,Q); const G=renderEvidence(code,A,R);
   document.getElementById('hero').innerHTML=`
-    <div class="k"><div class="t">현재가 · 시총</div><div class="v">${f0(A.px)}원</div><div class="s">${A.cap?(A.cap>=10000?(A.cap/10000).toFixed(2)+'조':f0(A.cap)+'억'):'—'} · 가시성 ${gradeB(G.use)}${G.manual?'':'<span class="mini">(자동)</span>'} · <span class="HG ${HG.cls}">${HG.label}</span> · ${esc(w.year||'')}</div></div>
+    <div class="k"><div class="t">현재가 · 시총</div><div class="v">${f0(A.px)}원</div><div class="s">${A.cap?(A.cap>=10000?(A.cap/10000).toFixed(2)+'조':f0(A.cap)+'억'):'—'} · 가시성 ${w.draft?gradeB(0)+'<span class="mini">(조사 전)</span>':gradeB(G.use)+(G.manual?'':'<span class="mini">(자동)</span>')} · <span class="HG ${HG.cls}">${HG.label}</span> · ${esc(w.year||'')}</div></div>
     <div class="k"><div class="t">정상화 가치(Base)</div><div class="v">${B.vL!=null?f0(B.vL)+'~'+f0(B.vH):'—'}</div><div class="s">EPS ${f0(B.eps.dil)}원 × ${B.pl||'?'}~${B.ph||'?'}배 · 상단까지 <span class="${v.toN<0?'neg':'pos'}">${fp(v.toN)}</span> · EPS CAGR ${fp(R.cagrF)}</div></div>
     <div class="k"><div class="t">Floor(Bear)</div><div class="v">${Rr.vL!=null?f0(Rr.vL)+'~'+f0(Rr.vH):'—'}</div><div class="s">EPS ${f0(Rr.eps.dil)}원 × ${Rr.pl||'?'}~${Rr.ph||'?'}배 · 하단까지 <span class="${v.toF<0?'neg':'pos'}">${fp(v.toF)}</span></div></div>
     <div class="k"><div class="t">Stress</div><div class="v">${S.vL!=null?f0(S.vL)+'~'+f0(S.vH):'—'}</div><div class="s">EPS ${f0(S.eps.dil)}원 × ${S.pl||'?'}~${S.ph||'?'}배 · <span class="${v.toS<0?'neg':'pos'}">${fp(v.toS)}</span></div></div>`;
-  document.getElementById('verdict').innerHTML=`<div class="vd ${v.cls}">${v.t}</div>`;
+  document.getElementById('verdict').innerHTML=w.draft?`<div class="vd x">🤖 자동 초안이라 <b>판정을 보류</b>합니다. 위 정상화·Floor·Stress 값은 컨센서스(또는 실적 추세)와 기계적으로 고른 PER 범위를 곱한 것이라 참고용입니다 — 제품별 Q×ASP와 PER 근거를 조사해 넣으면 판정이 나옵니다.</div>`:`<div class="vd ${v.cls}">${v.t}</div>`;
   document.getElementById('seedInfo').textContent=w.fromSeed?`시드 ${w.seedDate||''} 기준 (수정 시 브라우저 저장본 우선)`:(SEED.map&&SEED.map[code]?'시드 있음(현재는 내 입력값)':'시드 없음');
-  renderQ13(w,A,R,Q,HG,v);
+  renderQ13(w,A,R,Q,HG,v); renderRes(code,w); renderGov(code); renderFacts(code);
   document.getElementById('decomp').innerHTML=decompose(w,A,R);
   document.getElementById('digest').innerHTML=digest(w,A,R);
   document.getElementById('cagrHint').textContent=R.cagr0!=null?`FY0→${w.year} 계산 CAGR ${fp(R.cagr0)} (비워두면 이 값 사용)`:'';
@@ -629,21 +744,21 @@ function renderOut(code){
 function renderList(){
   const tb=document.querySelector('#wl tbody'); const codes=Object.keys(WS);
   tb.innerHTML=codes.length?codes.map(c=>{const w=WS[c], A=autoFor(c), Q=quality(A), R=calc(w,A), v=verdict(w,A,R), HG=highGrowth(w,A,R,Q); const B=R.out.B, Rr=R.out.R, S=R.out.S;
-    return `<tr data-c="${c}" style="cursor:pointer"><td class="l"><b>${esc(A.name)}</b> <span class="mini">${c}</span>${w.fromSeed?' <span class="tag t회사발언" title="Claude 리서치 시드">시드</span>':''}${w.draft?' <span class="tag t역산" title="자동 초안">초안</span>':''}${USER.map&&USER.map[c]?' <span title="서버 저장됨">☁</span>':''}</td><td>${gradeB(autoGrade(w,R).use)}</td><td><span class="HG ${HG.cls}" style="font-size:11px">${HG.label}</span></td><td>${f0(A.px)}</td><td>${f0(B.eps.dil)}</td><td>${fp(R.cagrF)}</td><td>${B.vL!=null?f0(B.vL)+'~'+f0(B.vH):'—'}</td><td>${Rr.vL!=null?f0(Rr.vL)+'~'+f0(Rr.vH):'—'}</td><td>${S.vL!=null?f0(S.vL)+'~'+f0(S.vH):'—'}</td><td class="${v.toF<0?'neg':'pos'}">${fp(v.toF)}</td><td class="${v.toN<0?'neg':'pos'}">${fp(v.toN)}</td><td class="l"><span class="vd ${v.cls}" style="padding:1px 8px;font-size:11.5px">${v.cls==='x'?'산출 전':v.cls==='u'?'Floor 이하/구간':v.cls==='m'?'Floor~정상화':'정상화 초과'}</span></td></tr>`;}).join(''):'<tr><td colspan="12" class="l mini" style="padding:16px">저장된 워크시트 없음</td></tr>';
+    return `<tr data-c="${c}" style="cursor:pointer"><td class="l"><b>${esc(A.name)}</b> <span class="mini">${c}</span>${w.fromSeed?' <span class="tag t회사발언" title="Claude 리서치 시드">시드</span>':''}${w.draft?' <span class="tag t역산" title="자동 초안 — 재무 추세 외삽, 조사 전">초안</span>':''}${USER.map&&USER.map[c]?' <span title="서버 저장됨">☁</span>':''}${(r=>`<span class="rn ${r.n<=2?'lo':r.n>=6?'hi':''}" title="리서치 완성도: ${r.it.map(x=>(x[3]==='auto'?'🤖':x[1]?'✅':'⬜')+x[0]).join(' ')}">리서치 ${r.n}/${r.tot}</span>`)(research(w,c))}${(x=>x&&x.fl&&x.fl.length?`<span class="rn ${x.fl.some(f=>f[0]==='bad')?'lo':''}" title="경영진 자동 점검: ${esc(x.fl.map(f=>f[1]).join(' · '))}">⚠ ${x.fl.length}</span>`:'')(FIDX.map&&FIDX.map[c])}</td><td>${w.draft?gradeB(0):gradeB(autoGrade(w,R).use)}</td><td><span class="HG ${HG.cls}" style="font-size:11px">${HG.label}</span></td><td>${f0(A.px)}</td><td>${f0(B.eps.dil)}</td><td>${fp(R.cagrF)}</td><td>${B.vL!=null?f0(B.vL)+'~'+f0(B.vH):'—'}</td><td>${Rr.vL!=null?f0(Rr.vL)+'~'+f0(Rr.vH):'—'}</td><td>${S.vL!=null?f0(S.vL)+'~'+f0(S.vH):'—'}</td><td class="${v.toF<0?'neg':'pos'}">${fp(v.toF)}</td><td class="${v.toN<0?'neg':'pos'}">${fp(v.toN)}</td><td class="l"><span class="vd ${w.draft?'x':v.cls}" style="padding:1px 8px;font-size:11.5px">${w.draft?'초안 — 판정 보류':v.cls==='x'?'산출 전':v.cls==='u'?'Floor 이하/구간':v.cls==='m'?'Floor~정상화':'정상화 초과'}</span></td></tr>`;}).join(''):'<tr><td colspan="12" class="l mini" style="padding:16px">저장된 워크시트 없음</td></tr>';
   tb.querySelectorAll('tr[data-c]').forEach(tr=>tr.onclick=()=>openWs(tr.dataset.c));
 }
 async function openWs(code){
   CUR=code; await loadAux(code);
   let fresh=false;
   if(!WS[code]){ if(USER.map&&USER.map[code]){ WS[code]=JSON.parse(JSON.stringify(USER.map[code])); migrate(WS[code]); } else if(!applySeed(code)){ WS[code]=makeDraft(code); fresh=true; } }
-  else if(WS[code].draft&&!WS[code].draft.v4){ const keep=WS[code].snaps||[]; WS[code]=makeDraft(code); WS[code].snaps=keep; fresh=true; } // v4 이전 초안은 공식·링크 형식으로 재생성
+  else if(WS[code].draft&&!WS[code].draft.v5){ const keep=WS[code].snaps||[]; WS[code]=makeDraft(code); WS[code].snaps=keep; fresh=true; } // v4 이전 초안은 공식·링크 형식으로 재생성
   if(fresh&&WS[code].draft&&WS[code].prods[0]&&num(WS[code].prods[0].qB)!=null){ draftPer(code,WS[code]); }
   const {A}=renderAuto(code);
   document.getElementById('wsTitle').innerHTML=`${esc(A.name)} <span class="mini">${code}</span> <a class="lk" id="spLink" href="/semipeer.html#${code}" style="font-size:12px;font-weight:600;margin-left:8px;display:none">⚖️ peer 상대밸류에서 보기</a>`; updSpLink();
   document.getElementById('ws').style.display='';
   renderInputs(code); renderOut(code); save();
   const w=WS[code]; const dn=document.getElementById('draftNote');
-  dn.innerHTML=w.draft?`<div class="vd d" style="margin-top:8px">🤖 <b>자동 초안</b>(${esc(w.draft.at||'')}) — ${w.draft.note?esc(w.draft.note):`최근 4분기 매출 ${f0(w.draft.ttmR)}억·영익 ${f0(w.draft.ttmO)}억, 매출 YoY 중앙값 ${fp(w.draft.g)}를 ${w.draft.n}년 외삽한 1차 값. 태그는 모두 '역산'`}. 컨센·DART 재무제표·CB/BW는 <b>☁ 서버 저장 + 관심종목 등록</b> 후 다음 07:10 수집부터 채워집니다. 제품군 Q×ASP로 바꾸고 싶으면 제품 표의 초안 행을 지우고 입력하세요.</div>`:'';
+  dn.innerHTML=w.draft?`<div class="vd d" style="margin-top:8px">🤖 <b>자동 초안</b>(${esc(w.draft.at||'')}) — ${(w.draft.got||[]).length?`자동으로 채운 것: <b>${esc(w.draft.got.join(' · '))}</b>. `:''}${(w.draft.got||[]).includes('컨센서스')?'매출·이익률 Base는 증권사 컨센서스, Bear는 최근 4분기 실적 수준':(w.draft.note?esc(w.draft.note):`컨센서스가 없어 최근 4분기 매출 ${f0(w.draft.ttmR)}억을 ${w.draft.n}년 늘린 값(역산)`)}. 제품별 Q×ASP·성장 지속기간은 조사 전입니다. 컨센 추세·DART 전체 재무제표·CB/BW는 <b>☁ 서버 저장 + 관심종목 등록</b> 후 다음 07:10 수집부터 채워집니다. 제품군 Q×ASP로 바꾸고 싶으면 제품 표의 초안 행을 지우고 입력하세요.</div>`:'';
   document.getElementById('cloudInfo').innerHTML=(USER.map&&USER.map[code])?`☁ 서버 ${esc((USER.map[code].savedAt||'').slice(0,16).replace('T',' '))}`:'<span style="color:#b45309">☁ 서버 미저장(이 브라우저만)</span>';
   document.getElementById('cloudWatch').checked=!(AUTO.codes||[]).includes(code);
   document.getElementById('ws').scrollIntoView({behavior:'smooth'});
@@ -685,13 +800,14 @@ document.getElementById('impf').onchange=e=>{ const f=e.target.files[0]; if(!f) 
 
 (async function init(){
   load();
-  const [a,s,h,sv,sd,us]=await Promise.all([fetchJ('/data/valws_auto.json'),fetchJ('/data/stockvals.json'),fetchJ('/data/hege.json'),fetchJ('/data/sectorval.json'),fetchJ('/data/valws_seed.json'),fetchJ('/data/valws_user.json')]);
-  AUTO=a||{map:{}}; SV=s||{map:{}}; HEGE=h||{rows:[],quarters:[]}; SECV=sv; SEED=sd||{map:{}}; USER=us||{map:{}};
+  const [a,s,h,sv,sd,us,gv,fi,tg,spj]=await Promise.all([fetchJ('/data/valws_auto.json'),fetchJ('/data/stockvals.json'),fetchJ('/data/hege.json'),fetchJ('/data/sectorval.json'),fetchJ('/data/valws_seed.json'),fetchJ('/data/valws_user.json'),fetchJ('/data/valws_gov.json'),fetchJ('/data/valfacts_idx.json'),fetchJ('/data/valws_tam.json'),fetchJ('/data/semipeer.json')]);
+  AUTO=a||{map:{}}; SV=s||{map:{}}; HEGE=h||{rows:[],quarters:[]}; SECV=sv; SEED=sd||{map:{}}; USER=us||{map:{}}; GOV=gv||{map:{}}; if(!GOV.map) GOV.map={}; FIDX=fi||{map:{}}; if(!FIDX.map) FIDX.map={}; TAMG=tg||{map:{}}; SPCO=(spj&&spj.co)||{};
   for(const c of Object.keys(USER.map||{})){ const u=USER.map[c], l=WS[c]; if(!l||!(l.localAt)||(u.savedAt&&u.savedAt>l.localAt)){ const keep=(l||{}).snaps||[]; WS[c]=JSON.parse(JSON.stringify(u)); migrate(WS[c]); if(keep.length&&!(WS[c].snaps||[]).length) WS[c].snaps=keep; } }
-  document.getElementById('upd').innerHTML=`자동: 컨센·DART 재무제표·CB/BW·SEC 앵커 ${esc(AUTO.updated||'없음')} (관심 ${(AUTO.codes||[]).length}종목) · 시세 ${esc(SV.updated||'')} · 분기실적 ${esc(HEGE.updated||'')} · 시드 ${esc(SEED.updated||'없음')} — 가격·컨센·공시는 매일 자동, Q·ASP·OPM·성장·배수는 실적 시즌마다 사람이`;
+  document.getElementById('upd').innerHTML=`자동: 컨센·DART 재무제표·CB/BW·SEC 앵커 ${esc(AUTO.updated||'없음')} (관심 ${(AUTO.codes||[]).length}종목) · 수주·지배구조·경영진 뉴스 ${esc(FIDX.updated||'수집 전')} (${Object.keys(FIDX.map||{}).length}종목) · 시세 ${esc(SV.updated||'')} · 분기실적 ${esc(HEGE.updated||'')} · 시드 ${esc(SEED.updated||'없음')} — 가격·컨센·공시는 매일 자동, Q·ASP·OPM·성장·배수는 실적 시즌마다 사람이`;
   for(const c of Object.keys(SEED.map||{})){
     if(!WS[c]){ applySeed(c); continue; }
     const w=WS[c], sd2=SEED.map[c];
+    if(w.draft){ applySeed(c); continue; } // 조사 전 자동 초안이 남아 있으면 리서치 시드로 교체
     if(w.fromSeed&&w.seedDate!==SEED.updated){ applySeed(c); continue; }
     const hasSrc=(w.prods||[]).some(p=>(p.qSrc||[]).length||(p.aSrc||[]).length)||(w.mSrc||[]).length;
     if(!hasSrc){ (w.prods||[]).forEach((p,i)=>{ const sp=(sd2.prods||[]).find(x=>x.name===p.name)||sd2.prods[i]; if(sp){ p.qSrc=sp.qSrc||[]; p.aSrc=sp.aSrc||[]; } }); for(const k of ['mSrc','shSrc','pSrc','tamSrc','cagrSrc','visSrc']) if(!w[k]) w[k]=sd2[k]||[]; }

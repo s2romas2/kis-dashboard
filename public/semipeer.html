@@ -81,6 +81,8 @@ tr.d > td { background:#fbfcfe; padding:14px; white-space:normal; text-align:lef
 .dh h3 { font-size:16px; } .dh .m { font-size:12.5px; color:#475467; }
 .wsb { display:inline-block; background:#1a2a4a; color:#fff; font-size:12.5px; font-weight:800; padding:5px 12px; border-radius:16px; text-decoration:none; }
 .wsb:hover { background:#2f6df6; }
+td a.gvb { text-decoration:none; margin-left:4px; font-size:10px; font-weight:800; padding:0 4px; border-radius:7px; } td a.gvb.b { background:#fee2e2; color:#b42318; } td a.gvb.w { background:#fef3c7; color:#92400e; }
+.gvt { display:inline-block; margin:0 4px 2px 0; padding:0 7px; border-radius:8px; font-size:11px; font-weight:700; } .gvt.b { background:#fee2e2; color:#b42318; } .gvt.w { background:#fef3c7; color:#92400e; }
 td a.wsl { text-decoration:none; margin-left:5px; font-size:12px; opacity:.55; } td a.wsl:hover { opacity:1; }
 .warn { background:#fff7e8; border:1px solid #f5d9a8; border-radius:8px; padding:7px 11px; font-size:12px; color:#7a5b1e; line-height:1.7; margin-bottom:10px; }
 .charts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:10px 0 4px; }
@@ -115,6 +117,29 @@ td a.wsl { text-decoration:none; margin-left:5px; font-size:12px; opacity:.55; }
 .gb { background:#f8fafc; border:1px solid #e4e7ec; border-radius:10px; padding:9px 12px; font-size:12px; line-height:1.7; margin-top:8px; color:#344054; }
 .gb b { color:#1a2a4a; }
 h5 { font-size:13px; margin:14px 0 2px; color:#1a2a4a; }
+.ab { background:#fff; border:1.5px solid #c7d7fe; border-radius:12px; padding:10px 12px; margin:8px 0 12px; }
+.abh { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:6px; font-size:13.5px; color:#1a2a4a; }
+.abh .abb { margin-left:auto; display:flex; flex-wrap:wrap; gap:4px; align-items:center; }
+.ab .src { font-size:10.5px; font-weight:800; padding:1px 7px; border-radius:9px; background:#eef2ff; color:#3730a3; }
+.ab .src.me { background:#dcfce7; color:#15803d; } .ab .src.no { background:#f1f5f9; color:#667085; }
+.ab .fit { font-size:11px; font-weight:800; padding:1px 7px; border-radius:9px; margin-left:6px; }
+.fit.ok { background:#dcfce7; color:#15803d; } .fit.weak { background:#fef3c7; color:#92400e; } .fit.none { background:#fff; color:#667085; border:1px dashed #c3c9d4; }
+.ab .abr { font-size:12.5px; display:flex; flex-wrap:wrap; gap:6px 12px; align-items:center; }
+.ab .why { font-size:12.5px; line-height:1.7; color:#344054; margin:5px 0 8px; }
+.ab .bt { border:1.5px solid #d7dce6; background:#fff; border-radius:8px; padding:3px 9px; font:inherit; font-size:11.5px; font-weight:700; color:#475467; cursor:pointer; }
+.ab .bt.on { background:#1a2a4a; border-color:#1a2a4a; color:#fff; }
+.ab select, .ab textarea, .ab input[type=text], .ab input[type=number] { border:1.5px solid #d7dce6; border-radius:8px; padding:5px 8px; font:inherit; font-size:12.5px; background:#fff; }
+.ab textarea { width:100%; margin:6px 0 8px; line-height:1.6; resize:vertical; }
+.ab tr.anc td { background:#fff7ed; } .ab tr.self td { background:#f8fafc; } .ab tr.cg td { color:#667085; }
+.ab .dz { font-size:12.5px; margin-top:6px; } .ab .dz ul { margin:4px 0 0; padding-left:0; list-style:none; }
+.ab .dz li { padding:3px 0; line-height:1.6; color:#475467; } .ab .dz li b { color:#1a2a4a; }
+.ab .pc2 { display:inline-block; min-width:64px; text-align:center; font-size:11px; font-weight:800; padding:1px 7px; border-radius:9px; background:#f1f5f9; color:#667085; margin-right:6px; }
+.ab .pc2.on { background:#1a2a4a; color:#fff; }
+.ab .dzr { display:flex; flex-wrap:wrap; gap:5px; align-items:center; margin:4px 0; }
+.ab .dzr input[type=text] { flex:1 1 150px; min-width:120px; } .ab .dzr input[type=number] { width:68px; }
+.ab .res { font-size:13.5px; margin:9px 0 2px; color:#1a2a4a; line-height:1.7; } .ab .res b { font-size:15px; }
+.ab .nt { font-size:12px; color:#7a5b1e; background:#fff7e8; border:1px solid #f5d9a8; border-radius:8px; padding:6px 10px; margin-top:7px; line-height:1.6; }
+.ub { display:block; font-size:10.5px; color:#667085; margin-top:2px; font-weight:600; }
 @media (max-width:900px){ .charts{grid-template-columns:1fr} .fin{grid-template-columns:1fr} .why dt{float:none;width:auto} .why dd{margin-left:0} }
 @media (max-width:700px){ th,td{padding:6px 5px;font-size:11.5px} }
 </style>
@@ -138,6 +163,7 @@ h5 { font-size:13px; margin:14px 0 2px; color:#1a2a4a; }
     <b>숫자</b> — <span id="basisTxt"></span><br>
     <b>근거 강도</b> ●●● A등급 peer가 있고 peer가 둘 이상 / ●●○ A가 하나 있거나 B가 둘 이상 / ●○○ B 하나뿐 — 한 쌍만으로 붙은 꼬리표는 약하게 보세요.<br>
     <b>꼬리표 기준</b> — A·B등급 peer와 쌍마다 비교한 값의 중앙값. PER·PBR·PSR은 peer의 90% 이하면 낮음·110% 이상이면 높음, ROE·영업이익률·ROA는 1%p, 성장률은 5%p, 부채비율은 20%p 넘게 차이 나면 높음/낮음.<br>
+    <b>기준 peer로 본 상단</b> — 상세 화면의 파란 테두리 칸. peer 가운데 한 곳을 기준으로 정하고(같은 제품 → 같은 성장 위치 → 같은 고객 순), 그 회사의 배수를 받는다면 시총이 어디까지 가능한지(상단)를 계산합니다. 상단 = 현재 시총 × (기준 peer 배수 ÷ 내 배수). 그다음 이 회사 고유의 사정(겹치는 사업의 매출 비중 등)으로 깎습니다. 저PER 종목에는 초안이 들어 있고, "고치기"로 기준 peer·이유·깎을 요소를 바꾸면 이 브라우저에 저장됩니다.<br>
     <b>성장률</b> — 흑자전환·500% 초과는 +500%, 적자전환·적자확대는 −200%로 표시합니다. 300%가 넘는 성장률은 기저효과라 300%로 놓고 비교하고, PER이 150배를 넘으면(이익이 0에 가까움) PER 비교에서 뺍니다. ROA는 연결 순이익 전체 ÷ 자산총계, 부채비율은 부채총계 ÷ 자본총계입니다.
   </details>
 </div>
@@ -267,8 +293,8 @@ function render(){
     const dc=(x.disc!=null&&(x.sig==='lowper'||x.sig==='midper'||x.sig==='highper'))?' <span class="'+(x.disc<0?'pos':x.disc>0?'neg':'mu')+'" title="A·B등급 peer PER 중앙값 '+fv('per',P.per)+' 대비">'+(x.disc>0?'+':'')+x.disc+'%</span>':'';
     const wi=nw?`<span class="wi" title="${esc((x.warn||[]).map(w=>(WN[w]||[w])[0]).join(' · '))}">⚠${nw}</span>`:'';
     h+=`<tr class="r${OPEN===x.c?' open':''}" data-c="${x.c}">
-      <td class="l"><span class="nm">${esc(x.n)}</span><span class="code">${x.c}</span><a class="wsl" data-ws="1" href="/valws.html?c=${x.c}" title="밸류 워크시트에서 열기">🧮</a><span class="tl">${stg(x.stage)}${x.seg?'<span class="tag">'+esc(x.seg)+'</span>':''}${PURE[x.pure]||''}</span></td>
-      <td><span class="sg ${x.sig}" title="${SIGD[x.sig]||''}">${SIG[x.sig]||x.sig}</span>${dc}${wi}</td>
+      <td class="l"><span class="nm">${esc(x.n)}</span><span class="code">${x.c}</span><a class="wsl" data-ws="1" href="/valws.html?c=${x.c}" title="밸류 워크시트에서 열기">🧮</a>${govDot(x.c)}<span class="tl">${stg(x.stage)}${x.seg?'<span class="tag">'+esc(x.seg)+'</span>':''}${PURE[x.pure]||''}</span></td>
+      <td><span class="sg ${x.sig}" title="${SIGD[x.sig]||''}">${SIG[x.sig]||x.sig}</span>${dc}${wi}${abLine(x)}</td>
       <td>${conf(x.conf)}</td><td class="l">${phCell(x)}</td><td>${fcap(x.cap)}</td><td>${fw(x.rev)}</td><td>${fw(x.op)}</td><td>${fw(x.ni)}</td>
       <td>${fx(x.per)}${mk('per',x.sig==='loss'?null:T.per,P.per)}</td><td>${fx(x.pbr,2)}${mk('pbr',T.pbr,P.pbr)}</td><td>${fx(x.psr,2)}${mk('psr',T.psr,P.psr)}</td>
       <td>${fp(x.roe)}${mk('roe',T.roe,P.roe)}</td><td>${fp(x.opm)}${mk('opm',T.opm,P.opm)}</td>
@@ -336,9 +362,11 @@ function detail(x){
     <span class="m">기준 ${BSL[x.basis]||'—'}${x.fs?' · '+(x.fs==='CFS'?'연결':'별도'):''}</span>
     <span class="m">${x.map?'<a class="tg" href="/semi.html">소부장 맵</a> · ':''}<a class="tg" href="/hege.html">국면 분류 메뉴</a></span>
     <a class="wsb" data-ws="1" href="/valws.html?c=${x.c}" title="이 기업을 밸류 워크시트에 넣고 그 메뉴로 이동">🧮 밸류 워크시트에서 열기 →</a></div>`;
+  h+=govLine(x.c);
   if(dc&&dc.main) h+=`<div class="pm" style="margin-bottom:8px"><b>주력 사업</b> ${esc(dc.main)}${dc.global?` · <b>해외 peer(자료에 실명)</b> ${dc.global.map(esc).join(', ')}`:''}</div>`;
   h+=`<div class="pm" style="margin-bottom:8px"><b>공정</b> ${stg(x.stage)}${(x.procs||[]).length?' '+x.procs.map(esc).join(' · '):''}</div>`;
   h+=tagTiles(x);
+  h+=abBlock(x);
   h+=finBlock(x);
   if(x.flags&&x.flags.length) h+=`<div class="warn">${x.flags.map(f=>'⚠ '+esc(f)).join('<br>')}</div>`;
   if(dc&&dc.nopeer) h+=`<div class="gb"><b>국내 상장 직접 peer 없음</b> — ${esc(dc.nopeer)}</div>`;
@@ -351,6 +379,107 @@ function detail(x){
   if(DEF) for(const gid of x.gids||[]){ const g=DEF.groups.find(z=>z.id===gid), m=D.gm[gid]||{}; if(!g) continue;
     h+=`<div class="gb"><b>묶음: ${esc(g.name)}</b> (중앙값 PER ${fxt(m.per)} · PBR ${fxt(m.pbr,2)} · PSR ${fxt(m.psr,2)} — 등급과 무관한 참고)<br><b>왜 이 묶음인가</b> ${esc(g.basis)}<br><b>비교할 때 주의</b> ${esc(g.caution)}</div>`; }
   return h;
+}
+// ───── 기준 peer로 본 상단: 초안(semipeer_anchor.json) + 내 수정(이 브라우저 저장)
+let ANC=null, UO={}, ABED=false;
+let VFI={};   // 전 종목 자동 수집 요약(valfacts_idx.json): 공급계약·경영진 자동 점검
+function govDot(c){ const v=VFI[c]; if(!v||!(v.fl||[]).length) return ''; const bad=v.fl.filter(f=>f[0]==='bad').length; return `<a class="gvb ${bad?'b':'w'}" data-ws="1" href="/valws.html?c=${c}" title="경영진 자동 점검 — ${esc(v.fl.map(f=>(f[0]==='bad'?'문제: ':'주의: ')+f[1]).join(' · '))}">${bad?'●':'▲'}${v.fl.length}</a>`; }
+function govLine(c){ const v=VFI[c]; if(!v) return ''; const fl=v.fl||[]; const parts=[];
+  if(v.cn) parts.push(`<b>공급계약 공시</b> ${v.cn}건${v.m12?` · 최근 12개월 ${Math.round(v.m12).toLocaleString()}억`:''}${v.open?` · 납기 남은 계약 ${Math.round(v.open).toLocaleString()}억`:''}${v.bl?` · 수주잔고 ${Math.round(v.bl).toLocaleString()}억`:''}`);
+  parts.push(`<b>경영진 자동 점검</b> ${fl.length?fl.map(f=>`<span class="gvt ${f[0]==='bad'?'b':'w'}">${esc(f[1])}</span>`).join(''):'<span class="m">특이 신호 없음</span>'}`);
+  return `<div class="pm" style="margin-bottom:8px">${parts.join(' &nbsp;|&nbsp; ')} <a class="tg" data-ws="1" href="/valws.html?c=${c}">근거·뉴스 보기 →</a></div>`; }
+const UOK='sp_anchor_v1';
+try{ UO=JSON.parse(localStorage.getItem(UOK)||'{}')||{}; }catch(e){ UO={}; }
+const saveUO=()=>{ try{ localStorage.setItem(UOK,JSON.stringify(UO)); }catch(e){} };
+const FIT={ok:'기준으로 쓸 만함',weak:'약한 기준 — 참고만',none:'기준 삼을 peer 없음'};
+const fup=v=>v==null?'<span class="mu">—</span>':'<span class="'+(v>0?'pos':v<0?'neg':'')+'">'+(v>0?'+':'')+Math.round(v)+'%</span>';
+const opm0=r=>(r.op0!=null&&r.rev0)?r.op0/r.rev0*100:null;
+function abState(c){
+  const d=(ANC&&ANC.co&&ANC.co[c])||null, u=UO[c]||null, b=u||d;
+  const s=b?JSON.parse(JSON.stringify(b)):{anchor:null,use:'per',why:'',disc:[]};
+  s.disc=s.disc||[]; s.use=s.use||'per'; s.src=u?'me':(d?'draft':'none');
+  return s;
+}
+function abPeers(c){
+  const me=D.co[c], th=D.th||{permax:150};
+  return (D.pairsOf[c]||[]).slice().sort((a,b)=>(a.g<b.g?-1:a.g>b.g?1:b.sum-a.sum)).map(p=>{
+    const o=p.a===c?p.b:p.a, ot=D.co[o]||{}, vo=(ot.bv||{})[p.bs], vm=(me.bv||{})[p.bs];
+    const perO=vo?vo[0]:ot.per, perM=vm?vm[0]:me.per;
+    const okPer=perO>0&&perM>0&&perO<=th.permax&&perM<=th.permax, okPor=ot.por>0&&me.por>0;
+    return {o,n:ot.n||o,g:p.g,sum:p.sum,per:perO,por:ot.por,rPer:okPer?perO/perM:null,rPor:okPor?ot.por/me.por:null,ot};
+  });
+}
+function abCalc(c,s){
+  const me=D.co[c]; if(!s.anchor||!me.cap) return null;
+  const p=abPeers(c).find(z=>z.o===s.anchor); if(!p) return null;
+  const r=s.use==='por'?p.rPor:p.rPer; if(r==null) return {p,top:null};
+  let f=1, n=0, fs=[]; for(const x of s.disc){ if(x.on&&x.p>0){ const q=Math.min(100,+x.p); f*=q/100; n++; fs.push(q+'%'); } }
+  return {p,r,top:me.cap*r,up:(r-1)*100,f,n,fs,adj:me.cap*r*f,upAdj:(r*f-1)*100};
+}
+function abLine(x){
+  if(!((ANC&&ANC.co&&ANC.co[x.c])||UO[x.c])) return '';
+  const s=abState(x.c); if(!s.anchor) return '<span class="ub">기준 peer 없음</span>';
+  const k=abCalc(x.c,s); if(!k||k.top==null) return '<span class="ub">상단 계산 불가</span>';
+  return `<span class="ub" title="기준 peer ${esc(k.p.n)}의 배수를 받을 때의 시총(${s.use==='por'?'영업이익':'순이익'} 기준)${k.n?' → 깎을 요소 적용 뒤':''}">상단 ${fup(k.up)}${k.n?' → '+fup(k.upAdj):''}</span>`;
+}
+function abBlock(x){ if(!(D.pairsOf[x.c]||[]).length||!x.cap) return ''; return `<div class="ab" id="ab" data-c="${x.c}">${abInner(x.c)}</div>`; }
+function abRes(c,s){
+  const k=abCalc(c,s);
+  if(!s.anchor) return '기준 peer가 없어 상단을 계산하지 않았습니다.';
+  if(!k||k.top==null) return '기준 peer의 배수를 쓸 수 없어(적자·이익 미미·PER 150배 초과) 계산하지 않았습니다. 기준 지표를 바꿔 보세요.';
+  const basis=s.use==='por'?'영업이익 기준':'순이익 기준';
+  return `<span class="mu">${basis}</span> 상단 <b>${fcap(k.top)}</b> (현재 대비 ${fup(k.up)})`+(k.n?` → 깎은 뒤 <b>${fcap(k.adj)}</b> (현재 대비 ${fup(k.upAdj)}) <span class="mu">× ${k.fs.join(' × ')}</span>`:` <span class="mu">· 비율이 정해진 깎을 요소가 없어 상단까지만 계산했습니다</span>`);
+}
+function abInner(c){
+  const me=D.co[c], s=abState(c), ps=abPeers(c), an=s.anchor?ps.find(z=>z.o===s.anchor):null, ed=ABED, hasDraft=!!(ANC&&ANC.co&&ANC.co[c]);
+  const srcChip=s.src==='me'?'<span class="src me">내가 고침</span>':s.src==='draft'?'<span class="src" title="'+esc((ANC&&ANC.by)||'')+'">Claude 초안</span>':'<span class="src no">미지정</span>';
+  let h=`<div class="abh"><b>기준 peer로 본 상단</b>${srcChip}<span class="abb">${ed?'<button class="bt on" data-ab="done">완료</button>':'<button class="bt" data-ab="edit">✏️ 고치기</button>'}${s.src==='me'?'<button class="bt" data-ab="reset">'+(hasDraft?'초안으로 되돌리기':'지우기')+'</button>':''}${Object.keys(UO).length?'<button class="bt" data-ab="export" title="이 브라우저에 저장된 내 수정 내용 전체를 복사 — Claude에게 붙여 주면 대시보드 초안에 반영">내 수정 내용 복사</button>':''}<span id="abmsg" class="mu" style="font-size:11.5px"></span></span></div>`;
+  if(ed){
+    h+=`<div class="abr"><label>기준 peer <select data-abf="anchor"><option value="">기준 없음</option>${ps.map(p=>`<option value="${p.o}"${p.o===s.anchor?' selected':''}>${esc(p.n)} (${p.g}등급)</option>`).join('')}</select></label>
+      <label>기준 지표 <select data-abf="use"><option value="per"${s.use==='per'?' selected':''}>순이익(PER)</option><option value="por"${s.use==='por'?' selected':''}>영업이익(시총÷영업이익)</option></select></label></div>
+      <textarea data-abf="why" rows="3" placeholder="이 peer를 기준으로 삼는 이유 — 같은 제품인가, 같은 성장 위치인가, 같은 고객인가">${esc(s.why||'')}</textarea>`;
+  } else {
+    h+=`<div class="abr"><span>${an?`기준 peer <a class="tg" href="#${an.o}" data-go="${an.o}"><b>${esc(an.n)}</b></a> <span class="gr ${an.g}">${an.g}</span>`:'<b>기준 peer 없음</b>'}${s.fit&&s.src==='draft'?`<span class="fit ${s.fit}">${FIT[s.fit]}</span>`:''}</span>${an?`<span class="mu">기준 지표 ${s.use==='por'?'영업이익(시총÷영업이익)':'순이익(PER)'}</span>`:''}</div>
+      ${s.why?`<div class="why">${esc(s.why)}</div>`:(s.src==='none'?'<div class="why mu">아직 기준 peer를 정하지 않았습니다. "고치기"를 눌러 아래 peer 중 한 곳을 고르고 이유를 적어 두세요.</div>':'')}`;
+  }
+  if(an){ const row=(r,n_,cls)=>`<tr${cls?' class="'+cls+'"':''}><td class="l"><b>${esc(n_)}</b></td><td>${fgh(r.g_rev)}</td><td>${fgh(r.g_op)}</td><td>${fpt(opm0(r))} → <b>${fpt(r.opm)}</b></td><td>${phb(r.ph)}${r.slow?' <span class="fl sl">둔화</span>':''}</td></tr>`;
+    h+=`<div class="cmpw"><table class="cmp"><thead><tr><th class="l">성장 위치 <small>최근 4분기 vs 1년 전</small></th><th>매출</th><th>영업이익</th><th>영업이익률 <small>1년 전 → 지금</small></th><th>국면</th></tr></thead><tbody>${row(me,me.n)}${row(an.ot,an.n,'anc')}</tbody></table></div>`; }
+  const cell=r=>r==null?'<td><span class="mu">—</span></td><td><span class="mu">—</span></td>':`<td>${fcap(me.cap*r)}</td><td>${fup((r-1)*100)}</td>`;
+  h+=`<div class="cmpw"><table class="cmp"><thead><tr><th class="l">이 회사의 배수를 받는다면</th><th>PER</th><th>순이익 기준 시총</th><th>현재 대비</th><th>시총÷영업이익</th><th>영업이익 기준 시총</th><th>현재 대비</th></tr></thead><tbody>
+    <tr class="self"><td class="l"><b>${esc(me.n)}</b> <small class="mu">현재</small></td><td>${fx(me.per)}</td><td>${fcap(me.cap)}</td><td></td><td>${fx(me.por)}</td><td>${fcap(me.cap)}</td><td></td></tr>
+    ${ps.map(p=>`<tr class="${p.o===s.anchor?'anc':''}${p.g==='C'?' cg':''}"><td class="l">${p.o===s.anchor?'<span class="tc g">기준</span> ':''}<a class="tg" href="#${p.o}" data-go="${p.o}">${esc(p.n)}</a> <span class="gr ${p.g}">${p.g}</span></td><td>${p.per==null?'<span class="mu">적자·없음</span>':fx(p.per)}</td>${cell(p.rPer)}<td>${fx(p.por)}</td>${cell(p.rPor)}</tr>`).join('')}
+    </tbody></table></div>`;
+  h+=`<div class="dz"><b>깎을 요소</b> <span class="mu">— 이 회사 고유의 사정. 비율을 정한 것만 계산에 들어갑니다</span>`;
+  if(ed){
+    h+=s.disc.map((x,i)=>`<div class="dzr" data-i="${i}"><input type="checkbox" data-abd="on"${x.on?' checked':''} title="계산에 넣기"><input type="text" data-abd="l" value="${esc(x.l||'')}" placeholder="깎을 요소"><input type="number" data-abd="p" min="1" max="100" value="${x.p==null?'':x.p}" placeholder="비율">%<input type="text" data-abd="why" value="${esc(x.why||'')}" placeholder="근거"><button class="bt" data-ab="deld" title="삭제">×</button></div>`).join('')
+      +`<div style="margin-top:4px"><button class="bt" data-ab="addd">＋ 요소 추가</button> <span class="mu" style="font-size:11.5px">비율 70 = 상단의 70%만 인정</span></div>`;
+  } else {
+    h+=s.disc.length?`<ul>${s.disc.map(x=>`<li><span class="pc2${x.on&&x.p>0?' on':''}">${x.p>0?(x.on?'× '+x.p+'%':x.p+'% 미적용'):'비율 미정'}</span><b>${esc(x.l||'')}</b>${x.why?' — '+esc(x.why):''}</li>`).join('')}</ul>`:'<div class="mu" style="margin-top:3px">적어 둔 요소가 없습니다.</div>';
+  }
+  h+=`</div><div class="res" id="abres">${abRes(c,s)}</div>`;
+  if(s.note) h+=`<div class="nt">⚠ ${esc(s.note)}</div>`;
+  return h;
+}
+function abRe(){ const el=$('ab'); if(el) el.innerHTML=abInner(el.dataset.c); }
+function abMut(c,fn){ const s=abState(c); delete s.src; fn(s); UO[c]=s; saveUO(); return s; }
+function abClick(a){
+  const el=$('ab'); if(!el) return; const c=el.dataset.c, k=a.dataset.ab;
+  if(k==='edit'){ ABED=true; abRe(); }
+  else if(k==='done'){ ABED=false; render(); }
+  else if(k==='reset'){ delete UO[c]; saveUO(); ABED=false; render(); }
+  else if(k==='addd'){ abMut(c,s=>s.disc.push({l:'',p:null,why:'',on:true})); abRe(); }
+  else if(k==='deld'){ const i=+a.closest('.dzr').dataset.i; abMut(c,s=>s.disc.splice(i,1)); abRe(); }
+  else if(k==='export'){ const t=JSON.stringify(UO,null,1), m=$('abmsg'); const ok=()=>{ if(m) m.textContent='복사했습니다 — 채팅에 붙여 주세요'; }, no=()=>{ if(m) m.textContent='복사 실패 — 브라우저 권한을 확인해 주세요'; };
+    try{ navigator.clipboard.writeText(t).then(ok,no); }catch(e){ no(); } }
+}
+function abInput(t){
+  const el=$('ab'); if(!el||!el.contains(t)) return; const c=el.dataset.c;
+  if(t.dataset.abf){ const f=t.dataset.abf, v=t.value;
+    abMut(c,s=>{ if(f==='anchor'){ s.anchor=v||null; delete s.fit; } else s[f]=v; });
+    if(f!=='why') abRe(); return; }
+  if(t.dataset.abd){ const i=+t.closest('.dzr').dataset.i, f=t.dataset.abd;
+    const s=abMut(c,s=>{ const x=s.disc[i]; if(!x) return; if(f==='on') x.on=t.checked; else if(f==='p'){ const n=parseFloat(t.value); x.p=(n>0)?Math.min(100,n):null; if(x.p&&x.on==null) x.on=true; } else x[f]=t.value; });
+    const r=$('abres'); if(r) r.innerHTML=abRes(c,s); }
 }
 // ───── peer 대비 한눈에: 지표별 내 값 · peer 중앙값 · 꼬리표
 function tagTiles(x){
@@ -452,6 +581,7 @@ document.addEventListener('mousemove',e=>{const g=e.target.closest&&e.target.clo
   tip.style.left=Math.min(window.innerWidth-270,e.clientX+14)+'px'; tip.style.top=(e.clientY+14)+'px';});
 function openCo(c, scroll){
   if(!D.co[c]) return;
+  if(OPEN!==c) ABED=false;
   OPEN=c;
   if(!rows().some(x=>x.c===c)){ CAT='all'; PH='all'; TOP=''; GRP=''; CAP=0; CF=0; STG=''; TAGF.clear(); document.querySelectorAll('button[data-t]').forEach(b=>b.classList.remove('on')); Q=''; $('q').value=''; $('top').value=''; $('cap').value='0'; $('cf').value='0'; $('stg').value=''; fillGrp(); syncBtns(); }
   render();
@@ -466,6 +596,7 @@ document.addEventListener('click',e=>{
   if(e.target.closest('[data-ws]')) return;   // 밸류 워크시트로 이동하는 링크는 그대로 통과
   const go=e.target.closest('[data-go]'); if(go){ e.preventDefault(); openCo(go.dataset.go,true); return; }
   const tg=e.target.closest('[data-tg]'); if(tg){ const w=tg.nextElementSibling; w.classList.toggle('on'); tg.textContent=tg.textContent.replace(/[▾▴]/,w.classList.contains('on')?'▴':'▾'); return; }
+  const ab=e.target.closest('[data-ab]'); if(ab){ abClick(ab); return; }
   const bt=e.target.closest('button[data-t]'); if(bt){ const t=bt.dataset.t; if(TAGF.has(t)) TAGF.delete(t); else TAGF.add(t); bt.classList.toggle('on',TAGF.has(t)); OPEN=null; render(); return; }
   const bc=e.target.closest('button[data-c]'); if(bc){ CAT=bc.dataset.c; OPEN=null; syncBtns(); render(); return; }
   const bp=e.target.closest('button[data-p]'); if(bp){ PH=bp.dataset.p; OPEN=null; syncBtns(); render(); return; }
@@ -473,6 +604,8 @@ document.addEventListener('click',e=>{
   if(e.target.closest('tr.d')) return;
   const tr=e.target.closest('tr.r'); if(tr){ const c=tr.dataset.c; if(OPEN===c){ OPEN=null; render(); try{history.replaceState(null,'',location.pathname);}catch(_){} } else openCo(c,false); }
 });
+document.addEventListener('input',e=>{ if(e.target.dataset&&(e.target.dataset.abd||e.target.dataset.abf==='why')&&e.target.type!=='checkbox') abInput(e.target); });
+document.addEventListener('change',e=>{ const t=e.target; if(t.dataset&&((t.dataset.abf&&t.dataset.abf!=='why')||(t.dataset.abd&&t.type==='checkbox'))) abInput(t); });
 $('q').addEventListener('input',e=>{Q=e.target.value.trim(); if(Q&&CAT!=='all'){CAT='all';syncBtns();} render();});
 $('top').addEventListener('change',e=>{TOP=e.target.value; fillGrp(); render();});
 $('grp').addEventListener('change',e=>{GRP=e.target.value; render();});
@@ -483,6 +616,8 @@ window.addEventListener('hashchange',()=>{const c=location.hash.slice(1); if(D&&
 fetch('/data/semipeer.json').then(r=>r.json()).then(d=>{
   D=d; prep(); render();
   const c=location.hash.slice(1); if(D.co[c]) openCo(c,true);
+  fetch('/data/semipeer_anchor.json').then(r=>r.json()).then(a=>{ ANC=a; render(); }).catch(()=>{});
+  fetch('/data/valfacts_idx.json').then(r=>r.json()).then(a=>{ VFI=(a&&a.map)||{}; render(); }).catch(()=>{});
   return fetch('/data/semipeer_def.json').then(r=>r.json()).then(x=>{DEF=x; render();});
 }).catch(e=>{ $('upd').textContent='데이터를 불러오지 못했습니다: '+e; });
 </script>

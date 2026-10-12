@@ -303,9 +303,10 @@ function govCharts(code){ const F=FACTS[code]; if(!F) return; const G=F.gov||{};
   const kc=(F.news||{}).kc||{}; const ks=Object.keys(kc).sort((a,b)=>kc[b]-kc[a]);
   if(ks.length&&document.getElementById('gvNews')) mk('gvNews', vzBar(ks, ks.map(k=>kc[k]), ks.map(k=>/승계|사고|주주행동/.test(k)?VZ.c[0]:VZ.gray), {h:true, fmt:v=>v==null?'':v+'건', pad:44, tick:v=>Number.isInteger(v)?v:''}));
 }
+function vzClip(s,w){ s=String(s||'').trim(); let n=0,i=0; for(;i<s.length;i++){ n+=/[\u1100-\uffff]/.test(s[i])?1:0.58; if(n>w) break; } return i<s.length?s.slice(0,Math.max(1,i-1)).trim()+'…':s; }
 function prodMix(F){ const t=F.biz&&F.biz.prod; if(!t||!t.r) return null; const out=[];
   for(const r of t.r.slice(1)){ const cells=r.map(c=>Array.isArray(c)?{t:c[0],sp:true}:{t:c,sp:false}); const pc=cells.find(c=>/\d\s*%/.test(c.t)); if(!pc) continue; const m=pc.t.match(/(-?[\d.]+)\s*%/); if(!m) continue;
-    const nm=(cells.find(c=>!c.sp&&c.t&&!/^[\d,.\-()%\s]+$/.test(c.t)&&c!==pc)||cells.find(c=>c.t&&!/^[\d,.\-()%\s]+$/.test(c.t)&&c!==pc)||{}).t; if(!nm||/합\s*계|^계$|총\s*계|소\s*계/.test(nm)) continue; out.push([nm.slice(0,16),+m[1]]); }
+    const nm=(cells.find(c=>!c.sp&&c.t&&!/^[\d,.\-()%\s]+$/.test(c.t)&&c!==pc)||cells.find(c=>c.t&&!/^[\d,.\-()%\s]+$/.test(c.t)&&c!==pc)||{}).t; if(!nm||/합\s*계|^계$|총\s*계|소\s*계/.test(nm)) continue; out.push([nm.slice(0,30),+m[1]]); }
   const sum=out.reduce((a,x)=>a+x[1],0); const uniq=new Set(out.map(x=>x[0])).size===out.length;
   if(out.length<2||sum<90||sum>105||!uniq||out.some(x=>x[1]<0)) return null;   // 표 모양이 제각각이라, 비율 합이 100% 안팎일 때만 그린다
   out.sort((a,b)=>b[1]-a[1]); if(out.length>7){ const rest=out.slice(6).reduce((a,x)=>a+x[1],0); out.length=6; out.push(['기타',+rest.toFixed(1)]); } return out; }
@@ -325,10 +326,10 @@ function factCharts(code){ const F=FACTS[code]; if(!F) return; const A=autoFor(c
     mk('fxCover', vzBar(rows.map(r=>r[0]), rows.map(r=>r[1]), rows.map(r=>r[2]), {h:true, fmt:v=>v==null?'':f0(v)+'억', pad:66})); }
   const cq=conQuarters(F); if(cq&&document.getElementById('fxFlow')) mk('fxFlow', vzBar(cq.qs.map(k=>k.slice(2,4)+'.'+k.slice(5)+'Q'), cq.qs.map(k=>+cq.m[k].v.toFixed(1)), VZ.c[0], {fmt:v=>v?f0(v):'', tip:c=>{ const it=cq.m[cq.qs[c.dataIndex]].items; return [` 합 ${f0(c.raw)}억`].concat(it.slice(0,5).map(d=>` ${d.cd||d.first} ${String(d.item||'').slice(0,18)} ${f0(d.amt)}억`)); }}));
   const gl=conGantt(F); if(gl&&document.getElementById('fxGantt')){ const T=s=>new Date(s+'T00:00:00').getTime(); const today=new Date(); const td=today.toISOString().slice(0,10); const mn=Math.min(...gl.map(d=>T(d.from))), mx=Math.max(...gl.map(d=>T(d.to)), today.getTime()); const padt=(mx-mn)*0.04+86400000*10;
-    mk('fxGantt',{type:'bar',data:{labels:gl.map(d=>{ const s=String(d.item||'').replace(/\s*공급\s*계약$/,''), n=innerWidth<560?9:15; return s.length>n?s.slice(0,n)+'…':s; }),datasets:[{data:gl.map(d=>[T(d.from),T(d.to)]),backgroundColor:gl.map(d=>d.to>=td?VZ.c[0]:VZ.gray),borderRadius:4,borderSkipped:false,maxBarThickness:14}]},plugins:[vzLabel,vzToday],
+    mk('fxGantt',{type:'bar',data:{labels:gl.map(d=>vzClip(String(d.item||'').replace(/\s*공급\s*계약$/,''), 9)),datasets:[{data:gl.map(d=>[T(d.from),T(d.to)]),backgroundColor:gl.map(d=>d.to>=td?VZ.c[0]:VZ.gray),borderRadius:4,borderSkipped:false,maxBarThickness:14}]},plugins:[vzLabel,vzToday],
       options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',layout:{padding:{right:58,top:12}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{ const d=gl[c.dataIndex]; return ` ${d.from} ~ ${d.to} · ${f0(d.amt)}억 · ${d.cp||''}`; }}},vzLabel:{fmt:(v,i)=>f0(gl[i].amt)+'억'},vzToday:{t:today.getTime()}},
         scales:{x:vzAxis({type:'linear',min:mn-padt,max:mx+padt,afterBuildTicks:ax=>{ const tk=[]; const lo=mn-padt, hi=mx+padt; const stepM=(mx-mn)>86400000*365*3?12:6; const d=new Date(new Date(lo).getFullYear(),0,1); while(d.getTime()<=hi){ if(d.getTime()>=lo) tk.push({value:d.getTime()}); d.setMonth(d.getMonth()+stepM); } if(tk.length>=2) ax.ticks=tk; },ticks:{color:VZ.sub,font:{size:10.5},callback:v=>{ const d=new Date(v); return String(d.getFullYear()).slice(2)+'.'+String(d.getMonth()+1).padStart(2,'0'); }}}),y:vzAxis({grid:{display:false},ticks:{color:VZ.ink,font:{size:10.5},padding:4}})}}}); }
-  const pm=prodMix(F); if(pm&&document.getElementById('fxProd')) mk('fxProd', vzBar(pm.map(x=>x[0]), pm.map(x=>x[1]), VZ.c[0], {h:true, fmt:v=>v==null?'':f1(v)+'%', pad:50, tick:v=>v+'%'}));
+  const pm=prodMix(F); if(pm&&document.getElementById('fxProd')) mk('fxProd', vzBar(pm.map(x=>vzClip(x[0],10)), pm.map(x=>x[1]), VZ.c[0], {h:true, fmt:v=>v==null?'':f1(v)+'%', pad:50, tick:v=>v+'%'}));
 }
 // ───── 리서치 완성도: 이 워크시트가 '조사해서 채운 것'인지 '재무 추세만 외삽한 빈 껍데기'인지 한눈에
 function research(w,code){

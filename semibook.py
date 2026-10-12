@@ -174,13 +174,13 @@ def collect_fin(corp_of, olds):
     for code, corp in corp_of.items():
         sc = store.get(corp) or {}
         if not sc: continue
-        has_c = any('rev' in (v.get('CFS') or {}) or 'op' in (v.get('CFS') or {}) for v in sc.values())
-        fs = 'CFS' if has_c else 'OFS'
-        first = min(sc)
         for (y, q) in ps:
-            if (y, q) < first or nfill >= 80 or STAT['limit'] or left() < 200: continue
-            d = (sc.get((y, q)) or {}).get(fs) or {}
-            if ('rev' in d) == ('op' in d) and (d or (y, q) not in sc): continue
+            if nfill >= 60 or STAT['limit'] or left() < 200: continue
+            per = sc.get((y, q)) or {}
+            fs = next((f for f in ('CFS', 'OFS') if 'rev' in (per.get(f) or {}) or 'op' in (per.get(f) or {})), None)   # 그 기간에 실제로 쓰이는 재무제표
+            if not fs: continue
+            d = per.get(fs) or {}
+            if ('rev' in d) == ('op' in d): continue      # 둘 다 있으면 보충할 것이 없다
             try: rows = api('fnlttSinglAcntAll', corp_code=corp, bsns_year=y, reprt_code=REPRT[q], fs_div=fs)
             except DartFail: failed += 1; continue
             nfill += 1; add = []

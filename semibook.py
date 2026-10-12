@@ -26,7 +26,7 @@ T0 = time.time(); BASE = 'https://opendart.fss.or.kr/api'; EOK = 1e8
 DEBUG = []; STAT = {'dart': 0, 'err': 0, 'limit': False}; FAILRUN = [0]; _last = [0.0]; KEYS = {}
 class DartFail(Exception): pass
 LAB = {}; OLD_LAB = {}   # 분기·연도 라벨(전 종목 공통)
-NAMES = {}; RAW = {}; MISS = {}; FILL = {}   # 진단용: 계정명, 매출 원값(3개월·누적), 전체 재무제표로 보충한 칸
+NAMES = {}; RAW = {}; MISS = {}; FILL = {}; TRIED = {}   # 진단용: 계정명, 매출 원값(3개월·누적), 전체 재무제표로 보충한 칸
 
 def log(s):
     s = str(s)[:300]; DEBUG.append(s); print(s, file=sys.stderr, flush=True)
@@ -164,6 +164,7 @@ def merge_series(new, old):
 def collect_fin(corp_of, olds):
     ps = periods(); store = {}; corps = sorted(set(corp_of.values())); failed = 0
     for (y, q) in ps:
+        log('실적 %d년 %d분기 보고서 받는 중 (%.0f초 경과)' % (y, q, time.time() - T0))
         for i in range(0, len(corps), CHUNK):
             if STAT['limit'] or left() < 240: failed += 1; continue
             try: parse_multi(api('fnlttMultiAcnt', corp_code=','.join(corps[i:i + CHUNK]), bsns_year=y, reprt_code=REPRT[q]), y, q, store)
@@ -181,12 +182,16 @@ def collect_fin(corp_of, olds):
             if not fs: continue
             d = per.get(fs) or {}
             if ('rev' in d) == ('op' in d): continue      # 둘 다 있으면 보충할 것이 없다
+            lab = '%dQ%02d' % (q, y % 100)
+            if lab in (TRIED.get(code) or []) and (y, q) not in ps[-2:]: continue   # 지난 실행에서 이미 보충을 시도한 칸(값은 기존 파일에서 이어받음)
+            TRIED.setdefault(code, []); TRIED[code].append(lab) if lab not in TRIED[code] else None
             try: rows = api('fnlttSinglAcntAll', corp_code=corp, bsns_year=y, reprt_code=REPRT[q], fs_div=fs)
             except DartFail: failed += 1; continue
-            nfill += 1; add = []
+            nfill += 1; add = []; log('보충 %s %s (%.0f초 경과)' % (code, lab, time.time() - T0))
             for r in rows:
                 if (r.get('sj_div') or '') not in ('IS', 'CIS'): continue
                 nm = IDMAP.get((r.get('account_id') or '').strip())
+                if not nm and acct_key(r.get('account_nm'))[0]: nm = r.get('account_nm')   # 표준 계정 ID가 없으면 계정명으로
                 if not nm: continue
                 add.append(dict(r, account_nm=nm, corp_code=corp, fs_div=fs, sj_div='IS'))
             tmp = {}; parse_multi(add, y, q, tmp)
@@ -305,6 +310,7 @@ def main():
     except Exception: old = {}
     olds = old.get('co') or {}
     OLD_LAB.update({'ql': old.get('ql') or [], 'ay': old.get('ay') or []}); LAB.update(OLD_LAB)
+    if old.get('fv') == FV: TRIED.update(old.get('tried') or {}); FILL.update(old.get('fill') or {})
     if old.get('fv') != FV:                       # 계산 규칙이 바뀌면 예전 실적 값으로 빈칸을 메우지 않는다
         for c in olds: olds[c].pop('fin', None); olds[c].pop('fin_at', None)
     codes = [c for c in names if (not ONLY or c in ONLY) and corpmap.get(c)]
@@ -350,7 +356,7 @@ def main():
     done = (fin_failed == 0) and not rest
     ly, lq = latest_quarter()
     res = {'v': VER, 'fv': FV, 'updated': NOW.strftime('%Y-%m-%d %H:%M'), 'asof': '%dQ%02d' % (lq, ly % 100), 'y0': Y0, 'n': len(codes), 'fin_ok': fin_ok,
-           'ql': LAB.get('ql') or [], 'ay': LAB.get('ay') or [], 'fin_failed': fin_failed, 'ev_rest': len(rest), 'done': bool(done), 'stat': STAT, 'miss': MISS, 'fill': FILL, 'debug': DEBUG[-40:], 'co': co}
+           'ql': LAB.get('ql') or [], 'ay': LAB.get('ay') or [], 'fin_failed': fin_failed, 'ev_rest': len(rest), 'done': bool(done), 'stat': STAT, 'miss': MISS, 'fill': FILL, 'tried': TRIED, 'debug': DEBUG[-40:], 'co': co}
     os.makedirs(os.path.dirname(OUT) or '.', exist_ok=True)
     json.dump(res, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
     log('완료: 종목 %d · 실적 있는 종목 %d · 이번 실행 이력 %d · 남은 이력 %d · DART %d콜 · 실패 %d · %.0f초' % (len(codes), fin_ok, n_ev, len(rest), STAT['dart'], STAT['err'], time.time() - T0))

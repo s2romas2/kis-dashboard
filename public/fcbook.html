@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>연료전지·수소 교과서 — SOFC 중심 밸류체인 · 부품별 공급망 · 기업별 특장점과 리스크 · 증권사 리포트</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; background:#f4f6fa; color:#1a1f2e; }
+a { color:#1d4ed8; text-decoration:none; } a:hover { text-decoration:underline; }
+.wrap { max-width:1360px; margin:0 auto; padding:14px 14px 80px; display:grid; grid-template-columns:270px minmax(0,1fr); gap:16px; align-items:start; }
+.side { position:sticky; top:8px; max-height:calc(100vh - 16px); overflow:auto; background:#fff; border:1px solid #e4e7ec; border-radius:12px; padding:10px; font-size:12.5px; }
+.side h2 { font-size:14px; margin:2px 4px 8px; }
+.side input { width:100%; border:1.5px solid #d7dce6; border-radius:8px; padding:6px 8px; font:inherit; margin-bottom:6px; }
+.side details { margin-bottom:2px; } .side summary { cursor:pointer; padding:5px 6px; border-radius:6px; font-weight:800; color:#1a2a4a; list-style:none; }
+.side summary::-webkit-details-marker { display:none; } .side summary:before { content:'▸ '; color:#98a2b3; } .side details[open]>summary:before { content:'▾ '; }
+.side .mid { margin:6px 0 2px 12px; font-size:11px; font-weight:800; color:#667085; }
+.side a.g { display:block; padding:3px 6px 3px 20px; border-radius:6px; color:#344054; line-height:1.45; } .side a.g:hover { background:#f2f4f7; text-decoration:none; }
+.side a.g.on { background:#eaf2ff; color:#1d4ed8; font-weight:800; } .side a.g small { color:#98a2b3; font-weight:400; }
+.side a.c { display:block; padding:2px 6px 2px 34px; color:#667085; font-size:12px; } .side a.c.on { color:#1d4ed8; font-weight:800; }
+.sr { border:1px solid #e4e7ec; border-radius:8px; max-height:240px; overflow:auto; margin-bottom:6px; } .sr a { display:block; padding:5px 8px; border-bottom:1px solid #f2f4f7; color:#344054; } .sr a small { color:#98a2b3; }
+main { min-width:0; }
+h1 { font-size:23px; margin:4px 0 4px; line-height:1.3; } h1 small { font-size:13px; color:#667085; font-weight:400; }
+h2 { font-size:16px; margin:20px 0 8px; color:#1a2a4a; } h2 small { font-weight:400; color:#667085; font-size:12px; }
+h3 { font-size:13.5px; color:#1a2a4a; margin-bottom:6px; } h3 small { font-weight:400; color:#667085; font-size:11.5px; }
+.crumb { font-size:12px; color:#667085; margin-bottom:2px; } .crumb a { color:#667085; }
+.meta { font-size:12px; color:#475467; background:#fff; border:1px solid #e4e7ec; border-radius:10px; padding:7px 10px; margin:8px 0 12px; line-height:1.7; } .meta b { color:#1a2a4a; }
+.lead { font-size:14.5px; line-height:1.75; color:#1a1f2e; margin:6px 0 10px; }
+.card { background:#fff; border:1px solid #e4e7ec; border-radius:12px; padding:12px 14px; margin-bottom:12px; font-size:13px; line-height:1.75; }
+.card p { margin-bottom:8px; } .card p:last-child { margin-bottom:0; }
+.mini { font-size:11.5px; color:#667085; line-height:1.6; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; } .grid2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(420px,1fr)); gap:12px; }
+.kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-bottom:12px; }
+.grid4 { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+ul.nb li { padding-left:0; } ul.nb li:before { content:none; }
+details.toc > summary { font-weight:800; color:#1a2a4a; padding:6px; cursor:pointer; list-style:none; border:1.5px solid #d7dce6; border-radius:8px; margin-bottom:6px; display:none; } details.toc > summary:before { content:'☰ '; color:#667085; }
+.kpi { background:#fff; border:1px solid #e4e7ec; border-radius:12px; padding:9px 12px; } .kpi .k { font-size:11.5px; color:#667085; } .kpi .v { font-size:19px; font-weight:800; margin-top:1px; } .kpi .n { font-size:11px; color:#98a2b3; margin-top:1px; line-height:1.4; }
+.vz { background:#fff; border:1px solid #e4e7ec; border-radius:12px; padding:10px 12px; } .vzt { font-size:13px; font-weight:800; color:#1a2a4a; } .vzt small { display:block; font-weight:400; color:#667085; font-size:11.5px; margin-top:1px; }
+.vzc { position:relative; height:210px; margin-top:6px; } .lg { display:flex; flex-wrap:wrap; gap:4px 12px; font-size:11.5px; color:#475467; margin-top:4px; } .lg i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:4px; vertical-align:-1px; }
+table { width:100%; border-collapse:collapse; font-size:12.5px; } th, td { padding:6px 8px; border-bottom:1px solid #eef0f4; text-align:right; vertical-align:top; } th { background:#f8fafc; color:#475467; font-size:11.5px; white-space:nowrap; }
+td.l, th.l { text-align:left; } td.nw { white-space:nowrap; } .tw { overflow-x:auto; border:1px solid #e4e7ec; border-radius:10px; background:#fff; }
+tr.me td { background:#f5f9ff; font-weight:700; }
+.tag { display:inline-block; font-size:10.5px; padding:1px 6px; border-radius:8px; font-weight:800; white-space:nowrap; }
+.t확인 { background:#dcfce7; color:#15803d; } .t회사발언 { background:#d1fae5; color:#047857; } .t증권사 { background:#dbeafe; color:#1d4ed8; } .t보도 { background:#e0e7ff; color:#3730a3; } .t판단 { background:#fef3c7; color:#b45309; } .t의혹 { background:#fee2e2; color:#b42318; }
+.sx { font-size:10.5px; color:#667085; margin-left:2px; } .sx a { color:#667085; text-decoration:underline; }
+ul.pl { list-style:none; } ul.pl li { padding:5px 0 5px 20px; position:relative; border-bottom:1px dashed #eef0f4; } ul.pl li:last-child { border-bottom:0; } ul.pl li:before { position:absolute; left:0; top:5px; font-weight:800; }
+ul.st li:before { content:'▲'; color:#2a78d6; } ul.wk li:before { content:'▽'; color:#98a2b3; } ul.dot li:before { content:'•'; color:#98a2b3; }
+.chips { display:flex; flex-wrap:wrap; gap:6px; } .chip { display:inline-block; border:1.5px solid #d7dce6; background:#fff; border-radius:16px; padding:3px 10px; font-size:12px; color:#344054; font-weight:700; } a.chip:hover { border-color:#2a78d6; text-decoration:none; } .chip.w { border-color:#2a78d6; color:#1d4ed8; background:#f5f9ff; } .chip small { font-weight:400; color:#98a2b3; }
+.flow { display:flex; flex-wrap:wrap; align-items:stretch; gap:6px; margin-top:6px; } .flow div { flex:1 1 150px; background:#f8fafc; border:1px solid #e4e7ec; border-radius:10px; padding:8px 10px; font-size:12px; line-height:1.55; position:relative; } .flow div.on { background:#eaf2ff; border-color:#2a78d6; font-weight:700; } .flow b { display:block; font-size:10.5px; color:#667085; font-weight:800; margin-bottom:2px; }
+.fig { background:#fff; border:1px solid #e4e7ec; border-radius:12px; padding:8px; margin-bottom:12px; } .fig svg { width:100%; height:auto; display:block; max-width:900px; margin:0 auto; }
+.fig text { font-size:12px; fill:#1a1f2e; } .fig .s { font-size:11px; fill:#667085; } .fig .b { font-weight:700; } .fig .w { font-size:11.5px; font-weight:700; fill:#b54708; } .fig .bw { font-weight:700; fill:#fff; font-size:12.5px; } .fig .sw { font-size:11px; fill:#fff; } .fig .ld { stroke:#98a2b3; stroke-width:1; fill:none; }
+ol.how { margin-left:20px; } ol.how li { margin-bottom:3px; }
+dl.terms { display:grid; grid-template-columns:minmax(120px,max-content) 1fr; gap:4px 12px; font-size:12.5px; } dl.terms dt { font-weight:800; color:#1a2a4a; } dl.terms dd { color:#344054; }
+details.d > summary { cursor:pointer; font-weight:800; color:#1a2a4a; font-size:13px; padding:4px 0; }
+.lv { display:inline-block; width:18px; text-align:center; font-weight:800; } .lvbad { color:#b42318; } .lvwarn { color:#b54708; } .lvok { color:#15803d; } .lvinfo { color:#667085; }
+.note { background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:8px 12px; font-size:12.5px; color:#78350f; margin-bottom:12px; line-height:1.7; }
+.topc { border-left:4px solid #2a78d6; }
+.co h3 a { color:#1a2a4a; } .co .pos { color:#344054; margin-bottom:6px; }
+.btns { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; } .btns a, .btns button { border:1.5px solid #d7dce6; background:#fff; border-radius:20px; padding:5px 12px; font:inherit; font-size:12.5px; font-weight:700; color:#475467; cursor:pointer; }
+@media (max-width:1100px) { .grid4 { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:900px) { .kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } details.toc > summary { display:block; } .wrap { grid-template-columns:1fr; } .side { position:static; max-height:none; } .grid2 { grid-template-columns:1fr; } h1 { font-size:20px; } dl.terms { grid-template-columns:1fr; } dl.terms dd { margin-bottom:6px; } }
+@media print { body { background:#fff; } .side, #nav, nav, .btns, .noprint { display:none !important; } .wrap { display:block; padding:0; } .card, .vz, .kpi, .fig { break-inside:avoid; } h2 { break-after:avoid; } }
+</style>
+<style>
+/* 연료전지·수소 교과서 추가 — 쉬운설명 토글, 특장점·리스크 2단, 종류 비교표 */
+.seg { display:inline-flex; border:1.5px solid #d7dce6; border-radius:20px; overflow:hidden; background:#fff; margin:2px 0 10px; }
+.seg button { border:none; background:none; font:inherit; font-size:12.5px; font-weight:800; color:#667085; padding:6px 15px; cursor:pointer; }
+.seg button.on { background:#2a78d6; color:#fff; }
+.easy { background:#f6fbff; border:1px solid #cfe4fb; border-radius:12px; padding:12px 14px; margin-bottom:12px; font-size:13.5px; line-height:1.85; color:#13395e; }
+.easy p { margin-bottom:9px; } .easy p:last-child { margin-bottom:0; }
+.easy .h { font-size:11.5px; font-weight:800; color:#2a78d6; letter-spacing:.3px; margin-bottom:5px; }
+.sr2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; margin-bottom:12px; }
+.riskbox { background:#fff; border:1px solid #f3cfcf; border-radius:12px; padding:11px 13px; }
+.riskbox h3 { color:#b42318; }
+.strongbox { background:#fff; border:1px solid #cfe4d4; border-radius:12px; padding:11px 13px; }
+.strongbox h3 { color:#15803d; }
+ul.rk { list-style:none; } ul.rk li { padding:5px 0 5px 20px; position:relative; border-bottom:1px dashed #f6eaea; font-size:12.5px; line-height:1.7; }
+ul.rk li:last-child { border-bottom:0; } ul.rk li:before { content:'!'; position:absolute; left:3px; top:5px; font-weight:800; color:#b42318; }
+ul.sg { list-style:none; } ul.sg li { padding:5px 0 5px 20px; position:relative; border-bottom:1px dashed #eaf3ec; font-size:12.5px; line-height:1.7; }
+ul.sg li:last-child { border-bottom:0; } ul.sg li:before { content:'▲'; position:absolute; left:0; top:5px; font-weight:800; color:#15803d; }
+.nb { background:#f8fafc; border:1px solid #e4e7ec; border-radius:10px; padding:9px 12px; font-size:12.5px; line-height:1.75; color:#344054; margin-bottom:12px; }
+.nb b { color:#1a2a4a; }
+.warnfc { background:#fff7ed; border:1px solid #fdba74; border-radius:10px; padding:9px 12px; font-size:12.5px; line-height:1.75; color:#9a3412; margin-bottom:12px; }
+.cmp th.l, .cmp td.l { text-align:left; } .cmp td { text-align:center; }
+.ok { color:#15803d; font-weight:800; } .bad { color:#b42318; font-weight:800; } .mid2 { color:#b45309; font-weight:800; }
+.pill { display:inline-block; font-size:11px; font-weight:800; padding:2px 8px; border-radius:10px; background:#eef2f7; color:#475467; }
+.pill.c { background:#eaf2ff; color:#1d4ed8; }
+@media print { .seg { display:none !important; } .easy { background:#fff; } }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
+<script src="/nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+  <aside class="side" id="side"><h2>⚡ 연료전지·수소 교과서</h2><div class="mini">불러오는 중…</div></aside>
+  <main id="main"><div class="card">불러오는 중…</div></main>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const f0=v=>v==null||isNaN(v)?'—':Math.round(v).toLocaleString(), f1=v=>v==null||isNaN(v)?'—':Number(v).toFixed(1);
+const eok=v=>v==null||isNaN(v)?'—':Math.abs(v)>=10000?(v/10000).toFixed(Math.abs(v)>=100000?0:1).replace(/\B(?=(\d{3})+(?!\d))/g,',')+'조':Math.round(v).toLocaleString()+'억';
+const VZ={c:['#2a78d6','#eb6834','#1baf7a','#eda100','#e87ba4','#7a5cd6'], gray:'#c9cdd4', ink:'#1a1f2e', sub:'#667085', grid:'#eef0f3', font:'-apple-system,"Segoe UI","Malgun Gothic",sans-serif'};
+let TREE, CHD, BB, REP={}, SV={}, PRD={}, CH={}, G2C={}, CO2CH={};
+const j=async(u)=>{ try{ const r=await fetch(u,{cache:'no-store'}); if(!r.ok) return null; return await r.json(); }catch(e){ return null; } };
+function mk(id,cfg){ if(CH[id]) CH[id].destroy(); const el=$(id); if(!el) return; CH[id]=new Chart(el.getContext('2d'),cfg); }
+function killCharts(){ for(const k in CH){ try{ CH[k].destroy(); }catch(e){} delete CH[k]; } }
+Chart.defaults.font.family=VZ.font; Chart.defaults.font.size=11; Chart.defaults.color=VZ.sub;
+const vzLabel={id:'vzLabel', afterDatasetsDraw(ch,_a,o){ if(!o||!o.fmt) return; const ctx=ch.ctx; ctx.save(); ctx.font='600 11px '+VZ.font; ctx.fillStyle=VZ.ink; const hz=ch.options.indexAxis==='y';
+  ch.data.datasets.forEach((ds,di)=>{ if(o.only!=null&&o.only!==di) return; ch.getDatasetMeta(di).data.forEach((el,i)=>{ const v=ds.data[i]; if(v==null) return; const t=o.fmt(v,i,di); if(!t) return;
+    if(hz){ ctx.textAlign=v<0?'right':'left'; ctx.textBaseline='middle'; ctx.fillText(t, el.x+(v<0?-5:5), el.y); } else { ctx.textAlign='center'; ctx.textBaseline=v<0?'top':'bottom'; ctx.fillText(t, el.x, el.y+(v<0?4:-4)); } }); }); ctx.restore(); }};
+const ax=(o)=>Object.assign({grid:{color:VZ.grid,drawTicks:false},border:{display:false},ticks:{color:VZ.sub,padding:6}},o||{});
+function hbar(id,labels,data,colors,o){ o=o||{}; mk(id,{type:'bar',data:{labels,datasets:[{data,backgroundColor:colors,borderRadius:4,borderSkipped:false,maxBarThickness:16}]},plugins:[vzLabel],
+  options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',layout:{padding:{right:o.pad||58,left:0}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+(o.fmt?o.fmt(c.raw):c.raw)}},vzLabel:{fmt:o.fmt||(v=>f0(v))}},
+    scales:{x:ax({ticks:{color:VZ.sub,maxTicksLimit:5,callback:o.tick||(v=>f0(v))}}),y:ax({grid:{display:false},ticks:{color:VZ.ink,font:{size:11.5}}})}}}); }
+function vbar(id,labels,sets,o){ o=o||{}; mk(id,{type:'bar',data:{labels,datasets:sets},plugins:[vzLabel],
+  options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.dataset.label+' '+(o.fmt?o.fmt(c.raw):f0(c.raw))}},vzLabel:{fmt:o.lab,only:o.only}},
+    scales:{x:ax({grid:{display:false},ticks:{color:VZ.sub,maxRotation:0,autoSkip:labels.length>12,maxTicksLimit:11,font:{size:10}}}),y:ax({beginAtZero:!!o.zero,ticks:{callback:v=>f0(v),maxTicksLimit:5}})}}}); }
+function vline(id,labels,sets,o){ o=o||{}; mk(id,{type:'line',data:{labels,datasets:sets},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.dataset.label+' '+(o.fmt?o.fmt(c.raw):f1(c.raw))}}},
+    elements:{line:{borderWidth:2,tension:.25},point:{radius:2.5,hitRadius:10}},
+    scales:{x:ax({grid:{display:false},ticks:{color:VZ.sub,maxRotation:0,autoSkip:labels.length>12,maxTicksLimit:11,font:{size:10}}}),y:ax({ticks:{callback:o.tick||(v=>f1(v)),maxTicksLimit:5},suggestedMin:o.min,suggestedMax:o.max})}}}); }
+function vclip(s,w){ s=String(s||'').trim(); let n=0,i=0; for(;i<s.length;i++){ n+=/[ᄀ-￿]/.test(s[i])?1:0.58; if(n>w) break; } return i<s.length?s.slice(0,Math.max(1,i-1)).trim()+'…':s; }
+
+/* ───────── 공통 조각 */
+const TAGN={'증권사':'증권사·조사기관'};
+const tagH=t=>t?`<span class="tag t${esc(t)}">${esc(TAGN[t]||t)}</span>`:'';
+function srcH(ch,s){ if(!s||!s.length) return ''; return '<span class="sx">'+s.map(i=>{ const x=(ch.src||[])[i]; return x?`<a href="${esc(x.u)}" target="_blank" rel="noopener" title="${esc(x.t)}">[${i+1}]</a>`:''; }).join('')+'</span>'; }
+const claim=(ch,x)=>`${esc(x.t)} ${tagH(x.tag)}${srcH(ch,x.s)}`;
+const coN=c=>(TREE.co||{})[c]||((PRD[c]||{}).n)||c;
+const coLink=c=>`<a href="#c=${c}">${esc(coN(c))}</a>`;
+const sv=c=>{ const a=SV[c]; return a?{pbr:a[0],per:a[1],cap:a[2],px:a[3],roe:a[4]}:{}; };
+function pathOf(gid){ for(const T of TREE.top) for(const M of T.mid) for(const g of M.g) if(g.id===gid) return [T,M,g]; return null; }
+function topOf(tid){ return TREE.top.find(T=>T.id===tid)||null; }
+function groupsOf(code){ const out=[]; for(const T of TREE.top) for(const M of T.mid) for(const g of M.g) if(g.co.includes(code)) out.push([T,M,g]); return out; }
+function chOf(gid){ const id=G2C[gid]; return id?CHD.ch[id]:null; }
+function chCo(code){ const r=CO2CH[code]; return r?{ch:CHD.ch[r[0]],co:CHD.ch[r[0]].companies[r[1]]}:null; }
+const byCap=(a,b)=>((sv(b).cap||0)-(sv(a).cap||0));
+const priceDay=()=>String(SV._at||'').slice(0,10);
+
+/* ───────── 기본 지식 표 (교과서 앞머리) */
+const BASIC_WRITTEN='2026-10-25';
+// 연료전지 4종 비교
+const FCK=[
+ ['PEMFC 고분자전해질','60~90℃','불소계 고분자막(PEM)','백금 필요','순수소','빠름(분 단위)','수소차·건물용·선박·드론','현대모비스, 범한퓨얼셀, 에스프리즘'],
+ ['PAFC 인산형','150~200℃','인산(액체)','백금 필요','천연가스 개질','보통','건물·분산발전','두산퓨얼셀(익산)'],
+ ['SOFC 고체산화물','700~850℃ (중저온형 ~620℃)','세라믹(YSZ·ScSZ·GDC)','<b>불필요</b>','천연가스·수소·암모니아','느림(시간 단위)','분산발전·데이터센터','두산퓨얼셀(새만금), 미코파워, 블룸SK퓨얼셀'],
+ ['MCFC 용융탄산염','600~700℃','용융 탄산염(액체)','불필요','천연가스','느림','대형 발전','국내 비중 축소'],
+];
+// 2차전지와의 구분
+const KIND=[
+ ['본질','에너지를 <b>담는 그릇</b>','에너지를 <b>바꾸는 엔진</b>'],
+ ['에너지원','내부 활물질','외부에서 넣는 연료(수소·천연가스·암모니아)'],
+ ['충전','가능','<b>개념 자체가 없음</b> — 연료를 다시 넣는다'],
+ ['끝나는 조건','수명(사이클) 종료','연료 공급이 끊길 때'],
+ ['스펙 단위','<b>kWh(용량) + kW(출력)</b>','<b>kW(출력)만</b>'],
+ ['양극재·음극재의 역할','리튬을 담아두는 <b>활물질</b>','반응을 돕는 <b>촉매</b> — 아무것도 저장하지 않는다'],
+ ['분리막','별도 부품(4대 소재 중 하나)','<b>없음</b> — 전해질이 차단벽을 겸한다'],
+ ['비유','물탱크','발전기'],
+];
+// SOFC 단전지 층 구조
+const LAYER=[
+ ['전해질','산소이온만 통과시키고 연료·공기를 차단. 조성과 두께가 작동온도를 결정','YSZ, <b>ScSZ</b>(저온 유리), GDC/CGO','분말 — 일본 DKKK 확인 / 시트 — 중국 三环集团, 한국 <b>아모센스</b>'],
+ ['연료극 (anode)','연료를 산화시키고 전자를 내보냄. ASC에선 구조 지지체까지 겸함','Ni-YSZ 서멧, Ni-GDC','셀 제조사가 자체 제조 · 전문 분말 공급사 특정 못 함'],
+ ['공기극 (cathode)','산소를 이온으로 환원. 저온화할수록 여기가 성능 병목','LSM(750℃↑), LSCF(750℃↓), LSC','연구용 Nexceris · 양산 공급사 특정 못 함'],
+ ['접속재 (분리판)','셀을 직렬 연결 + 연료·공기 유로 분리. 크롬 휘발을 막는 코팅이 필수','페라이트계 STS(Crofer 22 APU 계열) + Mn-Co/Ce-Co 코팅','<b>Alleima</b>(스웨덴) Sanergy HT — 두산퓨얼셀이 양산 발주'],
+ ['밀봉재','연료와 공기를 서로·외부와 차단. 열사이클 내구가 핵심','글라스-세라믹 실런트, 마이카 가스켓','SCHOTT(독일) 확인 · 2·3위 특정 못 함'],
+ ['BOP','개질기·탈황기·블로워·열교환기·PCS. <b>시스템 원가의 상당 부분</b>','—','대부분 셀 제조사가 자체 설계·조달'],
+];
+// SOFC 지지체 3방식
+const SUPP=[
+ ['ESC 전해질 지지형','두꺼운 전해질 시트','높음 (750~900℃)','튼튼·장수명. 전해질이 두꺼워 저항이 큼','Bloom Energy'],
+ ['ASC 연료극 지지형','두꺼운 Ni-YSZ 연료극','중간 (650~750℃)','전해질을 얇게 → 저온화 유리. 환원 취성 주의','Elcogen, SolydEra'],
+ ['MSC 금속 지지형','금속 판','낮음 (~620℃)','<b>열충격·진동에 강하고 기동이 빠름</b>. 소재가 싸짐','Ceres Power 및 라이선시 — <b>두산퓨얼셀</b>, Weichai, Denso'],
+];
+// 밸류체인 단계
+const CHAIN=[
+ ['① 수소·연료','수소 생산·수전해, 천연가스 공급','h2_prod'],
+ ['② 저장·충전','저장용기·저장합금·충전소','h2_tank'],
+ ['③ 핵심 소재','SOFC 세라믹 / PEMFC 막·MEA / 금속 분리판','mat_sofc'],
+ ['④ 셀·스택','연료전지의 심장 — 방식별로 소재가 다르다','cell_sofc'],
+ ['⑤ BOP','배관·탈황·개질·블로워·전력변환','bop_pipe'],
+ ['⑥ 시스템·설치','모듈 조립, 현장 설치, 수배전','bop_power'],
+ ['⑦ 수요','분산발전 · 데이터센터 · 수소차 · 건물 · 선박','dm_ipp'],
+];
+function tbl(head,rows,cls){ return `<div class="tw"><table class="${cls||''}"><tr>${head.map(h=>`<th class="l">${h}</th>`).join('')}</tr>`+
+  rows.map(r=>'<tr>'+r.map((c,i)=>`<td class="${i===0?'l':''}">${c}</td>`).join('')+'</tr>').join('')+'</table></div>'; }
+
+
+/* 본문 문단 안의 출처 표기 (보도 s0, s1) → 태그 + 각주 링크 */
+function proseH(ch,t){
+  const src=ch.src||[];
+  return esc(t).replace(/\(([^()]*\bs\d+[^()]*)\)/g,(m,inner)=>{
+    const body=inner.replace(/\bs(\d+)\b/g,(_,n)=>{ const i=+n, x=src[i];
+      return x?`<a href="${esc(x.u)}" target="_blank" rel="noopener" title="${esc(x.t)}">[${i+1}]</a>`:`[?]`; });
+    return `<span class="sx">(${body})</span>`;
+  });
+}
+
+
+/* ───────── 증권사 리포트 (개념 / 산업·관련기업 / 개별기업) */
+const REPT={concept:['개념','연료전지·SOFC가 무엇인지부터 설명하는 자료. 오래된 것도 쓸모가 있어 기간을 넓게 잡았다'],
+            industry:['산업·관련기업','산업 전망과 밸류체인 안 여러 기업을 함께 다룬 자료'],
+            company:['개별 기업','종목 단위 분석']};
+const dDays=d=>{ const t=Date.parse(d+'T00:00:00'); return isNaN(t)?null:Math.floor((Date.now()-t)/864e5); };
+function repRow(r){
+  const ag=dDays(r.d), fresh=ag!=null&&ag<=183;
+  return `<tr><td class="l nw">${esc(r.d||'')}${fresh?' <span class="pill c">6개월</span>':''}</td>
+    <td class="l nw">${esc(r.b||'')}${(r.an||[]).length?`<div class="mini">${esc((r.an||[]).join(', '))}</div>`:''}</td>
+    <td class="l">${r.u?`<a href="${esc(r.u)}" target="_blank" rel="noopener">${esc(r.t||'')}</a>`:esc(r.t||'')}
+      ${r.why?`<div class="mini">${esc(r.why)}</div>`:(r.note?`<div class="mini" style="color:#98a2b3">${esc(r.note)}</div>`:'')}</td>
+    ${r.code?`<td class="l nw">${TREE.co[r.code]?coLink(r.code):esc(r.code)}</td>`:'<td></td>'}</tr>`;
+}
+function repSection(tier,rows,opts){
+  opts=opts||{};
+  if(!rows||!rows.length) return opts.hideEmpty?'':`<div class="mini" style="margin-bottom:10px">${esc(REPT[tier][0])} 리포트는 아직 모으지 못했다.</div>`;
+  rows=rows.slice().sort((a,b)=>String(b.d||'').localeCompare(String(a.d||'')));
+  const n6=rows.filter(r=>{const a=dDays(r.d); return a!=null&&a<=183;}).length;
+  return `<h3 style="margin:14px 0 4px">${esc(REPT[tier][0])} <small>${rows.length}건 · 최근 6개월 ${n6}건</small></h3>
+    <div class="mini" style="margin-bottom:5px">${esc(REPT[tier][1])}</div>
+    <div class="tw" style="margin-bottom:8px"><table><tr><th class="l">발행일</th><th class="l">증권사</th><th class="l">제목</th><th class="l">${tier==='company'?'종목':''}</th></tr>
+    ${rows.map(repRow).join('')}</table></div>`;
+}
+function repBlock(){
+  if(!REP||!(REP.concept||REP.industry||REP.company)) return '';
+  const n=(REP.concept||[]).length+(REP.industry||[]).length+(REP.company||[]).length;
+  if(!n) return '';
+  return `<h2>증권사 리포트 <small>${n}건 · 수집 ${esc(REP.updated||'')}</small></h2>`+
+    repSection('concept',REP.concept)+repSection('industry',REP.industry)+repSection('company',REP.company)+
+    `<div class="mini" style="margin-bottom:14px">제목·증권사·발행일·링크만 모은 것이고 본문 내용은 요약하지 않았다. 링크를 눌러 원문에서 확인한다. 리포트의 목표주가·전망치는 <b>증권사 추정</b>이지 확정된 숫자가 아니다.</div>`;
+}
+function repOf(code){
+  const out=[];
+  for(const t of ['company','industry','concept'])
+    for(const r of (REP&&REP[t])||[]) if(r.code===code) out.push(Object.assign({},r,{tier:t}));
+  return out.sort((a,b)=>String(b.d||'').localeCompare(String(a.d||'')));
+}
+
+/* ───────── 왼쪽 목차 */
+function renderSide(cur){
+  const h=['<h2><a href="#" style="color:#1a2a4a">⚡ 연료전지·수소 교과서</a></h2><input id="q" placeholder="기업명·종목코드 찾기" autocomplete="off"><div id="sr"></div>',
+    `<details class="toc" ${innerWidth>900||!(cur.gid||cur.code||cur.top)?'open':''}><summary>목차 (대분류 → 중분류 → 세분류)</summary>`];
+  for(const T of TREE.top){
+    const n=new Set(T.mid.flatMap(M=>M.g.flatMap(g=>g.co))).size;
+    const open=cur.top===T.id||(cur.gid&&(pathOf(cur.gid)||[])[0]&&pathOf(cur.gid)[0].id===T.id);
+    h.push(`<details ${open?'open':''}><summary><a href="#t=${T.id}" style="color:inherit">${esc(T.name)}</a> <small style="color:#98a2b3;font-weight:400">${n}</small></summary>`);
+    for(const M of T.mid){
+      h.push(`<div class="mid">${esc(M.name)}</div>`);
+      for(const g of M.g){
+        const on=cur.gid===g.id, wr=G2C[g.id]?' ✍':'';
+        h.push(`<a class="g ${on?'on':''}" href="#g=${g.id}">${esc(g.name)}<small> · ${g.co.length}${wr}</small></a>`);
+        if(on) for(const c of g.co.slice().sort(byCap)) h.push(`<a class="c ${cur.code===c?'on':''}" href="#c=${c}">${esc(coN(c))}</a>`);
+      }
+    }
+    h.push('</details>');
+  }
+  const free=Object.values(CHD.ch||{}).filter(c=>!(c.groups||[]).length);
+  if(free.length){ h.push(`<details ${cur.cid?'open':''}><summary>기술 장 <small style="color:#98a2b3;font-weight:400">${free.length}</small></summary>`);
+    for(const c of free) h.push(`<a class="g ${cur.cid===c.id?'on':''}" href="#ch=${c.id}">${esc(c.title)}<small> · ${(c.companies||[]).length} ✍</small></a>`);
+    h.push('</details>'); }
+  h.push('</details><div class="mini" style="margin-top:8px;padding:0 4px">✍ 표시는 글로 쓴 분야입니다. 나머지는 숫자와 분류만 나옵니다.</div>');
+  $('side').innerHTML=h.join('');
+  const q=$('q'); q.addEventListener('input',()=>{
+    const v=q.value.trim().toLowerCase(); const sr=$('sr'); if(!v){ sr.innerHTML=''; sr.className=''; return; }
+    const hit=Object.keys(TREE.co).filter(c=>c.includes(v)||coN(c).toLowerCase().includes(v)).sort(byCap).slice(0,30);
+    sr.className=hit.length?'sr':'';
+    sr.innerHTML=hit.map(c=>`<a href="#c=${c}">${esc(coN(c))} <small>${c}</small></a>`).join('')||'';
+  });
+}
+
+/* ───────── 메타 줄 (작성일 규칙) */
+function metaLine(written){
+  const bits=[];
+  if(written) bits.push(`<b>작성일</b> ${esc(written)}`);
+  bits.push(`<b>분류</b> ${esc(TREE.updated||'—')}`);
+  if(priceDay()) bits.push(`<b>주가·PER 기준일</b> ${priceDay()}`);
+  if(BB&&BB.asof) bits.push(`<b>실적</b> ${esc(BB.asof)} 기준 (수집 ${esc(String(BB.updated||'').slice(0,10))})`);
+  return `<div class="meta">${bits.join(' · ')}</div>`;
+}
+
+/* ───────── 홈 */
+function renderHome(){
+  killCharts();
+  const nT=TREE.top.length, nM=TREE.top.reduce((a,T)=>a+T.mid.length,0),
+        nG=TREE.top.reduce((a,T)=>a+T.mid.reduce((b,M)=>b+M.g.length,0),0),
+        nC=Object.keys(TREE.co).length, chs=Object.values(CHD.ch||{}),
+        nW=chs.length, nWC=chs.reduce((a,c)=>a+(c.companies||[]).length,0);
+  const h=[`<h1>연료전지·수소 교과서 <small>SOFC 중심 · 부품별 공급망 · 기업별 특장점과 리스크 · 증권사 리포트</small></h1>`, metaLine(BASIC_WRITTEN),
+   `<div class="kpis">
+     <div class="kpi"><div class="k">대분류</div><div class="v">${nT}</div><div class="n">수소·소재부터 발전사업까지</div></div>
+     <div class="kpi"><div class="k">중분류 · 세분류</div><div class="v">${nM} · ${nG}</div><div class="n">세분류가 공부 단위</div></div>
+     <div class="kpi"><div class="k">기업</div><div class="v">${nC}</div><div class="n">국내 상장사</div></div>
+     <div class="kpi"><div class="k">글로 쓴 분야</div><div class="v">${nW}</div><div class="n">기업 ${nWC}곳 특장점·리스크</div></div>
+   </div>`,
+   `<div class="nb"><b>읽는 순서</b> — ① 아래 기본 지식(2차전지와의 구분 → 연료전지 종류 → SOFC 단전지 구조 → 지지체 방식)을 먼저 보고 ② 밸류체인에서 관심 단계를 고른 뒤 ③ 세분류로 들어가 분야 설명을 읽고 ④ 기업으로 들어가 숫자·리스크·리포트를 본다. 분야 설명은 <b>쉬운 설명 / 자세한 설명</b>을 버튼으로 바꿔 볼 수 있다.<br>
+     <b>이 교과서는 SOFC에 무게를 뒀다.</b> PEMFC·PAFC와 수소 공급 쪽은 비교와 분류까지 다루고, 부품 단위 조사는 SOFC가 더 깊다.</div>`,
+
+   `<h2>1. 연료전지는 2차전지가 아니다</h2>
+    <div class="card" style="padding:0;overflow:hidden">${tbl(['구분','2차전지','연료전지 (SOFC·PEMFC·PAFC)'],KIND,'cmp')}</div>
+    <div class="warnfc"><b>가장 명확한 구별법은 단위다.</b> 2차전지는 "몇 kWh를 담느냐"가 스펙이고, 연료전지는 "몇 kW를 뽑느냐"만 있다. <b>담는 양이 스펙에 없으면 저장장치가 아니다.</b><br>
+      전고체 배터리와도 다르다 — <b>전고체는 고체전해질로 저장을 하고, SOFC는 고체전해질로 발전을 한다.</b> 소재가 세라믹이라는 점만 닮았다.<br>
+      다만 SOFC를 거꾸로 돌리는 SOEC·rSOC(고체산화물 수전해)는 전기로 수소를 만들어 저장하고 다시 발전할 수 있어 "충방전처럼" 보인다 — 이때 저장되는 곳은 전지 내부가 아니라 <b>외부 수소 탱크</b>다.</div>`,
+
+   `<h2>2. 연료전지의 종류 — 온도가 모든 것을 결정한다</h2>
+    <div class="card" style="padding:0;overflow:hidden">${tbl(['종류','작동 온도','전해질','백금 촉매','연료','기동 속도','주 용도','국내 기업'],FCK,'cmp')}</div>
+    <div class="mini" style="margin:-6px 0 14px">고온일수록 ① 백금이 필요 없어 원가가 내려가고 ② 연료를 내부에서 개질해 천연가스·암모니아까지 쓸 수 있고 ③ 발전효율이 높다. 대신 기동·정지가 느리고 열사이클 내구성이 숙제가 된다. <span class="tag t판단">판단</span> 근거: 저온형 PEMFC가 백금 촉매와 순수소를 요구하는 반면 SOFC·PAFC는 천연가스를 그대로 받는다는 점.</div>`,
+
+   `<h2>3. SOFC 단전지는 무엇으로 이루어지는가</h2>
+    <div class="card" style="padding:0;overflow:hidden">${tbl(['층','하는 일','쓰는 소재','누가 잘하는가'],LAYER,'cmp')}</div>
+    <div class="nb"><b>투자 관점에서 가장 중요한 줄은 전해질 시트다.</b> 분말은 여러 곳이 만들지만 그것을 얇고 평평한 세라믹 판으로 구워내는 공정이 진입장벽이고, 전해질 지지형(ESC) 셀에서는 이 시트가 <b>셀의 구조 지지체까지 겸하기</b> 때문에 셀 생산량에 1:1로 비례한다. <span class="tag t판단">판단</span></div>`,
+
+   `<h2>4. SOFC의 방식 — 무엇이 셀을 떠받치는가</h2>
+    <div class="card" style="padding:0;overflow:hidden">${tbl(['방식','지지체','작동 온도','성격','대표 업체'],SUPP,'cmp')}</div>
+    <div class="mini" style="margin:-6px 0 14px"><b>중저온화가 산업의 방향이다.</b> 온도가 내려가면 세라믹 접속재 대신 코팅된 스테인리스를 쓸 수 있어 원가가 떨어지고 기동이 빨라진다. 그래서 금속 접속재·금속 지지체 시장이 커진다. <span class="tag t판단">판단</span> 근거: Alleima가 코팅 STS의 타깃 온도대를 600~800℃로 명시한 점.</div>`,
+
+   `<h2>5. 밸류체인 — 어디서 돈이 갈리는가</h2>
+    <div class="flow">${CHAIN.map(([a,b,g])=>`<div${g?' class="on"':''}><b>${esc(a)}</b>${g?`<a href="#g=${g}">${esc(b)}</a>`:esc(b)}</div>`).join('')}</div>
+    <div class="nb" style="margin-top:10px"><b>2026~2028년의 실질 병목은 수요가 아니라 공급이다.</b> 수요 쪽 계약은 GW·수십억 달러 단위인데(Bloom–Oracle 2.8GW 등), 공급 쪽 공장은 연 수백 MW 수준이다 — Topsoe 500MW · Elcogen 360MW · 두산퓨얼셀 50MW · Weichai 2027년 200MW 목표. 따라서 병목은 <b>셀·스택 생산능력과 그 상류 소재</b>(전해질 시트 · 코팅 STS · 스칸디움)에 있다. <span class="tag t판단">판단</span></div>`,
+
+   `<h2>6. 대분류</h2><div class="grid">`];
+  for(const T of TREE.top){
+    const codes=[...new Set(T.mid.flatMap(M=>M.g.flatMap(g=>g.co)))].sort(byCap);
+    const wr=T.mid.flatMap(M=>M.g).filter(g=>G2C[g.id]).length;
+    h.push(`<div class="card ${T.id==='fc'?'topc':''}"><h3><a href="#t=${T.id}">${esc(T.name)}</a> <small>세분류 ${T.mid.reduce((a,M)=>a+M.g.length,0)} · 기업 ${codes.length}${wr?` · 글로 쓴 분야 ${wr}`:''}</small></h3>
+      <div class="mini" style="margin-bottom:7px">${esc(T.desc)}</div>
+      <div class="chips">${codes.slice(0,8).map(c=>`<a class="chip" href="#c=${c}">${esc(coN(c))}<small> ${eok(sv(c).cap)}</small></a>`).join('')}${codes.length>8?`<a class="chip w" href="#t=${T.id}">+${codes.length-8}</a>`:''}</div></div>`);
+  }
+  h.push('</div>');
+  h.push(repBlock());
+  h.push(`<h2>글로 쓴 분야 <small>${nW}개 장 · 기업 ${nWC}곳에 특장점과 리스크</small></h2><div class="chips" style="margin-bottom:8px">${chs.length?chs.map(c=>`<a class="chip w" href="${(c.groups||[]).length?`#g=${c.groups[0]}`:`#ch=${c.id}`}">${esc(c.title)}<small> ${(c.companies||[]).length}사</small></a>`).join(''):'<span class="mini">아직 없습니다.</span>'}</div>
+    <div class="mini" style="margin-bottom:14px">나머지 세분류는 분류와 숫자만 나온다. 분야를 지정해 요청하면 같은 형식으로 조사해 채운다.</div>`);
+  h.push(`<div class="mini">이 교과서가 판단을 대신하지 않는다. 숫자는 DART 공시와 시세 API에서 그대로 받아오고, 글로 쓴 부분은 문장마다 태그(확인·회사발언·증권사·보도·판단)와 출처를 붙였다. 태그가 <b>판단</b>이면 근거를 문장 안에 적었다.</div>`);
+  $('main').innerHTML=h.join('');
+}
+
+/* ───────── 대분류 */
+function renderTop(tid){
+  killCharts(); const T=topOf(tid); if(!T){ $('main').innerHTML='<div class="card">없는 대분류입니다.</div>'; return; }
+  const codes=[...new Set(T.mid.flatMap(M=>M.g.flatMap(g=>g.co)))].sort(byCap);
+  const h=[`<div class="crumb"><a href="#">연료전지·수소 교과서</a> › ${esc(T.name)}</div><h1>${esc(T.name)}</h1>`,
+    `<div class="lead">${esc(T.desc)}</div>`, metaLine(null)];
+  if(tid==='fc') h.push(`<div class="warnfc"><b>이 대분류는 2차전지가 아니다.</b> 연료전지는 외부 연료를 전기로 바꾸는 장치이고 충전 개념이 없다. 증권가에서 "수소·에너지 저장" 테마로 함께 묶이고 전극-전해질-전극 구조가 2차전지와 닮아 혼동되지만, 담는 용량(kWh)이 스펙에 없다는 점에서 저장장치가 아니다. 자세한 구분은 <a href="#">앞머리 3번 표</a>에 있다.</div>`);
+  for(const M of T.mid){
+    h.push(`<h2>${esc(M.name)}</h2><div class="grid">`);
+    for(const g of M.g){
+      const ch=chOf(g.id);
+      h.push(`<div class="card"><h3><a href="#g=${g.id}">${esc(g.name)}</a> <small>기업 ${g.co.length}${ch?' · ✍ 글 있음':''}</small></h3>
+        ${ch?`<div class="mini" style="margin-bottom:7px">${esc(ch.one||'')}</div>`:''}
+        <div class="chips">${g.co.slice().sort(byCap).map(c=>`<a class="chip" href="#c=${c}">${esc(coN(c))}<small> ${eok(sv(c).cap)}</small></a>`).join('')}</div></div>`);
+    }
+    h.push('</div>');
+  }
+  h.push(`<h2>이 대분류의 기업 — 시가총액 순</h2>`+peerTable(codes,null));
+  h.push(peerChartsHtml('tp'));
+  $('main').innerHTML=h.join('');
+  peerCharts('tp',codes.slice(0,14),null);
+}
+
+/* ───────── peer 표·차트 (같은 분야 비교) */
+function peerTable(codes,me){
+  const rows=codes.map(c=>{ const v=sv(c); const f=((BB.co[c]||{}).fin)||{};
+    const r4=(f.rq||[]).slice(-4), o4=(f.oq||[]).slice(-4);
+    const ttmR=r4.every(x=>x!=null)&&r4.length===4?r4.reduce((a,b)=>a+b,0):null;
+    const ttmO=o4.every(x=>x!=null)&&o4.length===4?o4.reduce((a,b)=>a+b,0):null;
+    const opm=(ttmR&&ttmO!=null&&ttmR>0)?ttmO/ttmR*100:null;
+    return {c,v,ttmR,opm};
+  });
+  return `<div class="tw"><table><tr><th class="l">기업</th><th>시가총액</th><th>주가</th><th>PER</th><th>PBR</th><th>ROE</th><th>최근 4분기 매출</th><th>영업이익률</th><th class="l">주요 사업</th></tr>`+
+   rows.map(r=>`<tr class="${me===r.c?'me':''}"><td class="l nw">${coLink(r.c)} <small style="color:#98a2b3">${r.c}</small></td>
+     <td class="nw">${eok(r.v.cap)}</td><td>${f0(r.v.px)}</td><td>${r.v.per==null?'—':f1(r.v.per)}</td><td>${r.v.pbr==null?'—':f1(r.v.pbr)}</td>
+     <td>${r.v.roe==null?'—':f1(r.v.roe)+'%'}</td><td class="nw">${eok(r.ttmR)}</td>
+     <td class="${r.opm==null?'':(r.opm<0?'bad':r.opm>=10?'ok':'')}">${r.opm==null?'—':f1(r.opm)+'%'}</td>
+     <td class="l mini">${esc(vclip((PRD[r.c]||{}).p||'',34))}</td></tr>`).join('')+
+   `</table></div><div class="mini" style="margin:5px 0 14px">시가총액·주가·PER·PBR·ROE는 시세 API 기준일 ${priceDay()||'—'}. 최근 4분기 매출·영업이익률은 DART 공시값을 더한 것으로, 네 분기가 모두 수집된 기업만 표시한다. PER가 비어 있으면 적자이거나 API가 값을 주지 않은 경우다.</div>`;
+}
+function peerChartsHtml(pfx){ return `<div class="grid4" style="margin:10px 0 14px">
+  <div class="vz"><div class="vzt">시가총액<small>억원</small></div><div class="vzc" id="${pfx}C"><canvas id="${pfx}c"></canvas></div></div>
+  <div class="vz"><div class="vzt">최근 4분기 매출<small>억원 · DART 공시값 합</small></div><div class="vzc" id="${pfx}R"><canvas id="${pfx}r"></canvas></div></div>
+  <div class="vz"><div class="vzt">영업이익률<small>% · 최근 4분기</small></div><div class="vzc" id="${pfx}O"><canvas id="${pfx}o"></canvas></div></div>
+  <div class="vz"><div class="vzt">PER<small>배 · 적자는 제외</small></div><div class="vzc" id="${pfx}P"><canvas id="${pfx}p"></canvas></div></div></div>`; }
+function emptyIf(boxId,vals,msg){ const el=$(boxId); if(!el) return false;
+  if(vals.some(v=>v!=null)) return false;
+  el.innerHTML=`<div class="mini" style="display:flex;align-items:center;justify-content:center;height:100%;color:#98a2b3">${msg}</div>`; return true; }
+function peerCharts(pfx,codes,me){
+  const H=Math.max(110,codes.length*26+34);
+  ['C','R','O','P'].forEach(k=>{ const el=$(pfx+k); if(el) el.style.height=H+'px'; });
+  const L=codes.map(c=>vclip(coN(c),7));
+  const col=c=>me&&c===me?VZ.c[1]:VZ.c[0];
+  const cols=codes.map(col);
+  const fin=c=>((BB.co[c]||{}).fin)||{};
+  const ttm=(c,k)=>{ const a=(fin(c)[k]||[]).slice(-4); return a.length===4&&a.every(x=>x!=null)?a.reduce((x,y)=>x+y,0):null; };
+  const dCap=codes.map(c=>sv(c).cap??null);
+  const dRev=codes.map(c=>ttm(c,'rq'));
+  const dOpm=codes.map(c=>{ const r=ttm(c,'rq'),o=ttm(c,'oq'); return (r&&o!=null&&r>0)?Math.max(-60,Math.min(60,o/r*100)):null; });
+  const dPer=codes.map(c=>{ const p=sv(c).per; return p!=null&&p>0?Math.min(p,200):null; });
+  if(!emptyIf(pfx+'C',dCap,'시가총액 값 없음')) hbar(pfx+'c',L,dCap,cols,{fmt:v=>eok(v),pad:66});
+  if(!emptyIf(pfx+'R',dRev,'실적을 아직 받지 못함')) hbar(pfx+'r',L,dRev,cols,{fmt:v=>eok(v),pad:66});
+  if(!emptyIf(pfx+'O',dOpm,'실적을 아직 받지 못함'))
+    hbar(pfx+'o',L,dOpm,codes.map(c=>{ const r=ttm(c,'rq'),o=ttm(c,'oq'); const v=(r&&o!=null&&r>0)?o/r:0; return v<0?VZ.gray:col(c); }),{fmt:v=>f1(v)+'%',pad:54,tick:v=>f0(v)+'%'});
+  if(!emptyIf(pfx+'P',dPer,'모두 적자이거나 PER 값 없음')) hbar(pfx+'p',L,dPer,cols,{fmt:v=>f1(v)+'배',pad:56});
+}
+
+/* ───────── 5년 실적 블록 */
+function finBlocks(code){
+  const f=((BB.co[code]||{}).fin)||null;
+  if(!f||!(f.rq||[]).some(v=>v!=null)) return {html:'<div class="note">5년 실적을 아직 받지 못했습니다. 주 1회 도는 수집기가 다음 실행에서 이어 받습니다.</div>',draw(){}};
+  const ql=BB.ql||[], ay=BB.ay||[];
+  const opm=(f.rq||[]).map((r,i)=>{ const o=(f.oq||[])[i]; return (r&&o!=null&&r>0)?Math.max(-100,Math.min(100,o/r*100)):null; });
+  const html=`<div class="grid2">
+    <div class="vz"><div class="vzt">연간 매출 · 영업이익<small>억원 · DART 공시값</small></div><div class="vzc" id="cA"><canvas id="cAc"></canvas></div>
+      <div class="lg"><span><i style="background:${VZ.c[0]}"></i>매출</span><span><i style="background:${VZ.c[1]}"></i>영업이익</span></div></div>
+    <div class="vz"><div class="vzt">분기 매출<small>억원</small></div><div class="vzc" id="cQ"><canvas id="cQc"></canvas></div></div>
+    <div class="vz"><div class="vzt">분기 영업이익 · 순이익<small>억원</small></div><div class="vzc" id="cO"><canvas id="cOc"></canvas></div>
+      <div class="lg"><span><i style="background:${VZ.c[1]}"></i>영업이익</span><span><i style="background:${VZ.gray}"></i>순이익</span></div></div>
+    <div class="vz"><div class="vzt">분기 영업이익률<small>% · ±100% 범위로 자름</small></div><div class="vzc" id="cM"><canvas id="cMc"></canvas></div></div>
+  </div>
+  <details class="d" style="margin:0 0 12px"><summary>숫자로 보기 (분기)</summary>
+   <div class="tw" style="margin-top:6px"><table><tr><th class="l">분기</th>${ql.map(q=>`<th>${esc(q)}</th>`).join('')}</tr>
+    <tr><td class="l">매출</td>${(f.rq||[]).map(v=>`<td>${f0(v)}</td>`).join('')}</tr>
+    <tr><td class="l">영업이익</td>${(f.oq||[]).map(v=>`<td>${f0(v)}</td>`).join('')}</tr>
+    <tr><td class="l">순이익</td>${(f.nq||[]).map(v=>`<td>${f0(v)}</td>`).join('')}</tr>
+    <tr><td class="l">기준</td>${String(f.fq||'').split('').map(x=>`<td class="mini">${x==='C'?'연결':x==='O'?'별도':'—'}</td>`).join('')}</tr></table></div>
+   <div class="tw" style="margin-top:6px"><table><tr><th class="l">연간</th>${ay.map(y=>`<th>${esc(y)}</th>`).join('')}</tr>
+    <tr><td class="l">매출</td>${(f.ar||[]).map(v=>`<td>${f0(v)}</td>`).join('')}</tr>
+    <tr><td class="l">영업이익</td>${(f.ao||[]).map(v=>`<td>${f0(v)}</td>`).join('')}</tr>
+    <tr><td class="l">순이익</td>${(f.an||[]).map(v=>`<td>${f0(v)}</td>`).join('')}</tr>
+    <tr><td class="l">기준</td>${String(f.fa||'').split('').map(x=>`<td class="mini">${x==='C'?'연결':x==='O'?'별도':'—'}</td>`).join('')}</tr></table></div>
+   <div class="mini" style="margin-top:5px">분기값은 각 보고서의 3개월 금액이고, 그 칸이 없으면 누적에서 차분한 값이다(4분기 = 연간 − 3분기 누적). 연결 우선, 그 분기에 연결이 없으면 별도. ${f.drop?'단위 오류로 보이는 칸은 비웠다.':''}</div>
+  </details>`;
+  return {html, draw(){
+    const nonNeg=a=>(a||[]).every(v=>v==null||v>=0);
+    vbar('cAc',ay,[{label:'매출',data:f.ar||[],backgroundColor:VZ.c[0],borderRadius:3,maxBarThickness:30},
+                   {label:'영업이익',data:f.ao||[],backgroundColor:VZ.c[1],borderRadius:3,maxBarThickness:30}],
+         {fmt:v=>eok(v),lab:(v,i,di)=>di===0?eok(v):null,only:0,zero:nonNeg(f.ar)&&nonNeg(f.ao)});
+    vbar('cQc',ql,[{label:'매출',data:f.rq||[],backgroundColor:VZ.c[0],borderRadius:3,maxBarThickness:22}],{fmt:v=>eok(v),lab:null,zero:nonNeg(f.rq)});
+    vbar('cOc',ql,[{label:'영업이익',data:f.oq||[],backgroundColor:VZ.c[1],borderRadius:3,maxBarThickness:16},
+                   {label:'순이익',data:f.nq||[],backgroundColor:VZ.gray,borderRadius:3,maxBarThickness:16}],{fmt:v=>eok(v),lab:null});
+    vline('cMc',ql,[{label:'영업이익률',data:opm,borderColor:VZ.c[1],backgroundColor:VZ.c[1],spanGaps:true}],{fmt:v=>f1(v)+'%',tick:v=>f0(v)+'%'});
+  }};
+}
+
+/* ───────── 공시 이력 블록 */
+const EVC={fund:['자금조달','#eb6834'],cap:['증자·감자','#eda100'],ma:['인수·매각','#2a78d6'],
+           tstk:['자기주식','#1baf7a'],ctrl:['최대주주 변경','#7a5cd6'],risk:['소송·제재·경고','#b42318']};
+function evCluster(ev){ const by={}; for(const e of ev||[]){ (by[e.c+'|'+e.k]=by[e.c+'|'+e.k]||[]).push(e); }
+  const out=[]; for(const k in by){ const g=by[k].slice().sort((a,b)=>(b.d||'').localeCompare(a.d||''));
+    const base=Object.assign({},g[g.length-1]); const last=g[0];
+    for(const e of g) for(const f of ['amt','who','why','how','pct','prc']) if(base[f]==null&&e[f]!=null) base[f]=e[f];
+    base.d=last.d; base.d0=g[g.length-1].d; base.n=g.length; out.push(base); }
+  return out.sort((a,b)=>(b.d||'').localeCompare(a.d||'')); }
+function evBlocks(code){
+  const x=BB.co[code]||{}; if(!x.ev_at) return {html:'<div class="note">공시 이력을 아직 받지 못했습니다.</div>',draw(){}};
+  const ev=evCluster(x.ev);
+  if(!ev.length) return {html:`<div class="nb">최근 5년 안에 자금조달·인수매각·최대주주 변경·소송·제재로 분류되는 공시가 없다. <span class="tag t확인">확인</span> <span class="mini">수집일 ${esc(x.ev_at)}</span></div>`,draw(){}};
+  const cats=[...new Set(ev.map(e=>e.c))];
+  const html=`<div class="vz" style="margin-bottom:10px"><div class="vzt">공시 이력 타임라인<small>최근 5년 · 점 하나가 공시 한 건(정정 포함은 묶어 셈)</small></div>
+     <div class="vzc" id="cE" style="height:${Math.max(120,cats.length*34+46)}px"><canvas id="cEc"></canvas></div>
+     <div class="lg">${cats.map(c=>`<span><i style="background:${(EVC[c]||['','#98a2b3'])[1]}"></i>${esc((EVC[c]||[c])[0])}</span>`).join('')}</div></div>
+   <div class="tw" style="margin-bottom:6px"><table><tr><th class="l">날짜</th><th class="l">종류</th><th class="l">공시 제목</th><th>금액</th><th class="l">상대방·사유</th></tr>
+    ${ev.map(e=>`<tr><td class="l nw">${esc(e.d||'')}${e.n>1?`<small style="color:#98a2b3"> +${e.n-1}</small>`:''}</td>
+      <td class="l nw"><span class="pill" style="background:${(EVC[e.c]||['','#98a2b3'])[1]}1f;color:${(EVC[e.c]||['','#667085'])[1]}">${esc((EVC[e.c]||[e.c])[0])}</span></td>
+      <td class="l">${esc(e.k||'')}${e.fix?' <small style="color:#98a2b3">(정정)</small>':''}</td>
+      <td class="nw">${e.amt!=null?eok(e.amt):'—'}</td>
+      <td class="l mini">${esc([e.who,e.why,e.how,e.pct!=null?e.pct+'%':null,e.prc!=null?f0(e.prc)+'원':null].filter(Boolean).join(' · '))}${e.dref?' <span title="정정 공시라 같은 종류 중 날짜가 가장 가까운 공시의 내용을 붙였다">↩</span>':''}</td></tr>`).join('')}
+   </table></div>
+   <div class="mini" style="margin-bottom:12px">주요사항보고서(pblntf_ty=B)와 거래소 공시(I) <b>제목</b>으로 분류한 것이다. 내용은 반드시 원문에서 확인한다 — <a href="https://dart.fss.or.kr/dsab007/main.do" target="_blank" rel="noopener">DART</a>. 수집일 ${esc(x.ev_at)}. ${x.ev_more?'공시 건수가 많아 일부만 받았다.':''}`+
+   `<br>이 표는 <b>사실의 목록</b>이고 좋고 나쁨의 판정이 아니다. 전환사채·유상증자는 주식 수가 늘 수 있다는 뜻이고, 소송·제재는 결과를 원문에서 봐야 한다.</div>`;
+  return {html, draw(){
+    // 날짜 어댑터 없이 쓰려고 x축은 linear(밀리초)로 두고 연도 눈금을 직접 만든다
+    const T=d=>new Date(d+'T00:00:00').getTime(), y0=BB.y0||2021, yN=new Date().getFullYear();
+    const ds=cats.map((c,i)=>({label:(EVC[c]||[c])[0], data:ev.filter(e=>e.c===c).map(e=>({x:T(e.d0||e.d),y:i,e})),
+      backgroundColor:(EVC[c]||['','#98a2b3'])[1], borderColor:'#fff', borderWidth:2, pointRadius:6, pointHoverRadius:8}));
+    mk('cEc',{type:'scatter',data:{datasets:ds},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{right:10,top:6}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{ const e=c.raw.e; return ' '+(e.d0||e.d)+' '+vclip(e.k||'',38)+(e.who?' — '+e.who:'')+(e.amt!=null?' · '+eok(e.amt):''); }}}},
+      scales:{x:ax({type:'linear',min:T(y0+'-01-01'),max:Date.now()+864e5*20,
+                afterBuildTicks:a=>{ const tk=[]; for(let y=y0;y<=yN+1;y++) tk.push({value:T(y+'-01-01')}); a.ticks=tk.filter(t=>t.value<=a.max); },
+                ticks:{color:VZ.sub,callback:v=>new Date(v).getFullYear()+'년'}}),
+              y:ax({min:-0.5,max:cats.length-0.5,reverse:true,afterBuildTicks:a=>{ a.ticks=cats.map((_,i)=>({value:i})); },
+                ticks:{color:VZ.ink,font:{size:11},callback:v=>cats[v]?vclip((EVC[cats[v]]||[cats[v]])[0],9):''}})}}});
+  }};
+}
+
+/* ───────── 세분류(분야) */
+function renderChapter(cid){   // 세분류에 매이지 않는 기술 장(예: 전고체)
+  killCharts(); const ch=(CHD.ch||{})[cid];
+  if(!ch){ $('main').innerHTML='<div class="card">없는 장입니다.</div>'; return; }
+  chapterBody(ch,null,null,`<div class="crumb"><a href="#">연료전지·수소 교과서</a> › 기술 장</div><h1>${esc(ch.title)}</h1>`);
+}
+function renderGroup(gid){
+  killCharts(); const p=pathOf(gid); if(!p){ $('main').innerHTML='<div class="card">없는 분야입니다.</div>'; return; }
+  const [T,M,g]=p, ch=chOf(gid);
+  const h=[`<div class="crumb"><a href="#">연료전지·수소 교과서</a> › <a href="#t=${T.id}">${esc(T.name)}</a> › ${esc(M.name)}</div>`,
+    `<h1>${esc(g.name)}</h1>`];
+  if(!ch){
+    h.push(metaLine(null));
+    h.push(`<div class="note">이 분야는 아직 <b>글로 쓴 설명이 없다.</b> 분류와 숫자만 나온다. 분야를 지정해 요청하면 제품 설명·구조 그림·기업별 특장점과 리스크를 조사해 넣는다.</div>`);
+    h.push(peerTable(g.co.slice().sort(byCap),null), peerChartsHtml('gp'));
+    $('main').innerHTML=h.join(''); peerCharts('gp',g.co.slice().sort(byCap).slice(0,14),null); return;
+  }
+  chapterBody(ch,g,T,h.join('')); return;
+}
+function chapterBody(ch,g,T,headHtml){
+  const h=[headHtml];
+  h.push(`<div class="lead">${esc(ch.one||'')}</div>`, metaLine(ch.written));
+  // 쉬운/자세한 설명 토글
+  h.push(`<div class="seg noprint"><button id="bEasy" class="on" type="button">쉬운 설명</button><button id="bDeep" type="button">자세한 설명</button></div>`);
+  h.push(`<div id="vEasy" class="easy"><div class="h">쉬운 설명</div>${(ch.easy||[]).map(t=>`<p>${proseH(ch,t)}</p>`).join('')||'<p>아직 없습니다.</p>'}</div>`);
+  h.push(`<div id="vDeep" class="card" style="display:none">${(ch.deep||[]).map(t=>`<p>${proseH(ch,t)}</p>`).join('')||'<p>아직 없습니다.</p>'}</div>`);
+  if(ch.svg) h.push(`<div class="fig">${ch.svg}</div>`);
+  const w=ch.where||{};
+  if(w.proc||(w.how||[]).length||(w.chain||[]).length){
+    h.push(`<h2>어디에 어떻게 쓰이는가</h2><div class="card">`);
+    if(w.proc) h.push(`<p><b>공정상 위치</b> — ${esc(w.proc)}</p>`);
+    if((w.how||[]).length) h.push(`<b>쓰이는 순서</b><ol class="how">${w.how.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>`);
+    h.push('</div>');
+    if((w.chain||[]).length) h.push(`<div class="flow">${w.chain.map((x,i)=>`<div${i===1?' class="on"':''}><b>${['앞단','이 제품','쓰는 곳','최종 수요'][i]||''}</b>${esc(x)}</div>`).join('')}</div><div style="height:12px"></div>`);
+  }
+  if((ch.terms||[]).length) h.push(`<h2>용어</h2><div class="card"><dl class="terms">${ch.terms.map(t=>`<dt>${esc(t.t)}</dt><dd>${esc(t.d)}</dd>`).join('')}</dl></div>`);
+  if((ch.global||[]).length) h.push(`<h2>해외 경쟁 구도</h2><div class="card"><ul class="pl dot">${ch.global.map(x=>`<li><b>${esc(x.n)}</b> — ${esc(x.note)}${srcH(ch,x.s)}</li>`).join('')}</ul></div>`);
+  // 기업 비교 축
+  const cos=ch.companies||[], axes=ch.compare_axes||[];
+  if(cos.length&&axes.length) h.push(`<h2>기업 비교</h2><div class="tw" style="margin-bottom:14px"><table><tr><th class="l">기업</th>${axes.map(a=>`<th class="l">${esc(a)}</th>`).join('')}</tr>
+    ${cos.map(c=>`<tr><td class="l nw">${coLink(c.code)}</td>${axes.map(a=>`<td class="l mini">${esc((c.axes||{})[a]||'—')}</td>`).join('')}</tr>`).join('')}</table></div>`);
+  // 숫자 비교
+  const codes=[...new Set(((g&&g.co)||[]).concat(cos.map(c=>c.code)).filter(c=>TREE.co[c]))].sort(byCap);
+  h.push(`<h2>숫자 비교</h2>`+peerTable(codes,null)+peerChartsHtml('gp'));
+  // 기업별 특장점·리스크
+  if(cos.length){
+    h.push(`<h2>기업별 특장점과 리스크</h2>`);
+    for(const c of cos){
+      h.push(`<div class="card co"><h3><a href="#c=${c.code}">${esc(c.name)}</a> <small>${c.code} · ${eok(sv(c.code).cap)}</small></h3>
+        <div class="pos">${esc(c.pos||'')}</div>
+        ${c.alert?`<div class="warnfc"><b>주의</b> — ${esc(c.alert)}</div>`:''}`);
+      if((c.products||[]).length) h.push(`<div class="tw" style="margin-bottom:8px"><table><tr><th class="l">주요 제품</th><th class="l">어디에 어떻게 쓰이는가</th><th class="l">비중·규모</th></tr>
+        ${c.products.map(p=>`<tr><td class="l nw">${p.photo?`<a href="${esc(p.photo)}" target="_blank" rel="noopener">${esc(p.n)}</a>`:esc(p.n)}</td><td class="l">${esc(p.use||'')}</td><td class="l mini">${esc(p.share||'—')}</td></tr>`).join('')}</table></div>`);
+      if((c.customers||[]).length) h.push(`<div class="mini" style="margin-bottom:8px"><b>고객사</b> — ${c.customers.map(x=>claim(ch,x)).join(' / ')}</div>`);
+      h.push(`<div class="sr2">
+        <div class="strongbox"><h3>특장점</h3><ul class="sg">${(c.strong||[]).map(x=>`<li>${claim(ch,x)}</li>`).join('')||'<li class="mini">조사 중</li>'}</ul></div>
+        <div class="riskbox"><h3>리스크 요인</h3><ul class="rk">${(c.risk||[]).map(x=>`<li>${claim(ch,x)}</li>`).join('')||'<li class="mini">조사 중</li>'}</ul></div>
+      </div></div>`);
+    }
+  }
+  if((ch.watch||[]).length) h.push(`<h2>앞으로 볼 지표</h2><div class="card"><ul class="pl dot">${ch.watch.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`);
+  if((ch.unknown||[]).length) h.push(`<h2>확인하지 못한 것</h2><div class="note"><ul class="pl dot" style="margin:0">${ch.unknown.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`);
+  if((ch.src||[]).length) h.push(`<h2>출처</h2><div class="card mini"><ol style="margin-left:18px">${ch.src.map(s=>`<li><a href="${esc(s.u)}" target="_blank" rel="noopener">${esc(s.t)}</a></li>`).join('')}</ol></div>`);
+  $('main').innerHTML=h.join('');
+  const be=$('bEasy'), bd=$('bDeep');
+  if(be) be.onclick=()=>{ be.classList.add('on'); bd.classList.remove('on'); $('vEasy').style.display=''; $('vDeep').style.display='none'; };
+  if(bd) bd.onclick=()=>{ bd.classList.add('on'); be.classList.remove('on'); $('vDeep').style.display=''; $('vEasy').style.display='none'; };
+  peerCharts('gp',codes.slice(0,14),null);
+}
+
+/* ───────── 기업 */
+function renderCompany(code){
+  killCharts();
+  if(!TREE.co[code]){ $('main').innerHTML='<div class="card">이 교과서에 없는 종목입니다. <a href="#">처음으로</a></div>'; return; }
+  const gs=groupsOf(code), r=chCo(code), ch=r&&r.ch, c=r&&r.co, v=sv(code), prd=PRD[code]||{};
+  const fb=finBlocks(code), eb=evBlocks(code);
+  const h=[`<div class="crumb"><a href="#">연료전지·수소 교과서</a>${gs.length?` › <a href="#t=${gs[0][0].id}">${esc(gs[0][0].name)}</a> › <a href="#g=${gs[0][2].id}">${esc(gs[0][2].name)}</a>`:''}</div>`,
+    `<h1>${esc(coN(code))} <small>${code} · ${esc(prd.m==='K'?'KOSPI':prd.m==='Q'?'KOSDAQ':prd.m||'')}</small></h1>`,
+    `<div class="lead">${esc(prd.p||'')}</div>`,
+    metaLine(ch?ch.written:null)];
+  if(gs.length>1) h.push(`<div class="mini" style="margin:-6px 0 10px">이 회사는 세분류 ${gs.length}곳에 들어간다: ${gs.map(([T,M,g])=>`<a href="#g=${g.id}">${esc(g.name)}</a>`).join(' · ')}</div>`);
+  h.push(`<div class="kpis">
+    <div class="kpi"><div class="k">시가총액</div><div class="v">${eok(v.cap)}</div><div class="n">주가 ${f0(v.px)}원 · ${priceDay()||'—'}</div></div>
+    <div class="kpi"><div class="k">PER</div><div class="v">${v.per==null?'—':f1(v.per)}</div><div class="n">${v.per==null?'적자이거나 값 없음':'배'}</div></div>
+    <div class="kpi"><div class="k">PBR</div><div class="v">${v.pbr==null?'—':f1(v.pbr)}</div><div class="n">배</div></div>
+    <div class="kpi"><div class="k">ROE</div><div class="v">${v.roe==null?'—':f1(v.roe)+'%'}</div><div class="n">EPS ÷ BPS</div></div>
+  </div>`);
+  if(c){
+    const chHref=(ch.groups||[]).length?`#g=${ch.groups[0]}`:`#ch=${ch.id}`;
+    h.push(`<div class="nb"><b>이 분야에서의 자리</b> — ${esc(c.pos||'')} <span class="mini">· <a href="${chHref}">${esc(ch.title)}</a> 장에서 가져옴</span></div>`);
+    if(c.alert) h.push(`<div class="warnfc"><b>주의</b> — ${esc(c.alert)}</div>`);
+    const other=Object.values(CHD.ch||{}).filter(x=>x.id!==ch.id&&(x.companies||[]).some(y=>y.code===code));
+    if(other.length) h.push(`<div class="mini" style="margin:-6px 0 10px">이 회사는 다른 장에도 나온다: ${other.map(x=>`<a href="${(x.groups||[]).length?`#g=${x.groups[0]}`:`#ch=${x.id}`}">${esc(x.title)}</a>`).join(' · ')}</div>`);
+    if((c.products||[]).length) h.push(`<h2>주요 제품 — 어디에 어떻게 쓰이는가</h2><div class="tw" style="margin-bottom:12px"><table><tr><th class="l">제품</th><th class="l">쓰이는 곳과 방식</th><th class="l">비중·규모</th></tr>
+      ${c.products.map(p=>`<tr><td class="l nw">${p.photo?`<a href="${esc(p.photo)}" target="_blank" rel="noopener">${esc(p.n)}</a>`:esc(p.n)}</td><td class="l">${esc(p.use||'')}</td><td class="l mini">${esc(p.share||'—')}</td></tr>`).join('')}</table></div>
+      <div class="mini" style="margin:-8px 0 12px">제품명을 누르면 회사 공식 제품 페이지로 간다. 제품 사진은 이 사이트에 옮겨 싣지 않는다.</div>`);
+    if((c.customers||[]).length) h.push(`<h2>고객사</h2><div class="card"><ul class="pl dot">${c.customers.map(x=>`<li>${claim(ch,x)}</li>`).join('')}</ul></div>`);
+    h.push(`<h2>특장점과 리스크 요인</h2><div class="sr2">
+      <div class="strongbox"><h3>특장점 <small>경쟁사 대비 더 잘하는 것</small></h3><ul class="sg">${(c.strong||[]).map(x=>`<li>${claim(ch,x)}</li>`).join('')||'<li class="mini">조사 중</li>'}</ul></div>
+      <div class="riskbox"><h3>리스크 요인 <small>실적·주가를 망칠 수 있는 것</small></h3><ul class="rk">${(c.risk||[]).map(x=>`<li>${claim(ch,x)}</li>`).join('')||'<li class="mini">조사 중</li>'}</ul></div></div>`);
+    if((ch.compare_axes||[]).length&&c.axes) h.push(`<div class="tw" style="margin-bottom:12px"><table>${ch.compare_axes.map(a=>`<tr><th class="l" style="width:28%">${esc(a)}</th><td class="l">${esc(c.axes[a]||'—')}</td></tr>`).join('')}</table></div>`);
+  } else {
+    h.push(`<div class="note">이 기업은 아직 <b>글로 쓴 조사가 없다.</b> 아래 숫자(5년 실적·공시 이력·같은 분야 비교)는 자동 수집된 것이고, 특장점·리스크는 분야를 지정해 요청하면 조사해 넣는다.</div>`);
+  }
+  const rp=repOf(code);
+  if(rp.length) h.push(`<h2>이 종목 리포트 <small>${rp.length}건</small></h2>`+
+    `<div class="tw" style="margin-bottom:6px"><table><tr><th class="l">발행일</th><th class="l">증권사</th><th class="l">제목</th><th class="l">분류</th></tr>`+
+    rp.map(r=>{const ag=dDays(r.d),fresh=ag!=null&&ag<=183;
+      return `<tr><td class="l nw">${esc(r.d||'')}${fresh?' <span class="pill c">6개월</span>':''}</td>
+        <td class="l nw">${esc(r.b||'')}${(r.an||[]).length?`<div class="mini">${esc(r.an.join(', '))}</div>`:''}</td>
+        <td class="l">${r.u?`<a href="${esc(r.u)}" target="_blank" rel="noopener">${esc(r.t||'')}</a>`:esc(r.t||'')}${r.why?`<div class="mini">${esc(r.why)}</div>`:''}</td>
+        <td class="l nw mini">${esc((REPT[r.tier]||[''])[0])}</td></tr>`;}).join('')+
+    `</table></div><div class="mini" style="margin-bottom:12px">리포트의 목표주가·전망치는 증권사 추정이다. 링크를 눌러 원문에서 확인한다.</div>`);
+  h.push(`<h2>5개년 실적 <small>분기·연간 · DART 공시값</small></h2>`+fb.html);
+  h.push(`<h2>자금조달 · 인수매각 · 지배구조 이력 <small>최근 5년</small></h2>`+eb.html);
+  const peers=gs.length?[...new Set(gs.flatMap(([T,M,g])=>g.co))].sort(byCap):[];
+  if(peers.length>1){
+    h.push(`<h2>같은 세분류 기업과 비교 <small>${gs.map(([T,M,g])=>esc(g.name)).join(' · ')}</small></h2>`+peerTable(peers,code)+peerChartsHtml('cp'));
+  }
+  h.push(`<div class="btns noprint"><a href="https://dart.fss.or.kr/dsab007/main.do" target="_blank" rel="noopener">DART에서 이 회사 공시 보기</a>
+    <a href="/deep.html#c=${code}">종목 딥다이브</a><a href="/bands.html#c=${code}">밴드·V차트</a><button type="button" onclick="window.print()">인쇄 / PDF</button></div>`);
+  $('main').innerHTML=h.join('');
+  fb.draw(); eb.draw();
+  if(peers.length>1) peerCharts('cp',peers.slice(0,14),code);
+}
+
+/* ───────── 라우팅 */
+function route(){
+  const hs=location.hash||''; let m;
+  const cur={};
+  if((m=hs.match(/^#ch=([\w-]+)/))) cur.cid=m[1];
+  else if((m=hs.match(/^#g=([\w-]+)/))) cur.gid=m[1];
+  else if((m=hs.match(/^#c=([0-9A-Z]{6})/))) cur.code=m[1];
+  else if((m=hs.match(/^#t=([\w-]+)/))) cur.top=m[1];
+  if(cur.gid){ const p=pathOf(cur.gid); if(p) cur.top=p[0].id; }
+  if(cur.code){ const g=groupsOf(cur.code); if(g.length){ cur.gid=g[0][2].id; cur.top=g[0][0].id; } }
+  renderSide(cur);
+  if(hs.startsWith('#ch=')) renderChapter(hs.slice(4).split('&')[0]);
+  else if(hs.startsWith('#c=')&&cur.code) renderCompany(cur.code);
+  else if(hs.startsWith('#g=')) renderGroup(hs.slice(3).split('&')[0]);
+  else if(hs.startsWith('#t=')) renderTop(hs.slice(3).split('&')[0]);
+  else renderHome();
+  if(!hs) window.scrollTo(0,0);
+}
+
+(async function boot(){
+  const [tree,chd,bb,rep,svj,prd]=await Promise.all([
+    j('/data/fcbook_tree.json'), j('/data/fcbook_ch.json'), j('/data/fcbook.json'),
+    j('/data/fcbook_rep.json'), j('/data/stockvals.json'), j('/data/products.json')]);
+  if(!tree){ $('main').innerHTML='<div class="card">분류 파일(fcbook_tree.json)을 불러오지 못했습니다.</div>'; return; }
+  TREE=tree; CHD=chd||{ch:{}}; BB=bb||{co:{},ql:[],ay:[]}; REP=rep||{};
+  if(!BB.co) BB.co={};
+  SV=(svj&&svj.map)||{}; SV._at=(svj&&svj.updated)||''; PRD=(prd&&prd.map)||{};
+  for(const id in (CHD.ch||{})){ const ch=CHD.ch[id];
+    for(const g of (ch.groups||[])) G2C[g]=id;
+    (ch.companies||[]).forEach((c,i)=>{ if(!CO2CH[c.code]) CO2CH[c.code]=[id,i]; }); }
+  addEventListener('hashchange',route); route();
+})();
+</script>
+</body>
+</html>

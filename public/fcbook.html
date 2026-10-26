@@ -42,6 +42,8 @@ td.l, th.l { text-align:left; } td.nw { white-space:nowrap; } .tw { overflow-x:a
 tr.me td { background:#f5f9ff; font-weight:700; }
 .tag { display:inline-block; font-size:10.5px; padding:1px 6px; border-radius:8px; font-weight:800; white-space:nowrap; }
 .t확인 { background:#dcfce7; color:#15803d; } .t회사발언 { background:#d1fae5; color:#047857; } .t증권사 { background:#dbeafe; color:#1d4ed8; } .t보도 { background:#e0e7ff; color:#3730a3; } .t판단 { background:#fef3c7; color:#b45309; } .t의혹 { background:#fee2e2; color:#b42318; }
+.sumlink { display:inline-block; font-size:10.5px; font-weight:800; padding:1px 7px; border-radius:8px; background:#eef4ff; color:#1d4ed8; border:1px solid #cfe0f5; white-space:nowrap; text-decoration:none; }
+.sumlink:hover { background:#dbeafe; text-decoration:none; }
 .sx { font-size:10.5px; color:#667085; margin-left:2px; } .sx a { color:#667085; text-decoration:underline; }
 ul.pl { list-style:none; } ul.pl li { padding:5px 0 5px 20px; position:relative; border-bottom:1px dashed #eef0f4; } ul.pl li:last-child { border-bottom:0; } ul.pl li:before { position:absolute; left:0; top:5px; font-weight:800; }
 ul.st li:before { content:'▲'; color:#2a78d6; } ul.wk li:before { content:'▽'; color:#98a2b3; } ul.dot li:before { content:'•'; color:#98a2b3; }
@@ -281,6 +283,7 @@ function repRow(r){
   return `<tr><td class="l nw">${esc(r.d||'')}${fresh?' <span class="pill c">6개월</span>':''}</td>
     <td class="l nw">${esc(r.b||'')}${(r.an||[]).length?`<div class="mini">${esc((r.an||[]).join(', '))}</div>`:''}</td>
     <td class="l">${r.u?`<a href="${esc(r.u)}" target="_blank" rel="noopener">${esc(r.t||'')}</a>`:esc(r.t||'')}
+      ${r.sum?` <a class="sumlink" href="/repsum.html#r=${esc(r.sum)}">🔍 정밀요약</a>`:''}
       ${r.why?`<div class="mini">${esc(r.why)}</div>`:(r.note?`<div class="mini" style="color:#98a2b3">${esc(r.note)}</div>`:'')}</td>
     ${r.code?`<td class="l nw">${TREE.co[r.code]?coLink(r.code):esc(r.code)}</td>`:'<td></td>'}</tr>`;
 }

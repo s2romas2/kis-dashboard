@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>리포트 정밀요약 — 증권사 리포트 챕터별 핵심요약·쉬운설명·재작성 차트</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif;background:#f4f6fa;color:#1a1f2e}
+a{color:#1d4ed8;text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1020px;margin:0 auto;padding:14px 14px 80px}
+.crumb{font-size:12px;color:#667085;margin-bottom:6px}.crumb a{color:#667085}
+.hd h1{font-size:23px;line-height:1.38;color:#0f2847;letter-spacing:-.4px;margin-bottom:6px}
+.hd .sub{font-size:16px;color:#475467;font-weight:600}
+.hd .meta{font-size:12.5px;color:#475467;background:#fff;border:1px solid #e4e7ec;border-radius:10px;padding:9px 12px;margin:10px 0 4px;line-height:1.8}
+.hd .meta b{color:#0f2847}
+/* ── 요약 본문 (.rs 스코프) ── */
+.rs{font-size:14.5px;line-height:1.9;color:#28303f}
+.rs,.rs p,.rs td,.rs th,.rs li,.rs dd,.rs .mini,.rs .card,.rs .keynote,.rs .lead{word-break:keep-all;overflow-wrap:break-word}
+.rs p,.rs li,.rs .keynote,.rs .easy p,.rs .card p{text-wrap:pretty}
+.rs h2{font-size:20px;color:#0f2847;margin:40px 0 12px;padding-bottom:9px;border-bottom:2px solid #0f2847;letter-spacing:-.3px}
+.rs h3{font-size:16.5px;color:#0f2847;margin:26px 0 9px;letter-spacing:-.2px}
+.rs h4{font-size:14.5px;color:#0f2847;margin:18px 0 6px}
+.rs hr{border:0;border-top:1px solid #e4e7ec;margin:30px 0}
+.rs .tag{display:inline-block;font-size:11.5px;font-weight:700;padding:1px 7px;border-radius:999px;background:#eef3fa;color:#1b5fae;border:1px solid #cfe0f5;margin-right:4px;vertical-align:1px}
+.rs .tag.j{background:#fff5e8;color:#95620a;border-color:#f6d6a4}
+.rs .tag.r{background:#fdeeee;color:#9c2b2b;border-color:#f3c9c9}
+.rs .tag.g{background:#eaf7f1;color:#146b4b;border-color:#bfe6d4}
+.rs .card{background:#fff;border:1px solid #e4e7ec;border-radius:12px;padding:16px 18px;margin:14px 0}
+.rs .warn{background:linear-gradient(90deg,#fff8e7,#fffdf7);border:1px solid #fcd98a;border-left:5px solid #eda100;border-radius:11px;padding:13px 16px;margin:16px 0;font-size:13.5px;line-height:1.9}
+.rs .keynote{background:#fff;border:1px solid #e4e7ec;border-left:4px solid #2a78d6;border-radius:10px;padding:12px 15px;margin:6px 0 14px;font-size:13.8px;line-height:1.95;color:#28303f}
+.rs .keynote b{color:#0f2847}
+.rs .key1{background:linear-gradient(90deg,#eef5fd,#fbfdff);border:1px solid #cfe0f5;border-left:5px solid #2a78d6;border-radius:10px;padding:13px 16px;margin:8px 0 16px;font-size:14px;line-height:1.95}
+.rs .lead{font-size:15px;color:#0f2847;line-height:1.9}
+.rs table{border-collapse:collapse;width:100%;font-size:13px;margin:12px 0;background:#fff}
+.rs th,.rs td{border:1px solid #e4e7ec;padding:7px 9px;text-align:center;vertical-align:middle}
+.rs th{background:#f3f6fa;color:#0f2847;font-weight:700;font-size:12.5px}
+.rs td.l{text-align:left}
+.rs td.k{font-weight:800;color:#0f2847;background:#fafcff;text-align:left}
+.rs .mini{font-size:12.5px;color:#6b7684;line-height:1.6}
+.rs .segbtn{display:flex;gap:6px;margin:10px 0 8px}
+.rs .segbtn button{appearance:none;border:1px solid #cfd6e0;background:#fff;color:#475467;font:inherit;font-size:12.5px;font-weight:700;padding:5px 13px;border-radius:999px;cursor:pointer}
+.rs .segbtn button.on{background:#0f2847;border-color:#0f2847;color:#fff}
+.rs .segbody{background:#fff;border:1px solid #e4e7ec;border-radius:11px;padding:13px 16px;font-size:13.8px;line-height:1.95;margin-bottom:16px}
+.rs .segbody.easy{background:#f9fcf9;border-color:#d6ead9}
+.rs .segbody p{margin:0 0 9px}.rs .segbody p:last-child{margin:0}
+.rs .fig{background:#fff;border:1px solid #e4e7ec;border-radius:12px;padding:10px;margin:16px 0 4px;overflow-x:auto}
+.rs .fig svg{display:block;margin:0 auto;max-width:100%;height:auto}
+.rs .fig svg text{font-family:inherit;fill:#475467}
+.rs .fig svg .lb{fill:#0f2847;font-weight:700}
+.rs .fig svg .vl{fill:#0f2847;font-weight:800}
+.rs .fig svg .ax{fill:#98a2b3;font-size:11px}
+.rs .fig svg .gl{stroke:#eef1f5;stroke-width:1}
+.rs .fig svg .bl{stroke:#cfd6e0;stroke-width:1}
+.rs .figcap{font-size:12.5px;color:#475467;text-align:center;margin:0 0 18px;line-height:1.7}
+.rs .figcap b{color:#0f2847}
+.rs .lg{display:flex;gap:16px;justify-content:center;font-size:12.5px;color:#475467;margin:4px 0 2px;flex-wrap:wrap}
+.rs .lg i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.rs ul,.rs ol{padding-left:22px;margin:8px 0}.rs li{margin:4px 0}
+.rs .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.rs .stat{background:#fff;border:1px solid #e4e7ec;border-radius:12px;padding:14px 16px;text-align:center}
+.rs .stat .n{font-size:26px;font-weight:800;color:#2a78d6;line-height:1.25;letter-spacing:-.5px}
+.rs .stat .n.o{color:#eb6834}.rs .stat .n.g{color:#1baf7a}
+.rs .stat .t{font-size:12.5px;color:#475467;margin-top:3px;line-height:1.6}
+.rs .toc{background:#fff;border:1px solid #e4e7ec;border-radius:12px;padding:14px 18px;font-size:13.5px}
+.rs .toc a{display:block;padding:3px 0;color:#28303f}
+.rs .toc a:hover{color:#2a78d6}.rs .toc a b{color:#0f2847}
+.rs .src{font-size:12px;color:#6b7684}
+/* ── 목록 모드 ── */
+.lst a.it{display:block;background:#fff;border:1px solid #e4e7ec;border-radius:12px;padding:14px 16px;margin-bottom:10px;color:#28303f}
+.lst a.it:hover{border-color:#2a78d6;text-decoration:none}
+.lst .t{font-size:15px;font-weight:800;color:#0f2847;line-height:1.5}
+.lst .m{font-size:12.5px;color:#667085;margin-top:4px}
+.lst .l{font-size:13px;color:#475467;margin-top:6px;line-height:1.75}
+.note{font-size:12.5px;color:#667085;background:#fff;border:1px solid #e4e7ec;border-radius:10px;padding:10px 12px;line-height:1.8;margin:10px 0 16px}
+.back{display:inline-block;font-size:12.5px;color:#475467;border:1px solid #d7dce6;background:#fff;border-radius:999px;padding:4px 12px;margin-bottom:10px}
+.back:hover{text-decoration:none;border-color:#2a78d6;color:#1d4ed8}
+@media(max-width:700px){
+ .wrap{padding:12px 12px 60px}.hd h1{font-size:19px}.rs h2{font-size:17.5px}
+ .rs table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+ .rs .grid2{grid-template-columns:1fr}
+ body{overflow-x:hidden}
+}
+</style>
+<script src="/nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<div class="crumb"><a href="/">대시보드</a> › <a href="/repsum.html">리포트 정밀요약</a><span id="cr"></span></div>
+<div id="app">불러오는 중…</div>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function hid(){const m=location.hash.match(/r=([\w.\-]+)/);return m?m[1]:'';}
+async function jget(u){const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw new Error(u+' '+r.status);return r.json();}
+
+function bindDual(root){
+  (root||document).querySelectorAll('.segbtn').forEach(function(bar){
+    var id=bar.getAttribute('data-for');
+    bar.querySelectorAll('button').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        var k=btn.getAttribute('data-k');
+        bar.querySelectorAll('button').forEach(function(b){b.classList.toggle('on',b===btn);});
+        document.querySelectorAll('[data-seg="'+id+'"]').forEach(function(sec){
+          sec.hidden=(sec.getAttribute('data-k')!==k);
+        });
+      });
+    });
+  });
+}
+
+async function renderList(){
+  $('#cr').textContent='';
+  let d;
+  try{ d=await jget('/data/repsum.json'); }
+  catch(e){ $('#app').innerHTML='<div class="note">아직 정밀요약이 없다. (/data/repsum.json 없음)</div>'; return; }
+  const items=(d.items||[]).slice().sort((a,b)=>String(b.d||'').localeCompare(String(a.d||'')));
+  $('#app').innerHTML='<div class="hd"><h1>리포트 정밀요약 <small style="font-size:14px;color:#667085;font-weight:400">'+items.length+'건</small></h1></div>'
+   +'<div class="note">'+esc(d.note||'')+'<br>수집·작성 '+esc(d.updated||'')+'</div>'
+   +'<div class="lst">'+items.map(function(r){
+      return '<a class="it" href="#r='+esc(r.id)+'"><div class="t">'+esc(r.t)+'</div>'
+        +'<div class="m">'+esc(r.b||'')+(r.an&&r.an.length?' · '+esc(r.an.join(', ')):'')+' · '+esc(r.d||'')
+        +(r.pages?' · '+r.pages+'페이지':'')+(r.written?' · 요약 '+esc(r.written):'')+'</div>'
+        +(r.lead?'<div class="l">'+esc(r.lead)+'</div>':'')+'</a>';
+   }).join('')+'</div>';
+}
+
+async function renderOne(id){
+  let d;
+  try{ d=await jget('/data/repsum_'+id+'.json'); }
+  catch(e){ $('#app').innerHTML='<div class="note">해당 요약을 찾지 못했다: '+esc(id)+'</div>'; return; }
+  $('#cr').innerHTML=' › '+esc(d.b||'');
+  const an=(d.an||[]).join(', ');
+  const tt=String(d.t||''); const i=tt.indexOf('(feat');
+  const main=i>0?tt.slice(0,i).trim():tt, sub=i>0?tt.slice(i).trim():'';
+  $('#app').innerHTML=
+    '<a class="back" href="#">‹ 정밀요약 목록</a>'
+   +'<div class="hd"><h1>'+esc(main)+(sub?'<br><span class="sub">'+esc(sub)+'</span>':'')+'</h1>'
+   +'<div class="meta"><b>'+esc(d.b||'')+'</b>'+(d.d?' · '+esc(d.d)+' 발간':'')+(d.pages?' · 전체 '+d.pages+'페이지':'')
+   +(an?' · 작성 <b>'+esc(an)+'</b>':'')+'<br>'
+   +(d.cover?'커버 종목: '+esc(d.cover)+'<br>':'')
+   +'<span class="src">요약 작성 '+esc(d.written||'')+' · 숫자는 모두 원문 기재값 · '
+   +(d.u?'<a href="'+esc(d.u)+'" target="_blank" rel="noopener">원문 PDF 열기</a>':'')+'</span></div></div>'
+   +'<article class="rs">'+(d.html||'')+'</article>';
+  bindDual($('.rs'));
+  // 본문 내부 앵커(#sum, #c0 …)는 해시를 바꾸지 않고 스크롤만 — 바꾸면 목록으로 되돌아간다
+  $('.rs').querySelectorAll('a[href^="#"]').forEach(function(a){
+    a.addEventListener('click',function(ev){
+      var tgt=document.getElementById(a.getAttribute('href').slice(1));
+      if(!tgt) return;
+      ev.preventDefault();
+      tgt.scrollIntoView({behavior:'smooth',block:'start'});
+    });
+  });
+}
+
+function route(){ const id=hid(); window.scrollTo(0,0); if(id) renderOne(id); else renderList(); }
+window.addEventListener('hashchange',route);
+route();
+</script>
+</body>
+</html>

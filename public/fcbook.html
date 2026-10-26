@@ -62,30 +62,73 @@ details.d > summary { cursor:pointer; font-weight:800; color:#1a2a4a; font-size:
 @media print { body { background:#fff; } .side, #nav, nav, .btns, .noprint { display:none !important; } .wrap { display:block; padding:0; } .card, .vz, .kpi, .fig { break-inside:avoid; } h2 { break-after:avoid; } }
 </style>
 <style>
-/* 연료전지·수소 교과서 추가 — 쉬운설명 토글, 특장점·리스크 2단, 종류 비교표 */
+/* ───────── 한글 줄바꿈: 단어 중간에서 끊기지 않게 (전역) */
+body, p, td, th, li, dd, dt, .mini, .note, .nb, .easy, .card, .keynote, .warnfc, .lead, .meta, .pos { word-break:keep-all; overflow-wrap:break-word; }
+p, li, dd, .keynote, .nb, .note, .warnfc, .easy p, .card p { text-wrap:pretty; }
+
+/* ───────── 표 아래 개념 설명 — 작은 회색 글씨를 읽히는 크기로 */
+.keynote { background:#fff; border:1px solid #e4e7ec; border-left:4px solid #2a78d6; border-radius:10px;
+  padding:11px 14px; margin:-2px 0 16px; font-size:13.5px; line-height:1.95; color:#28303f; }
+.keynote b, .keynote strong { color:#0f2847; }
+.keynote .h { display:block; font-size:11.5px; font-weight:800; color:#2a78d6; letter-spacing:.4px; margin-bottom:4px; }
+.keynote + .keynote { margin-top:-10px; }
+.keynote.warn { border-left-color:#eb6834; }
+.keynote.warn .h { color:#c2410c; }
+
+/* 핵심 한 줄 — 가장 강한 강조 */
+.key1 { background:linear-gradient(90deg,#fff8e7,#fffdf7); border:1px solid #fcd98a; border-left:5px solid #eda100;
+  border-radius:10px; padding:12px 15px; margin:6px 0 16px; font-size:14px; line-height:1.9; color:#3d2b06; }
+.key1 b { color:#8a5a00; }
+.key1 .h { display:block; font-size:11.5px; font-weight:800; color:#b45309; letter-spacing:.4px; margin-bottom:4px; }
+
+/* 표 안 강조 */
+td.hl, th.hl { background:#f3f8ff; }
+td b, th b { color:#0f2847; }
+.cmp td.k { font-weight:800; color:#0f2847; background:#fafcff; }
+tr.hi td { background:#fffaf0; }
+
+/* 쉬운설명 / 자세한설명 토글 */
 .seg { display:inline-flex; border:1.5px solid #d7dce6; border-radius:20px; overflow:hidden; background:#fff; margin:2px 0 10px; }
 .seg button { border:none; background:none; font:inherit; font-size:12.5px; font-weight:800; color:#667085; padding:6px 15px; cursor:pointer; }
 .seg button.on { background:#2a78d6; color:#fff; }
-.easy { background:#f6fbff; border:1px solid #cfe4fb; border-radius:12px; padding:12px 14px; margin-bottom:12px; font-size:13.5px; line-height:1.85; color:#13395e; }
-.easy p { margin-bottom:9px; } .easy p:last-child { margin-bottom:0; }
-.easy .h { font-size:11.5px; font-weight:800; color:#2a78d6; letter-spacing:.3px; margin-bottom:5px; }
+.easy { background:#f6fbff; border:1px solid #cfe4fb; border-radius:12px; padding:13px 15px; margin-bottom:12px; font-size:14px; line-height:1.95; color:#13395e; }
+.easy p { margin-bottom:10px; } .easy p:last-child { margin-bottom:0; }
+.easy .h { font-size:11.5px; font-weight:800; color:#2a78d6; letter-spacing:.4px; margin-bottom:6px; }
+.deepbox { background:#fff; border:1px solid #e4e7ec; border-radius:12px; padding:13px 15px; margin-bottom:12px; font-size:13.5px; line-height:1.95; color:#1f2937; }
+.deepbox p { margin-bottom:10px; } .deepbox p:last-child { margin-bottom:0; }
+.deepbox .h { font-size:11.5px; font-weight:800; color:#667085; letter-spacing:.4px; margin-bottom:6px; }
+
+/* 특장점·리스크 2단 */
 .sr2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; margin-bottom:12px; }
 .riskbox { background:#fff; border:1px solid #f3cfcf; border-radius:12px; padding:11px 13px; }
 .riskbox h3 { color:#b42318; }
 .strongbox { background:#fff; border:1px solid #cfe4d4; border-radius:12px; padding:11px 13px; }
 .strongbox h3 { color:#15803d; }
-ul.rk { list-style:none; } ul.rk li { padding:5px 0 5px 20px; position:relative; border-bottom:1px dashed #f6eaea; font-size:12.5px; line-height:1.7; }
-ul.rk li:last-child { border-bottom:0; } ul.rk li:before { content:'!'; position:absolute; left:3px; top:5px; font-weight:800; color:#b42318; }
-ul.sg { list-style:none; } ul.sg li { padding:5px 0 5px 20px; position:relative; border-bottom:1px dashed #eaf3ec; font-size:12.5px; line-height:1.7; }
-ul.sg li:last-child { border-bottom:0; } ul.sg li:before { content:'▲'; position:absolute; left:0; top:5px; font-weight:800; color:#15803d; }
-.nb { background:#f8fafc; border:1px solid #e4e7ec; border-radius:10px; padding:9px 12px; font-size:12.5px; line-height:1.75; color:#344054; margin-bottom:12px; }
-.nb b { color:#1a2a4a; }
-.warnfc { background:#fff7ed; border:1px solid #fdba74; border-radius:10px; padding:9px 12px; font-size:12.5px; line-height:1.75; color:#9a3412; margin-bottom:12px; }
+ul.rk { list-style:none; } ul.rk li { padding:6px 0 6px 21px; position:relative; border-bottom:1px dashed #f6eaea; font-size:13px; line-height:1.8; }
+ul.rk li:last-child { border-bottom:0; } ul.rk li:before { content:'!'; position:absolute; left:4px; top:6px; font-weight:800; color:#b42318; }
+ul.sg { list-style:none; } ul.sg li { padding:6px 0 6px 21px; position:relative; border-bottom:1px dashed #eaf3ec; font-size:13px; line-height:1.8; }
+ul.sg li:last-child { border-bottom:0; } ul.sg li:before { content:'▲'; position:absolute; left:0; top:6px; font-weight:800; color:#15803d; }
+
+.nb { background:#f8fafc; border:1px solid #e4e7ec; border-radius:10px; padding:11px 14px; font-size:13.5px; line-height:1.9; color:#28303f; margin-bottom:14px; }
+.nb b { color:#0f2847; }
+.warnfc { background:#fff7ed; border:1px solid #fdba74; border-left:5px solid #f97316; border-radius:10px; padding:11px 14px; font-size:13.5px; line-height:1.9; color:#7c2d12; margin-bottom:14px; }
+.warnfc b { color:#9a3412; }
 .cmp th.l, .cmp td.l { text-align:left; } .cmp td { text-align:center; }
 .ok { color:#15803d; font-weight:800; } .bad { color:#b42318; font-weight:800; } .mid2 { color:#b45309; font-weight:800; }
 .pill { display:inline-block; font-size:11px; font-weight:800; padding:2px 8px; border-radius:10px; background:#eef2f7; color:#475467; }
 .pill.c { background:#eaf2ff; color:#1d4ed8; }
-@media print { .seg { display:none !important; } .easy { background:#fff; } }
+
+/* 그림 */
+.fig { background:#fff; border:1px solid #e4e7ec; border-radius:12px; padding:12px 10px 8px; margin-bottom:8px; }
+.fig svg { width:100%; height:auto; display:block; max-width:960px; margin:0 auto; }
+.figcap { font-size:12.5px; color:#475467; line-height:1.8; text-align:center; margin:2px 0 16px; padding:0 10px; }
+.figcap b { color:#1a2a4a; }
+
+/* 본문 기본 글씨를 조금 키움 */
+.mini { font-size:12.5px; color:#5b6472; line-height:1.8; }
+.card { font-size:13.5px; line-height:1.9; }
+@media (max-width:620px){ .keynote,.key1,.nb,.warnfc { font-size:13px; } .easy { font-size:13.5px; } }
+@media print { .seg { display:none !important; } .easy,.deepbox { background:#fff; } .deepbox { display:block !important; } }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
 <script src="/nav.js" defer></script>
@@ -138,42 +181,50 @@ function chCo(code){ const r=CO2CH[code]; return r?{ch:CHD.ch[r[0]],co:CHD.ch[r[
 const byCap=(a,b)=>((sv(b).cap||0)-(sv(a).cap||0));
 const priceDay=()=>String(SV._at||'').slice(0,10);
 
-/* ───────── 기본 지식 표 (교과서 앞머리) */
-const BASIC_WRITTEN='2026-10-25';
-// 연료전지 4종 비교
+/* ───────── 기본 지식 (교과서 앞머리) */
+const BASIC_WRITTEN='2026-10-26';
+const FIG={"cell": "<svg viewBox=\"0 0 920 330\" xmlns=\"http://www.w3.org/2000/svg\">\n<defs><marker id=\"aO\" markerWidth=\"9\" markerHeight=\"9\" refX=\"7\" refY=\"4.5\" orient=\"auto\"><path d=\"M0,0 L9,4.5 L0,9 z\" fill=\"#eb6834\"/></marker>\n<marker id=\"aE\" markerWidth=\"9\" markerHeight=\"9\" refX=\"7\" refY=\"4.5\" orient=\"auto\"><path d=\"M0,0 L9,4.5 L0,9 z\" fill=\"#2a78d6\"/></marker></defs>\n<text class=\"b\" x=\"18\" y=\"22\" style=\"font-size:14px\">SOFC 단전지는 어떻게 전기를 만드는가</text>\n<text class=\"s\" x=\"18\" y=\"40\">세라믹 판을 700~850℃로 달구면 산소가 이온이 되어 판을 건너간다. 그때 떨어져 나온 전자가 바깥 회로를 도는 것이 전기다.</text>\n\n<rect x=\"120\" y=\"70\" width=\"210\" height=\"52\" rx=\"6\" fill=\"#dbeafe\" stroke=\"#2a78d6\"/>\n<text class=\"b\" x=\"225\" y=\"96\" text-anchor=\"middle\" style=\"font-size:13px\">공기극 (cathode)</text>\n<text class=\"s\" x=\"225\" y=\"113\" text-anchor=\"middle\">LSM · LSCF · LSC</text>\n\n<rect x=\"120\" y=\"132\" width=\"210\" height=\"46\" rx=\"4\" fill=\"#fde9d3\" stroke=\"#eb6834\" stroke-width=\"2\"/>\n<text class=\"w\" x=\"225\" y=\"152\" text-anchor=\"middle\" style=\"font-size:13px\">전해질 (치밀 세라믹)</text>\n<text class=\"s\" x=\"225\" y=\"169\" text-anchor=\"middle\">YSZ · ScSZ · GDC</text>\n\n<rect x=\"120\" y=\"188\" width=\"210\" height=\"52\" rx=\"6\" fill=\"#e5e7eb\" stroke=\"#667085\"/>\n<text class=\"b\" x=\"225\" y=\"214\" text-anchor=\"middle\" style=\"font-size:13px\">연료극 (anode)</text>\n<text class=\"s\" x=\"225\" y=\"231\" text-anchor=\"middle\">Ni-YSZ 서멧</text>\n\n<text class=\"s\" x=\"60\" y=\"100\" text-anchor=\"middle\">공기</text>\n<text class=\"s\" x=\"60\" y=\"116\" text-anchor=\"middle\">(O₂)</text>\n<path d=\"M30,96 L112,96\" stroke=\"#2a78d6\" stroke-width=\"2\" fill=\"none\" marker-end=\"url(#aE)\"/>\n<text class=\"s\" x=\"60\" y=\"214\" text-anchor=\"middle\">연료</text>\n<text class=\"s\" x=\"60\" y=\"230\" text-anchor=\"middle\">(H₂ · CH₄)</text>\n<path d=\"M30,210 L112,210\" stroke=\"#667085\" stroke-width=\"2\" fill=\"none\" marker-end=\"url(#aE)\"/>\n\n<path d=\"M300,126 L300,186\" stroke=\"#eb6834\" stroke-width=\"3\" fill=\"none\" marker-end=\"url(#aO)\"/>\n<text class=\"w\" x=\"340\" y=\"150\" style=\"font-size:12px\">O²⁻</text>\n<text class=\"s\" x=\"340\" y=\"166\">산소이온이</text>\n<text class=\"s\" x=\"340\" y=\"180\">세라믹을 건넌다</text>\n\n<path d=\"M118,200 L70,200 L70,280 L420,280 L420,96 L332,96\" stroke=\"#2a78d6\" stroke-width=\"2.5\" fill=\"none\" marker-end=\"url(#aE)\"/>\n<rect x=\"210\" y=\"262\" width=\"78\" height=\"34\" rx=\"6\" fill=\"#2a78d6\"/>\n<text class=\"bw\" x=\"249\" y=\"284\" text-anchor=\"middle\">전기</text>\n<text class=\"s\" x=\"300\" y=\"300\">전자(e⁻)가 바깥 회로를 돈다</text>\n\n<text class=\"s\" x=\"340\" y=\"212\">배기: 물(H₂O)</text>\n<text class=\"s\" x=\"340\" y=\"228\">탄화수소 연료면 CO₂도</text>\n\n<line x1=\"470\" y1=\"62\" x2=\"470\" y2=\"310\" stroke=\"#e4e7ec\" stroke-width=\"1.5\"/>\n<text class=\"b\" x=\"492\" y=\"84\" style=\"font-size:13px\">2차전지와 무엇이 다른가</text>\n<rect x=\"492\" y=\"96\" width=\"400\" height=\"30\" rx=\"5\" fill=\"#f8fafc\" stroke=\"#e4e7ec\"/>\n<text class=\"s\" x=\"504\" y=\"115\">전극이 <tspan class=\"b\">소모되지 않는다</tspan> — 담는 그릇이 아니라 반응을 돕는 촉매다</text>\n<rect x=\"492\" y=\"132\" width=\"400\" height=\"30\" rx=\"5\" fill=\"#f8fafc\" stroke=\"#e4e7ec\"/>\n<text class=\"s\" x=\"504\" y=\"151\"><tspan class=\"b\">분리막이 없다</tspan> — 전해질이 치밀해서 그 자체가 차단벽이다</text>\n<rect x=\"492\" y=\"168\" width=\"400\" height=\"30\" rx=\"5\" fill=\"#f8fafc\" stroke=\"#e4e7ec\"/>\n<text class=\"s\" x=\"504\" y=\"187\">연료를 <tspan class=\"b\">계속 넣어야</tspan> 한다 — 충전이라는 개념이 없다</text>\n<rect x=\"492\" y=\"204\" width=\"400\" height=\"30\" rx=\"5\" fill=\"#fff7ed\" stroke=\"#fdba74\"/>\n<text class=\"s\" x=\"504\" y=\"223\">스펙 단위가 <tspan class=\"w\">kW(출력)</tspan>뿐 — 담는 양(kWh)이 없다</text>\n<rect x=\"492\" y=\"240\" width=\"400\" height=\"56\" rx=\"5\" fill=\"#fffbeb\" stroke=\"#fde68a\"/>\n<text class=\"s\" x=\"504\" y=\"259\">수명이 끝나는 이유도 다르다 — 활물질이 닳아서가 아니라</text>\n<text class=\"s\" x=\"504\" y=\"276\">세라믹에 금이 가거나, 밀봉이 새거나,</text>\n<text class=\"s\" x=\"504\" y=\"291\">접속재의 크롬이 날아와 전극을 더럽혀서 끝난다</text>\n</svg>", "pt": "<svg viewBox=\"0 0 920 300\" xmlns=\"http://www.w3.org/2000/svg\">\n<defs><marker id=\"p1\" markerWidth=\"9\" markerHeight=\"9\" refX=\"7\" refY=\"4.5\" orient=\"auto\"><path d=\"M0,0 L9,4.5 L0,9 z\" fill=\"#667085\"/></marker></defs>\n<text class=\"b\" x=\"18\" y=\"22\" style=\"font-size:14px\">백금은 왜 필요한가 — 그리고 SOFC는 왜 필요 없는가</text>\n<text class=\"s\" x=\"18\" y=\"40\">반응이 일어나려면 넘어야 하는 '언덕'이 있다. 촉매는 그 언덕을 낮춰주고, 열도 같은 일을 한다.</text>\n\n<text class=\"b\" x=\"60\" y=\"72\" style=\"font-size:12.5px\">① 저온 (PEMFC · 60~90℃)</text>\n<path d=\"M60,210 L300,210\" stroke=\"#98a2b3\" stroke-width=\"1.5\"/>\n<path d=\"M60,200 L60,86\" stroke=\"#98a2b3\" stroke-width=\"1.5\"/>\n<text class=\"s\" x=\"34\" y=\"140\" transform=\"rotate(-90 34,140)\" text-anchor=\"middle\">필요한 에너지</text>\n<path d=\"M78,200 C120,200 128,100 170,100 C212,100 220,186 262,186\" stroke=\"#b42318\" stroke-width=\"2.5\" fill=\"none\"/>\n<text class=\"s\" x=\"170\" y=\"92\" text-anchor=\"middle\" fill=\"#b42318\">언덕이 높다</text>\n<path d=\"M78,200 C120,200 128,152 170,152 C212,152 220,186 262,186\" stroke=\"#15803d\" stroke-width=\"2.5\" fill=\"none\" stroke-dasharray=\"5 3\"/>\n<text class=\"s\" x=\"206\" y=\"146\" fill=\"#15803d\">백금이 낮춰준 길</text>\n<text class=\"s\" x=\"180\" y=\"226\" text-anchor=\"middle\">열이 모자라니 <tspan class=\"b\">백금 촉매로</tspan> 언덕을 낮춰야 한다</text>\n<rect x=\"60\" y=\"238\" width=\"246\" height=\"46\" rx=\"6\" fill=\"#fef2f2\" stroke=\"#fca5a5\"/>\n<text class=\"s\" x=\"72\" y=\"257\">백금은 비싸고 양이 적다 → <tspan class=\"b\">원가 부담</tspan></text>\n<text class=\"s\" x=\"72\" y=\"274\">황·일산화탄소에 쉽게 망가진다 → <tspan class=\"b\">순수소 필요</tspan></text>\n\n<line x1=\"340\" y1=\"56\" x2=\"340\" y2=\"290\" stroke=\"#e4e7ec\" stroke-width=\"1.5\"/>\n\n<text class=\"b\" x=\"380\" y=\"72\" style=\"font-size:12.5px\">② 고온 (SOFC · 700~850℃)</text>\n<path d=\"M380,210 L620,210\" stroke=\"#98a2b3\" stroke-width=\"1.5\"/>\n<path d=\"M380,200 L380,86\" stroke=\"#98a2b3\" stroke-width=\"1.5\"/>\n<path d=\"M398,200 C440,200 448,100 490,100 C532,100 540,186 582,186\" stroke=\"#c9cdd4\" stroke-width=\"2\" fill=\"none\" stroke-dasharray=\"4 4\"/>\n<text class=\"s\" x=\"490\" y=\"92\" text-anchor=\"middle\" fill=\"#98a2b3\">같은 언덕이지만</text>\n<rect x=\"380\" y=\"168\" width=\"240\" height=\"42\" fill=\"#fde9d3\" opacity=\".8\"/>\n<text class=\"w\" x=\"500\" y=\"194\" text-anchor=\"middle\" style=\"font-size:12px\">열이 에너지를 공급한다</text>\n<text class=\"s\" x=\"500\" y=\"226\" text-anchor=\"middle\">뜨거우니 분자가 이미 활발하다 → <tspan class=\"b\">백금이 필요 없다</tspan></text>\n<rect x=\"380\" y=\"238\" width=\"246\" height=\"46\" rx=\"6\" fill=\"#f0fdf4\" stroke=\"#86efac\"/>\n<text class=\"s\" x=\"392\" y=\"257\">니켈 같은 값싼 금속으로 충분 → <tspan class=\"b\">원가 유리</tspan></text>\n<text class=\"s\" x=\"392\" y=\"274\">연료를 가려 받지 않음 → <tspan class=\"b\">천연가스 그대로</tspan></text>\n\n<line x1=\"660\" y1=\"56\" x2=\"660\" y2=\"290\" stroke=\"#e4e7ec\" stroke-width=\"1.5\"/>\n<text class=\"b\" x=\"684\" y=\"78\" style=\"font-size:12.5px\">그래서 생기는 결과</text>\n<rect x=\"684\" y=\"90\" width=\"212\" height=\"54\" rx=\"6\" fill=\"#f8fafc\" stroke=\"#e4e7ec\"/>\n<text class=\"s\" x=\"694\" y=\"109\"><tspan class=\"b\">PEMFC</tspan> — 백금 + 순수소가 전제</text>\n<text class=\"s\" x=\"694\" y=\"126\">수소 저장·충전 인프라와</text>\n<text class=\"s\" x=\"694\" y=\"140\">한 몸으로 움직인다</text>\n<rect x=\"684\" y=\"152\" width=\"212\" height=\"54\" rx=\"6\" fill=\"#f8fafc\" stroke=\"#e4e7ec\"/>\n<text class=\"s\" x=\"694\" y=\"171\"><tspan class=\"b\">SOFC · PAFC</tspan> — 도시가스로 가능</text>\n<text class=\"s\" x=\"694\" y=\"188\">이미 깔린 가스 배관을 쓴다</text>\n<text class=\"s\" x=\"694\" y=\"202\">→ 발전용에서 먼저 자리잡음</text>\n<rect x=\"684\" y=\"214\" width=\"212\" height=\"70\" rx=\"6\" fill=\"#fffbeb\" stroke=\"#fde68a\"/>\n<text class=\"s\" x=\"694\" y=\"233\"><tspan class=\"w\">투자 관점</tspan></text>\n<text class=\"s\" x=\"694\" y=\"250\">PAFC 수주가 늘어도 수소 저장·</text>\n<text class=\"s\" x=\"694\" y=\"266\">충전 업체는 수혜가 아니다.</text>\n<text class=\"s\" x=\"694\" y=\"280\">두 줄기를 섞어 읽으면 틀린다.</text>\n</svg>", "fuel": "<svg viewBox=\"0 0 920 300\" xmlns=\"http://www.w3.org/2000/svg\">\n<defs><marker id=\"f1\" markerWidth=\"8\" markerHeight=\"8\" refX=\"6.5\" refY=\"4\" orient=\"auto\"><path d=\"M0,0 L8,4 L0,8 z\" fill=\"#667085\"/></marker></defs>\n<text class=\"b\" x=\"18\" y=\"22\" style=\"font-size:14px\">연료별로 무엇이 달라지는가</text>\n<text class=\"s\" x=\"18\" y=\"40\">연료가 다르면 '스택 앞에 무엇을 붙여야 하는가'와 '어떤 인프라에 묶이는가'가 달라진다.</text>\n\n<rect x=\"20\" y=\"58\" width=\"150\" height=\"54\" rx=\"7\" fill=\"#dbeafe\" stroke=\"#2a78d6\"/>\n<text class=\"b\" x=\"95\" y=\"80\" text-anchor=\"middle\">수소 (H₂)</text>\n<text class=\"s\" x=\"95\" y=\"98\" text-anchor=\"middle\">순도 높아야 함</text>\n<path d=\"M174,85 L250,85\" stroke=\"#667085\" stroke-width=\"1.8\" marker-end=\"url(#f1)\"/>\n<rect x=\"254\" y=\"62\" width=\"120\" height=\"46\" rx=\"6\" fill=\"#f8fafc\" stroke=\"#e4e7ec\"/>\n<text class=\"s\" x=\"314\" y=\"82\" text-anchor=\"middle\">전처리 거의 없음</text>\n<text class=\"s\" x=\"314\" y=\"98\" text-anchor=\"middle\">바로 스택으로</text>\n\n<rect x=\"20\" y=\"124\" width=\"150\" height=\"54\" rx=\"7\" fill=\"#e5e7eb\" stroke=\"#667085\"/>\n<text class=\"b\" x=\"95\" y=\"146\" text-anchor=\"middle\">천연가스 (CH₄)</text>\n<text class=\"s\" x=\"95\" y=\"164\" text-anchor=\"middle\">도시가스 배관</text>\n<path d=\"M174,151 L250,151\" stroke=\"#667085\" stroke-width=\"1.8\" marker-end=\"url(#f1)\"/>\n<rect x=\"254\" y=\"128\" width=\"120\" height=\"46\" rx=\"6\" fill=\"#fff7ed\" stroke=\"#fdba74\"/>\n<text class=\"s\" x=\"314\" y=\"147\" text-anchor=\"middle\"><tspan class=\"w\">탈황 → 개질</tspan></text>\n<text class=\"s\" x=\"314\" y=\"164\" text-anchor=\"middle\">설비가 추가된다</text>\n\n<rect x=\"20\" y=\"190\" width=\"150\" height=\"54\" rx=\"7\" fill=\"#f3e8ff\" stroke=\"#7a5cd6\"/>\n<text class=\"b\" x=\"95\" y=\"212\" text-anchor=\"middle\">암모니아 (NH₃)</text>\n<text class=\"s\" x=\"95\" y=\"230\" text-anchor=\"middle\">운반이 쉬움</text>\n<path d=\"M174,217 L250,217\" stroke=\"#667085\" stroke-width=\"1.8\" marker-end=\"url(#f1)\"/>\n<rect x=\"254\" y=\"194\" width=\"120\" height=\"46\" rx=\"6\" fill=\"#fff7ed\" stroke=\"#fdba74\"/>\n<text class=\"s\" x=\"314\" y=\"213\" text-anchor=\"middle\"><tspan class=\"w\">분해 장치</tspan></text>\n<text class=\"s\" x=\"314\" y=\"230\" text-anchor=\"middle\">질소를 떼어낸다</text>\n\n<path d=\"M378,85 C410,85 410,151 440,151\" stroke=\"#98a2b3\" stroke-width=\"1.6\" fill=\"none\"/>\n<path d=\"M378,151 L440,151\" stroke=\"#98a2b3\" stroke-width=\"1.6\" fill=\"none\"/>\n<path d=\"M378,217 C410,217 410,151 440,151\" stroke=\"#98a2b3\" stroke-width=\"1.6\" fill=\"none\"/>\n<rect x=\"444\" y=\"118\" width=\"104\" height=\"66\" rx=\"8\" fill=\"#fde9d3\" stroke=\"#eb6834\" stroke-width=\"2\"/>\n<text class=\"w\" x=\"496\" y=\"146\" text-anchor=\"middle\" style=\"font-size:13px\">스택</text>\n<text class=\"s\" x=\"496\" y=\"165\" text-anchor=\"middle\">700~850℃</text>\n\n<line x1=\"580\" y1=\"56\" x2=\"580\" y2=\"286\" stroke=\"#e4e7ec\" stroke-width=\"1.5\"/>\n<text class=\"b\" x=\"602\" y=\"76\" style=\"font-size:12.5px\">장단점</text>\n\n<rect x=\"602\" y=\"86\" width=\"296\" height=\"60\" rx=\"6\" fill=\"#f8fafc\" stroke=\"#e4e7ec\"/>\n<text class=\"s\" x=\"612\" y=\"104\"><tspan class=\"b\">수소</tspan> — 배기가 물뿐. 탄소 배출 0</text>\n<text class=\"s\" x=\"612\" y=\"121\">단점: 만들고 나르고 담는 비용이 크고</text>\n<text class=\"s\" x=\"612\" y=\"137\">인프라가 아직 얇다</text>\n\n<rect x=\"602\" y=\"152\" width=\"296\" height=\"60\" rx=\"6\" fill=\"#f8fafc\" stroke=\"#e4e7ec\"/>\n<text class=\"s\" x=\"612\" y=\"170\"><tspan class=\"b\">천연가스</tspan> — 배관이 이미 깔려 있어 지금 쓸 수 있다</text>\n<text class=\"s\" x=\"612\" y=\"187\">단점: CO₂가 나온다(약 330g/kWh 수준으로</text>\n<text class=\"s\" x=\"612\" y=\"203\">제시되며, 탈황·개질 설비가 붙는다)</text>\n\n<rect x=\"602\" y=\"218\" width=\"296\" height=\"60\" rx=\"6\" fill=\"#f8fafc\" stroke=\"#e4e7ec\"/>\n<text class=\"s\" x=\"612\" y=\"236\"><tspan class=\"b\">암모니아</tspan> — 액화가 쉬워 멀리 나르기 유리</text>\n<text class=\"s\" x=\"612\" y=\"253\">단점: 분해 장치가 필요하고 독성이 있다.</text>\n<text class=\"s\" x=\"612\" y=\"269\">선박·대형 발전 쪽에서 주로 거론된다</text>\n</svg>", "elec": "<svg viewBox=\"0 0 920 310\" xmlns=\"http://www.w3.org/2000/svg\">\n<text class=\"b\" x=\"18\" y=\"22\" style=\"font-size:14px\">전해질 종류별 차이 — 어느 온도에서 쓸 수 있는가</text>\n<text class=\"s\" x=\"18\" y=\"40\">가로축은 작동 온도. 진한 구간이 그 소재가 실제로 쓸 만한 범위다. 낮은 온도에서 쓸수록 주변 부품이 싸진다.</text>\n\n<line x1=\"150\" y1=\"250\" x2=\"860\" y2=\"250\" stroke=\"#98a2b3\" stroke-width=\"1.5\"/>\n<text class=\"s\" x=\"150\" y=\"268\" text-anchor=\"middle\">500℃</text>\n<text class=\"s\" x=\"327\" y=\"268\" text-anchor=\"middle\">650℃</text>\n<text class=\"s\" x=\"505\" y=\"268\" text-anchor=\"middle\">750℃</text>\n<text class=\"s\" x=\"683\" y=\"268\" text-anchor=\"middle\">850℃</text>\n<text class=\"s\" x=\"860\" y=\"268\" text-anchor=\"middle\">1000℃</text>\n<line x1=\"327\" y1=\"70\" x2=\"327\" y2=\"250\" stroke=\"#e4e7ec\" stroke-dasharray=\"4 4\"/>\n<line x1=\"505\" y1=\"70\" x2=\"505\" y2=\"250\" stroke=\"#e4e7ec\" stroke-dasharray=\"4 4\"/>\n<line x1=\"683\" y1=\"70\" x2=\"683\" y2=\"250\" stroke=\"#e4e7ec\" stroke-dasharray=\"4 4\"/>\n\n<text class=\"b\" x=\"18\" y=\"92\">YSZ</text>\n<text class=\"s\" x=\"18\" y=\"108\">가장 표준</text>\n<rect x=\"450\" y=\"76\" width=\"410\" height=\"26\" rx=\"5\" fill=\"#2a78d6\"/>\n<text class=\"sw\" x=\"655\" y=\"94\" text-anchor=\"middle\">이트리아 안정화 지르코니아 — 값싸고 안정, 저온에서는 저항이 커진다</text>\n\n<text class=\"b\" x=\"18\" y=\"146\">ScSZ</text>\n<text class=\"s\" x=\"18\" y=\"162\">저온 유리</text>\n<rect x=\"290\" y=\"130\" width=\"500\" height=\"26\" rx=\"5\" fill=\"#eb6834\"/>\n<text class=\"sw\" x=\"540\" y=\"148\" text-anchor=\"middle\">스칸디아 안정화 — 이온이 더 잘 통해 저온화 가능. 스칸디움이 비싸고 희소</text>\n<line x1=\"290\" y1=\"124\" x2=\"290\" y2=\"162\" stroke=\"#b42318\" stroke-width=\"2\"/>\n<text class=\"s\" x=\"286\" y=\"120\" text-anchor=\"end\" fill=\"#b42318\">약 580℃ 아래에서는</text>\n<text class=\"s\" x=\"286\" y=\"106\" text-anchor=\"end\" fill=\"#b42318\">결정 구조가 바뀌어 한계</text>\n\n<text class=\"b\" x=\"18\" y=\"200\">GDC / CGO</text>\n<text class=\"s\" x=\"18\" y=\"216\">저온 전용</text>\n<rect x=\"150\" y=\"184\" width=\"320\" height=\"26\" rx=\"5\" fill=\"#1baf7a\"/>\n<text class=\"sw\" x=\"310\" y=\"202\" text-anchor=\"middle\">세리아계 — 저온에서 최고. 다만 고온에서 전기가 새어 효율이 떨어진다</text>\n\n<text class=\"s\" x=\"490\" y=\"202\">↑ 그래서 보통 <tspan class=\"b\">배리어층</tspan>으로 얇게만 쓴다</text>\n\n<rect x=\"18\" y=\"286\" width=\"884\" height=\"18\" fill=\"none\"/>\n<text class=\"s\" x=\"18\" y=\"298\">※ 온도 구간은 일반적으로 알려진 범위를 정리한 것이고 제품·조성에 따라 다르다. LSGM(란타넘 갈레이트)은 연구용 외에 상용 채택 사례를 확인하지 못했다.</text>\n</svg>", "make": "<svg viewBox=\"0 0 920 390\" xmlns=\"http://www.w3.org/2000/svg\">\n<defs><marker id=\"m1\" markerWidth=\"8\" markerHeight=\"8\" refX=\"6.5\" refY=\"4\" orient=\"auto\"><path d=\"M0,0 L8,4 L0,8 z\" fill=\"#98a2b3\"/></marker></defs>\n<text class=\"b\" x=\"18\" y=\"22\" style=\"font-size:14px\">SOFC는 어떻게 만들어지는가</text>\n<text class=\"s\" x=\"18\" y=\"40\">세라믹 가루를 반죽해 얇게 펴고 구워서 판을 만든 뒤, 전극을 인쇄해 다시 굽고, 금속판과 번갈아 쌓아 스택으로 만든다.</text>\n\n<text class=\"b\" x=\"18\" y=\"70\" style=\"font-size:12.5px\">① 단전지 만들기</text>\n<rect x=\"18\" y=\"80\" width=\"118\" height=\"58\" rx=\"7\" fill=\"#f8fafc\" stroke=\"#e4e7ec\"/>\n<text class=\"s\" x=\"77\" y=\"100\" text-anchor=\"middle\"><tspan class=\"b\">1. 분말 합성</tspan></text>\n<text class=\"s\" x=\"77\" y=\"116\" text-anchor=\"middle\">지르코니아·세리아</text>\n<text class=\"s\" x=\"77\" y=\"130\" text-anchor=\"middle\">조성을 맞춘다</text>\n<path d=\"M140,109 L160,109\" stroke=\"#98a2b3\" stroke-width=\"1.6\" marker-end=\"url(#m1)\"/>\n<rect x=\"164\" y=\"80\" width=\"118\" height=\"58\" rx=\"7\" fill=\"#f8fafc\" stroke=\"#e4e7ec\"/>\n<text class=\"s\" x=\"223\" y=\"100\" text-anchor=\"middle\"><tspan class=\"b\">2. 슬러리</tspan></text>\n<text class=\"s\" x=\"223\" y=\"116\" text-anchor=\"middle\">바인더·용매와 섞어</text>\n<text class=\"s\" x=\"223\" y=\"130\" text-anchor=\"middle\">반죽을 만든다</text>\n<path d=\"M286,109 L306,109\" stroke=\"#98a2b3\" stroke-width=\"1.6\" marker-end=\"url(#m1)\"/>\n<rect x=\"310\" y=\"80\" width=\"118\" height=\"58\" rx=\"7\" fill=\"#fde9d3\" stroke=\"#eb6834\" stroke-width=\"2\"/>\n<text class=\"s\" x=\"369\" y=\"100\" text-anchor=\"middle\"><tspan class=\"w\">3. 테이프캐스팅</tspan></text>\n<text class=\"s\" x=\"369\" y=\"116\" text-anchor=\"middle\">얇게 펴 말린다</text>\n<text class=\"s\" x=\"369\" y=\"130\" text-anchor=\"middle\">두께가 여기서 결정</text>\n<path d=\"M432,109 L452,109\" stroke=\"#98a2b3\" stroke-width=\"1.6\" marker-end=\"url(#m1)\"/>\n<rect x=\"456\" y=\"80\" width=\"118\" height=\"58\" rx=\"7\" fill=\"#fde9d3\" stroke=\"#eb6834\" stroke-width=\"2\"/>\n<text class=\"s\" x=\"515\" y=\"100\" text-anchor=\"middle\"><tspan class=\"w\">4. 소성(굽기)</tspan></text>\n<text class=\"s\" x=\"515\" y=\"116\" text-anchor=\"middle\">1300℃ 이상에서</text>\n<text class=\"s\" x=\"515\" y=\"130\" text-anchor=\"middle\">치밀하게 굳힌다</text>\n<path d=\"M578,109 L598,109\" stroke=\"#98a2b3\" stroke-width=\"1.6\" marker-end=\"url(#m1)\"/>\n<rect x=\"602\" y=\"80\" width=\"118\" height=\"58\" rx=\"7\" fill=\"#f8fafc\" stroke=\"#e4e7ec\"/>\n<text class=\"s\" x=\"661\" y=\"100\" text-anchor=\"middle\"><tspan class=\"b\">5. 전극 인쇄</tspan></text>\n<text class=\"s\" x=\"661\" y=\"116\" text-anchor=\"middle\">양면에 연료극·</text>\n<text class=\"s\" x=\"661\" y=\"130\" text-anchor=\"middle\">공기극을 바른다</text>\n<path d=\"M724,109 L744,109\" stroke=\"#98a2b3\" stroke-width=\"1.6\" marker-end=\"url(#m1)\"/>\n<rect x=\"748\" y=\"80\" width=\"150\" height=\"58\" rx=\"7\" fill=\"#dbeafe\" stroke=\"#2a78d6\"/>\n<text class=\"s\" x=\"823\" y=\"100\" text-anchor=\"middle\"><tspan class=\"b\">6. 재소성 → 단전지</tspan></text>\n<text class=\"s\" x=\"823\" y=\"116\" text-anchor=\"middle\">전극을 붙여 굽고</text>\n<text class=\"s\" x=\"823\" y=\"130\" text-anchor=\"middle\">한 장씩 검사한다</text>\n\n<text class=\"b\" x=\"18\" y=\"178\" style=\"font-size:12.5px\">② 스택으로 쌓기</text>\n<rect x=\"18\" y=\"188\" width=\"150\" height=\"58\" rx=\"7\" fill=\"#f8fafc\" stroke=\"#e4e7ec\"/>\n<text class=\"s\" x=\"93\" y=\"208\" text-anchor=\"middle\"><tspan class=\"b\">7. 접속재 준비</tspan></text>\n<text class=\"s\" x=\"93\" y=\"224\" text-anchor=\"middle\">스테인리스에 코팅</text>\n<text class=\"s\" x=\"93\" y=\"238\" text-anchor=\"middle\">(크롬 휘발 차단)</text>\n<path d=\"M172,217 L192,217\" stroke=\"#98a2b3\" stroke-width=\"1.6\" marker-end=\"url(#m1)\"/>\n<rect x=\"196\" y=\"188\" width=\"150\" height=\"58\" rx=\"7\" fill=\"#f8fafc\" stroke=\"#e4e7ec\"/>\n<text class=\"s\" x=\"271\" y=\"208\" text-anchor=\"middle\"><tspan class=\"b\">8. 적층</tspan></text>\n<text class=\"s\" x=\"271\" y=\"224\" text-anchor=\"middle\">단전지와 접속재를</text>\n<text class=\"s\" x=\"271\" y=\"238\" text-anchor=\"middle\">번갈아 쌓는다</text>\n<path d=\"M350,217 L370,217\" stroke=\"#98a2b3\" stroke-width=\"1.6\" marker-end=\"url(#m1)\"/>\n<rect x=\"374\" y=\"188\" width=\"150\" height=\"58\" rx=\"7\" fill=\"#fde9d3\" stroke=\"#eb6834\" stroke-width=\"2\"/>\n<text class=\"s\" x=\"449\" y=\"208\" text-anchor=\"middle\"><tspan class=\"w\">9. 밀봉</tspan></text>\n<text class=\"s\" x=\"449\" y=\"224\" text-anchor=\"middle\">유리 실런트로 가장자리</text>\n<text class=\"s\" x=\"449\" y=\"238\" text-anchor=\"middle\">연료·공기를 가른다</text>\n<path d=\"M528,217 L548,217\" stroke=\"#98a2b3\" stroke-width=\"1.6\" marker-end=\"url(#m1)\"/>\n<rect x=\"552\" y=\"188\" width=\"150\" height=\"58\" rx=\"7\" fill=\"#f8fafc\" stroke=\"#e4e7ec\"/>\n<text class=\"s\" x=\"627\" y=\"208\" text-anchor=\"middle\"><tspan class=\"b\">10. 열처리·환원</tspan></text>\n<text class=\"s\" x=\"627\" y=\"224\" text-anchor=\"middle\">NiO를 Ni로 바꾸고</text>\n<text class=\"s\" x=\"627\" y=\"238\" text-anchor=\"middle\">실런트를 녹여 붙인다</text>\n<path d=\"M706,217 L726,217\" stroke=\"#98a2b3\" stroke-width=\"1.6\" marker-end=\"url(#m1)\"/>\n<rect x=\"730\" y=\"188\" width=\"168\" height=\"58\" rx=\"7\" fill=\"#dbeafe\" stroke=\"#2a78d6\"/>\n<text class=\"s\" x=\"814\" y=\"208\" text-anchor=\"middle\"><tspan class=\"b\">11. 성능·기밀 검사</tspan></text>\n<text class=\"s\" x=\"814\" y=\"224\" text-anchor=\"middle\">새는 곳이 하나라도</text>\n<text class=\"s\" x=\"814\" y=\"238\" text-anchor=\"middle\">있으면 스택 전체 불합격</text>\n\n<rect x=\"18\" y=\"266\" width=\"880\" height=\"48\" rx=\"7\" fill=\"#fffbeb\" stroke=\"#fde68a\"/>\n<text class=\"s\" x=\"32\" y=\"286\"><tspan class=\"w\">수율이 갈리는 지점</tspan> — ③ 테이프캐스팅의 두께 균일도, ④ 소성에서 생기는 휨과 수축, ⑨ 밀봉의 기밀, ⑪ 한 장이라도 새면 스택 전체가 버려진다.</text>\n<text class=\"s\" x=\"32\" y=\"304\">단전지 한 장의 수율이 99%라도 30장을 쌓으면 스택 수율은 약 74%가 된다. 적층 수가 늘수록 장당 수율이 더 중요해진다.</text>\n\n<rect x=\"18\" y=\"326\" width=\"880\" height=\"46\" rx=\"7\" fill=\"#f8fafc\" stroke=\"#e4e7ec\"/>\n<text class=\"s\" x=\"32\" y=\"345\">③~④가 전해질 <tspan class=\"b\">시트</tspan> 공정이고, 이 단계만 떼어 파는 회사가 따로 있다 — 중국 三环集团, 한국 <tspan class=\"b\">아모센스</tspan>(블룸에너지향).</text>\n<text class=\"s\" x=\"32\" y=\"363\">전해질 지지형(ESC) 셀에서는 이 시트가 셀의 구조까지 떠받치므로, 셀 생산량에 1:1로 비례해 들어간다.</text>\n</svg>", "moat": "<svg viewBox=\"0 0 920 320\" xmlns=\"http://www.w3.org/2000/svg\">\n<text class=\"b\" x=\"18\" y=\"22\" style=\"font-size:14px\">왜 세라믹 판으로 구워내는 공정이 진입장벽인가</text>\n<text class=\"s\" x=\"18\" y=\"40\">서로 반대로 가는 세 가지 요구를 한 장에서 동시에 만족시켜야 하고, 구울 때 줄어드는 양까지 맞춰야 한다.</text>\n\n<text class=\"b\" x=\"150\" y=\"76\" style=\"font-size:12.5px\">① 서로 반대로 가는 요구</text>\n<polygon points=\"225,96 300,226 150,226\" fill=\"none\" stroke=\"#2a78d6\" stroke-width=\"2\"/>\n<circle cx=\"225\" cy=\"96\" r=\"5\" fill=\"#2a78d6\"/><circle cx=\"300\" cy=\"226\" r=\"5\" fill=\"#2a78d6\"/><circle cx=\"150\" cy=\"226\" r=\"5\" fill=\"#2a78d6\"/>\n<text class=\"b\" x=\"225\" y=\"88\" text-anchor=\"middle\">얇게</text>\n<text class=\"s\" x=\"225\" y=\"74\" text-anchor=\"middle\">저항을 낮추려면</text>\n<text class=\"b\" x=\"316\" y=\"232\">튼튼하게</text>\n<text class=\"s\" x=\"316\" y=\"248\">깨지지 않으려면</text>\n<text class=\"b\" x=\"134\" y=\"232\" text-anchor=\"end\">구멍 없이</text>\n<text class=\"s\" x=\"134\" y=\"248\" text-anchor=\"end\">가스가 새지 않으려면</text>\n<text class=\"w\" x=\"225\" y=\"178\" text-anchor=\"middle\" style=\"font-size:12px\">동시에 만족</text>\n<text class=\"s\" x=\"225\" y=\"196\" text-anchor=\"middle\">얇게 하면 깨지고</text>\n<text class=\"s\" x=\"225\" y=\"210\" text-anchor=\"middle\">튼튼하게 하면 두꺼워진다</text>\n\n<line x1=\"380\" y1=\"56\" x2=\"380\" y2=\"300\" stroke=\"#e4e7ec\" stroke-width=\"1.5\"/>\n\n<text class=\"b\" x=\"406\" y=\"76\" style=\"font-size:12.5px\">② 구우면 줄어든다 — 수축</text>\n<rect x=\"406\" y=\"88\" width=\"190\" height=\"40\" rx=\"4\" fill=\"#dbeafe\" stroke=\"#2a78d6\" stroke-dasharray=\"4 3\"/>\n<text class=\"s\" x=\"501\" y=\"113\" text-anchor=\"middle\">굽기 전 (크다)</text>\n<text class=\"s\" x=\"604\" y=\"112\">→</text>\n<rect x=\"620\" y=\"94\" width=\"152\" height=\"28\" rx=\"4\" fill=\"#2a78d6\"/>\n<text class=\"sw\" x=\"696\" y=\"113\" text-anchor=\"middle\">구운 뒤 (약 20% 수축)</text>\n<text class=\"s\" x=\"406\" y=\"148\">줄어드는 양이 자리마다 조금만 달라도 판이 휘거나 금이 간다.</text>\n<text class=\"s\" x=\"406\" y=\"166\">게다가 연료극·전해질·공기극은 재료가 달라 줄어드는 정도가 서로 다르다.</text>\n<text class=\"s\" x=\"406\" y=\"184\">그래서 <tspan class=\"b\">조성·입도·바인더 비율·승온 속도</tspan>를 전부 맞춰야 한 장이 평평하게 나온다.</text>\n\n<rect x=\"406\" y=\"198\" width=\"492\" height=\"46\" rx=\"6\" fill=\"#fff7ed\" stroke=\"#fdba74\"/>\n<text class=\"s\" x=\"418\" y=\"217\"><tspan class=\"w\">③ 그리고 열팽창까지 맞아야 한다</tspan></text>\n<text class=\"s\" x=\"418\" y=\"234\">전극·접속재·밀봉재가 뜨거워질 때 늘어나는 비율이 서로 다르면 운전 중에 갈라진다.</text>\n\n<rect x=\"406\" y=\"254\" width=\"492\" height=\"46\" rx=\"6\" fill=\"#f0f9ff\" stroke=\"#bae6fd\"/>\n<text class=\"s\" x=\"418\" y=\"273\"><tspan class=\"b\">결론</tspan> — 레시피가 공개돼도 따라 하기 어렵다. 같은 분말로도 수율이 갈리고,</text>\n<text class=\"s\" x=\"418\" y=\"290\">그 차이는 수천 번 구워 본 경험(공정 노하우)에서 나온다. 그래서 공급사가 소수로 굳는다.</text>\n\n<rect x=\"18\" y=\"266\" width=\"352\" height=\"34\" rx=\"6\" fill=\"#f8fafc\" stroke=\"#e4e7ec\"/>\n<text class=\"s\" x=\"30\" y=\"286\">판이 얇아질수록 ①의 삼각형이 더 빡빡해진다 —</text>\n<text class=\"s\" x=\"30\" y=\"300\">그래서 \"얼마나 얇게 뽑느냐\"가 곧 기술 수준이다.</text>\n</svg>"};
+
 const FCK=[
- ['PEMFC 고분자전해질','60~90℃','불소계 고분자막(PEM)','백금 필요','순수소','빠름(분 단위)','수소차·건물용·선박·드론','현대모비스, 범한퓨얼셀, 에스프리즘'],
- ['PAFC 인산형','150~200℃','인산(액체)','백금 필요','천연가스 개질','보통','건물·분산발전','두산퓨얼셀(익산)'],
- ['SOFC 고체산화물','700~850℃ (중저온형 ~620℃)','세라믹(YSZ·ScSZ·GDC)','<b>불필요</b>','천연가스·수소·암모니아','느림(시간 단위)','분산발전·데이터센터','두산퓨얼셀(새만금), 미코파워, 블룸SK퓨얼셀'],
- ['MCFC 용융탄산염','600~700℃','용융 탄산염(액체)','불필요','천연가스','느림','대형 발전','국내 비중 축소'],
+ ['PEMFC<br><span class="mini">고분자전해질</span>','60~90℃','불소계 고분자막(PEM)','<b class="bad">필요</b>','순수소','<b>빠름</b><br><span class="mini">분 단위</span>','수소차·건물용·선박·드론','현대모비스, 범한퓨얼셀, 에스프리즘'],
+ ['PAFC<br><span class="mini">인산형</span>','150~200℃','인산(액체)','<b class="bad">필요</b>','천연가스 개질','보통','건물·분산발전','두산퓨얼셀(익산)'],
+ ['<b>SOFC</b><br><span class="mini">고체산화물</span>','<b>700~850℃</b><br><span class="mini">중저온형 ~620℃</span>','<b>세라믹</b><br><span class="mini">YSZ·ScSZ·GDC</span>','<b class="ok">불필요</b>','<b>천연가스·수소·암모니아</b>','느림<br><span class="mini">시간 단위</span>','<b>분산발전·데이터센터</b>','두산퓨얼셀(새만금), 미코파워, 블룸SK퓨얼셀'],
+ ['MCFC<br><span class="mini">용융탄산염</span>','600~700℃','용융 탄산염(액체)','<b class="ok">불필요</b>','천연가스','느림','대형 발전','국내 비중 축소'],
 ];
-// 2차전지와의 구분
 const KIND=[
  ['본질','에너지를 <b>담는 그릇</b>','에너지를 <b>바꾸는 엔진</b>'],
- ['에너지원','내부 활물질','외부에서 넣는 연료(수소·천연가스·암모니아)'],
- ['충전','가능','<b>개념 자체가 없음</b> — 연료를 다시 넣는다'],
- ['끝나는 조건','수명(사이클) 종료','연료 공급이 끊길 때'],
+ ['에너지원','내부 활물질','외부에서 넣는 연료'],
+ ['충전','가능','<b class="bad">개념 자체가 없음</b> — 연료를 다시 넣는다'],
  ['스펙 단위','<b>kWh(용량) + kW(출력)</b>','<b>kW(출력)만</b>'],
  ['양극재·음극재의 역할','리튬을 담아두는 <b>활물질</b>','반응을 돕는 <b>촉매</b> — 아무것도 저장하지 않는다'],
  ['분리막','별도 부품(4대 소재 중 하나)','<b>없음</b> — 전해질이 차단벽을 겸한다'],
+ ['수명이 끝나는 이유','활물질 열화','세라믹 균열 · 밀봉 누설 · 크롬 피독'],
  ['비유','물탱크','발전기'],
 ];
-// SOFC 단전지 층 구조
 const LAYER=[
- ['전해질','산소이온만 통과시키고 연료·공기를 차단. 조성과 두께가 작동온도를 결정','YSZ, <b>ScSZ</b>(저온 유리), GDC/CGO','분말 — 일본 DKKK 확인 / 시트 — 중국 三环集团, 한국 <b>아모센스</b>'],
- ['연료극 (anode)','연료를 산화시키고 전자를 내보냄. ASC에선 구조 지지체까지 겸함','Ni-YSZ 서멧, Ni-GDC','셀 제조사가 자체 제조 · 전문 분말 공급사 특정 못 함'],
- ['공기극 (cathode)','산소를 이온으로 환원. 저온화할수록 여기가 성능 병목','LSM(750℃↑), LSCF(750℃↓), LSC','연구용 Nexceris · 양산 공급사 특정 못 함'],
- ['접속재 (분리판)','셀을 직렬 연결 + 연료·공기 유로 분리. 크롬 휘발을 막는 코팅이 필수','페라이트계 STS(Crofer 22 APU 계열) + Mn-Co/Ce-Co 코팅','<b>Alleima</b>(스웨덴) Sanergy HT — 두산퓨얼셀이 양산 발주'],
- ['밀봉재','연료와 공기를 서로·외부와 차단. 열사이클 내구가 핵심','글라스-세라믹 실런트, 마이카 가스켓','SCHOTT(독일) 확인 · 2·3위 특정 못 함'],
+ ['<b>전해질</b>','산소이온만 통과시키고 연료·공기를 차단. <b>조성과 두께가 작동온도를 결정</b>','YSZ, <b>ScSZ</b>, GDC/CGO','분말 — 일본 DKKK<br>시트 — 중국 三环集团, 한국 <b>아모센스</b>'],
+ ['연료극 (anode)','연료를 산화시키고 전자를 내보냄. ASC에선 구조 지지체까지 겸함','Ni-YSZ 서멧, Ni-GDC','셀 제조사가 자체 제조<br><span class="mini">전문 분말 공급사 특정 못 함</span>'],
+ ['공기극 (cathode)','산소를 이온으로 환원. 저온화할수록 여기가 성능 병목','LSM(750℃↑), LSCF(750℃↓), LSC','연구용 Nexceris<br><span class="mini">양산 공급사 특정 못 함</span>'],
+ ['접속재 (분리판)','셀을 직렬 연결 + 유로 분리. <b>크롬 휘발을 막는 코팅이 필수</b>','페라이트계 STS + Mn-Co/Ce-Co 코팅','<b>Alleima</b>(스웨덴)<br><span class="mini">두산퓨얼셀이 양산 발주</span>'],
+ ['밀봉재','연료와 공기를 서로·외부와 차단. 열사이클 내구가 핵심','글라스-세라믹 실런트','SCHOTT(독일)<br><span class="mini">2·3위 특정 못 함</span>'],
  ['BOP','개질기·탈황기·블로워·열교환기·PCS. <b>시스템 원가의 상당 부분</b>','—','대부분 셀 제조사가 자체 설계·조달'],
 ];
-// SOFC 지지체 3방식
 const SUPP=[
- ['ESC 전해질 지지형','두꺼운 전해질 시트','높음 (750~900℃)','튼튼·장수명. 전해질이 두꺼워 저항이 큼','Bloom Energy'],
- ['ASC 연료극 지지형','두꺼운 Ni-YSZ 연료극','중간 (650~750℃)','전해질을 얇게 → 저온화 유리. 환원 취성 주의','Elcogen, SolydEra'],
- ['MSC 금속 지지형','금속 판','낮음 (~620℃)','<b>열충격·진동에 강하고 기동이 빠름</b>. 소재가 싸짐','Ceres Power 및 라이선시 — <b>두산퓨얼셀</b>, Weichai, Denso'],
+ ['<b>ESC</b> 전해질 지지형','두꺼운 전해질 시트','높음 (750~900℃)','튼튼·장수명. 전해질이 두꺼워 저항이 큼','Bloom Energy'],
+ ['<b>ASC</b> 연료극 지지형','두꺼운 Ni-YSZ 연료극','중간 (650~750℃)','전해질을 얇게 → 저온화 유리. 환원 취성 주의','Elcogen, SolydEra'],
+ ['<b>MSC</b> 금속 지지형','금속 판','<b>낮음 (~620℃)</b>','<b>열충격·진동에 강하고 기동이 빠름</b>. 소재가 싸짐','Ceres Power 및 라이선시 — <b>두산퓨얼셀</b>'],
 ];
-// 밸류체인 단계
+const ELECT=[
+ ['<b>YSZ</b><br><span class="mini">이트리아 안정화 지르코니아</span>','750~1000℃','보통','<b class="ok">싸고 안정적</b>. 가장 널리 쓰이는 표준','저온에서 저항이 급히 커진다','대부분의 고온형 SOFC'],
+ ['<b>ScSZ</b><br><span class="mini">스칸디아 안정화 지르코니아</span>','650~850℃','<b class="ok">높음</b>','같은 두께에서 이온이 더 잘 통해 <b>저온화 가능</b>','<b class="bad">스칸디움이 비싸고 희소</b>. 약 580℃ 아래에서 결정 구조가 바뀜','Bloom Energy 계열'],
+ ['<b>GDC / CGO</b><br><span class="mini">가돌리늄 도핑 세리아</span>','500~650℃','<b class="ok">저온에서 최고</b>','저온에서 가장 잘 통한다','<b class="bad">고온에서 전기가 새어</b> 효율이 떨어짐','저온형, 또는 배리어층으로 얇게'],
+ ['LSGM<br><span class="mini">란타넘 갈레이트</span>','600~800℃','높음','이론 성능이 좋다','니켈과 반응하는 등 다루기 까다로움','연구 단계 — 상용 채택 확인 못 함'],
+];
+const FUEL=[
+ ['<b>수소</b> H₂','없음 — 바로 스택으로','<b class="ok">배기가 물뿐</b>, 탄소 배출 0','만들고 나르고 담는 비용이 크고 인프라가 얇다','PEMFC는 <b>필수</b>, SOFC는 선택'],
+ ['<b>천연가스</b> CH₄','<b>탈황 + 개질</b> 설비 필요','<b class="ok">배관이 이미 깔려 있다</b> — 지금 당장 쓸 수 있다','CO₂가 나온다(약 330g/kWh 수준으로 제시)','SOFC·PAFC의 <b>현실적 주력</b>'],
+ ['<b>암모니아</b> NH₃','분해 장치 필요','액화가 쉬워 <b class="ok">멀리 나르기 유리</b>','독성이 있고 분해 설비가 붙는다','선박·대형 발전에서 거론'],
+];
 const CHAIN=[
  ['① 수소·연료','수소 생산·수전해, 천연가스 공급','h2_prod'],
  ['② 저장·충전','저장용기·저장합금·충전소','h2_tank'],
@@ -183,8 +234,30 @@ const CHAIN=[
  ['⑥ 시스템·설치','모듈 조립, 현장 설치, 수배전','bop_power'],
  ['⑦ 수요','분산발전 · 데이터센터 · 수소차 · 건물 · 선박','dm_ipp'],
 ];
+
+/* ───────── 조각 만들기 */
 function tbl(head,rows,cls){ return `<div class="tw"><table class="${cls||''}"><tr>${head.map(h=>`<th class="l">${h}</th>`).join('')}</tr>`+
-  rows.map(r=>'<tr>'+r.map((c,i)=>`<td class="${i===0?'l':''}">${c}</td>`).join('')+'</tr>').join('')+'</table></div>'; }
+  rows.map(r=>'<tr>'+r.map((c,i)=>`<td class="${i===0?'l k':''}">${c}</td>`).join('')+'</tr>').join('')+'</table></div>'; }
+function fig(name,cap){ return `<div class="fig">${FIG[name]||''}</div>`+(cap?`<div class="figcap">${cap}</div>`:''); }
+function keyn(h,html,warn){ return `<div class="keynote${warn?' warn':''}"><span class="h">${esc(h)}</span>${html}</div>`; }
+function key1(h,html){ return `<div class="key1"><span class="h">${esc(h)}</span>${html}</div>`; }
+let _dn=0;
+function dual(easyHtml,deepHtml){
+  const id='d'+(++_dn);
+  return `<div class="seg noprint" data-dual="${id}"><button type="button" class="on" data-m="e">쉬운 설명</button><button type="button" data-m="d">자세한 설명</button></div>
+    <div class="easy" id="${id}e"><div class="h">쉬운 설명</div>${easyHtml}</div>
+    <div class="deepbox" id="${id}d" style="display:none"><div class="h">자세한 설명</div>${deepHtml}</div>`;
+}
+function bindDual(root){
+  (root||document).querySelectorAll('[data-dual]').forEach(seg=>{
+    const id=seg.dataset.dual;
+    seg.querySelectorAll('button').forEach(b=>{ b.onclick=()=>{
+      seg.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+      const e=$(id+'e'), d=$(id+'d'); if(!e||!d) return;
+      if(b.dataset.m==='e'){ e.style.display=''; d.style.display='none'; } else { d.style.display=''; e.style.display='none'; }
+    };});
+  });
+}
 
 
 /* 본문 문단 안의 출처 표기 (보도 s0, s1) → 태그 + 각주 링크 */
@@ -295,29 +368,98 @@ function renderHome(){
    `<div class="nb"><b>읽는 순서</b> — ① 아래 기본 지식(2차전지와의 구분 → 연료전지 종류 → SOFC 단전지 구조 → 지지체 방식)을 먼저 보고 ② 밸류체인에서 관심 단계를 고른 뒤 ③ 세분류로 들어가 분야 설명을 읽고 ④ 기업으로 들어가 숫자·리스크·리포트를 본다. 분야 설명은 <b>쉬운 설명 / 자세한 설명</b>을 버튼으로 바꿔 볼 수 있다.<br>
      <b>이 교과서는 SOFC에 무게를 뒀다.</b> PEMFC·PAFC와 수소 공급 쪽은 비교와 분류까지 다루고, 부품 단위 조사는 SOFC가 더 깊다.</div>`,
 
-   `<h2>1. 연료전지는 2차전지가 아니다</h2>
-    <div class="card" style="padding:0;overflow:hidden">${tbl(['구분','2차전지','연료전지 (SOFC·PEMFC·PAFC)'],KIND,'cmp')}</div>
-    <div class="warnfc"><b>가장 명확한 구별법은 단위다.</b> 2차전지는 "몇 kWh를 담느냐"가 스펙이고, 연료전지는 "몇 kW를 뽑느냐"만 있다. <b>담는 양이 스펙에 없으면 저장장치가 아니다.</b><br>
-      전고체 배터리와도 다르다 — <b>전고체는 고체전해질로 저장을 하고, SOFC는 고체전해질로 발전을 한다.</b> 소재가 세라믹이라는 점만 닮았다.<br>
-      다만 SOFC를 거꾸로 돌리는 SOEC·rSOC(고체산화물 수전해)는 전기로 수소를 만들어 저장하고 다시 발전할 수 있어 "충방전처럼" 보인다 — 이때 저장되는 곳은 전지 내부가 아니라 <b>외부 수소 탱크</b>다.</div>`,
+   `<h2>1. 연료전지는 2차전지가 아니다</h2>`,
+   key1('가장 명확한 구별법은 단위다','2차전지는 "몇 <b>kWh</b>를 담느냐"가 스펙이고, 연료전지는 "몇 <b>kW</b>를 뽑느냐"만 있다. <b>담는 양이 스펙에 없으면 저장장치가 아니다.</b>'),
+   `<div class="card" style="padding:0;overflow:hidden;margin-bottom:12px">${tbl(['구분','2차전지','연료전지 (SOFC·PEMFC·PAFC)'],KIND,'cmp')}</div>`,
+   fig('cell','<b>SOFC 단전지의 작동 원리와 2차전지와의 차이.</b> 산소이온이 세라믹을 건너가고, 그때 떨어진 전자가 바깥 회로를 도는 것이 전기다.'),
+   keyn('전고체 배터리와도 다르다','<b>전고체는 고체전해질로 저장을 하고, SOFC는 고체전해질로 발전을 한다.</b> 소재가 세라믹이라는 점만 닮았을 뿐 하는 일이 반대다.<br>다만 SOFC를 거꾸로 돌리는 SOEC·rSOC(고체산화물 수전해)는 전기로 수소를 만들어 저장했다가 다시 발전할 수 있어 "충방전처럼" 보인다 — 이때 저장되는 곳은 전지 내부가 아니라 <b>외부 수소 탱크</b>다.',true),
 
-   `<h2>2. 연료전지의 종류 — 온도가 모든 것을 결정한다</h2>
-    <div class="card" style="padding:0;overflow:hidden">${tbl(['종류','작동 온도','전해질','백금 촉매','연료','기동 속도','주 용도','국내 기업'],FCK,'cmp')}</div>
-    <div class="mini" style="margin:-6px 0 14px">고온일수록 ① 백금이 필요 없어 원가가 내려가고 ② 연료를 내부에서 개질해 천연가스·암모니아까지 쓸 수 있고 ③ 발전효율이 높다. 대신 기동·정지가 느리고 열사이클 내구성이 숙제가 된다. <span class="tag t판단">판단</span> 근거: 저온형 PEMFC가 백금 촉매와 순수소를 요구하는 반면 SOFC·PAFC는 천연가스를 그대로 받는다는 점.</div>`,
+   `<h2>2. 연료전지의 종류 — 온도가 모든 것을 결정한다</h2>`,
+   `<div class="card" style="padding:0;overflow:hidden;margin-bottom:12px">${tbl(['종류','작동 온도','전해질','백금 촉매','연료','기동 속도','주 용도','국내 기업'],FCK,'cmp')}</div>`,
+   keyn('고온일수록 무엇이 좋아지는가','① <b>백금이 필요 없어</b> 원가가 내려간다<br>② <b>연료를 내부에서 개질</b>해 천연가스·암모니아까지 쓸 수 있다<br>③ <b>발전효율이 높다</b><br>대신 기동·정지가 느려 수시로 껐다 켜는 용도에는 못 쓰고, 열사이클 내구성이 숙제가 된다. <span class="tag t판단">판단</span> 근거: 저온형 PEMFC가 백금 촉매와 순수소를 요구하는 반면 SOFC·PAFC는 천연가스를 그대로 받는다는 점.'),
 
-   `<h2>3. SOFC 단전지는 무엇으로 이루어지는가</h2>
-    <div class="card" style="padding:0;overflow:hidden">${tbl(['층','하는 일','쓰는 소재','누가 잘하는가'],LAYER,'cmp')}</div>
-    <div class="nb"><b>투자 관점에서 가장 중요한 줄은 전해질 시트다.</b> 분말은 여러 곳이 만들지만 그것을 얇고 평평한 세라믹 판으로 구워내는 공정이 진입장벽이고, 전해질 지지형(ESC) 셀에서는 이 시트가 <b>셀의 구조 지지체까지 겸하기</b> 때문에 셀 생산량에 1:1로 비례한다. <span class="tag t판단">판단</span></div>`,
+   `<h2>3. 백금은 왜 필요한가 — 무슨 역할을 하는가</h2>`,
+   dual(
+    `<p>화학 반응에는 <b>넘어야 하는 언덕</b>이 있다. 수소와 산소를 한 통에 넣어도 가만히 두면 아무 일도 일어나지 않는 이유가 그것이다. 불을 붙이거나, 뜨겁게 만들거나, 누가 도와주어야 반응이 시작된다.</p>
+     <p>촉매가 하는 일이 그 <b>언덕을 낮춰주는 것</b>이다. 백금은 수소 분자를 붙잡아 둘로 쪼개주고, 산소도 쪼개준다. 자기는 닳지 않으면서 길만 터주는 역할이다.</p>
+     <p>그런데 <b>열도 똑같은 일을 한다.</b> 뜨거우면 분자들이 이미 빠르게 움직이고 있어서 언덕을 스스로 넘는다. 그래서 SOFC처럼 700도가 넘는 곳에서는 백금이 필요 없고, 값싼 니켈로 충분하다.</p>
+     <p>이 차이가 돈으로 이어진다. 백금은 비싸고 양이 적어 원가를 누른다. 게다가 백금은 예민해서 연료에 황이나 일산화탄소가 조금만 섞여도 망가진다 — 그래서 PEMFC는 <b>깨끗한 수소만</b> 먹을 수 있다. 수소를 따로 만들어 날라야 하니 인프라 부담까지 따라온다.</p>`,
+    `<p>연료전지 반응은 전극 표면에서 일어나는 전기화학 반응이고, 반응 속도는 활성화 에너지에 지배된다. 촉매는 반응물을 흡착해 중간 상태를 안정화시켜 활성화 에너지를 낮춘다. 백금은 수소 산화와 산소 환원 양쪽에서 이 일을 잘하기 때문에 저온형 연료전지의 표준 촉매가 됐다.</p>
+     <p>특히 느린 쪽은 <b>산소 환원 반응(ORR)</b>이다. 수소 산화는 비교적 쉽게 일어나지만 산소 환원은 네 개의 전자가 관여해 훨씬 느리고, 그래서 공기극 쪽에 백금이 더 많이 들어간다. 저온에서 출력을 내려면 백금 담지량을 늘려야 하고 이것이 원가로 직결된다.</p>
+     <p>온도를 올리면 사정이 달라진다. 열에너지가 활성화 에너지의 상당 부분을 대신 공급하므로 귀금속 없이도 반응 속도가 확보된다. SOFC의 연료극이 니켈 서멧인 것, 공기극이 LSM·LSCF 같은 페로브스카이트 산화물인 것이 그 결과다. 미국 에너지부도 PEMFC와 PAFC의 과제로는 "비싼 촉매"를 명시하지만 SOFC의 과제 목록에는 촉매 비용을 넣지 않는다.</p>
+     <p>백금의 두 번째 약점은 <b>피독</b>이다. 일산화탄소가 백금 표면에 강하게 흡착해 반응 자리를 막고, 황 화합물도 마찬가지다. 그래서 개질가스를 그대로 쓰지 못하고 정제가 필요하다. 반대로 SOFC의 니켈 전극은 황에는 민감하지만(그래서 탈황은 여전히 필요하다) 일산화탄소는 오히려 연료로 쓸 수 있다.</p>
+     <p>정리하면 <b>백금 의존은 저온형 연료전지의 구조적 약점</b>이고, 이것이 SOFC가 원가와 연료 유연성에서 갖는 이점의 뿌리다. 투자 관점에서는 "백금이 필요한가"가 그 방식이 어떤 인프라에 묶이는지를 결정하는 갈림길이 된다.</p>`),
+   fig('pt','<b>왼쪽은 저온(PEMFC) — 열이 모자라 백금으로 언덕을 낮춘다. 가운데는 고온(SOFC) — 열이 그 일을 대신한다.</b> 오른쪽이 그래서 생기는 사업 구조의 차이다.'),
 
-   `<h2>4. SOFC의 방식 — 무엇이 셀을 떠받치는가</h2>
-    <div class="card" style="padding:0;overflow:hidden">${tbl(['방식','지지체','작동 온도','성격','대표 업체'],SUPP,'cmp')}</div>
-    <div class="mini" style="margin:-6px 0 14px"><b>중저온화가 산업의 방향이다.</b> 온도가 내려가면 세라믹 접속재 대신 코팅된 스테인리스를 쓸 수 있어 원가가 떨어지고 기동이 빨라진다. 그래서 금속 접속재·금속 지지체 시장이 커진다. <span class="tag t판단">판단</span> 근거: Alleima가 코팅 STS의 타깃 온도대를 600~800℃로 명시한 점.</div>`,
+   `<h2>4. 연료별 차이 — 무엇을 넣느냐가 무엇을 달고 다니느냐를 정한다</h2>`,
+   `<div class="card" style="padding:0;overflow:hidden;margin-bottom:12px">${tbl(['연료','스택 앞에 필요한 것','장점','단점','주로 쓰는 곳'],FUEL,'cmp')}</div>`,
+   dual(
+    `<p>연료전지는 연료를 넣어야 돌아간다. 그런데 <b>어떤 연료를 넣느냐에 따라 스택 앞에 달아야 하는 장비가 달라진다.</b></p>
+     <p>가장 깨끗한 건 수소다. 바로 넣으면 되고 나오는 것도 물뿐이다. 문제는 수소를 어디서 구하느냐다. 따로 만들어서 700기압으로 눌러 담거나 영하 253도로 식혀 날라야 한다. 충전소도 따로 지어야 한다.</p>
+     <p>천연가스는 반대다. 이미 전국에 배관이 깔려 있어서 <b>지금 당장</b> 쓸 수 있다. 대신 두 가지를 달아야 한다 — 가스에 일부러 넣어둔 냄새 성분(황)을 걸러내는 탈황기, 그리고 가스를 수소가 많은 가스로 바꾸는 개질기다. 그리고 탄소를 쓰니 CO₂가 나온다.</p>
+     <p>암모니아는 중간이다. 액체로 만들기 쉬워 배로 멀리 나르기 좋은데, 쓰려면 질소를 떼어내는 분해 장치가 필요하고 독성이 있다. 주로 선박이나 큰 발전소 이야기에서 나온다.</p>`,
+    `<p>연료 선택은 ① 전처리 설비 ② 묶이는 인프라 ③ 탄소 배출 세 가지를 동시에 결정한다. SOFC가 발전용에서 먼저 자리를 잡은 이유가 여기 있다 — 도시가스 배관이라는 <b>이미 완성된 인프라</b>를 그대로 쓸 수 있기 때문이다.</p>
+     <p>천연가스를 쓸 때 탈황이 먼저인 이유는 촉매 보호다. 도시가스에는 누출을 감지하라고 황 화합물 부취제를 일부러 넣는데, 이 황이 니켈 연료극과 개질 촉매를 피독시킨다. 개질은 수증기 개질(SMR)이 일반적이고, SOFC는 고온이라 스택 내부에서 개질이 일어나게 설계할 수도 있다. 내부 개질은 흡열 반응이어서 스택이 내는 열을 가져가 냉각 부담까지 줄여주는 이점이 있다.</p>
+     <p>탄소 배출은 연료가 정한다. 증권사 리포트는 천연가스 기반 SOFC의 탄소 배출을 약 330gCO₂/kWh 수준으로, 수소 연료 시 0으로 제시한다. 즉 같은 설비라도 연료를 바꾸면 탄소 성적이 바뀐다 — 이것이 "지금은 가스로 돌리고 나중에 수소로 전환한다"는 사업 논리의 근거다.</p>
+     <p>암모니아는 수소 캐리어로 다뤄진다. 액화 조건이 수소보다 훨씬 온화해(상온 가까이에서 가압 액화) 장거리 해상 운송에 유리하고, 분해하면 수소가 나온다. SOFC는 고온이라 암모니아를 직접 받아 내부에서 분해할 수 있다는 점이 PEMFC와 다르다.</p>
+     <p><b>투자 관점에서 중요한 구분</b>: PAFC는 천연가스 개질 비중이 매우 높다(두산퓨얼셀 기준 약 90%라는 보도가 있다). 따라서 PAFC 수주가 늘어도 수소 저장·충전 업체가 수혜를 보는 것이 아니다. <b>PEMFC만 수소 인프라와 한 몸</b>이고, PAFC·SOFC는 도시가스 인프라와 한 몸이다. 같은 "연료전지"로 묶어 읽으면 틀린다.</p>`),
+   fig('fuel','<b>연료가 바뀌면 스택 앞에 붙는 설비가 바뀐다.</b> 천연가스는 탈황·개질이, 암모니아는 분해 장치가 추가로 필요하다.'),
 
-   `<h2>5. 밸류체인 — 어디서 돈이 갈리는가</h2>
-    <div class="flow">${CHAIN.map(([a,b,g])=>`<div${g?' class="on"':''}><b>${esc(a)}</b>${g?`<a href="#g=${g}">${esc(b)}</a>`:esc(b)}</div>`).join('')}</div>
-    <div class="nb" style="margin-top:10px"><b>2026~2028년의 실질 병목은 수요가 아니라 공급이다.</b> 수요 쪽 계약은 GW·수십억 달러 단위인데(Bloom–Oracle 2.8GW 등), 공급 쪽 공장은 연 수백 MW 수준이다 — Topsoe 500MW · Elcogen 360MW · 두산퓨얼셀 50MW · Weichai 2027년 200MW 목표. 따라서 병목은 <b>셀·스택 생산능력과 그 상류 소재</b>(전해질 시트 · 코팅 STS · 스칸디움)에 있다. <span class="tag t판단">판단</span></div>`,
+   `<h2>5. SOFC 단전지는 무엇으로 이루어지는가</h2>`,
+   `<div class="card" style="padding:0;overflow:hidden;margin-bottom:12px">${tbl(['층','하는 일','쓰는 소재','누가 잘하는가'],LAYER,'cmp')}</div>`,
+   key1('투자 관점에서 가장 중요한 줄은 전해질 시트다','분말은 여러 곳이 만들지만, 그것을 <b>얇고 평평한 세라믹 판으로 구워내는 공정</b>이 진입장벽이다. 전해질 지지형(ESC) 셀에서는 이 시트가 <b>셀의 구조 지지체까지 겸하기</b> 때문에 셀 생산량에 1:1로 비례해 들어간다. <span class="tag t판단">판단</span>'),
 
-   `<h2>6. 대분류</h2><div class="grid">`];
+   `<h2>6. 전해질은 종류마다 무엇이 다른가</h2>`,
+   `<div class="card" style="padding:0;overflow:hidden;margin-bottom:12px">${tbl(['소재','쓸 수 있는 온도','이온 전도','장점','단점','주로 쓰는 곳'],ELECT,'cmp')}</div>`,
+   dual(
+    `<p>전해질이 하는 일은 하나다 — <b>산소만 통과시키고 나머지는 전부 막는 것.</b> 그런데 산소가 세라믹을 통과하려면 뜨거워야 한다. 차가우면 꽉 막혀서 전기가 안 나온다.</p>
+     <p>그래서 소재를 고르는 기준은 "<b>얼마나 낮은 온도에서도 산소를 잘 통과시키느냐</b>"가 된다. 낮은 온도에서 쓸 수 있으면 주변 부품을 비싼 세라믹 대신 값싼 스테인리스로 바꿀 수 있고, 켜는 시간도 짧아지기 때문이다.</p>
+     <p>YSZ는 가장 흔한 표준이다. 싸고 안정적인데 온도가 내려가면 막혀버린다. ScSZ는 거기에 스칸디움을 넣어 더 잘 통하게 만든 것인데, 스칸디움이 워낙 귀하고 비싸다. GDC는 낮은 온도에서 가장 잘 통하지만 뜨거워지면 전기가 새어버린다.</p>
+     <p>그래서 어느 하나가 정답이 아니라, <b>어느 온도에서 돌릴 것인가를 먼저 정하고 거기에 맞는 소재를 고르는</b> 식이다. 이 선택이 곧 회사의 기술 노선이 된다.</p>`,
+    `<p>SOFC 전해질은 산소 공공(oxygen vacancy)을 통해 O²⁻가 이동하는 이온 전도체다. 지르코니아(ZrO₂)는 그대로 두면 상전이 때문에 쓸 수 없어서, 이트리아(Y₂O₃)나 스칸디아(Sc₂O₃)를 넣어 입방정 형석 구조를 안정화시킨다. 이때 도펀트가 산소 공공을 만들어 이온 전도가 생긴다. "안정화 지르코니아"라는 이름이 여기서 나온다.</p>
+     <p><b>YSZ</b>는 8mol% 이트리아가 표준 조성이다. 화학적으로 안정하고 값이 싸며 전극과의 상용성이 검증돼 고온형(750℃ 이상)의 기본값이 됐다. 단점은 이온 전도도가 온도에 지수적으로 의존해, 온도를 내리면 저항이 빠르게 커진다는 점이다. 그래서 저온화하려면 전해질을 극단적으로 얇게 가져가야 하고, 이것이 ASC(연료극 지지형) 구조가 나온 이유다.</p>
+     <p><b>ScSZ</b>는 스칸디아를 쓴 것으로, 같은 온도·두께에서 YSZ보다 이온 전도도가 높다. Bloom Energy가 소량의 산화스칸디움을 도핑한 지르코니아 계열을 쓴다고 설명하며 관련 특허를 보유한다. 약점은 둘이다 — 스칸디움이 생산량이 적고 비싸 공급망 논란의 소재가 되며, 입방정 ScSZ는 약 580℃ 미만에서 상전이가 일어나 저온화의 물리적 한계로 지적된다.</p>
+     <p><b>GDC/CGO</b>는 세리아계로 저온 영역에서 전도도가 가장 좋다. 문제는 환원 분위기의 고온에서 Ce⁴⁺가 Ce³⁺로 환원되면서 <b>전자 전도성이 생긴다</b>는 점이다. 전해질에 전자가 흐르면 내부 단락과 같아 개회로 전압과 효율이 떨어진다. 그래서 GDC는 저온형 단독 전해질로 쓰거나, 지르코니아 전해질과 LSCF 공기극 사이의 <b>반응 방지 배리어층</b>으로 얇게 넣는 용도가 많다.</p>
+     <p><b>LSGM</b>(란타넘 갈레이트)은 중온에서 이론 성능이 우수하지만 니켈 연료극과 반응하는 등 상용성 문제가 있고, 연구용 분말 판매 외에 상용 스택 채택 사례를 확인하지 못했다.</p>
+     <p>정리하면 전해질 선택은 <b>작동 온도 → 접속재·밀봉재 소재 → 시스템 원가</b>로 이어지는 연쇄의 첫 단추다. 중저온화가 산업의 방향인 이유도 여기 있다. 온도가 600~800℃로 내려오면 세라믹 접속재 대신 코팅된 페라이트계 스테인리스를 쓸 수 있어 소재 원가가 크게 떨어진다.</p>`),
+   fig('elec','<b>소재별로 실제 쓸 만한 온도 구간.</b> 낮은 온도에서 쓸 수 있을수록 주변 부품이 싸지지만, 저온 소재일수록 다른 약점이 따라온다.'),
+
+   `<h2>7. SOFC는 어떻게 만들어지는가</h2>`,
+   fig('make','<b>분말 → 반죽 → 얇게 펴기 → 굽기 → 전극 인쇄 → 재소성 → 적층 → 밀봉 → 검사.</b> 주황색으로 표시한 단계가 수율이 갈리는 곳이다.'),
+   dual(
+    `<p>SOFC 만들기는 <b>도자기 굽기와 비슷하다.</b> 가루를 반죽해서 얇게 펴고, 가마에 넣어 굽는다. 다만 도자기와 달리 두께가 종이보다 얇아야 하고, 구멍이 하나도 없어야 하고, 휘어서도 안 된다.</p>
+     <p>순서는 이렇다. ① 지르코니아 같은 세라믹 가루를 조성에 맞춰 만든다 ② 접착제와 용매를 섞어 묽은 반죽(슬러리)으로 만든다 ③ 이 반죽을 칼날 밑으로 흘려보내 얇게 편다(테이프캐스팅) ④ 1300도 넘는 가마에서 구워 단단하게 만든다.</p>
+     <p>그다음 ⑤ 구워낸 판 양면에 전극을 인쇄하듯 바르고 ⑥ 다시 구워 붙인다. 여기까지가 단전지 한 장이다.</p>
+     <p>마지막으로 ⑦ 코팅한 금속판을 준비해 ⑧ 단전지와 번갈아 쌓고 ⑨ 가장자리를 유리로 막고(밀봉) ⑩ 열처리해 붙인 뒤 ⑪ 새는 곳이 없는지 검사한다. <b>한 장이라도 새면 스택 전체가 못 쓰게 된다.</b></p>`,
+    `<p>전해질 시트 공정의 중심은 <b>테이프캐스팅</b>이다. 세라믹 분말에 분산제·바인더·가소제·용매를 섞어 슬러리를 만들고, 닥터블레이드 아래로 흘려 캐리어 필름 위에 일정 두께로 펴 말린다. 이때 결정되는 두께 균일도가 최종 셀의 저항 편차를 좌우한다.</p>
+     <p>그다음 탈지(바인더 번아웃)와 <b>소성</b>이 이어진다. 유기물을 천천히 태워 없앤 뒤 고온에서 치밀화시키는데, 이 과정에서 시트가 보통 20% 안팎 수축한다. 수축이 자리마다 조금만 달라도 휨과 균열이 생기고, 다층 구조에서는 각 층의 수축률이 달라 동시소성(co-firing) 조건을 맞추는 것이 까다롭다.</p>
+     <p>전극은 스크린 프린팅으로 올리고 다시 소성한다. 연료극은 NiO 상태로 인쇄했다가 운전 초기에 수소 분위기에서 <b>환원</b>시켜 금속 Ni로 바꾼다. 이때 부피가 줄면서 다공 구조가 생기는데, 이 환원 수축이 셀에 응력을 남긴다 — ASC 구조에서 환원 취성이 문제가 되는 이유다.</p>
+     <p>스택 조립에서는 단전지와 코팅된 접속재를 번갈아 쌓고 글라스-세라믹 실런트로 밀봉한 뒤, 실런트가 연화되는 온도까지 올려 접합한다. 밀봉은 수백~수천 회의 열사이클을 견뎌야 하고, 연료와 공기를 완전히 갈라야 한다.</p>
+     <p><b>수율의 수학</b>이 이 산업을 지배한다. 단전지 한 장의 수율이 99%라도 30장을 직렬로 쌓으면 스택 수율은 0.99³⁰ ≈ 74%로 떨어진다. 적층 수가 늘수록 장당 수율이 기하급수적으로 중요해지고, 그래서 "셀 수율 몇 %"가 회사의 핵심 지표가 된다. 메리츠증권이 두산퓨얼셀 리포트 제목에 "개선되는 SOFC 수율"을 넣은 것도 그 맥락이다.</p>
+     <p>③~④, 즉 시트 공정만 떼어 전문으로 하는 회사가 따로 있다. 중국 三环集团과 한국 <b>아모센스</b>(블룸에너지향)가 그 자리다.</p>`),
+
+   `<h2>8. 왜 세라믹 판으로 구워내는 공정이 진입장벽인가</h2>`,
+   dual(
+    `<p>얼핏 보면 간단해 보인다. 가루 반죽해서 얇게 펴고 구우면 되는 것 아닌가. 그런데 여기에 <b>서로 반대로 가는 요구 세 가지</b>가 동시에 걸린다.</p>
+     <p>① <b>얇아야 한다</b> — 두꺼우면 산소가 건너가기 힘들어 전기가 적게 나온다.<br>② <b>구멍이 하나도 없어야 한다</b> — 구멍이 있으면 연료와 공기가 섞여 그냥 타버린다.<br>③ <b>깨지면 안 된다</b> — 얇게 만들수록 잘 깨진다.</p>
+     <p>얇게 하면 깨지고, 튼튼하게 하면 두꺼워진다. 이 셋을 한 장에서 동시에 만족시키는 것이 기술이다.</p>
+     <p>여기에 하나 더 있다. <b>구우면 줄어든다.</b> 보통 20%쯤 작아지는데, 줄어드는 양이 자리마다 조금만 달라도 판이 휘거나 금이 간다. 그래서 가루 크기, 접착제 비율, 가마 온도 올리는 속도를 전부 맞춰야 평평한 판 한 장이 나온다. 이건 레시피를 알려줘도 따라 하기 어렵다 — 수천 번 구워 본 경험에서 나오는 것이기 때문이다.</p>`,
+    `<p>진입장벽의 실체는 <b>다중 제약의 동시 최적화</b>다. 전해질 시트는 ① 이온 저항을 줄이기 위해 얇아야 하고 ② 가스 차단을 위해 상대밀도가 거의 100%여야 하며 ③ 취급·적층·운전 중 응력을 견딜 기계적 강도가 있어야 한다. 셋은 서로 상충한다. 두께를 줄이면 강도가 떨어지고, 소결을 덜 하면 기공이 남아 차단성이 깨진다.</p>
+     <p>여기에 <b>소결 수축 제어</b>가 겹친다. 소성 중 수축률은 분말의 입도 분포·비표면적·성형 밀도·바인더 함량·승온 프로파일에 모두 영향을 받는다. 다층을 동시에 구울 때는 층별 수축률 차이가 잔류 응력과 휨(camber)으로 나타난다. 이 조건은 소재사마다 분말 특성이 달라 그대로 이식되지 않는다.</p>
+     <p>세 번째 제약은 <b>열팽창계수(CTE) 정합</b>이다. 전해질·전극·접속재·밀봉재의 CTE가 서로 맞지 않으면 운전 온도까지 올리고 내리는 과정에서 계면이 갈라진다. SOFC가 수만 시간 운전과 수백 회 열사이클을 요구받는 설비라는 점에서, 이것은 초기 성능이 아니라 <b>수명</b>을 결정하는 변수다.</p>
+     <p>결과적으로 공정 조건은 레시피 문서가 아니라 <b>경험적 노하우</b>로 축적된다. 같은 조성·같은 장비로도 업체 간 수율이 갈리고, 그 격차가 원가 격차로 직결된다. 공급사가 소수로 굳는 구조적 이유가 여기 있다.</p>
+     <p>그래서 이 분야를 볼 때의 실질적 잣대는 <b>"얼마나 얇게, 얼마나 큰 면적으로, 얼마나 높은 수율로 뽑는가"</b> 세 가지다. 다만 이 수치들은 업체들이 공개하지 않아 외부에서 직접 비교하기는 어렵고, 양산 개시·증설·고객사 진입 같은 간접 신호로 읽을 수밖에 없다.</p>`),
+   fig('moat','<b>왼쪽은 서로 반대로 가는 세 가지 요구, 가운데는 구울 때 생기는 수축 문제.</b> 레시피가 공개돼도 따라 하기 어려운 이유다.'),
+
+   `<h2>9. SOFC의 방식 — 무엇이 셀을 떠받치는가</h2>`,
+   `<div class="card" style="padding:0;overflow:hidden;margin-bottom:12px">${tbl(['방식','지지체','작동 온도','성격','대표 업체'],SUPP,'cmp')}</div>`,
+   keyn('중저온화가 산업의 방향이다','온도가 내려가면 <b>세라믹 접속재 대신 코팅된 스테인리스</b>를 쓸 수 있어 원가가 떨어지고 기동이 빨라진다. 그래서 금속 접속재·금속 지지체 시장이 커진다. <span class="tag t판단">판단</span> 근거: Alleima가 코팅 STS의 타깃 온도대를 600~800℃로 명시한 점.'),
+
+   `<h2>10. 밸류체인 — 어디서 돈이 갈리는가</h2>`,
+   `<div class="flow">${CHAIN.map(([a,b,g])=>`<div${g?' class="on"':''}><b>${esc(a)}</b>${g?`<a href="#g=${g}">${esc(b)}</a>`:esc(b)}</div>`).join('')}</div><div style="height:10px"></div>`,
+   key1('2026~2028년의 실질 병목은 수요가 아니라 공급이다','수요 쪽 계약은 GW·수십억 달러 단위인데(Bloom–Oracle 2.8GW 등), 공급 쪽 공장은 연 수백 MW 수준이다 — Topsoe 500MW · Elcogen 360MW · 두산퓨얼셀 50MW · Weichai 2027년 200MW 목표. 따라서 병목은 <b>셀·스택 생산능력과 그 상류 소재</b>(전해질 시트 · 코팅 STS · 스칸디움)에 있다. <span class="tag t판단">판단</span>'),
+
+   `<h2>11. 대분류</h2><div class="grid">`];
   for(const T of TREE.top){
     const codes=[...new Set(T.mid.flatMap(M=>M.g.flatMap(g=>g.co)))].sort(byCap);
     const wr=T.mid.flatMap(M=>M.g).filter(g=>G2C[g.id]).length;
@@ -331,6 +473,7 @@ function renderHome(){
     <div class="mini" style="margin-bottom:14px">나머지 세분류는 분류와 숫자만 나온다. 분야를 지정해 요청하면 같은 형식으로 조사해 채운다.</div>`);
   h.push(`<div class="mini">이 교과서가 판단을 대신하지 않는다. 숫자는 DART 공시와 시세 API에서 그대로 받아오고, 글로 쓴 부분은 문장마다 태그(확인·회사발언·증권사·보도·판단)와 출처를 붙였다. 태그가 <b>판단</b>이면 근거를 문장 안에 적었다.</div>`);
   $('main').innerHTML=h.join('');
+  bindDual($('main'));
 }
 
 /* ───────── 대분류 */
@@ -505,7 +648,7 @@ function chapterBody(ch,g,T,headHtml){
   // 쉬운/자세한 설명 토글
   h.push(`<div class="seg noprint"><button id="bEasy" class="on" type="button">쉬운 설명</button><button id="bDeep" type="button">자세한 설명</button></div>`);
   h.push(`<div id="vEasy" class="easy"><div class="h">쉬운 설명</div>${(ch.easy||[]).map(t=>`<p>${proseH(ch,t)}</p>`).join('')||'<p>아직 없습니다.</p>'}</div>`);
-  h.push(`<div id="vDeep" class="card" style="display:none">${(ch.deep||[]).map(t=>`<p>${proseH(ch,t)}</p>`).join('')||'<p>아직 없습니다.</p>'}</div>`);
+  h.push(`<div id="vDeep" class="deepbox" style="display:none"><div class="h">자세한 설명</div>${(ch.deep||[]).map(t=>`<p>${proseH(ch,t)}</p>`).join('')||'<p>아직 없습니다.</p>'}</div>`);
   if(ch.svg) h.push(`<div class="fig">${ch.svg}</div>`);
   const w=ch.where||{};
   if(w.proc||(w.how||[]).length||(w.chain||[]).length){

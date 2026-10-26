@@ -89,6 +89,19 @@ ul.sg li:last-child { border-bottom:0; } ul.sg li:before { content:'▲'; positi
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
 <script src="/nav.js" defer></script>
+<style>
+/* 2026-10-26 가독성 보강 — 한글 줄바꿈이 단어 중간에서 끊기지 않게, 작은 회색 주석을 읽히는 크기로 */
+body, p, td, th, li, dd, dt, .mini, .note, .nb, .easy, .card, .lead, .meta, .pos, .figcap { word-break:keep-all; overflow-wrap:break-word; }
+p, li, dd, .nb, .note, .card p, .easy p { text-wrap:pretty; }
+.mini { font-size:12.5px; color:#5b6472; line-height:1.8; }
+.card { font-size:13.5px; line-height:1.9; }
+.note { font-size:13px; line-height:1.9; }
+.nb { font-size:13.5px; line-height:1.9; color:#28303f; }
+.easy { font-size:14px; line-height:1.95; }
+dl.terms { font-size:13px; } dl.terms dd { line-height:1.85; }
+ul.pl li, ul.sg li, ul.rk li { font-size:13px; line-height:1.8; }
+table { font-size:13px; } th, td { line-height:1.7; }
+</style>
 </head>
 <body>
 <div class="wrap">

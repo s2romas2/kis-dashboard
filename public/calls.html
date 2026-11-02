@@ -263,7 +263,7 @@ function draw(){
     <div class="kpi"><div class="t">기간</div><div class="v" style="font-size:13px">${L[L.length-1].d.slice(2)} ~ ${L[0].d.slice(2)}</div></div>
   </div>
   <div class="bar"><span class="chip ${VIEW==='list'?'on':''}" onclick="VIEW='list';draw()">📋 콜 목록</span><span class="chip ${VIEW==='daily'?'on':''}" onclick="VIEW='daily';draw()">📅 일자별 정리</span><span class="chip ${VIEW==='pf'?'on':''}" onclick="VIEW='pf';draw()">💼 포트폴리오 현황</span>
-    <span style="width:8px"></span>${['all','7','6','5'].map(g=>`<span class="chip ${G===g?'on':''}" onclick="G='${g}';draw()">${g==='all'?'전 기수':g+'기'}</span>`).join('')}</div>`;
+    <span style="width:8px"></span>${['all',...[...new Set(D.list.map(x=>x.g).filter(Boolean))].sort((a,b)=>+b-+a)].map(g=>`<span class="chip ${G===g?'on':''}" onclick="G='${g}';draw()">${g==='all'?'전 기수':g+'기'}</span>`).join('')}</div>`;
   if(VIEW==='daily'){ h+=dailyView(); document.getElementById('body').innerHTML=h; return; }
   if(VIEW==='pf'){
     const pf=portfolio();

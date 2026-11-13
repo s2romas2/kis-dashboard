@@ -235,7 +235,7 @@ function trackH(){
   const S=T.summary, rows=[['A',CBS.A[0]],['B',CBS.B[0]],['C',CBS.C[0]],['D',CBS.D[0]],['N','대조군: 신규 진입(헤게모니 초입 아님)']];
   return `<div class="meta" style="margin:8px 0 4px"><b>조합별 추적 성적</b> — ${T.start}부터 조합에 들어온 날의 주가를 기록해 이후 수익률을 봅니다. 과거로 되돌려 검증할 데이터가 없어 지금부터 쌓는 방식이라, <b>표본과 기간이 쌓이기 전에는 결론을 내리면 안 됩니다.</b></div>
     <div class="tw"><table class="wt"><tr><th class="l">조합</th><th>기록</th><th>진입 후 현재 평균</th><th>플러스 비율</th><th>4주 뒤 평균</th><th>13주 뒤 평균</th></tr>`+
-    rows.map(([k,lb])=>{ const v=S[k]||{}; return `<tr><td class="l">${lb}</td><td>${v.n||0}</td><td class="${(v.ret||0)>=0?'pos':'neg'}">${v.n?pc(v.ret):'-'}</td><td>${v.n?v.win+'%':'-'}</td><td>${v.n4w?pc(v.r4w)+` <span style="color:#98a2b3">(${v.n4w})</span>`:'<span style="color:#98a2b3">아직 없음</span>'}</td><td>${v.n13w?pc(v.r13w)+` <span style="color:#98a2b3">(${v.n13w})</span>`:'<span style="color:#98a2b3">아직 없음</span>'}</td></tr>`; }).join('')+`</table></div>`;
+    rows.map(([k,lb])=>{ const v=S[k]||{}; const fresh=T.start===(T.updated||'').slice(0,10); return `<tr><td class="l">${lb}</td><td>${v.n||0}</td>${fresh?'<td colspan="2" style="color:#98a2b3;text-align:center">오늘 기록 시작 — 내일부터 표시</td>':`<td class="${(v.ret||0)>=0?'pos':'neg'}">${v.n?pc(v.ret):'-'}</td><td>${v.n?v.win+'%':'-'}</td>`}<td>${v.n4w?pc(v.r4w)+` <span style="color:#98a2b3">(${v.n4w})</span>`:'<span style="color:#98a2b3">아직 없음</span>'}</td><td>${v.n13w?pc(v.r13w)+` <span style="color:#98a2b3">(${v.n13w})</span>`:'<span style="color:#98a2b3">아직 없음</span>'}</td></tr>`; }).join('')+`</table></div>`;
 }
 function watchH(W){
   const ok=v=>v?'<b style="color:#0e9f5a">✓</b>':'<span style="color:#d92d20">✗</span>';

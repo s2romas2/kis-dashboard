@@ -113,16 +113,24 @@ class TP(HTMLParser):
     def handle_data(self, data):
         if self.stack and self.stack[-1]['cell'] is not None: self.stack[-1]['cell']['t'] += data
 
+def _ctx():
+    """인증서·호스트명 검증은 그대로 두고, 암호 스위트만 OpenSSL 표준 목록(DEFAULT)으로 넓힘.
+    파이썬 기본 컨텍스트는 RSA 키교환·SHA1 MAC 스위트를 빼 두어서 구형 서버와 핸드셰이크가 실패하는 경우가 있음(curl·브라우저는 접속됨)"""
+    c = ssl.create_default_context()
+    try: c.set_ciphers('DEFAULT')
+    except Exception as e: log('cipher 설정 실패 %r' % e)
+    return c
+_CTX = _ctx()
 def fetch(o, page):
     url = BASE % (o, page)
     for attempt in range(3):
         try:
-            req = urllib.request.Request(url, headers=UA)
-            try: b = urllib.request.urlopen(req, timeout=30).read()
-            except ssl.SSLError: b = urllib.request.urlopen(req, timeout=30, context=ssl._create_unverified_context()).read()
-            return b.decode('cp949', 'replace')
+            b = urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=30, context=_CTX).read()
+            if len(b) > 2000: return b.decode('cp949', 'replace')
+            log('응답 짧음 %s p%d: %d bytes' % (o, page, len(b)))
         except Exception as e:
-            log('fetch 실패 %s p%d (%d): %r' % (o, page, attempt + 1, e)); time.sleep(3 + attempt * 3)
+            log('fetch 실패 %s p%d (%d): %r' % (o, page, attempt + 1, e))
+        time.sleep(3 + attempt * 3)
     return ''
 
 def norm(s): return re.sub(r'\s+', '', s or '')

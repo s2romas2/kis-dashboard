@@ -226,6 +226,12 @@ def main():
                 if c not in targets: targets[c] = c
         except Exception:
             pass
+    # 체급개선 목록(upgrade.json) 종목 포함 — 히스토리컬 PER 밴드용
+    try:
+        for it in json.load(open('public/data/upgrade.json', encoding='utf-8')).get('items') or []:
+            if it.get('code') and it['code'] not in targets: targets[it['code']] = it.get('name') or it['code']
+    except Exception:
+        pass
     # 시총 상위 300 추가 (stockvals 기반)
     try:
         sv = json.load(open('public/data/stockvals.json', encoding='utf-8'))['map']

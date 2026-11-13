@@ -21,20 +21,20 @@ def log(m):
 # ───────── 별표 공식 (페이지가 이 표를 그대로 읽어 '기준'으로 보여줌 — 여기만 고치면 됨)
 CFG = {
     'parts': [
-        {'k': 'band', 'label': '확정 공모가의 밴드 위치', 'max': 30, 'easy': '기관들이 "이 가격이면 산다"고 한 수준 — 밴드 꼭대기(또는 그 위)면 수요가 넘쳤다는 뜻, 밴드 아래로 깎였으면 안 팔렸다는 뜻',
-         'steps': [['상단 초과', 30], ['상단', 26], ['밴드 중간', 12], ['하단', 5], ['하단 미달', 0]]},
+        {'k': 'lock', 'label': '의무보유확약 비율', 'max': 35, 'easy': '기관이 "상장 후 일정 기간 안 팔겠다"고 약속한 물량 비율 — 높을수록 상장일에 쏟아질 물량이 적음. 과거 표본에서 상장일 성적과 가장 강하게 연결된 항목',
+         'steps': [[50, 35], [30, 28], [15, 21], [5, 13], [1, 5], [0, 0]]},
         {'k': 'inst', 'label': '기관 수요예측 경쟁률', 'max': 30, 'easy': '기관이 배정 물량의 몇 배를 달라고 했나 — 높을수록 상장일에 살 사람이 많음',
-         'steps': [[1000, 30], [700, 24], [400, 16], [200, 9], [50, 4], [0, 0]]},
-        {'k': 'lock', 'label': '의무보유확약 비율', 'max': 25, 'easy': '기관이 "상장 후 일정 기간 안 팔겠다"고 약속한 물량 비율 — 높을수록 상장일에 쏟아질 물량이 적음',
-         'steps': [[30, 25], [15, 19], [5, 12], [1, 5], [0, 0]]},
+         'steps': [[1200, 30], [1000, 26], [700, 20], [400, 16], [200, 6], [0, 0]]},
+        {'k': 'band', 'label': '확정 공모가의 밴드 위치', 'max': 20, 'easy': '기관들이 "이 가격이면 산다"고 한 수준 — 밴드 꼭대기(또는 그 위)면 수요가 넘쳤다는 뜻, 밴드 아래로 깎였으면 안 팔렸다는 뜻',
+         'steps': [['상단 초과', 20], ['상단', 18], ['밴드 중간', 8], ['하단', 3], ['하단 미달', 0]]},
         {'k': 'size', 'label': '공모 규모', 'max': 10, 'easy': '공모 금액이 작을수록 적은 돈으로도 주가가 움직임(수급이 가벼움)',
          'steps': [[0, 10], [300, 7], [500, 4], [1000, 2]]},   # 억원 이상 → 점수 (작을수록 높음)
-        {'k': 'temp', 'label': '공모주 시장 온도', 'max': 5, 'easy': '직전에 상장한 공모주 10개의 상장일 시초가 평균 — 시장이 뜨거우면 다 같이 오르고 식으면 다 같이 눌림',
+        {'k': 'temp', 'label': '공모주 시장 온도', 'max': 5, 'easy': '직전에 상장한 공모주 10개의 상장일 시초가 평균 — 시장이 뜨거우면 다 같이 오르고 식으면 다 같이 눌림(영향은 작아서 배점도 작음)',
          'steps': [[50, 5], [20, 3], [0, 1], [-999, 0]]},
     ],
-    'stars': [[78, 3], [58, 2], [38, 1], [0, 0]],          # 점수 이상 → 별 개수 (0 = ❌)
+    'stars': [[80, 3], [62, 2], [45, 1], [0, 0]],          # 점수 이상 → 별 개수 (0 = ❌)
     'hard': '확정 공모가가 희망밴드 하단보다 낮으면 점수와 무관하게 ❌ (기관이 가격을 깎아야만 팔린 공모)',
-    'note': '별표는 "상장일 수급 매력도"만 본다 — 기업가치·장기 주가와는 다른 문제. 스팩은 2,000원 원금 성격이라 별표 제외.',
+    'note': '별표는 "상장일 수급 매력도"만 본다 — 기업가치·장기 주가와는 다른 문제. 스팩은 2,000원 원금 성격이라 별표 제외. 배점·기준선은 2025.08 이후 상장 78개 표본의 상장일 성적에 맞춰 정했다(2026-11-13).',
 }
 
 def step_desc(pt, v):
@@ -44,43 +44,42 @@ def step_desc(pt, v):
     return 0, None
 
 def score(it, temp):
-    """수요예측 결과가 있어야 계산. 반환 {score, stars, hard, parts:[{k,pt,max,val,rule}]}"""
+    """수요예측 결과가 있어야 계산. 반환 {score, stars, hard, parts:[{k,pt,max,val,rule}]} — 배점은 전부 CFG에서 읽음"""
     if it.get('spac'): return None
     fix, lo, hi, inst = it.get('fix'), it.get('band_lo'), it.get('band_hi'), it.get('inst')
     if not fix or inst is None: return None
-    P = {p['k']: p for p in CFG['parts']}; parts = []; hard = False
-    # 1) 밴드 위치
-    if lo and hi:
-        if fix > hi: pt, val, rule = 30, '확정 %s원 > 상단 %s원' % (f'{fix:,}', f'{hi:,}'), '상단 초과'
-        elif fix == hi: pt, val, rule = 26, '확정 %s원 = 상단' % f'{fix:,}', '상단'
-        elif fix > lo: pt, val, rule = 12, '확정 %s원 (밴드 %s~%s 중간)' % (f'{fix:,}', f'{lo:,}', f'{hi:,}'), '밴드 중간'
-        elif fix == lo and hi > lo: pt, val, rule = 5, '확정 %s원 = 하단' % f'{fix:,}', '하단'
-        elif fix == lo: pt, val, rule = 26, '확정 %s원 (단일가)' % f'{fix:,}', '상단'
-        else: pt, val, rule, hard = 0, '확정 %s원 < 하단 %s원 (%.0f%% 할인)' % (f'{fix:,}', f'{lo:,}', (1 - fix / lo) * 100), '하단 미달', True
-    else: pt, val, rule = 12, '희망밴드 정보 없음 → 중간 점수', '밴드 중간'
-    parts.append({'k': 'band', 'pt': pt, 'max': 30, 'val': val, 'rule': rule})
-    # 2) 기관 경쟁률
-    pt, th = step_desc(P['inst'], inst)
-    parts.append({'k': 'inst', 'pt': pt, 'max': 30, 'val': '%s:1' % f'{inst:,.0f}', 'rule': '%s:1 이상' % f'{th:,}'})
-    # 3) 의무보유확약
+    P = {p['k']: p for p in CFG['parts']}; R = {}; hard = False
+    B = dict(P['band']['steps'])
+    # 확약
     lock = it.get('lock') or 0.0
     pt, th = step_desc(P['lock'], lock)
-    parts.append({'k': 'lock', 'pt': pt, 'max': 25, 'val': '%.2f%%%s' % (lock, ' (미기재 → 0%로 간주)' if it.get('lock') is None else ''), 'rule': '%s%% 이상' % th})
-    # 4) 공모 규모 (작을수록 높음)
-    amt = it.get('amt')
-    if amt is None: pt, val, rule = 4, '공모금액 정보 없음 → 중간 점수', '—'
+    R['lock'] = {'pt': pt, 'val': '%.2f%%%s' % (lock, ' (미기재 → 0%로 간주)' if it.get('lock') is None else ''), 'rule': ('%s%% 이상' % th) if th else '1% 미만'}
+    # 기관 경쟁률
+    pt, th = step_desc(P['inst'], inst)
+    R['inst'] = {'pt': pt, 'val': '%s:1' % f'{inst:,.0f}', 'rule': ('%s:1 이상' % f'{th:,}') if th else '200:1 미만'}
+    # 밴드 위치
+    if lo and hi:
+        if fix > hi: rule, val = '상단 초과', '확정 %s원 > 상단 %s원' % (f'{fix:,}', f'{hi:,}')
+        elif fix == hi: rule, val = '상단', '확정 %s원 = 밴드 상단' % f'{fix:,}'
+        elif fix > lo: rule, val = '밴드 중간', '확정 %s원 (밴드 %s~%s 중간)' % (f'{fix:,}', f'{lo:,}', f'{hi:,}')
+        elif fix == lo: rule, val = '하단', '확정 %s원 = 밴드 하단' % f'{fix:,}'
+        else: rule, val, hard = '하단 미달', '확정 %s원 < 하단 %s원 (%.0f%% 할인)' % (f'{fix:,}', f'{lo:,}', (1 - fix / lo) * 100), True
+    else: rule, val = '밴드 중간', '희망밴드 정보 없음 → 중간 점수'
+    R['band'] = {'pt': B[rule], 'val': val, 'rule': rule}
+    # 공모 규모 (작을수록 높음)
+    amt = it.get('amt'); st = P['size']['steps']
+    if amt is None: R['size'] = {'pt': st[2][1], 'val': '공모금액 정보 없음 → 중간 점수', 'rule': '—'}
     else:
-        pt = 10; rule = '300억 미만'
-        for th, p in P['size']['steps']:
-            if amt >= th: pt = p; rule = ('%s억 이상' % f'{th:,}') if th else '300억 미만'
-        val = '%s억' % f'{amt:,.0f}'
-    parts.append({'k': 'size', 'pt': pt, 'max': 10, 'val': val, 'rule': rule})
-    # 5) 시장 온도
-    if temp is None: pt, val, rule = 1, '직전 상장 표본 부족', '—'
+        pt, rule = st[0][1], '%s억 미만' % f'{st[1][0]:,}'
+        for th, p in st:
+            if amt >= th and th: pt, rule = p, '%s억 이상' % f'{th:,}'
+        R['size'] = {'pt': pt, 'val': '%s억' % f'{amt:,.0f}', 'rule': rule}
+    # 시장 온도
+    if temp is None: R['temp'] = {'pt': 1, 'val': '직전 상장 표본 부족', 'rule': '—'}
     else:
         pt, th = step_desc(P['temp'], temp['avg'])
-        val = '직전 %d개 시초가 평균 %+.1f%%' % (temp['n'], temp['avg']); rule = ('%+d%% 이상' % th) if th > -900 else '0% 미만'
-    parts.append({'k': 'temp', 'pt': pt, 'max': 5, 'val': val, 'rule': rule})
+        R['temp'] = {'pt': pt, 'val': '직전 %d개 시초가 평균 %+.1f%%' % (temp['n'], temp['avg']), 'rule': ('%+d%% 이상' % th) if th > -900 else '0% 미만'}
+    parts = [dict(k=p['k'], max=p['max'], **R[p['k']]) for p in CFG['parts']]
     sc = sum(p['pt'] for p in parts)
     stars = 0
     for th, n in CFG['stars']:
@@ -316,6 +315,11 @@ def main():
         ro = sorted(x['r_open'] for x in g); rc = [x['r_close'] for x in g if x.get('r_close') is not None]
         bt.append({'stars': st, 'n': len(g), 'open_avg': round(sum(ro) / len(ro), 1), 'open_med': ro[len(ro) // 2], 'close_avg': round(sum(rc) / len(rc), 1) if rc else None,
                    'win': round(sum(1 for v in ro if v > 0) / len(ro) * 100), 'loss': round(sum(1 for v in ro if v < 0) / len(ro) * 100), 'worst': ro[0], 'best': ro[-1]})
+    # 청약 마감 후 참고: 일반청약 경쟁률 구간별 상장일 성적 (청약 결정에는 못 쓰지만 상장일 매도 판단에 참고)
+    cbt = []
+    for lo, hi in [(0, 100), (100, 500), (500, 1000), (1000, 1500), (1500, 10 ** 9)]:
+        g = sorted(x['r_open'] for x in listed if x.get('sub_comp') is not None and lo <= x['sub_comp'] < hi)
+        if g: cbt.append({'lo': lo, 'hi': hi if hi < 10 ** 9 else None, 'n': len(g), 'open_avg': round(sum(g) / len(g), 1), 'open_med': g[len(g) // 2], 'win': round(sum(1 for v in g if v > 0) / len(g) * 100), 'loss': round(sum(1 for v in g if v < 0) / len(g) * 100)})
     items.sort(key=lambda x: (x.get('sub_s') or x.get('fc_s') or x.get('list') or ''), reverse=True)
     items = items[:500]
     cur_t = temp_at(TODAY.isoformat())
@@ -323,7 +327,7 @@ def main():
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     json.dump({'updated': datetime.datetime.now(KST).strftime('%Y-%m-%d %H:%M'), 'source': '38커뮤니케이션 공개 목록(공모청약일정·수요예측결과·수요예측일정·신규상장)',
                'src_urls': {'청약일정': BASE % ('k', 1), '수요예측결과': BASE % ('r1', 1), '수요예측일정': BASE % ('r', 1), '신규상장': BASE % ('nw', 1)},
-               'formula': CFG, 'temp': cur_t, 'last10': last10, 'backtest': bt, 'n_listed': len(listed), 'bt_from': listed[0]['list'] if listed else None,
+               'formula': CFG, 'temp': cur_t, 'last10': last10, 'backtest': bt, 'comp_bt': cbt, 'n_listed': len(listed), 'bt_from': listed[0]['list'] if listed else None,
                'items': items, 'debug': DEBUG}, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
     log('저장 %s %d종목 · 상장 표본 %d · 별표 %d' % (OUT, len(items), len(listed), sum(1 for x in items if x.get('score') is not None)))
     for b in bt: log('BT %s' % b)

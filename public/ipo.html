@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>공모주 캘린더 — 청약·상장 일정 + 청약매력도 별표</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; background:#f4f6fa; color:#1a1f2e; }
+.wrap { max-width:1240px; margin:0 auto; padding:18px 14px 80px; }
+h1 { font-size:22px; margin:10px 0 4px; }
+h2 { font-size:15.5px; margin:22px 0 8px; color:#1a2a4a; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+h2 small, h3 small { font-weight:400; color:#667085; font-size:12px; }
+.sub { color:#667085; font-size:12.5px; margin-bottom:10px; line-height:1.6; }
+.card { background:#fff; border:1px solid #e4e7ec; border-radius:12px; padding:12px 14px; margin-bottom:12px; font-size:12.5px; line-height:1.7; }
+.card h3 { font-size:13px; color:#1a2a4a; margin-bottom:6px; }
+.easy { background:#f0f9ff; color:#075985; border-left:3px solid #38bdf8; padding:4px 10px; font-size:12px; margin:2px 0 8px; border-radius:0 8px 8px 0; line-height:1.6; }
+table { width:100%; border-collapse:collapse; background:#fff; font-size:12.5px; }
+th, td { padding:7px 8px; border-bottom:1px solid #eef0f4; text-align:right; white-space:nowrap; }
+th { background:#f8fafc; color:#475467; font-size:11.5px; }
+td.l, th.l { text-align:left; } td.w { white-space:normal; }
+.tw { overflow-x:auto; border:1px solid #e4e7ec; border-radius:10px; }
+tr.row { cursor:pointer; } tr.row:hover td { background:#f8fbff; } tr.on td { background:#eef4ff; }
+.mini { font-size:11px; color:#667085; }
+.pos { color:#d92d20; font-weight:700; } .neg { color:#1d4ed8; font-weight:700; }
+.st { font-weight:800; white-space:nowrap; } .st.x { color:#b42318; } .st.n { color:#98a2b3; font-weight:600; font-size:11px; } .st.sp { color:#667085; font-weight:600; font-size:11px; }
+.tag { display:inline-block; font-size:10.5px; padding:1px 6px; border-radius:8px; font-weight:800; }
+.tg-top { background:#dcfce7; color:#15803d; } .tg-over { background:#bbf7d0; color:#14532d; } .tg-mid { background:#fef3c7; color:#b45309; } .tg-lo { background:#fee2e2; color:#b42318; } .tg-und { background:#b42318; color:#fff; } .tg-hope { background:#e4e7ec; color:#667085; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:12px; }
+.ch { position:relative; height:250px; }
+a.lk { color:#1d4ed8; text-decoration:none; font-weight:700; } a.lk:hover { text-decoration:underline; }
+button.b { border:1.5px solid #d7dce6; background:#fff; border-radius:20px; padding:5px 12px; font:inherit; font-size:12.5px; font-weight:700; color:#475467; cursor:pointer; }
+button.b.on { background:#1a2a4a; border-color:#1a2a4a; color:#fff; }
+.note { background:#fff7e8; border:1px solid #f5d9a8; border-radius:10px; padding:10px 14px; font-size:12px; color:#7a5b1e; margin-top:12px; line-height:1.6; }
+/* 달력 */
+.cal { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; }
+.cal .hd { text-align:center; font-size:11.5px; color:#667085; font-weight:700; padding:2px 0; }
+.cal .day { background:#fff; border:1px solid #e4e7ec; border-radius:10px; min-height:92px; padding:5px 6px; }
+.cal .day.out { background:#f8fafc; opacity:.55; } .cal .day.today { border:2px solid #2f6df6; }
+.cal .dn { font-size:11.5px; font-weight:800; color:#475467; margin-bottom:3px; display:flex; justify-content:space-between; }
+.chip { display:block; font-size:11px; line-height:1.35; padding:2px 5px; border-radius:6px; margin-bottom:3px; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.chip.sub { background:#eaf1ff; color:#1e40af; } .chip.lst { background:#e8f8ee; color:#166534; } .chip.fc { background:#f1f3f6; color:#667085; }
+.chip:hover { filter:brightness(.95); }
+.legend span { display:inline-block; font-size:11px; padding:1px 7px; border-radius:6px; margin-right:6px; }
+/* 근거 패널 */
+.pbar { position:relative; height:14px; background:#eef0f4; border-radius:7px; min-width:110px; } .pbar i { position:absolute; left:0; top:0; height:100%; border-radius:7px; background:#2f6df6; }
+.big { font-size:26px; font-weight:900; } .kpi { display:flex; gap:18px; flex-wrap:wrap; align-items:flex-end; margin-bottom:8px; }
+.kpi div span { display:block; font-size:11px; color:#667085; }
+@media (max-width:800px){ th,td{padding:5px 5px;font-size:11.5px} .cal .day{min-height:70px;padding:3px} .chip{font-size:10px;padding:1px 3px} }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
+<script src="/nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<h1>🎟️ 공모주 캘린더 — 청약·상장 일정 + 청약매력도 별표</h1>
+<div class="sub" id="upd">불러오는 중…</div>
+<div class="easy">쉬운 말: 별표는 "이 공모주를 청약하면 <b>상장 첫날</b> 수급이 좋을 가능성"을 숫자 5개로 채점한 것입니다. 왜 그 별인지는 종목을 누르면 점수표와 출처가 나옵니다. ❌ 넘어갈 것 · ⭐ 애매 · ⭐⭐ 양호 · ⭐⭐⭐ 매력적 — 기업이 좋은지(장기 가치)는 이 별과 다른 문제입니다.</div>
+
+<h2>🌡️ 공모주 온도 <small>최근 상장한 일반기업 10개가 상장일에 어땠나 (스팩·리츠 제외)</small></h2>
+<div class="grid">
+  <div class="card"><div class="kpi" id="tempKpi"></div><div class="easy" id="tempEasy"></div><div class="ch"><canvas id="cT"></canvas></div><div class="mini">막대 = 공모가 대비 상장일 시초가(진한 색)·첫날 종가(연한 색) 수익률. 시초가에 팔았을 때와 종가까지 들고 있었을 때의 차이를 보라는 뜻.</div></div>
+  <div class="card"><h3>별표는 믿을 만한가 — 검증 <small id="btSub"></small></h3><div class="easy" id="btEasy"></div><div class="tw"><table id="btT"></table></div><div class="ch" style="height:190px;margin-top:8px"><canvas id="cB"></canvas></div><div class="mini" id="btNote"></div></div>
+</div>
+
+<h2>📅 공모주 달력 <span style="flex:1"></span><button class="b" id="mPrev">◀</button> <span id="mTitle" style="font-size:14px"></span> <button class="b" id="mNext">▶</button> <button class="b" id="mToday">오늘</button></h2>
+<div class="legend mini" style="margin-bottom:6px"><span class="chip sub" style="display:inline-block">청약</span><span class="chip lst" style="display:inline-block">상장</span><span class="chip fc" style="display:inline-block">수요예측</span> 칩을 누르면 아래에 근거가 열립니다</div>
+<div class="cal" id="cal"></div>
+
+<div id="detail"></div>
+
+<h2>🟢 청약 진행중 <small>지금 일반 청약을 받는 종목</small></h2>
+<div class="tw"><table id="tLive"></table></div>
+<h2>🔵 청약 예정 — 수요예측 완료 <small>공모가가 확정돼 별표가 매겨진 종목</small></h2>
+<div class="tw"><table id="tSoon"></table></div>
+<h2>⏳ 청약 마감 · 상장 대기 <small>청약은 끝났고 상장일을 기다리는 종목</small></h2>
+<div class="easy" id="compEasy" style="display:none"></div>
+<div class="tw"><table id="tWait"></table></div>
+<h2>⚪ 다가오는 공모주 — 수요예측 전 <small>아직 기관 수요예측 결과가 없어 별표를 매길 수 없는 종목</small></h2>
+<div class="tw"><table id="tUp"></table></div>
+
+<h2>📐 별표 공식 <small>점수 100점 만점 — 이 표가 곧 채점 기준(수집기와 같은 값)</small></h2>
+<div class="card"><div class="easy">쉬운 말: ① 기관이 가격을 어디에 정했나 ② 기관이 얼마나 몰렸나 ③ 기관이 얼마나 "안 팔겠다"고 약속했나 ④ 공모 덩치가 가벼운가 ⑤ 요즘 공모주 시장이 뜨거운가 — 다섯 가지를 더합니다.</div><div class="tw"><table id="fT"></table></div><div id="fNote" class="mini" style="margin-top:6px"></div></div>
+
+<h2>🏁 상장 성적표 <small>공모가 대비 상장일 시초가·첫날 종가 · 행을 누르면 근거</small> <span style="flex:1"></span><button class="b on" data-f="all">전체</button><button class="b" data-f="3">⭐⭐⭐</button><button class="b" data-f="2">⭐⭐</button><button class="b" data-f="1">⭐</button><button class="b" data-f="0">❌</button><button class="b" data-f="sp">스팩</button></h2>
+<div class="tw"><table id="tDone"></table></div>
+
+<div class="note">⚠️ 이 페이지는 공개된 공모 정보를 정리하고 정해진 공식으로 채점한 참고 자료이며 투자 권유가 아닙니다. 별표는 과거 표본에 맞춘 기준이라 앞으로도 맞는다는 보장이 없고, 의무보유확약·유통가능물량·기업가치는 증권신고서(투자설명서) 원문에서 반드시 확인하세요. 최소 증거금은 "10주 · 증거금률 50%" 가정값으로, 실제 최소 청약 수량은 증권사마다 다릅니다(10~50주).</div>
+</div>
+<script>
+let D=null, CH={}, CUR=null, MON=null, FILT='all';
+const TODAY=new Date(Date.now()+9*3600e3).toISOString().slice(0,10);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const f0=v=>v==null?'—':Math.round(v).toLocaleString(), f1=v=>v==null?'—':Number(v).toFixed(1);
+const fp=v=>v==null?'—':(v>0?'+':'')+Number(v).toFixed(1)+'%';
+const pc=v=>v==null?'':(v>0?'pos':v<0?'neg':'');
+const md=s=>s?(+s.slice(5,7))+'.'+s.slice(8,10):'—';
+const nm=it=>esc((it.name||'').replace('(유가)',''));
+function starH(it){ if(it.spac) return '<span class="st sp">스팩</span>'; if(it.score==null) return '<span class="st n">수요예측 전</span>'; return it.stars?`<span class="st" title="${it.score}점">${'⭐'.repeat(it.stars)}</span>`:`<span class="st x" title="${it.score}점${it.hard?' · 밴드 하단 미달':''}">❌</span>`; }
+function starT(it){ if(it.spac||it.score==null) return ''; return it.stars?'⭐'.repeat(it.stars):'❌'; }
+function bandTag(it){ const f=it.fix, lo=it.band_lo, hi=it.band_hi; if(!f) return '<span class="tag tg-hope">희망</span>'; if(!lo||!hi) return '<span class="tag tg-hope">확정</span>'; if(f>hi) return '<span class="tag tg-over">상단 초과</span>'; if(f===hi) return '<span class="tag tg-top">상단</span>'; if(f>lo) return '<span class="tag tg-mid">중간</span>'; if(f===lo) return '<span class="tag tg-lo">하단</span>'; return '<span class="tag tg-und">하단 미달</span>'; }
+function priceH(it){ return it.fix?`<b>${f0(it.fix)}원</b> ${bandTag(it)}<br><span class="mini">밴드 ${it.band_lo?f0(it.band_lo)+'~'+f0(it.band_hi):'—'}</span>`:`${it.band_lo?f0(it.band_lo)+' ~ '+f0(it.band_hi)+'원':'—'} ${bandTag(it)}`; }
+function stage(it){ const s=it.sub_s, e=it.sub_e, l=it.list;
+  if(l&&l<=TODAY&&(it.open||l<TODAY)) return 'done';
+  if(s&&e&&s<=TODAY&&TODAY<=e) return 'live';
+  if(e&&e<TODAY){ if(l&&l<TODAY) return 'done'; const ago=(new Date(TODAY)-new Date(e))/864e5; return (l||ago<=30)?'wait':'old'; }  // 상장일 없이 30일 넘게 지난 건 철회·수집범위 밖
+  if(s&&s>TODAY) return it.inst!=null&&it.fix?'soon':'up';
+  if(!s&&it.fc_s&&it.fc_s>=TODAY) return 'up';
+  return 'old'; }
+function minDep(it){ const p=it.fix||it.band_hi; return p?f0(p*10*0.5)+'원':'—'; }
+function rowH(it, cols){ return `<tr class="row${CUR===it.no?' on':''}" data-no="${it.no}">${cols.map(c=>c(it)).join('')}</tr>`; }
+const C={
+  name:it=>`<td class="l"><b>${nm(it)}</b> <span class="mini">${it.mkt||''}</span></td>`,
+  star:it=>`<td class="l">${starH(it)}${it.score!=null?` <span class="mini">${it.score}점</span>`:''}</td>`,
+  sub:it=>`<td>${it.sub_s?md(it.sub_s)+' ~ '+md(it.sub_e):'—'}</td>`,
+  price:it=>`<td>${priceH(it)}</td>`,
+  inst:it=>`<td>${it.inst!=null?f0(it.inst)+':1':'<span class="mini">미정</span>'}</td>`,
+  lock:it=>`<td>${it.inst!=null?(it.lock!=null?f1(it.lock)+'%':'<span class="mini">미기재(0%)</span>'):'<span class="mini">미정</span>'}</td>`,
+  amt:it=>`<td>${it.amt!=null?f0(it.amt)+'억':(it.amt_plan!=null?'<span class="mini">(예정)</span> '+f0(it.amt_plan)+'억':'—')}</td>`,
+  dep:it=>`<td>${minDep(it)}${it.fix?'':' <span class="mini">(상단 기준)</span>'}</td>`,
+  comp:it=>`<td>${it.sub_comp!=null?f0(it.sub_comp)+':1':'<span class="mini">—</span>'}</td>`,
+  list:it=>`<td>${it.list?md(it.list):'<span class="mini">미정</span>'}</td>`,
+  fc:it=>`<td>${it.fc_s?md(it.fc_s)+(it.fc_e&&it.fc_e!==it.fc_s?' ~ '+md(it.fc_e):''):'<span class="mini">미정</span>'}</td>`,
+  lead:it=>`<td class="l w" style="min-width:110px">${esc(it.lead||'—')}</td>`,
+};
+const HD={name:'<th class="l">종목</th>',star:'<th class="l">청약매력도</th>',sub:'<th>청약일</th>',price:'<th>공모가</th>',inst:'<th>기관 경쟁률</th>',lock:'<th>의무확약</th>',amt:'<th>공모금액</th>',dep:'<th>최소 증거금<br><span class="mini">10주·50% 가정</span></th>',comp:'<th>일반청약 경쟁률</th>',list:'<th>상장일</th>',fc:'<th>수요예측일</th>',lead:'<th class="l">주관사</th>'};
+function tbl(id, list, keys, empty){ document.getElementById(id).innerHTML='<tr>'+keys.map(k=>HD[k]).join('')+'</tr>'+(list.length?list.map(it=>rowH(it,keys.map(k=>C[k]))).join(''):`<tr><td class="l mini" colspan="${keys.length}" style="padding:14px">${empty}</td></tr>`); }
+
+function renderTables(){
+  const by={live:[],soon:[],wait:[],up:[],done:[]}; for(const it of D.items){ const s=stage(it); if(by[s]) by[s].push(it); }
+  const asc=(a,b)=>(a.sub_s||a.fc_s||'9').localeCompare(b.sub_s||b.fc_s||'9');
+  tbl('tLive', by.live.sort(asc), ['name','star','sub','price','inst','lock','amt','dep','list','lead'], '지금 청약 중인 종목이 없습니다');
+  tbl('tSoon', by.soon.sort(asc), ['name','star','sub','price','inst','lock','amt','dep','list','lead'], '수요예측이 끝나고 청약을 기다리는 종목이 없습니다');
+  tbl('tWait', by.wait.sort((a,b)=>(a.list||'9').localeCompare(b.list||'9')), ['name','star','list','price','inst','lock','comp','amt','lead'], '상장 대기 종목이 없습니다');
+  tbl('tUp', by.up.sort(asc), ['name','star','fc','sub','price','amt','dep','lead'], '예정 종목이 없습니다');
+  // 성적표
+  let done=by.done.filter(it=>it.list).sort((a,b)=>b.list.localeCompare(a.list));
+  if(FILT==='sp') done=done.filter(it=>it.spac); else if(FILT!=='all') done=done.filter(it=>!it.spac&&it.stars===+FILT&&it.score!=null);
+  document.getElementById('tDone').innerHTML='<tr><th>상장일</th><th class="l">종목</th><th class="l">별표</th><th>공모가</th><th>시초가</th><th>시초 수익률</th><th>첫날 종가</th><th>종가 수익률</th><th>현재가</th><th>공모가 대비</th><th>기관 경쟁률</th><th>의무확약</th><th>일반청약</th></tr>'+
+    (done.length?done.slice(0,150).map(it=>`<tr class="row${CUR===it.no?' on':''}" data-no="${it.no}"><td>${it.list.slice(2).replace(/-/g,'.')}</td><td class="l"><b>${nm(it)}</b> <span class="mini">${it.mkt}</span></td><td class="l">${starH(it)}${it.score!=null?` <span class="mini">${it.score}</span>`:''}</td><td>${f0(it.fix)} ${it.spac?'':bandTag(it)}</td><td>${f0(it.open)}</td><td class="${pc(it.r_open)}">${fp(it.r_open)}</td><td>${f0(it.close1)}</td><td class="${pc(it.r_close)}">${fp(it.r_close)}</td><td>${f0(it.cur)}</td><td class="${pc(it.cur&&it.fix?it.cur/it.fix-1:null)}">${it.cur&&it.fix?fp((it.cur/it.fix-1)*100):'—'}</td><td>${it.inst!=null?f0(it.inst)+':1':'—'}</td><td>${it.lock!=null?f1(it.lock)+'%':'—'}</td><td>${it.sub_comp!=null?f0(it.sub_comp)+':1':'—'}</td></tr>`).join(''):'<tr><td class="l mini" colspan="13" style="padding:14px">해당 종목 없음</td></tr>');
+  document.querySelectorAll('tr.row').forEach(tr=>tr.onclick=()=>openDetail(tr.dataset.no, true));
+}
+
+function openDetail(no, scroll){
+  CUR=no; const it=D.items.find(x=>x.no===no); const el=document.getElementById('detail'); if(!it){ el.innerHTML=''; return; }
+  const F=D.formula, P={}; F.parts.forEach(p=>P[p.k]=p);
+  let h=`<h2>🔎 ${nm(it)} — 왜 이 별인가 <small>${it.mkt}${it.code?' · '+esc(it.code):''}</small> <span style="flex:1"></span><button class="b" id="dClose">닫기 ✕</button></h2><div class="card">`;
+  h+=`<div class="kpi"><div><span>청약매력도</span><div class="big">${it.spac?'스팩':it.score==null?'—':(it.stars?'⭐'.repeat(it.stars):'❌')}</div></div>
+    <div><span>점수</span><div class="big">${it.score!=null?it.score:'—'}<span style="font-size:13px;color:#667085"> / 100</span></div></div>
+    <div><span>청약일</span><b>${it.sub_s?md(it.sub_s)+' ~ '+md(it.sub_e):'미정'}</b></div><div><span>상장일</span><b>${it.list?md(it.list):'미정'}</b></div>
+    <div><span>공모가</span><b>${it.fix?f0(it.fix)+'원':(it.band_lo?f0(it.band_lo)+'~'+f0(it.band_hi)+'원(희망)':'—')}</b></div><div><span>주관사</span><b>${esc(it.lead||'—')}</b></div>
+    ${it.r_open!=null?`<div><span>상장일 시초가</span><b class="${pc(it.r_open)}">${fp(it.r_open)}</b></div><div><span>첫날 종가</span><b class="${pc(it.r_close)}">${fp(it.r_close)}</b></div>`:''}</div>`;
+  if(it.spac) h+=`<div class="easy">쉬운 말: 스팩은 회사가 아니라 "합병용 빈 껍데기"라 공모가 2,000원 근처가 원금처럼 받쳐집니다. 상장일에 잠깐 튀는 경우가 있지만 기업 수요예측과 성격이 달라 별표를 매기지 않습니다.</div>`;
+  else if(it.score==null) h+=`<div class="easy">쉬운 말: 아직 기관 수요예측 결과(경쟁률·확약·확정 공모가)가 나오지 않아 채점할 수 없습니다. 수요예측일 ${it.fc_s?md(it.fc_s):'미정'} 이후 저녁 수집 때 별표가 붙습니다.</div>`;
+  else {
+    const top=[...it.parts].sort((a,b)=>(b.pt/b.max)-(a.pt/a.max)), best=top[0], worst=top[top.length-1];
+    h+=`<div class="easy">쉬운 말: ${it.hard?`<b>확정 공모가가 희망밴드 하단보다 낮게 정해져</b> 점수와 상관없이 ❌ — 기관이 가격을 깎아야만 받아준 공모입니다.`:`100점 중 <b>${it.score}점</b>. 가장 좋은 점은 "${P[best.k].label}"(${best.pt}/${best.max}), 가장 약한 점은 "${P[worst.k].label}"(${worst.pt}/${worst.max}).`}</div>`;
+    h+=`<div class="tw"><table><tr><th class="l">채점 항목</th><th class="l">이 종목의 값</th><th>점수</th><th class="l" style="min-width:120px"></th><th class="l">적용 구간</th><th class="l">쉬운 말</th></tr>`+
+      it.parts.map(p=>`<tr><td class="l"><b>${esc(P[p.k].label)}</b></td><td class="l">${esc(p.val)}</td><td><b>${p.pt}</b> / ${p.max}</td><td class="l"><div class="pbar"><i style="width:${p.pt/p.max*100}%;background:${p.pt/p.max>=.7?'#16a34a':p.pt/p.max>=.35?'#f59e0b':'#dc2626'}"></i></div></td><td class="l">${esc(p.rule)}</td><td class="l w mini" style="max-width:340px">${esc(P[p.k].easy)}</td></tr>`).join('')+
+      `<tr><td class="l"><b>합계</b></td><td></td><td><b>${it.score}</b> / 100</td><td colspan="3" class="l mini">${F.stars.map(([th,n])=>n?`${'⭐'.repeat(n)} ${th}점↑`:'❌ 그 미만').join(' · ')}${it.hard?' · <b style="color:#b42318">하단 미달 → ❌ 고정</b>':''}</td></tr></table></div>`;
+  }
+  h+=`<div class="mini" style="margin-top:8px">출처: <a class="lk" href="${esc(it.url)}" target="_blank" rel="noopener">38커뮤니케이션 종목 상세</a> · <a class="lk" href="https://dart.fss.or.kr/dsab007/main.do?option=corp&textCrpNm=${encodeURIComponent((it.name||'').replace(/\(.*?\)/g,''))}" target="_blank" rel="noopener">DART 증권신고서·투자설명서</a>${it.code&&/^\d{6}$/.test(it.code)?` · <a class="lk" href="https://finance.naver.com/item/main.naver?code=${it.code}" target="_blank" rel="noopener">네이버 증권</a>`:''} · 수요예측일 ${it.fc_s?md(it.fc_s):'—'} · 공모금액 ${it.amt!=null?f0(it.amt)+'억':'—'} · 일반청약 경쟁률 ${it.sub_comp!=null?f0(it.sub_comp)+':1':'—'}${it.temp?` · 채점 당시 시장 온도 ${fp(it.temp.avg)}`:''}</div></div>`;
+  el.innerHTML=h; document.getElementById('dClose').onclick=()=>{ CUR=null; el.innerHTML=''; renderTables(); };
+  renderTables(); if(scroll) el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function renderCal(){
+  const y=MON.getFullYear(), m=MON.getMonth(); document.getElementById('mTitle').innerHTML=`<b>${y}년 ${m+1}월</b>`;
+  const ev={}; const add=(d,o)=>{ (ev[d]=ev[d]||[]).push(o); };
+  const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  for(const it of D.items){
+    if(it.sub_s){ let d=new Date(it.sub_s+'T00:00:00'), e=new Date((it.sub_e||it.sub_s)+'T00:00:00'), n=0; while(d<=e&&n++<10){ add(iso(d),{t:'sub',it}); d.setDate(d.getDate()+1); } }
+    if(it.list) add(it.list,{t:'lst',it});
+    if(it.fc_s&&it.fc_s>=TODAY&&it.inst==null) add(it.fc_s,{t:'fc',it});
+  }
+  const first=new Date(y,m,1); let d=new Date(first); const dow=(d.getDay()+6)%7; d.setDate(d.getDate()-dow);
+  let h=['월','화','수','목','금'].map(x=>`<div class="hd">${x}</div>`).join('');
+  for(let w=0;w<6;w++){ let rowHas=false, row='';
+    for(let i=0;i<7;i++){ const k=iso(d); if(i<5){ const inM=d.getMonth()===m; if(inM) rowHas=true; const L=(ev[k]||[]).sort((a,b)=>({lst:0,sub:1,fc:2}[a.t]-{lst:0,sub:1,fc:2}[b.t]));
+        row+=`<div class="day${inM?'':' out'}${k===TODAY?' today':''}"><div class="dn"><span>${d.getDate()}</span>${L.length?`<span class="mini">${L.length}</span>`:''}</div>${L.map(e=>`<span class="chip ${e.t}" data-no="${e.it.no}" title="${nm(e.it)}">${e.t==='sub'?'청약':e.t==='lst'?'상장':'수요예측'}) ${nm(e.it)} ${starT(e.it)}</span>`).join('')}</div>`; }
+      d.setDate(d.getDate()+1); }
+    if(rowHas) h+=row; }
+  const el=document.getElementById('cal'); el.innerHTML=h; el.querySelectorAll('.chip').forEach(c=>c.onclick=()=>openDetail(c.dataset.no,true));
+}
+
+function mk(id,cfg){ if(CH[id]) CH[id].destroy(); CH[id]=new Chart(document.getElementById(id).getContext('2d'),cfg); }
+function renderTemp(){
+  const L=D.last10||[]; const avgO=L.length?L.reduce((s,x)=>s+x.r_open,0)/L.length:null; const rc=L.filter(x=>x.r_close!=null); const avgC=rc.length?rc.reduce((s,x)=>s+x.r_close,0)/rc.length:null; const win=L.filter(x=>x.r_open>0).length;
+  const mood=avgO==null?'—':avgO>=50?'🔥 뜨거움':avgO>=20?'🙂 따뜻함':avgO>=0?'😐 미지근':'🥶 차가움';
+  document.getElementById('tempKpi').innerHTML=`<div><span>시장 온도</span><div class="big">${mood}</div></div><div><span>평균 시초가 수익률</span><div class="big ${pc(avgO)}">${fp(avgO)}</div></div><div><span>평균 첫날 종가 수익률</span><div class="big ${pc(avgC)}">${fp(avgC)}</div></div><div><span>시초가가 공모가 위</span><div class="big">${win}<span style="font-size:13px;color:#667085"> / ${L.length}</span></div></div>`;
+  document.getElementById('tempEasy').innerHTML=avgO==null?'표본 부족':`쉬운 말: 최근 10개를 공모가에 받아 <b>상장일 시초가에 팔았다면 평균 ${fp(avgO)}</b>, 종가까지 들고 있었다면 평균 ${fp(avgC)}. ${avgC!=null&&avgO-avgC>10?'시초가 이후 밀리는 흐름이라 "받으면 시초가 근처 매도"가 유리했던 시기':avgC!=null&&avgC-avgO>10?'시초가 이후 더 오르는 흐름':'시초가와 종가 차이가 크지 않은 시기'}.`;
+  mk('cT',{type:'bar',data:{labels:L.map(x=>[(x.name||'').replace(/\(.*?\)/g,'').slice(0,9), (x.stars==null?'':(x.stars?'⭐'.repeat(x.stars):'❌'))+' '+md(x.list)]),datasets:[{label:'시초가',data:L.map(x=>x.r_open),backgroundColor:L.map(x=>x.r_open>=0?'#ef4444':'#3b82f6')},{label:'첫날 종가',data:L.map(x=>x.r_close),backgroundColor:L.map(x=>(x.r_close||0)>=0?'#fca5a5':'#93c5fd')}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:11}}},tooltip:{callbacks:{label:c=>c.dataset.label+' '+fp(c.raw)}}},scales:{x:{ticks:{font:{size:9.5},maxRotation:0,autoSkip:false}},y:{ticks:{font:{size:10},callback:v=>v+'%'}}},onClick:(e,els)=>{ if(els.length) openDetail(L[els[0].index].no,true); }}});
+}
+function renderBT(){
+  const B=D.backtest||[]; const tot=B.reduce((s,b)=>s+(b.n||0),0);
+  document.getElementById('btSub').textContent=`별표가 붙은 상장 종목 ${tot}개 · ${D.bt_from?D.bt_from.slice(0,7).replace('-','.')+' ~':''}`;
+  document.getElementById('btT').innerHTML='<tr><th class="l">별표</th><th>종목 수</th><th>평균 시초 수익률</th><th>중앙값</th><th>평균 종가 수익률</th><th>시초가 &gt; 공모가</th><th>시초가 &lt; 공모가</th><th>최악 ~ 최고</th></tr>'+B.map(b=>`<tr><td class="l st${b.stars?'':' x'}">${b.stars?'⭐'.repeat(b.stars):'❌'}</td><td>${b.n}</td>${b.n?`<td class="${pc(b.open_avg)}">${fp(b.open_avg)}</td><td class="${pc(b.open_med)}">${fp(b.open_med)}</td><td class="${pc(b.close_avg)}">${fp(b.close_avg)}</td><td>${b.win}%</td><td>${b.loss}%</td><td class="mini">${fp(b.worst)} ~ ${fp(b.best)}</td>`:'<td colspan="6" class="mini">표본 없음</td>'}</tr>`).join('');
+  const v=B.filter(b=>b.n); const mono=v.length>=2&&v.every((b,i)=>i===0||b.open_avg<=v[i-1].open_avg);
+  const hi=v.find(b=>b.stars>=2), lo=v.find(b=>b.stars===0);
+  document.getElementById('btEasy').innerHTML=v.length<2?'쉬운 말: 아직 표본이 적어 검증 불가':`쉬운 말: ${mono?'별이 많을수록 상장일 성적이 좋았습니다':'별 순서와 성적 순서가 완전히 일치하지는 않습니다(표 참고)'}${hi&&lo?` — ${'⭐'.repeat(hi.stars)}는 평균 ${fp(hi.open_avg)}·공모가 위 출발 ${hi.win}%, ❌는 평균 ${fp(lo.open_avg)}·공모가 아래 출발 ${lo.loss}%`:''}.`;
+  document.getElementById('btNote').innerHTML='주의: 채점 기준선을 이 표본을 보고 정했기 때문에(사후 맞춤) 실제보다 좋게 보일 수 있습니다. 진짜 검증은 앞으로 상장하는 종목 — 이 표는 수집 때마다 다시 계산됩니다.';
+  mk('cB',{type:'bar',data:{labels:B.map(b=>(b.stars?'⭐'.repeat(b.stars):'❌')+` (${b.n})`),datasets:[{label:'평균 시초 수익률',data:B.map(b=>b.open_avg),backgroundColor:'#ef4444'},{label:'평균 첫날 종가 수익률',data:B.map(b=>b.close_avg),backgroundColor:'#fca5a5'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:11}}},tooltip:{callbacks:{label:c=>c.dataset.label+' '+fp(c.raw)}}},scales:{y:{ticks:{font:{size:10},callback:v=>v+'%'}},x:{ticks:{font:{size:11}}}}}});
+}
+function renderComp(){
+  const B=D.comp_bt||[]; if(B.length<3) return; const el=document.getElementById('compEasy'); el.style.display='';
+  el.innerHTML='쉬운 말: 청약이 끝나면 <b>일반청약 경쟁률</b>이 나옵니다 — 청약 여부를 정할 때는 못 쓰지만, 상장일 성적과는 가장 잘 맞았던 숫자라 "배정받은 주식을 상장일에 어떻게 할지" 참고용입니다. 과거 표본: '+B.map(b=>`${b.lo.toLocaleString()}${b.hi?'~'+b.hi.toLocaleString():'↑'}:1 → 시초가 평균 <b class="${pc(b.open_avg)}">${fp(b.open_avg)}</b>·공모가 아래 출발 ${b.loss}% (${b.n}개)`).join(' / ');
+}
+function renderFormula(){
+  const F=D.formula; const stepsH=p=>{ if(p.k==='band') return p.steps.map(([n,v])=>`${n} <b>${v}</b>`).join(' · ');
+    if(p.k==='inst') return p.steps.map(([t,v])=>`${t?t.toLocaleString()+':1↑':'그 미만'} <b>${v}</b>`).join(' · ');
+    if(p.k==='lock') return p.steps.map(([t,v])=>`${t?t+'%↑':'1% 미만'} <b>${v}</b>`).join(' · ');
+    if(p.k==='size') return p.steps.map(([t,v],i)=>`${t?t.toLocaleString()+'억↑':p.steps[1][0]+'억 미만'} <b>${v}</b>`).join(' · ');
+    return p.steps.map(([t,v])=>`${t>-900?(t>0?'+':'')+t+'%↑':'0% 미만'} <b>${v}</b>`).join(' · '); };
+  document.getElementById('fT').innerHTML='<tr><th class="l">채점 항목</th><th>만점</th><th class="l">구간별 점수</th><th class="l">쉬운 말</th><th class="l">자료</th></tr>'+F.parts.map(p=>`<tr><td class="l"><b>${esc(p.label)}</b></td><td>${p.max}</td><td class="l w" style="min-width:260px">${stepsH(p)}</td><td class="l w mini" style="max-width:380px">${esc(p.easy)}</td><td class="l">${p.k==='temp'?'<a class="lk" href="'+esc(D.src_urls['신규상장'])+'" target="_blank" rel="noopener">신규상장</a>':p.k==='band'?'<a class="lk" href="'+esc(D.src_urls['청약일정'])+'" target="_blank" rel="noopener">청약일정</a>':'<a class="lk" href="'+esc(D.src_urls['수요예측결과'])+'" target="_blank" rel="noopener">수요예측결과</a>'}</td></tr>`).join('');
+  document.getElementById('fNote').innerHTML=`별 기준: ${F.stars.map(([th,n])=>n?`${'⭐'.repeat(n)} ${th}점 이상`:'❌ 그 미만').join(' · ')}<br>예외 규칙: ${esc(F.hard)}<br>${esc(F.note)}`;
+}
+(async function init(){
+  try{ const r=await fetch('/data/ipo.json?r='+Date.now()); D=await r.json(); }catch(e){ document.getElementById('upd').textContent='데이터를 불러오지 못했습니다 — 수집 워크플로가 아직 돌지 않았을 수 있습니다.'; return; }
+  document.getElementById('upd').innerHTML=`갱신 ${esc(D.updated)} (평일 07:20·18:40 자동) · ${D.items.length}종목 · 원천 ${Object.entries(D.src_urls||{}).map(([k,u])=>`<a class="lk" href="${esc(u)}" target="_blank" rel="noopener">${k}</a>`).join(' · ')} (38커뮤니케이션)${D.stale?' · <b style="color:#b42318">⚠ 최근 수집 실패 — 이전 데이터</b>':''}`;
+  MON=new Date(TODAY.slice(0,7)+'-01T00:00:00');
+  renderTemp(); renderBT(); renderCal(); renderTables(); renderFormula(); renderComp();
+  document.getElementById('mPrev').onclick=()=>{ MON.setMonth(MON.getMonth()-1); renderCal(); };
+  document.getElementById('mNext').onclick=()=>{ MON.setMonth(MON.getMonth()+1); renderCal(); };
+  document.getElementById('mToday').onclick=()=>{ MON=new Date(TODAY.slice(0,7)+'-01T00:00:00'); renderCal(); };
+  document.querySelectorAll('button[data-f]').forEach(b=>b.onclick=()=>{ FILT=b.dataset.f; document.querySelectorAll('button[data-f]').forEach(x=>x.classList.toggle('on',x===b)); renderTables(); });
+})();
+</script>
+</body>
+</html>

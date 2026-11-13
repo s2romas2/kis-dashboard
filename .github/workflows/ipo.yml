@@ -1,0 +1,35 @@
+name: 공모주 일정·수요예측·상장 성적 수집
+on:
+  schedule:
+    - cron: '20 22 * * 0-4'   # 월~금 07:20 KST
+    - cron: '40 9 * * 1-5'    # 월~금 18:40 KST (수요예측 결과·청약 경쟁률 반영)
+  workflow_dispatch: {}
+  push:
+    paths: ['ipo.py']
+permissions:
+  contents: write
+concurrency:
+  group: ipo-data
+  cancel-in-progress: false
+jobs:
+  ipo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 수집
+        run: python ipo.py
+      - name: 결과 커밋
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          cp public/data/ipo.json /tmp/ipo.json || exit 0
+          git fetch origin main && git reset --hard origin/main
+          cp /tmp/ipo.json public/data/ipo.json
+          git add public/data/ipo.json
+          git commit -m "공모주 데이터 갱신" || echo "변경 없음"
+          git push || (git fetch origin main && git reset --hard origin/main && cp /tmp/ipo.json public/data/ipo.json && git add public/data/ipo.json && git commit -m "공모주 데이터 갱신" && git push) || true

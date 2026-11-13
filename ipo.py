@@ -114,10 +114,10 @@ class TP(HTMLParser):
         if self.stack and self.stack[-1]['cell'] is not None: self.stack[-1]['cell']['t'] += data
 
 def _ctx():
-    """인증서·호스트명 검증은 그대로 두고, 암호 스위트만 OpenSSL 표준 목록(DEFAULT)으로 넓힘.
+    """인증서·호스트명 검증은 그대로 두고, 암호 스위트만 OpenSSL 표준 목록(DEFAULT, DHE 제외)으로 맞춤 — 브라우저와 같은 협상.
     파이썬 기본 컨텍스트는 RSA 키교환·SHA1 MAC 스위트를 빼 두어서 구형 서버와 핸드셰이크가 실패하는 경우가 있음(curl·브라우저는 접속됨)"""
     c = ssl.create_default_context()
-    try: c.set_ciphers('DEFAULT')
+    try: c.set_ciphers('DEFAULT:!kDHE')   # DHE는 서버 DH 키가 1024비트라 거부됨 → 브라우저처럼 DHE를 빼고 협상
     except Exception as e: log('cipher 설정 실패 %r' % e)
     return c
 _CTX = _ctx()

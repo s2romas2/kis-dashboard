@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>체급개선 — 기존 기술로 새 사업에 들어간 기업</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; background:#f4f6fa; color:#1a1f2e; }
+.wrap { max-width:1240px; margin:0 auto; padding:18px 14px 80px; }
+h1 { font-size:22px; margin:10px 0 4px; }
+h2 { font-size:15.5px; margin:22px 0 8px; color:#1a2a4a; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+h2 small, h3 small { font-weight:400; color:#667085; font-size:12px; }
+.sub { color:#667085; font-size:12.5px; margin-bottom:10px; line-height:1.6; }
+.card { background:#fff; border:1px solid #e4e7ec; border-radius:12px; padding:12px 14px; margin-bottom:12px; font-size:12.5px; line-height:1.7; }
+.card h3 { font-size:13.5px; color:#1a2a4a; margin-bottom:6px; }
+.easy { background:#f0f9ff; color:#075985; border-left:3px solid #38bdf8; padding:5px 10px; font-size:12px; margin:4px 0 8px; border-radius:0 8px 8px 0; line-height:1.6; }
+table { width:100%; border-collapse:collapse; background:#fff; font-size:12.5px; }
+th, td { padding:7px 8px; border-bottom:1px solid #eef0f4; text-align:right; vertical-align:top; }
+th { background:#f8fafc; color:#475467; font-size:11.5px; white-space:nowrap; }
+td.l, th.l { text-align:left; } td.n { white-space:nowrap; }
+.tw { overflow-x:auto; border:1px solid #e4e7ec; border-radius:10px; }
+tr.row { cursor:pointer; } tr.row:hover td { background:#f8fbff; } tr.on td { background:#eef4ff; }
+.mini { font-size:11px; color:#667085; }
+.pos { color:#d92d20; font-weight:700; } .neg { color:#1d4ed8; font-weight:700; }
+.tag { display:inline-block; font-size:10.5px; padding:1px 6px; border-radius:8px; font-weight:800; white-space:nowrap; }
+.t확인 { background:#dcfce7; color:#15803d; } .t회사발언 { background:#d1fae5; color:#047857; } .t증권사 { background:#dbeafe; color:#1d4ed8; } .t보도 { background:#ede9fe; color:#6d28d9; } .t역산 { background:#fef3c7; color:#b45309; } .t가정 { background:#fee2e2; color:#b42318; }
+.cls { display:inline-block; font-weight:900; font-size:12px; border-radius:8px; padding:2px 9px; color:#fff; white-space:nowrap; } .cls.a { background:#f59e0b; } .cls.b { background:#0e9f5a; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(330px,1fr)); gap:12px; }
+.ch { position:relative; height:240px; }
+a.lk { color:#1d4ed8; text-decoration:none; font-weight:700; } a.lk:hover { text-decoration:underline; }
+.kpi { display:flex; gap:20px; flex-wrap:wrap; align-items:flex-end; margin:6px 0; } .kpi div span { display:block; font-size:11px; color:#667085; } .kpi b { font-size:19px; }
+.tl { border-left:3px solid #d0d5dd; margin:6px 0 0 6px; padding-left:12px; } .tl div { margin-bottom:5px; position:relative; } .tl div:before { content:''; position:absolute; left:-18.5px; top:6px; width:9px; height:9px; border-radius:50%; background:#98a2b3; } .tl div.b:before { background:#0e9f5a; } .tl div.a:before { background:#f59e0b; }
+ul.pl { margin:2px 0 2px 18px; } ul.pl li { margin-bottom:3px; }
+.ok { color:#0e9f5a; font-weight:800; } .no { color:#d92d20; font-weight:800; }
+.note { background:#fff7e8; border:1px solid #f5d9a8; border-radius:10px; padding:10px 14px; font-size:12px; color:#7a5b1e; margin-top:12px; line-height:1.6; }
+@media (max-width:800px){ th,td{padding:5px 5px;font-size:11.5px} }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
+<script src="/nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<h1>🚀 체급개선 — 기존 기술로 새 사업에 들어간 기업</h1>
+<div class="sub" id="upd">불러오는 중…</div>
+<div class="easy">쉬운 말: "원래 하던 일의 기술로 더 큰 시장의 일을 새로 따낸 회사"를 모아 둔 곳입니다. <span class="cls a">a</span> 는 새 사업에 들어갔지만 아직 실적에는 안 보이는 단계, <span class="cls b">b</span> 는 주문과 매출로 찍히기 시작한 단계입니다. 실적 화면만 봐서는 안 잡히기 때문에(새 사업이 전체 숫자에 묻힘) 하나씩 조사해서 채우고, 모든 줄에 근거 수준과 출처를 붙입니다.</div>
+<div class="card" id="rule"></div>
+<h2>📋 목록 <small>행을 누르면 아래에 조사 내용이 열립니다</small></h2>
+<div class="tw"><table id="list"></table></div>
+<div id="detail"></div>
+<div class="note">⚠️ 조사 시점의 공시·리포트·보도를 정리한 참고 자료이며 투자 권유가 아닙니다. SOTP는 가정에 따라 크게 달라지는 계산이라 가정 표를 함께 보세요. 증권사 목표가는 그 리포트의 추정과 배수를 전제로 한 값입니다. 근거 태그: <span class="tag t확인">확인</span> 공시 · <span class="tag t회사발언">회사발언</span> · <span class="tag t증권사">증권사</span> 증권사·독립리서치 · <span class="tag t보도">보도</span> 언론 · <span class="tag t역산">역산</span> 공개 숫자로 계산 · <span class="tag t가정">가정</span></div>
+</div>
+<script>
+let D=null, LS=null, CMP=null, CUR=null, CH={};
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const f0=v=>v==null?'—':Math.round(v).toLocaleString(), f1=v=>v==null?'—':Number(v).toFixed(1);
+const fp=v=>v==null?'—':(v>0?'+':'')+Number(v).toFixed(0)+'%';
+const tag=t=>t?`<span class="tag t${esc(t)}">${esc(t)}</span>`:'';
+const lks=a=>(a||[]).filter(x=>x&&x.u).map((x,i)=>`<a class="lk" href="${esc(x.u)}" target="${x.u.startsWith('/')?'_self':'_blank'}" rel="noopener" title="${esc(x.t)}">🔗${i+1}</a>`).join(' ');
+const dart=rc=>`https://dart.fss.or.kr/dsaf001/main.do?rcpNo=${rc}`;
+function mk(id,cfg){ if(CH[id]) CH[id].destroy(); const el=document.getElementById(id); if(el) CH[id]=new Chart(el.getContext('2d'),cfg); }
+const OPT={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:10,font:{size:11}}}},scales:{x:{ticks:{font:{size:10}}},y:{ticks:{font:{size:10}}}}};
+function rowsT(rows,cols){ return `<div class="tw"><table><tr>${cols.map(c=>`<th class="l">${c}</th>`).join('')}</tr>${rows.map(r=>`<tr><td class="l n"><b>${esc(r.k)}</b></td><td class="l">${esc(r.v)}${r.how?`<div class="mini">계산: ${esc(r.how)}</div>`:''}</td><td class="l n">${tag(r.tag)}</td><td class="l n">${lks(r.src)}</td></tr>`).join('')}</table></div>`; }
+function sigOf(code){ if(!LS) return ''; const x=(LS.list||[]).find(v=>v.code===code), w=(LS.watch||[]).find(v=>v.code===code); const hg=(x&&x.hg)||(w&&w.hg);
+  const st=x?({new:'🟢 신규 진입',hold:'🔵 주도 유지',warn:'🟡 경고',dead:'🔴 이탈'})[x.state]:'신호 없음(정배열 아님)';
+  return `주도주 신호: <b>${st}</b>${hg&&hg.ph!=null?` · 헤게모니 <b>${hg.new1?'1국면 신규':hg.entry2?'2국면 초입':hg.ph+'국면'}</b>(${esc(hg.q||'')})`:''}`; }
+
+function renderList(){
+  document.getElementById('list').innerHTML='<tr><th class="l">종목</th><th class="l">분류</th><th class="l" style="min-width:300px">무엇에서 무엇으로</th><th>신사업 수주 ÷ 연매출</th><th class="l">핵심 고객</th><th>현재가</th><th>SOTP(보수~낙관)</th><th>증권사 목표가(최근)</th><th>조사일</th></tr>'+
+    D.items.map(it=>{ const v=it.val||{}, sc=(v.sotp||{}).scen||[], br=(v.brokers||[]).slice(-1)[0];
+      return `<tr class="row${CUR===it.code?' on':''}" data-c="${it.code}"><td class="l n"><b>${esc(it.name)}</b> <span class="mini">${it.code}</span></td><td class="l"><span class="cls ${it.cls}">${it.cls}</span></td><td class="l">${esc(it.old.biz.split(' — ')[0])} → <b>${esc(it.new.biz.split(' — ')[0])}</b></td><td class="n"><b>${it.num.ratio}배</b><div class="mini">${f0(it.num.sum)}억 ÷ ${f0(it.num.base_rev)}억</div></td><td class="l">${esc(it.cust.name)}</td><td class="n">${f0(v.px)}원</td><td class="n">${sc.length?f0(sc[0].ps)+' ~ '+f0(sc[sc.length-1].ps)+'원':'—'}</td><td class="n">${br?f0(br.tp)+'원<div class="mini">'+esc(br.b.split(' ')[0])+' '+br.d.slice(5)+'</div>':'—'}</td><td class="n">${esc(it.asof)}</td></tr>`; }).join('');
+  document.querySelectorAll('tr.row').forEach(tr=>tr.onclick=()=>openIt(tr.dataset.c,true));
+}
+
+async function openIt(code, scroll){
+  CUR=code; const it=D.items.find(x=>x.code===code); const el=document.getElementById('detail'); if(!it){ el.innerHTML=''; return; }
+  const v=it.val, N=it.num, sc=v.sotp.scen;
+  let h=`<h2>🔎 ${esc(it.name)} <span class="cls ${it.cls}">${it.cls} — ${it.cls==='b'?'숫자로 찍히기 시작':'아직 숫자 전'}</span> <small>${it.code} · ${esc(it.mkt)} · 조사 ${esc(it.asof)}</small></h2>`;
+  // 1 요약
+  h+=`<div class="card"><h3>한 줄 요약</h3><div>${esc(it.one)}</div><div class="easy">쉬운 말: ${esc(it.easy)}</div>
+    <div class="kpi"><div><span>신사업 수주(공시)</span><b>${f0(N.sum)}억</b></div><div><span>최근 연매출(${N.base_year})</span><b>${f0(N.base_rev)}억</b></div><div><span>수주 ÷ 연매출</span><b class="pos">${N.ratio}배</b></div><div><span>현재가 · 시총</span><b>${f0(v.px)}원</b> <span style="display:inline">${f0(v.cap)}억</span></div><div><span>SOTP 기준 시나리오</span><b>${f0(sc[1].ps)}원</b></div><div><span>증권사 목표가(최근)</span><b>${f0(v.brokers.slice(-1)[0].tp)}원</b></div></div>
+    <div class="mini" id="sig">${sigOf(it.code)}</div>
+    <div class="tl">${it.hist.map(x=>`<div class="${x.cls}"><b>${esc(x.d)}</b> <span class="cls ${x.cls}" style="font-size:10px;padding:0 6px">${x.cls}</span> ${esc(x.t)}</div>`).join('')}</div></div>`;
+  // 2 무엇에서 무엇으로
+  h+=`<div class="grid"><div class="card"><h3>원래 하던 일</h3><div>${esc(it.old.biz)}</div><div class="mini">${esc(it.old.note||'')}</div>${rowsT(it.old.rows,['항목','내용','근거','출처'])}</div>
+    <div class="card"><h3>새로 시작한 일 <small>${esc(it.new.since||'')}</small></h3><div>${esc(it.new.biz)}</div>${rowsT(it.new.rows,['항목','내용','근거','출처'])}</div></div>
+    <div class="card"><h3>왜 원래 기술이 새 사업에 통하나 ${tag(it.tech.tag)} ${lks(it.tech.src)}</h3><div>${esc(it.tech.t)}</div></div>`;
+  // 3 숫자
+  h+=`<h2>📊 숫자로 찍혔나 <small>b 판정 근거</small></h2><div class="card"><div class="easy">쉬운 말: 말로만 새 사업이 아니라 ①주문 금액이 회사 덩치에 비해 크고 ②같은 고객이 여러 번 주문했고 ③실제 분기 매출에 잡혔는지를 봅니다.</div>
+    <div class="tw"><table><tr><th class="l">기준</th><th class="l">이 회사의 값</th><th class="l">통과선</th><th>판정</th><th class="l">근거</th><th class="l">출처</th></tr>${it.judge.map(j=>`<tr><td class="l n"><b>${esc(j.k)}</b></td><td class="l">${esc(j.v)}</td><td class="l n">${esc(j.rule)}</td><td class="n">${j.ok?'<span class="ok">✓ 충족</span>':'<span class="no">✗</span>'}</td><td class="l n">${tag(j.tag)}</td><td class="l n">${lks(j.src)}</td></tr>`).join('')}</table></div></div>
+    <div class="grid"><div class="card"><h3>신사업 수주 누적 vs 연매출 <small>억원 · 공시</small></h3><div class="ch"><canvas id="cO"></canvas></div></div>
+      <div class="card"><h3>품목별 매출 <small>억원 · 분기보고서</small></h3><div class="ch"><canvas id="cS"></canvas></div><div class="mini">${esc(N.seg.note)} ${lks(N.seg.src)}</div></div>
+      <div class="card"><h3>분기 매출 · 영업이익 <small>억원</small></h3><div class="ch"><canvas id="cQ"></canvas></div><div class="mini">${esc(N.q.note)} ${lks(N.q.src)}</div></div></div>
+    <div class="card"><h3>공급계약 공시 <small>${esc(N.cp)} · ${esc(N.item)}</small></h3><div class="tw"><table><tr><th>계약일</th><th>금액(억)</th><th>공시 당시 매출 대비</th><th>계약 종료일(정정 후)</th><th>정정 횟수</th><th class="l">공시</th></tr>${N.orders.map(o=>`<tr><td class="n">${o.cd}</td><td class="n"><b>${f1(o.amt)}</b></td><td class="n">${f1(o.ratio)}%</td><td class="n">${o.to}</td><td class="n">${o.ncorr}</td><td class="l n"><a class="lk" href="${dart(o.rc)}" target="_blank" rel="noopener">DART</a></td></tr>`).join('')}<tr><td class="n"><b>합계</b></td><td class="n"><b>${f1(N.sum)}</b></td><td class="n">${N.base_year}년 매출의 ${Math.round(N.ratio*100)}%</td><td colspan="3"></td></tr></table></div></div>`;
+  // 4 고객
+  h+=`<h2>🤝 고객의 질 <small>${esc(it.cust.name)}</small></h2><div class="card"><div class="easy">쉬운 말: 누가, 왜, 얼마나 자주 샀는지가 "진짜 체급개선"을 가릅니다. 회사나 리서치의 설명과 공시로 확인된 사실을 구분해서 봐야 합니다.</div>${rowsT(it.cust.rows,['항목','내용','근거','출처'])}</div>`;
+  // 5 TAM
+  h+=`<h2>📏 시장 크기와 체급 배수</h2><div class="card">${rowsT(it.tam.rows,['항목','내용','근거','출처'])}</div>`;
+  // 6 거름
+  h+=`<h2>🧹 가짜 체급개선 거름</h2><div class="card"><div class="tw"><table><tr><th class="l">의심 항목</th><th class="l">확인 결과</th><th>판정</th><th class="l">출처</th></tr>${it.fake.map(f=>`<tr><td class="l n"><b>${esc(f.k)}</b></td><td class="l">${esc(f.v)}</td><td class="n">${f.ok?'<span class="ok">✓ 통과</span>':'<span class="no">✗ 주의</span>'}</td><td class="l n">${lks(f.src)}</td></tr>`).join('')}</table></div></div>`;
+  // 7 밸류
+  h+=`<h2>💰 밸류 ① 히스토리컬 밴드 <small>${esc(v.asof)} ${f0(v.px)}원 기준</small></h2><div class="card"><div class="easy">쉬운 말: ${esc(v.band.easy)}</div>
+    <div class="grid"><div><div class="tw"><table><tr><th class="l">시점</th><th>PER(배)</th><th>PBR(배)</th><th class="l">비고</th></tr>${v.band.rows.map(r=>`<tr><td class="l n"><b>${esc(r[0])}</b></td><td class="n">${r[1]==null?'—':f1(r[1])}</td><td class="n">${r[2]==null?'—':r[2]}</td><td class="l mini">${esc(r[3])}</td></tr>`).join('')}</table></div><div class="mini" style="margin-top:4px">${esc(v.band.note)} ${lks(v.band.src)}</div></div>
+    <div><div class="ch" id="bandBox"><div class="mini" style="padding:20px">일별 PER 밴드를 불러오는 중…</div></div></div></div></div>`;
+  h+=`<h2>💰 밸류 ② SOTP <small>${esc(v.sotp.basis)} 이익 기준 — 기존 사업과 신사업을 따로 값 매겨 더함</small></h2><div class="card"><div class="easy">쉬운 말: ${esc(v.sotp.easy)}</div>
+    <div class="grid"><div><div class="tw"><table><tr><th class="l">시나리오</th><th class="l">부문</th><th>매출</th><th>이익률</th><th>영업이익</th><th>순이익</th><th>배수</th><th>가치(억)</th></tr>${sc.map(s=>`<tr><td class="l n" rowspan="2"><b>${s.name}</b><div class="mini">합 ${f0(s.tot)}억</div><div><b class="${s.ps>=v.px?'pos':'neg'}">${f0(s.ps)}원</b> <span class="mini">${fp((s.ps/v.px-1)*100)}</span></div></td><td class="l n">기존 사업</td><td class="n">${f0(s.old.rev)}</td><td class="n">${s.old.opm}%</td><td class="n">${f0(s.old.op)}</td><td class="n">${f0(s.old.ni)}</td><td class="n">${s.old.per}배</td><td class="n">${f0(s.old.v)}</td></tr><tr><td class="l n">신사업</td><td class="n">${f0(s.new.rev)}</td><td class="n">${s.new.opm}%</td><td class="n">${f0(s.new.op)}</td><td class="n">${f0(s.new.ni)}</td><td class="n"><b>${s.new.per}배</b></td><td class="n">${f0(s.new.v)}</td></tr>`).join('')}</table></div>
+      <div class="mini" style="margin-top:6px">거꾸로 계산: 시가총액 ${f0(v.cap)}억 − 기존 사업 가치(기준) ${f0(v.sotp.base_old)}억 = ${f0(v.cap-v.sotp.base_old)}억 ÷ 신사업 순이익 ${f0(sc[1].new.ni)}억 = <b>시장이 신사업에 주는 배수 약 ${v.sotp.implied}배</b> ${tag('역산')}</div></div>
+    <div><div class="ch"><canvas id="cV"></canvas></div><div class="mini">막대 = 시나리오별 주당 가치(기존 + 신사업), 점선 = 현재가</div></div></div>
+    <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:800;color:#1a2a4a">가정과 계산 근거 ${v.sotp.how.length}줄 ${tag('가정')} ${lks(v.sotp.src)}</summary><ul class="pl">${v.sotp.how.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></details></div>`;
+  h+=`<h2>💰 밸류 ③ 증권사 목표가와 산정 방식</h2><div class="card"><div class="easy">쉬운 말: ${esc(v.brokers_easy)}</div>
+    <div class="grid"><div><div class="tw"><table><tr><th>날짜</th><th class="l">기관</th><th>의견</th><th>목표가</th><th>현재가 대비</th><th class="l" style="min-width:260px">어떻게 계산했나</th><th class="l">출처</th></tr>${v.brokers.map(b=>`<tr><td class="n">${b.d}</td><td class="l n"><b>${esc(b.b)}</b></td><td class="n">${esc(b.op)}</td><td class="n"><b>${f0(b.tp)}원</b>${b.px?`<div class="mini">당시 ${f0(b.px)}원</div>`:''}</td><td class="n ${b.tp>=v.px?'pos':'neg'}">${fp((b.tp/v.px-1)*100)}</td><td class="l">${esc(b.m)}</td><td class="l n">${lks(b.src)}</td></tr>`).join('')}</table></div><div class="mini" style="margin-top:4px">${esc(v.brokers_note)}</div></div>
+    <div><div class="ch"><canvas id="cB"></canvas></div><div class="mini">목표가 변화(계단)와 현재가(점선)</div></div></div></div>`;
+  // 8 리스크·다음
+  h+=`<div class="grid"><div class="card"><h3>⚠️ 리스크</h3><ul class="pl">${it.risk.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div><div class="card"><h3>📅 다음 확인 이벤트</h3><div class="tw"><table>${it.next.map(x=>`<tr><td class="l n"><b>${esc(x.d)}</b></td><td class="l">${esc(x.t)}</td></tr>`).join('')}</table></div></div></div>
+    <div class="mini">더 보기: <a class="lk" href="/valws.html?c=${it.code}">밸류 워크시트</a> · <a class="lk" href="/bands.html#${it.code}">밴드·V차트</a> · <a class="lk" href="/semipeer.html">peer 상대밸류</a> · <a class="lk" href="/leadsig.html">주도주 신호</a> · <a class="lk" href="https://dart.fss.or.kr/dsab007/main.do?option=corp&textCrpNm=${encodeURIComponent(it.name)}" target="_blank" rel="noopener">DART</a></div>`;
+  el.innerHTML=h; renderList();
+  // 차트
+  let acc=0; const oc=N.orders.map(o=>(acc+=o.amt, +acc.toFixed(1)));
+  mk('cO',{data:{labels:N.orders.map(o=>o.cd.slice(2,7)),datasets:[{type:'bar',label:'신사업 수주 누적',data:oc,backgroundColor:'#0e9f5a'},{type:'line',label:N.base_year+'년 연매출',data:N.orders.map(()=>N.base_rev),borderColor:'#d92d20',borderDash:[5,4],pointRadius:0,borderWidth:2}]},options:OPT});
+  const col=['#1a2a4a','#0e9f5a','#f0b429','#98a2b3','#6366f1'];
+  mk('cS',{type:'bar',data:{labels:N.seg.cols,datasets:N.seg.rows.map((r,i)=>({label:r[0],data:r.slice(1),backgroundColor:col[i%col.length]}))},options:{...OPT,scales:{x:{stacked:true,ticks:{font:{size:10}}},y:{stacked:true,ticks:{font:{size:10}}}}}});
+  mk('cQ',{data:{labels:N.q.labs,datasets:[{type:'bar',label:'매출',data:N.q.rev,backgroundColor:'#c7d2fe',yAxisID:'y'},{type:'bar',label:'영업이익',data:N.q.op,backgroundColor:N.q.op.map(x=>x<0?'#93c5fd':'#0e9f5a'),yAxisID:'y'}]},options:OPT});
+  mk('cV',{type:'bar',data:{labels:sc.map(s=>s.name+' ('+s.old.per+'배·'+s.new.per+'배)'),datasets:[{label:'기존 사업',data:sc.map(s=>Math.round(s.old.v/s.tot*s.ps)),backgroundColor:'#1a2a4a'},{label:'신사업',data:sc.map(s=>Math.round(s.new.v/s.tot*s.ps)),backgroundColor:'#0e9f5a'},{type:'line',label:'현재가 '+f0(v.px),data:sc.map(()=>v.px),borderColor:'#d92d20',borderDash:[5,4],pointRadius:0,borderWidth:2}]},options:{...OPT,scales:{x:{stacked:true,ticks:{font:{size:10}}},y:{stacked:true,ticks:{font:{size:10},callback:x=>x.toLocaleString()}}}}});
+  mk('cB',{data:{labels:v.brokers.map(b=>b.d.slice(2)+' '+b.b.split(' ')[0]),datasets:[{type:'line',label:'목표가',data:v.brokers.map(b=>b.tp),borderColor:'#1d4ed8',backgroundColor:'#1d4ed8',stepped:false,pointRadius:5,tension:0},{type:'line',label:'리포트 당시 주가',data:v.brokers.map(b=>b.px),borderColor:'#98a2b3',backgroundColor:'#98a2b3',pointRadius:4,spanGaps:true,borderDash:[2,3]},{type:'line',label:'현재가 '+f0(v.px),data:v.brokers.map(()=>v.px),borderColor:'#d92d20',borderDash:[5,4],pointRadius:0,borderWidth:2}]},options:{...OPT,scales:{x:{ticks:{font:{size:9.5}}},y:{ticks:{font:{size:10},callback:x=>x.toLocaleString()}}}}});
+  band(it);
+  if(scroll) el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+async function band(it){
+  const box=document.getElementById('bandBox'); let c=null;
+  try{ const r=await fetch('/data/compare/'+it.code+'.json?r='+Date.now()); if(r.ok) c=await r.json(); }catch(e){}
+  if(CUR!==it.code||!box) return;
+  if(!c||!c.px||!c.per||c.per.length<50){ box.innerHTML='<div class="mini" style="padding:20px">일별 PER 밴드 데이터가 아직 없습니다 — 밴드 수집 대상에 이 목록을 넣었으므로 다음 수집(매일 06:30·18:30) 뒤 표시됩니다. 그때까지는 왼쪽 연말 배수 표를 참고하세요.</div>'; return; }
+  const cut=new Date(); cut.setFullYear(cut.getFullYear()-3); const cs=cut.toISOString().slice(0,10);
+  const pxs=c.px.filter(x=>x[0]>=cs), pm=new Map(c.per.map(x=>[x[0],x[1]])); const pe=c.per.filter(x=>x[0]>=cs&&x[1]>0&&x[1]<200).map(x=>x[1]).sort((a,b)=>a-b);
+  if(pe.length<30){ box.innerHTML='<div class="mini" style="padding:20px">흑자 구간이 짧아 PER 밴드를 그리기 어렵습니다(적자 기간 제외 후 표본 부족).</div>'; return; }
+  const q=p=>pe[Math.min(pe.length-1,Math.floor(p*(pe.length-1)))], p10=q(.1), p50=q(.5), p90=q(.9);
+  const eps=pxs.map(x=>{ const p=pm.get(x[0]); return p&&p>0?x[1]/p:null; }); const step=Math.max(1,Math.floor(pxs.length/160)); const pick=a=>a.filter((_,i)=>i%step===0);
+  box.innerHTML='<canvas id="cBand"></canvas>';
+  mk('cBand',{type:'line',data:{labels:pick(pxs.map(x=>x[0].slice(2,7))),datasets:[{label:'주가',data:pick(pxs.map(x=>x[1])),borderColor:'#1a1f2e',borderWidth:1.5,pointRadius:0},{label:'PER '+f1(p10)+'배(하위 10%)',data:pick(eps.map(e=>e?e*p10:null)),borderColor:'#0e9f5a',borderDash:[3,3],borderWidth:1,pointRadius:0},{label:'PER '+f1(p50)+'배(중앙)',data:pick(eps.map(e=>e?e*p50:null)),borderColor:'#f0b429',borderDash:[3,3],borderWidth:1,pointRadius:0},{label:'PER '+f1(p90)+'배(상위 10%)',data:pick(eps.map(e=>e?e*p90:null)),borderColor:'#d92d20',borderDash:[3,3],borderWidth:1,pointRadius:0}]},options:{...OPT,scales:{x:{ticks:{font:{size:9},maxTicksLimit:8}},y:{ticks:{font:{size:10}}}}}});
+}
+(async function init(){
+  try{ D=await (await fetch('/data/upgrade.json?r='+Date.now())).json(); }catch(e){ document.getElementById('upd').textContent='데이터를 불러오지 못했습니다.'; return; }
+  document.getElementById('upd').innerHTML=`조사 갱신 ${esc(D.updated)} · ${D.items.length}종목 — 자동 수집이 아니라 조사해서 채우는 목록입니다(공시·리포트가 새로 나오면 요청 시 갱신)`;
+  document.getElementById('rule').innerHTML=`<h3>분류 기준</h3><div><span class="cls a">a</span> ${esc(D.rule.a)}</div><div style="margin-top:4px"><span class="cls b">b</span> ${esc(D.rule.b)}</div><div class="mini" style="margin-top:4px">${esc(D.rule.note)}</div>`;
+  renderList();
+  const want=(location.hash||'').replace('#','')||new URLSearchParams(location.search).get('c'); const first=D.items.find(x=>x.code===want)||D.items[0];
+  if(first) openIt(first.code,false);
+  fetch('/data/leadsig.json?r='+Date.now()).then(r=>r.json()).then(j=>{ LS=j; const s=document.getElementById('sig'); if(s&&CUR) s.innerHTML=sigOf(CUR); }).catch(()=>{});
+})();
+</script>
+</body>
+</html>

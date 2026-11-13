@@ -93,6 +93,7 @@ h1 { font-size:22px; margin:10px 0 4px; }
   <div id="body"><div class="loading">불러오는 중…</div></div>
 </div>
 <script>
+let UP={}, UPF=false;
 let D=null, T=null, FILT='all', SEC='all', TW='all', Q='', BMODE='sig', HG='all', CB='';
 const CBS={A:['🌱 신규 진입 + 헤게모니 초입','실적 전환(1국면 신규·2국면 초입)과 주가 전환(정배열 8주 내)이 같이 시작 — 가장 이른 조합','#0e9f5a','실적도 막 돌고 주가도 막 돌기 시작'],
   B:['💪 정배열 + 2국면','이익이 매출보다 빨리 늘면서 주가도 정배열 — 실적이 받쳐 주는 주도주','#2f6df6','실적이 받쳐 주는 주도주'],
@@ -106,6 +107,8 @@ function gc(v,lab){ if(lab) return `<td class="${/흑전|축소/.test(lab)?'pos'
 function hgOk(x){ if(HG==='all') return true; const g=x.hg; if(!g||g.ph==null) return HG==='na'; if(HG==='e') return !!(g.new1||g.entry2); return String(g.ph)===HG; }
 function setHG(v){ HG=v; SEC='all'; draw(); }
 function setCB(v){ CB=(CB===v?'':v); FILT='all'; HG='all'; SEC='all'; draw(); }
+function upB(code){ const u=UP[code]; return u?`<a class="cbb" style="background:${u.cls==='b'?'#0e9f5a':'#f59e0b'};text-decoration:none" href="/upgrade.html#${code}" onclick="event.stopPropagation()" title="체급개선 ${u.cls} — ${u.cls==='b'?'숫자로 찍히기 시작':'아직 숫자 전'}">🚀 체급개선 ${u.cls}</a>`:''; }
+function setUP(){ UPF=!UPF; draw(); }
 const ST={new:['🟢 신규 진입','new'],hold:['🔵 주도 유지','hold'],warn:['🟡 경고 13-26 DC','warn'],dead:['🔴 이탈 4-26 DC','dead']};
 const STCOL={new:'#0e9f5a',hold:'#2f6df6',warn:'#e0a400',dead:'#d92d20'};
 const TWS=[['all','전체'],['d','오늘'],['w','최근 1주'],['m','최근 1개월'],['y','올해']];
@@ -182,11 +185,12 @@ function draw(){
   h+=`<div class="card" style="margin-bottom:10px;padding:10px 12px"><div class="fbar"><b>신호 상태</b>`+
     [['all','전체',list.length],['new','🟢 신규 진입',cnt.new],['hold','🔵 주도 유지',cnt.hold],['warn','🟡 경고',cnt.warn],['dead','🔴 이탈',cnt.dead]].map(([k,lb,n])=>`<span class="scf ${FILT===k&&CB!=='D'?'on':''}" onclick="CB=CB==='D'?'':CB;setF('${k}')">${lb} ${n}</span>`).join('')+`</div>
     <div class="fbar"><b>헤게모니 국면</b>`+HGS.map(([k,lb])=>{ const n=k==='all'?null:list.filter(x=>{const g=x.hg; if(!g||g.ph==null) return k==='na'; return k==='e'?(g.new1||g.entry2):String(g.ph)===k;}).length; return (n===0&&k!=='all')?'':`<span class="scf ${HG===k?'on':''}" onclick="setHG('${k}')">${lb}${n==null?'':' '+n}</span>`; }).join('')+`</div>
-    <div class="fbar" style="margin-bottom:0"><b>조합</b>`+Object.keys(CBS).map(k=>`<span class="scf ${CB===k?'on':''}" onclick="setCB('${k}')">${CBS[k][0]} ${cbn[k]}</span>`).join('')+(CB?` <span class="scf" onclick="setCB('${CB}')">✕ 조합 해제</span>`:'')+`</div></div>`;
+    <div class="fbar" style="margin-bottom:0"><b>조합</b>`+Object.keys(CBS).map(k=>`<span class="scf ${CB===k?'on':''}" onclick="setCB('${k}')">${CBS[k][0]} ${cbn[k]}</span>`).join('')+(CB?` <span class="scf" onclick="setCB('${CB}')">✕ 조합 해제</span>`:'')+`</div>
+    ${Object.keys(UP).length?`<div class="fbar" style="margin:7px 0 0"><b>체급개선</b><span class="scf ${UPF?'on':''}" onclick="setUP()">🚀 체급개선 목록 종목만 ${list.filter(x=>UP[x.code]).length}</span> <a class="lk" href="/upgrade.html">체급개선 목록 ${Object.keys(UP).length}종목 보기 →</a><span style="font-size:11px;color:#98a2b3">목록에 있어도 주가 신호(정배열·경고·이탈)가 없으면 여기엔 안 나옵니다</span></div>`:''}</div>`;
   h+=`<div class="bar"><input id="q" placeholder="종목명·코드·섹터 검색" value="${Q}" oninput="Q=this.value;draw();refocus()"></div>`;
   if(CB==='D'){ h+=watchH(W); h+=`<div style="font-size:11px;color:#98a2b3;margin-top:10px">시총 상위 ${D.capTop||1000}종목 · 갱신 ${D.updated||''}</div>`; document.getElementById('body').innerHTML=h; return; }
   // 섹터 필터 칩 — 현재 상태 필터 기준 건수 표시
-  const base=list.filter(x=>(FILT==='all'||x.state===FILT)&&hgOk(x)&&(!CB||x.cb===CB));
+  const base=list.filter(x=>(FILT==='all'||x.state===FILT)&&hgOk(x)&&(!CB||x.cb===CB)&&(!UPF||UP[x.code]));
   const secCnt={};
   base.forEach(x=>{ const s=x.sector||'기타'; secCnt[s]=(secCnt[s]||0)+1; });
   const secs=Object.entries(secCnt).sort((a,b)=>b[1]-a[1]);
@@ -208,7 +212,7 @@ function draw(){
         <span class="st ${cls}">${lb}</span>
         <span class="nm">${x.name} <span class="cd">${x.code}${x.sector?' · '+x.sector:''}</span></span>
         <span class="meta">${meta}</span>
-        ${opb} ${hgB(x.hg)} ${x.cb?`<span class="cbb" style="background:${CBS[x.cb][2]}" title="${CBS[x.cb][1]}">${CBS[x.cb][3]}</span>`:''}
+        ${opb} ${hgB(x.hg)} ${upB(x.code)} ${x.cb?`<span class="cbb" style="background:${CBS[x.cb][2]}" title="${CBS[x.cb][1]}">${CBS[x.cb][3]}</span>`:''}
         <span class="sp"></span>
         <span class="meta">시총 <b>${fmt(x.cap)}</b>억 · 13주 <b class="${(x.chg13w||0)>=0?'pos':'neg'}">${x.chg13w>=0?'+':''}${x.chg13w??'-'}%</b></span>
       </div>
@@ -243,7 +247,7 @@ function watchH(W){
   const stl={warn:'🟡 경고',dead:'🔴 이탈'};
   return `<div class="easy">쉬운 말: 최근 분기에 실적이 막 돌아선 기업(1국면 신규 = 매출이 먼저 살아남, 2국면 초입 = 이익이 매출보다 빨리 늘기 시작) 중 주가가 아직 정배열이 아닌 종목입니다. 이평 배열 ✓가 3개가 되면 "신규 진입"으로 넘어갑니다 — ✓가 2개인 종목이 가장 가까이 와 있습니다.</div>
   <div class="tw"><table class="wt"><tr><th class="l">종목</th><th class="l">헤게모니</th><th>매출 YoY</th><th>영업이익 YoY</th><th>4주&gt;13주</th><th>13주&gt;26주</th><th>26주&gt;52주</th><th>13주 수익률</th><th class="l">주도주 신호</th><th>시총(억)</th><th class="l">보기</th></tr>`+
-  rows.sort((a,b)=>{ const n=x=>(x.ma||[]).filter(Boolean).length; return n(b)-n(a)||(b.cap||0)-(a.cap||0); }).map(x=>`<tr><td class="l"><b>${x.name}</b> <span class="cd">${x.code}${x.sector?' · '+x.sector:''}</span></td><td class="l">${hgB(x.hg)}</td><td class="${(x.hg.rg||0)>=0?'pos':'neg'}">${pcH(x.hg.rg)}</td><td class="${(x.hg.og||0)>=0?'pos':'neg'}">${pcH(x.hg.og)}</td>${x.ma?x.ma.map(v=>`<td>${ok(v)}</td>`).join(''):'<td colspan="3" style="color:#98a2b3">주봉 부족</td>'}<td class="${(x.chg13w||0)>=0?'pos':'neg'}">${x.chg13w==null?'-':pc(x.chg13w)}</td><td class="l">${stl[x.st]||'<span style="color:#98a2b3">없음</span>'}</td><td>${fmt(x.cap)}</td><td class="l"><a class="lk" href="/bands.html#${x.code}">밴드</a> · <a class="lk" href="/valws.html?c=${x.code}">워크시트</a></td></tr>`).join('')+
+  rows.sort((a,b)=>{ const n=x=>(x.ma||[]).filter(Boolean).length; return n(b)-n(a)||(b.cap||0)-(a.cap||0); }).map(x=>`<tr><td class="l"><b>${x.name}</b> <span class="cd">${x.code}${x.sector?' · '+x.sector:''}</span> ${upB(x.code)}</td><td class="l">${hgB(x.hg)}</td><td class="${(x.hg.rg||0)>=0?'pos':'neg'}">${pcH(x.hg.rg)}</td><td class="${(x.hg.og||0)>=0?'pos':'neg'}">${pcH(x.hg.og)}</td>${x.ma?x.ma.map(v=>`<td>${ok(v)}</td>`).join(''):'<td colspan="3" style="color:#98a2b3">주봉 부족</td>'}<td class="${(x.chg13w||0)>=0?'pos':'neg'}">${x.chg13w==null?'-':pc(x.chg13w)}</td><td class="l">${stl[x.st]||'<span style="color:#98a2b3">없음</span>'}</td><td>${fmt(x.cap)}</td><td class="l"><a class="lk" href="/bands.html#${x.code}">밴드</a> · <a class="lk" href="/valws.html?c=${x.code}">워크시트</a></td></tr>`).join('')+
   `</table></div>`+(rows.length?'':'<div class="loading">조건에 맞는 종목 없음</div>');
 }
 function refocus(){ const el=document.getElementById('q'); if(el){ el.focus(); el.setSelectionRange(el.value.length,el.value.length);} }
@@ -278,6 +282,7 @@ async function init(){
   try{ D=await (await fetch('/data/leadsig.json?t='+Date.now())).json(); }
   catch(e){ D={list:[]}; }
   try{ const r=await fetch('/data/leadsig_track.json?t='+Date.now()); if(r.ok) T=await r.json(); }catch(e){ T=null; }
+  try{ const r=await fetch('/data/upgrade.json?t='+Date.now()); if(r.ok) (await r.json()).items.forEach(it=>UP[it.code]=it); }catch(e){}
   draw();
 }
 init();

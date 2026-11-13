@@ -62,6 +62,18 @@ h1 { font-size:22px; margin:10px 0 4px; }
 .bmode { display:inline-flex; gap:4px; margin-left:auto; }
 .bmode span { font-size:10.5px; font-weight:700; color:#667085; border:1px solid #e3e7ef; border-radius:10px; padding:2px 8px; cursor:pointer; background:#fff; }
 .bmode span.on { background:#1a2a4a; border-color:#1a2a4a; color:#fff; }
+.scf{border:1.5px solid #e3e7ef;background:#fff;border-radius:14px;padding:4px 11px;font-size:11.5px;font-weight:700;color:#667085;cursor:pointer;display:inline-block}
+.scf.on{background:#1a2a4a;border-color:#1a2a4a;color:#fff}
+.fbar { display:flex; gap:5px; flex-wrap:wrap; align-items:center; margin-bottom:7px; } .fbar > b { font-size:12px; color:#475467; min-width:92px; }
+.hgb { font-size:10.5px; font-weight:800; border-radius:7px; padding:2px 7px; white-space:nowrap; }
+.hgb.p1 { background:#eef4ff; color:#1d4ed8; } .hgb.p2 { background:#e8f8ef; color:#0e9f5a; } .hgb.p3 { background:#fff3dc; color:#b7791f; } .hgb.p4 { background:#fde8e8; color:#d92d20; } .hgb.p0 { background:#f1f3f7; color:#667085; }
+.cbb { font-size:10.5px; font-weight:800; border-radius:7px; padding:2px 7px; color:#fff; white-space:nowrap; }
+.cbs { display:grid; grid-template-columns:repeat(auto-fit,minmax(235px,1fr)); gap:8px; margin:8px 0; }
+.cbt { background:#fff; border:1.5px solid #e6e9f0; border-left-width:5px; border-radius:12px; padding:9px 12px; cursor:pointer; }
+.cbt.on { box-shadow:0 0 0 2px #dbe7ff; } .cbt .t { font-size:12.5px; font-weight:800; } .cbt .v { font-size:20px; font-weight:900; } .cbt .d { font-size:11.5px; color:#667085; line-height:1.5; }
+.easy { background:#f0f9ff; color:#075985; border-left:3px solid #38bdf8; padding:5px 10px; font-size:12px; margin:6px 0; border-radius:0 8px 8px 0; line-height:1.6; }
+.wt { width:100%; border-collapse:collapse; font-size:12px; background:#fff; } .wt th { background:#f8fafc; color:#475467; font-size:11px; padding:6px 8px; text-align:right; white-space:nowrap; } .wt td { padding:6px 8px; border-top:1px solid #f0f2f6; text-align:right; white-space:nowrap; } .wt td.l, .wt th.l { text-align:left; }
+.tw { overflow-x:auto; border:1px solid #e6e9f0; border-radius:10px; }
 </style>
 </head>
 <body>
@@ -75,12 +87,25 @@ h1 { font-size:22px; margin:10px 0 4px; }
     🔵 <b>주도 유지</b>: 정배열 지속 중 (4-13주가 간간히 만나는 건 단기 노이즈 — "노이즈 n주"로 표시) ·
     🟡 <b>경고</b>: <b>13-26주 데드크로스</b> = 힘이 꺾이기 시작한 첫 신호 ·
     🔴 <b>이탈</b>: <b>4-26주 데드크로스</b> = 주도주가 완전히 힘을 잃은 신호.<br>
-    💰 <b>이익 체크</b> — 주도주는 이익성장률이 매 분기 커지는 특징 → QoQ 성장률이 직전 분기보다 커지면 <b>가속🔥</b>, 작아지면 <b>둔화⚠</b>(힘을 잃어갈 위험).
+    💰 <b>이익 체크</b> — 주도주는 이익성장률이 매 분기 커지는 특징 → QoQ 성장률이 직전 분기보다 커지면 <b>가속🔥</b>, 작아지면 <b>둔화⚠</b>(힘을 잃어갈 위험). 분기 실적은 <b>DART 정기보고서</b>(전 상장사 분기 매출·영업이익)에서 가져옵니다.<br>
+    🧭 <b>헤게모니 4국면과 함께</b> — 주가 신호(시장의 인정, 주 단위)와 이익 구조(원인, 분기 단위)를 겹쳐 봅니다. 종목마다 국면 배지가 붙고, 아래 4개 조합으로 바로 걸러집니다.
   </div>
   <div id="body"><div class="loading">불러오는 중…</div></div>
 </div>
 <script>
-let D=null, FILT='all', SEC='all', TW='all', Q='', BMODE='sig';
+let D=null, T=null, FILT='all', SEC='all', TW='all', Q='', BMODE='sig', HG='all', CB='';
+const CBS={A:['🌱 신규 진입 + 헤게모니 초입','실적 전환(1국면 신규·2국면 초입)과 주가 전환(정배열 8주 내)이 같이 시작 — 가장 이른 조합','#0e9f5a','실적도 막 돌고 주가도 막 돌기 시작'],
+  B:['💪 정배열 + 2국면','이익이 매출보다 빨리 늘면서 주가도 정배열 — 실적이 받쳐 주는 주도주','#2f6df6','실적이 받쳐 주는 주도주'],
+  C:['⚠️ 정배열 + 3·4국면','주가는 가는데 이익의 질은 꺾임(이익 성장 < 매출 성장, 또는 둘 다 감소) — 주가가 실적보다 앞서 있음','#e0a400','주가는 가는데 실적은 식는 중'],
+  D:['👀 헤게모니 초입 + 정배열 아님','실적은 돌았는데 주가는 아직 정배열이 아님 — 시장이 아직 안 본 관찰 목록','#7a5af8','실적은 돌았는데 시장이 아직 안 봄']};
+const HGS=[['all','전체'],['e','초입(1국면 신규·2국면 초입)'],['2','2국면'],['1','1국면'],['3','3국면'],['4','4국면'],['0','매출↓·이익↑'],['na','국면 없음']];
+function hgB(g){ if(!g||g.ph==null) return ''; const t=g.new1?'1국면 신규':g.entry2?'2국면 초입':(g.ph===0?'매출↓·이익↑':g.ph+'국면')+(g.streak>1?' '+g.streak+'분기째':''); return `<span class="hgb p${g.ph}" title="헤게모니 4국면 · ${g.q||''} 기준 · 매출 YoY ${pcH(g.rg)} / 영업이익 YoY ${pcH(g.og)}">${t}</span>`; }
+function pc(v){ return v==null?'-':(Math.abs(v)>999?(v>0?'>+999%':'<-999%'):(v>=0?'+':'')+v+'%'); }
+function pcH(v){ return v==null?'-':v>=500?'+500%↑':v<=-200?'-200%↓':pc(v); }   // 헤게모니 성장률은 −200~+500% 상한
+function gc(v,lab){ if(lab) return `<td class="${/흑전|축소/.test(lab)?'pos':'neg'}">${lab}</td>`; return `<td class="${(v||0)>=0?'pos':'neg'}">${pc(v)}</td>`; }
+function hgOk(x){ if(HG==='all') return true; const g=x.hg; if(!g||g.ph==null) return HG==='na'; if(HG==='e') return !!(g.new1||g.entry2); return String(g.ph)===HG; }
+function setHG(v){ HG=v; SEC='all'; draw(); }
+function setCB(v){ CB=(CB===v?'':v); FILT='all'; HG='all'; SEC='all'; draw(); }
 const ST={new:['🟢 신규 진입','new'],hold:['🔵 주도 유지','hold'],warn:['🟡 경고 13-26 DC','warn'],dead:['🔴 이탈 4-26 DC','dead']};
 const STCOL={new:'#0e9f5a',hold:'#2f6df6',warn:'#e0a400',dead:'#d92d20'};
 const TWS=[['all','전체'],['d','오늘'],['w','최근 1주'],['m','최근 1개월'],['y','올해']];
@@ -111,6 +136,13 @@ function draw(){
     <div class="kpi ${FILT==='warn'?'on':''}" onclick="setF('warn')"><div class="t">🟡 13-26 경고</div><div class="v">${cnt.warn}</div></div>
     <div class="kpi ${FILT==='dead'?'on':''}" onclick="setF('dead')"><div class="t">🔴 4-26 이탈</div><div class="v">${cnt.dead}</div></div>
   </div>`;
+  // 🧭 헤게모니 조합 4칸
+  const hasHg=all.some(x=>x.hg); const W=D.watch||[];
+  const cbn={A:all.filter(x=>x.cb==='A').length,B:all.filter(x=>x.cb==='B').length,C:all.filter(x=>x.cb==='C').length,D:W.length};
+  h+=`<div class="card compcard" style="margin-bottom:12px"><h2>🧭 주도주 신호 × 헤게모니 4국면 <span style="font-weight:600;font-size:11.5px;color:#98a2b3">칸을 누르면 그 조합만 봅니다${D.hege?` · 국면 기준 ${D.hege.q||''}(DART 수집 ${(D.hege.updated||'').slice(0,10)})`:''}</span></h2>
+    <div class="easy">쉬운 말: 정배열은 "시장이 알아봤다", 헤게모니 2국면은 "이익이 매출보다 빨리 는다"는 뜻입니다. 둘이 같이 켜지면 근거가 두 겹이고, 주가만 켜져 있으면(3·4국면) 조심, 실적만 켜져 있으면 아직 안 알려진 후보입니다.</div>`+
+    (hasHg?`<div class="cbs">${Object.keys(CBS).map(k=>`<div class="cbt ${CB===k?'on':''}" style="border-left-color:${CBS[k][2]}" onclick="setCB('${k}')"><div class="t">${CBS[k][0]}</div><div class="v">${cbn[k]}<span style="font-size:11px;color:#98a2b3;font-weight:600"> 종목</span></div><div class="d">${CBS[k][1]}</div></div>`).join('')}</div>`
+      :'<div class="note" style="margin:8px 0 0">다음 수집(매일 06:35)부터 국면·조합이 채워집니다.</div>')+trackH()+`</div>`;
   // 📊 신호별 업종 구성 — 어느 섹터에서 신호가 나오고 있나
   const comp=k=>{
     const c={};
@@ -147,22 +179,25 @@ function draw(){
       barChart('🟡🔴 업종별 데드크로스 종목 수',dc,'#d92d20',null,'경고 + 이탈 '+(cnt.warn+cnt.dead)+'종목')+`</div>`;
   }
   h+=`</div>`;
+  h+=`<div class="card" style="margin-bottom:10px;padding:10px 12px"><div class="fbar"><b>신호 상태</b>`+
+    [['all','전체',list.length],['new','🟢 신규 진입',cnt.new],['hold','🔵 주도 유지',cnt.hold],['warn','🟡 경고',cnt.warn],['dead','🔴 이탈',cnt.dead]].map(([k,lb,n])=>`<span class="scf ${FILT===k&&CB!=='D'?'on':''}" onclick="CB=CB==='D'?'':CB;setF('${k}')">${lb} ${n}</span>`).join('')+`</div>
+    <div class="fbar"><b>헤게모니 국면</b>`+HGS.map(([k,lb])=>{ const n=k==='all'?null:list.filter(x=>{const g=x.hg; if(!g||g.ph==null) return k==='na'; return k==='e'?(g.new1||g.entry2):String(g.ph)===k;}).length; return (n===0&&k!=='all')?'':`<span class="scf ${HG===k?'on':''}" onclick="setHG('${k}')">${lb}${n==null?'':' '+n}</span>`; }).join('')+`</div>
+    <div class="fbar" style="margin-bottom:0"><b>조합</b>`+Object.keys(CBS).map(k=>`<span class="scf ${CB===k?'on':''}" onclick="setCB('${k}')">${CBS[k][0]} ${cbn[k]}</span>`).join('')+(CB?` <span class="scf" onclick="setCB('${CB}')">✕ 조합 해제</span>`:'')+`</div></div>`;
   h+=`<div class="bar"><input id="q" placeholder="종목명·코드·섹터 검색" value="${Q}" oninput="Q=this.value;draw();refocus()"></div>`;
+  if(CB==='D'){ h+=watchH(W); h+=`<div style="font-size:11px;color:#98a2b3;margin-top:10px">시총 상위 ${D.capTop||1000}종목 · 갱신 ${D.updated||''}</div>`; document.getElementById('body').innerHTML=h; return; }
   // 섹터 필터 칩 — 현재 상태 필터 기준 건수 표시
-  const base=list.filter(x=>FILT==='all'||x.state===FILT);
+  const base=list.filter(x=>(FILT==='all'||x.state===FILT)&&hgOk(x)&&(!CB||x.cb===CB));
   const secCnt={};
   base.forEach(x=>{ const s=x.sector||'기타'; secCnt[s]=(secCnt[s]||0)+1; });
   const secs=Object.entries(secCnt).sort((a,b)=>b[1]-a[1]);
   h+=`<div class="secf" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">
     <span class="scf ${SEC==='all'?'on':''}" onclick="setSec('all')">전체 ${base.length}</span>`+
-    secs.map(([s,c])=>`<span class="scf ${SEC===s?'on':''}" onclick="setSec('${s}')">${s} ${c}</span>`).join('')+`</div>
-  <style>.scf{border:1.5px solid #e3e7ef;background:#fff;border-radius:14px;padding:4px 11px;font-size:11.5px;font-weight:700;color:#667085;cursor:pointer;display:inline-block}
-  .scf.on{background:#1a2a4a;border-color:#1a2a4a;color:#fff}</style>`;
+    secs.map(([s,c])=>`<span class="scf ${SEC===s?'on':''}" onclick="setSec('${s}')">${s} ${c}</span>`).join('')+`</div>`;
   const rows=base.filter(x=>(SEC==='all'||(x.sector||'기타')===SEC)&&(!Q||x.name.includes(Q)||x.code.includes(Q)||(x.sector||'').includes(Q)));
   h+=rows.map((x,i)=>{
     const [lb,cls]=ST[x.state]||['',''];
     const op=x.op;
-    const opb=!op||!op.trend?'<span class="opb na">실적 데이터 없음</span>':
+    const opb=!op||!op.trend?'<span class="opb na" title="금융·보험·리츠·신규 상장처럼 DART에 분기 영업이익 계정이 없거나 이력이 짧은 종목">분기 영업이익 없음</span>':
       op.trend==='accel'?'<span class="opb accel">이익 가속 🔥</span>':
       op.trend==='slow'?'<span class="opb slow">성장률 둔화 ⚠</span>':'<span class="opb flat">이익 횡보</span>';
     const meta=x.state==='new'||x.state==='hold'
@@ -173,16 +208,20 @@ function draw(){
         <span class="st ${cls}">${lb}</span>
         <span class="nm">${x.name} <span class="cd">${x.code}${x.sector?' · '+x.sector:''}</span></span>
         <span class="meta">${meta}</span>
-        ${opb}
+        ${opb} ${hgB(x.hg)} ${x.cb?`<span class="cbb" style="background:${CBS[x.cb][2]}" title="${CBS[x.cb][1]}">${CBS[x.cb][3]}</span>`:''}
         <span class="sp"></span>
         <span class="meta">시총 <b>${fmt(x.cap)}</b>억 · 13주 <b class="${(x.chg13w||0)>=0?'pos':'neg'}">${x.chg13w>=0?'+':''}${x.chg13w??'-'}%</b></span>
       </div>
       <div class="det" data-code="${x.code}">
         <div class="cv"><canvas id="ch${i}"></canvas></div>
-        ${op&&op.ser?`<table class="opt"><tr><th>분기</th>${op.ser.map(s=>`<th>${s[0]}</th>`).join('')}</tr>
-          <tr><td>영업이익(억)</td>${op.ser.map(s=>`<td>${fmt(s[1])}</td>`).join('')}</tr>
-          <tr><td>QoQ 성장률</td>${op.ser.map(s=>`<td class="${(s[2]||0)>=0?'pos':'neg'}">${s[2]==null?'-':(s[2]>=0?'+':'')+s[2]+'%'}</td>`).join('')}</tr></table>`
-        :'<div class="meta" style="margin-top:8px">분기 실적 시리즈 없음 (실적 스크리닝 미포함 종목)</div>'}
+        ${op&&op.ser?`<table class="opt"><tr><th>분기</th>${op.ser.map(s=>`<th>${s[0]}${s[5]?` <span style="color:#b7791f">${s[5]}</span>`:''}</th>`).join('')}</tr>
+          ${op.ser.some(s=>s[3]!=null)?`<tr><td>매출(억)</td>${op.ser.map(s=>`<td>${fmt(s[3])}</td>`).join('')}</tr>`:''}
+          <tr><td>영업이익(억)</td>${op.ser.map(s=>`<td class="${(s[1]||0)<0?'neg':''}">${fmt(s[1])}</td>`).join('')}</tr>
+          ${op.ser.some(s=>s[3])?`<tr><td>영업이익률</td>${op.ser.map(s=>`<td>${s[3]&&s[1]!=null?(s[1]/s[3]*100).toFixed(1)+'%':'-'}</td>`).join('')}</tr>`:''}
+          <tr><td>영업이익 QoQ</td>${op.ser.map(s=>gc(s[2],s[6])).join('')}</tr>
+          ${op.ser.some(s=>s[4]!=null)?`<tr><td>영업이익 YoY</td>${op.ser.map(s=>gc(s[4],s[7])).join('')}</tr>`:''}</table>
+          <div class="meta" style="margin-top:6px">출처: <a class="lk" href="https://dart.fss.or.kr/dsab007/main.do?option=corp&textCrpNm=${encodeURIComponent(x.name)}" target="_blank" rel="noopener">DART 분기·반기·사업보고서</a>${op.fs?` (${op.fs==='OFS'?'별도':'연결'} 기준)`:''} · 4분기 = 연간 − 3분기 누적${op.src==='screener'?' · 실적 스크리닝 수집본':''}${x.hg?` · 헤게모니 ${hgB(x.hg)} 매출 YoY <b>${pcH(x.hg.rg)}</b> / 영업이익 YoY <b>${pcH(x.hg.og)}</b>${x.hg.hist?` · 최근 8분기 국면 ${x.hg.hist.map(v=>v==null?'·':v).join('→')}`:''} <a class="lk" href="/hege.html">국면 분류 보기</a>`:''}</div>`
+        :'<div class="meta" style="margin-top:8px">DART 분기 영업이익 없음 — 금융·보험·리츠는 영업이익 계정 체계가 다르고, 신규 상장주는 분기 이력이 짧습니다. <a class="lk" href="https://dart.fss.or.kr/dsab007/main.do?option=corp&textCrpNm='+encodeURIComponent(x.name)+'" target="_blank" rel="noopener">DART에서 보기</a></div>'}
         <div style="margin-top:8px"><a class="lk" href="/bands.html#${x.code}">📉 밴드·V차트 보기</a> · <a class="lk" href="/deep.html#${x.code}">🔬 딥다이브</a></div>
       </div>
     </div>`;
@@ -190,6 +229,22 @@ function draw(){
   if(!rows.length) h+='<div class="loading">조건에 맞는 종목 없음</div>';
   h+=`<div style="font-size:11px;color:#98a2b3;margin-top:10px">시총 상위 ${D.capTop||1000}종목 · 주봉 수정주가 기준 · 경고/이탈은 최근 12주 내 발생분만 표시 · 갱신 ${D.updated||''}</div>`;
   document.getElementById('body').innerHTML=h;
+}
+function trackH(){
+  if(!T||!T.summary) return '<div class="meta" style="margin-top:4px">조합별 추적 성적: 다음 수집부터 기록을 시작합니다(진입일·진입가를 쌓아 이후 수익률로 검증).</div>';
+  const S=T.summary, rows=[['A',CBS.A[0]],['B',CBS.B[0]],['C',CBS.C[0]],['D',CBS.D[0]],['N','대조군: 신규 진입(헤게모니 초입 아님)']];
+  return `<div class="meta" style="margin:8px 0 4px"><b>조합별 추적 성적</b> — ${T.start}부터 조합에 들어온 날의 주가를 기록해 이후 수익률을 봅니다. 과거로 되돌려 검증할 데이터가 없어 지금부터 쌓는 방식이라, <b>표본과 기간이 쌓이기 전에는 결론을 내리면 안 됩니다.</b></div>
+    <div class="tw"><table class="wt"><tr><th class="l">조합</th><th>기록</th><th>진입 후 현재 평균</th><th>플러스 비율</th><th>4주 뒤 평균</th><th>13주 뒤 평균</th></tr>`+
+    rows.map(([k,lb])=>{ const v=S[k]||{}; return `<tr><td class="l">${lb}</td><td>${v.n||0}</td><td class="${(v.ret||0)>=0?'pos':'neg'}">${v.n?pc(v.ret):'-'}</td><td>${v.n?v.win+'%':'-'}</td><td>${v.n4w?pc(v.r4w)+` <span style="color:#98a2b3">(${v.n4w})</span>`:'<span style="color:#98a2b3">아직 없음</span>'}</td><td>${v.n13w?pc(v.r13w)+` <span style="color:#98a2b3">(${v.n13w})</span>`:'<span style="color:#98a2b3">아직 없음</span>'}</td></tr>`; }).join('')+`</table></div>`;
+}
+function watchH(W){
+  const ok=v=>v?'<b style="color:#0e9f5a">✓</b>':'<span style="color:#d92d20">✗</span>';
+  const rows=W.filter(x=>(!Q||x.name.includes(Q)||x.code.includes(Q)||(x.sector||'').includes(Q)));
+  const stl={warn:'🟡 경고',dead:'🔴 이탈'};
+  return `<div class="easy">쉬운 말: 최근 분기에 실적이 막 돌아선 기업(1국면 신규 = 매출이 먼저 살아남, 2국면 초입 = 이익이 매출보다 빨리 늘기 시작) 중 주가가 아직 정배열이 아닌 종목입니다. 이평 배열 ✓가 3개가 되면 "신규 진입"으로 넘어갑니다 — ✓가 2개인 종목이 가장 가까이 와 있습니다.</div>
+  <div class="tw"><table class="wt"><tr><th class="l">종목</th><th class="l">헤게모니</th><th>매출 YoY</th><th>영업이익 YoY</th><th>4주&gt;13주</th><th>13주&gt;26주</th><th>26주&gt;52주</th><th>13주 수익률</th><th class="l">주도주 신호</th><th>시총(억)</th><th class="l">보기</th></tr>`+
+  rows.sort((a,b)=>{ const n=x=>(x.ma||[]).filter(Boolean).length; return n(b)-n(a)||(b.cap||0)-(a.cap||0); }).map(x=>`<tr><td class="l"><b>${x.name}</b> <span class="cd">${x.code}${x.sector?' · '+x.sector:''}</span></td><td class="l">${hgB(x.hg)}</td><td class="${(x.hg.rg||0)>=0?'pos':'neg'}">${pcH(x.hg.rg)}</td><td class="${(x.hg.og||0)>=0?'pos':'neg'}">${pcH(x.hg.og)}</td>${x.ma?x.ma.map(v=>`<td>${ok(v)}</td>`).join(''):'<td colspan="3" style="color:#98a2b3">주봉 부족</td>'}<td class="${(x.chg13w||0)>=0?'pos':'neg'}">${x.chg13w==null?'-':pc(x.chg13w)}</td><td class="l">${stl[x.st]||'<span style="color:#98a2b3">없음</span>'}</td><td>${fmt(x.cap)}</td><td class="l"><a class="lk" href="/bands.html#${x.code}">밴드</a> · <a class="lk" href="/valws.html?c=${x.code}">워크시트</a></td></tr>`).join('')+
+  `</table></div>`+(rows.length?'':'<div class="loading">조건에 맞는 종목 없음</div>');
 }
 function refocus(){ const el=document.getElementById('q'); if(el){ el.focus(); el.setSelectionRange(el.value.length,el.value.length);} }
 function setF(f){ FILT=f; SEC='all'; draw(); }
@@ -222,6 +277,7 @@ function chart(i,code){
 async function init(){
   try{ D=await (await fetch('/data/leadsig.json?t='+Date.now())).json(); }
   catch(e){ D={list:[]}; }
+  try{ const r=await fetch('/data/leadsig_track.json?t='+Date.now()); if(r.ok) T=await r.json(); }catch(e){ T=null; }
   draw();
 }
 init();

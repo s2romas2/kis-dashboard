@@ -8,7 +8,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif;background:#f4f6fa;color:#1a1f2e}
 a{color:#1d4ed8;text-decoration:none}a:hover{text-decoration:underline}
-.wrap{max-width:1020px;margin:0 auto;padding:14px 14px 80px}
+.wrap{max-width:1020px;margin:0 auto;padding:14px 14px 80px;position:relative}
 .crumb{font-size:12px;color:#667085;margin-bottom:6px}.crumb a{color:#667085}
 .hd h1{font-size:23px;line-height:1.38;color:#0f2847;letter-spacing:-.4px;margin-bottom:6px}
 .hd .sub{font-size:16px;color:#475467;font-weight:600}
@@ -81,6 +81,35 @@ a{color:#1d4ed8;text-decoration:none}a:hover{text-decoration:underline}
  .rs .grid2{grid-template-columns:1fr}
  body{overflow-x:hidden}
 }
+
+/* ── 용어 툴팁 ───────────────────────────────────────────── */
+.rs .term{border-bottom:1px dashed #9fb6d4;cursor:help;position:relative}
+.rs .term:hover,.rs .term.on{background:#eef5fd}
+.rs .term .tip{display:none;position:absolute;left:0;top:calc(100% + 7px);z-index:40;
+ width:max-content;max-width:min(360px,86vw);background:#0f2847;color:#fff;
+ border-radius:9px;padding:9px 12px;font-size:12.5px;line-height:1.72;font-weight:400;
+ box-shadow:0 8px 22px rgba(15,40,71,.26);text-align:left;white-space:normal;cursor:auto}
+.rs .term .tip b{color:#9fd0ff;display:block;margin-bottom:3px;font-size:12.5px}
+.rs .term:hover .tip,.rs .term.on .tip{display:block}
+.rs .term.r .tip{left:auto;right:0}
+/* ── 필기 레이어 ─────────────────────────────────────────── */
+#inkc{position:absolute;left:0;top:0;z-index:30;pointer-events:none;touch-action:auto}
+body.inkon #inkc{pointer-events:auto;touch-action:none}
+body.inkon{overscroll-behavior:contain}
+#inkbar{position:fixed;right:14px;bottom:14px;z-index:60;display:flex;gap:5px;align-items:center;
+ background:#fff;border:1px solid #d7dce6;border-radius:999px;padding:5px 7px;
+ box-shadow:0 6px 20px rgba(15,40,71,.16);font-size:13px}
+#inkbar button{appearance:none;border:1px solid transparent;background:#f3f6fa;border-radius:999px;
+ width:32px;height:32px;cursor:pointer;font-size:15px;line-height:1;color:#28303f}
+#inkbar button:hover{background:#e6edf7}
+#inkbar button.on{background:#0f2847;color:#fff}
+#inkbar button:disabled{opacity:.33;cursor:default}
+#inkbar .sep{width:1px;height:20px;background:#e4e7ec;margin:0 2px}
+#inkbar .sw{width:20px;height:20px;border-radius:50%;border:2px solid #fff;
+ box-shadow:0 0 0 1px #cfd6e0;cursor:pointer;padding:0}
+#inkbar .sw.on{box-shadow:0 0 0 2px #0f2847}
+#inkst{font-size:11.5px;color:#6b7684;padding:0 6px;white-space:nowrap}
+@media print{#inkbar{display:none}}
 </style>
 <script src="/nav.js" defer></script>
 </head>
@@ -94,6 +123,239 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function hid(){const m=location.hash.match(/r=([\w.\-]+)/);return m?m[1]:'';}
 async function jget(u){const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw new Error(u+' '+r.status);return r.json();}
+
+
+/* ══ 1) 문장 단위 줄바꿈 ════════════════════════════════════════════════════
+   한글 종결어미 뒤의 마침표에서만 끊는다. "26.2Q"·"2.45GW"·"No.213" 은 앞이
+   숫자/영문이라 걸리지 않는다. */
+const BRK_SEL='p, li, dd, .keynote, .key1, .lead, .warn, .segbody, .figcap, .toc';
+function sentenceBreaks(root){
+  root.querySelectorAll(BRK_SEL).forEach(function(el){
+    if(el.closest('table')) return;
+    const walker=document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+    const jobs=[]; let n;
+    while(n=walker.nextNode()){ if(/[가-힣]\.\s/.test(n.nodeValue)) jobs.push(n); }
+    jobs.forEach(function(node){
+      const parts=node.nodeValue.split(/(?<=[가-힣]\.)\s+/);
+      if(parts.length<2) return;
+      const frag=document.createDocumentFragment();
+      parts.forEach(function(s,i){
+        frag.appendChild(document.createTextNode(i?s:s));
+        if(i<parts.length-1) frag.appendChild(document.createElement('br'));
+      });
+      node.parentNode.replaceChild(frag,node);
+    });
+  });
+}
+
+/* ══ 2) 용어 툴팁 ═══════════════════════════════════════════════════════════ */
+let TERMS=null, TKEYS=[];
+async function loadTerms(){
+  if(TERMS) return;
+  const d=await jget('/data/terms.json');
+  TERMS=(d&&d.terms)||{};
+  TKEYS=Object.keys(TERMS).sort(function(a,b){return b.length-a.length;});  // 긴 것 먼저
+}
+function markTerms(root){
+  if(!TKEYS.length) return;
+  const esc2=function(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');};
+  const rx=new RegExp('('+TKEYS.map(esc2).join('|')+')','g');
+  const seen={};
+  const walker=document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+  const jobs=[]; let n;
+  while(n=walker.nextNode()){
+    if(!n.nodeValue.trim()) continue;
+    if(n.parentElement.closest('a,.term,script,style,h1,h2,h3,.tip')) continue;
+    if(rx.test(n.nodeValue)){ rx.lastIndex=0; jobs.push(n); }
+  }
+  jobs.forEach(function(node){
+    const txt=node.nodeValue; const frag=document.createDocumentFragment();
+    let last=0, m; rx.lastIndex=0;
+    while((m=rx.exec(txt))!==null){
+      const w=m[1];
+      if(seen[w]>=3){ continue; }                 // 같은 용어는 문서당 3회까지만
+      seen[w]=(seen[w]||0)+1;
+      frag.appendChild(document.createTextNode(txt.slice(last,m.index)));
+      const sp=document.createElement('span'); sp.className='term'; sp.textContent=w;
+      const T=TERMS[w];
+      const tip=document.createElement('span'); tip.className='tip';
+      tip.innerHTML='<b>'+esc(w)+'</b>'+esc(T.d||'')+(T.x?'<br>'+esc(T.x):'');
+      sp.appendChild(tip); frag.appendChild(sp);
+      last=m.index+w.length;
+    }
+    frag.appendChild(document.createTextNode(txt.slice(last)));
+    node.parentNode.replaceChild(frag,node);
+  });
+  // 모바일: 탭으로 토글 + 화면 밖으로 나가면 오른쪽 정렬
+  root.querySelectorAll('.term').forEach(function(sp){
+    sp.addEventListener('click',function(e){
+      e.stopPropagation();
+      const was=sp.classList.contains('on');
+      root.querySelectorAll('.term.on').forEach(function(x){x.classList.remove('on');});
+      if(!was){ sp.classList.add('on');
+        const r=sp.getBoundingClientRect();
+        if(r.left+360>window.innerWidth) sp.classList.add('r');
+      }
+    });
+  });
+  document.addEventListener('click',function(){
+    root.querySelectorAll('.term.on').forEach(function(x){x.classList.remove('on');});
+  });
+}
+
+
+/* ══ 3) 필기 레이어 — 펜·형광펜·지우개·되돌리기 (획 단위) ═══════════════════
+   획(stroke) 배열 하나가 전부다. 지우개는 획을 통째로 지우고, 되돌리기는
+   배열 스냅샷을 되감는다. 저장은 localStorage(문서별) — 기기마다 따로 남는다. */
+const INK={id:null,st:[],hist:[],redo:[],tool:null,color:'#ff3b30',hl:'#ffe44d',cur:null,base:0};
+const PENS=[['#ff3b30','빨강'],['#2a78d6','파랑'],['#0f2847','검정']];
+const HLS =[['#ffe44d','노랑'],['#a8f0c6','연두'],['#ffc9de','분홍']];
+function inkKey(){ return 'repsum.ink.'+INK.id; }
+function inkCanvas(){ return document.getElementById('inkc'); }
+
+function inkFit(){
+  const c=inkCanvas(), w=document.querySelector('.wrap'); if(!c||!w) return;
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  const W=w.clientWidth, H=w.scrollHeight;
+  c.style.width=W+'px'; c.style.height=H+'px';
+  c.width=Math.round(W*dpr); c.height=Math.round(H*dpr);
+  c.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+  if(!INK.base) INK.base=W;
+  inkDraw();
+}
+function inkDraw(){
+  const c=inkCanvas(); if(!c) return;
+  const ctx=c.getContext('2d');
+  const W=c.clientWidth, k=INK.base?W/INK.base:1;
+  ctx.clearRect(0,0,c.width,c.height);
+  INK.st.forEach(function(s){ inkStroke(ctx,s,k); });
+  if(INK.cur) inkStroke(ctx,INK.cur,k);
+}
+function inkStroke(ctx,s,k){
+  if(!s.p||s.p.length<1) return;
+  ctx.save();
+  ctx.lineJoin='round';
+  if(s.t==='hl'){ ctx.globalAlpha=.34; ctx.globalCompositeOperation='multiply';
+                  ctx.lineCap='butt'; ctx.lineWidth=16*k; ctx.strokeStyle=s.c;
+                  ctx.beginPath(); s.p.forEach(function(q,i){ i?ctx.lineTo(q[0]*k,q[1]*k):ctx.moveTo(q[0]*k,q[1]*k); });
+                  ctx.stroke(); }
+  else{ ctx.lineCap='round'; ctx.strokeStyle=s.c;
+        for(let i=1;i<s.p.length;i++){
+          const a=s.p[i-1], b=s.p[i];
+          ctx.lineWidth=Math.max(.9,(s.w||2.2)*k*(0.45+(b[2]||.5)));
+          ctx.beginPath(); ctx.moveTo(a[0]*k,a[1]*k); ctx.lineTo(b[0]*k,b[1]*k); ctx.stroke();
+        }
+        if(s.p.length===1){ ctx.beginPath();
+          ctx.arc(s.p[0][0]*k,s.p[0][1]*k,(s.w||2.2)*k*.6,0,6.3); ctx.fillStyle=s.c; ctx.fill(); } }
+  ctx.restore();
+}
+function inkSnap(){ INK.hist.push(INK.st.slice()); if(INK.hist.length>80) INK.hist.shift(); INK.redo=[]; inkBtns(); }
+function inkSave(){
+  try{ localStorage.setItem(inkKey(), JSON.stringify({base:INK.base,st:INK.st})); }catch(e){}
+  const s=document.getElementById('inkst'); if(s) s.textContent=INK.st.length?INK.st.length+'획 저장됨':'';
+}
+let _sv; function inkSaveSoon(){ clearTimeout(_sv); _sv=setTimeout(inkSave,600); }
+function inkLoad(){
+  INK.st=[];INK.hist=[];INK.redo=[];
+  try{ const r=JSON.parse(localStorage.getItem(inkKey())||'null');
+       if(r&&r.st){ INK.st=r.st; INK.base=r.base||INK.base; } }catch(e){}
+}
+function inkBtns(){
+  const u=document.getElementById('inkU'), r=document.getElementById('inkR');
+  if(u) u.disabled=!INK.hist.length;
+  if(r) r.disabled=!INK.redo.length;
+}
+function inkXY(e){
+  const c=inkCanvas(), b=c.getBoundingClientRect(), k=INK.base?c.clientWidth/INK.base:1;
+  return [(e.clientX-b.left)/k,(e.clientY-b.top)/k, e.pressure&&e.pressure>0?e.pressure:0.5];
+}
+function inkErase(x,y){
+  const R=11, before=INK.st.length;
+  INK.st=INK.st.filter(function(s){
+    return !s.p.some(function(q){ return Math.abs(q[0]-x)<R && Math.abs(q[1]-y)<R; });
+  });
+  if(INK.st.length!==before){ inkDraw(); inkSaveSoon(); }
+}
+function inkBind(){
+  const c=inkCanvas(); if(!c) return;
+  let drawing=false;
+  c.addEventListener('pointerdown',function(e){
+    if(!INK.tool) return;
+    drawing=true;                                   // 캡처 실패해도 그리기는 살린다
+    try{ c.setPointerCapture(e.pointerId); }catch(_){}
+    e.preventDefault();
+    const q=inkXY(e);
+    if(INK.tool==='er'){ inkSnap(); inkErase(q[0],q[1]); return; }
+    INK.cur={t:INK.tool,c:INK.tool==='hl'?INK.hl:INK.color,w:2.4,p:[q]};
+    inkDraw();
+  });
+  c.addEventListener('pointermove',function(e){
+    if(!drawing||!INK.tool) return;
+    const q=inkXY(e);
+    if(INK.tool==='er'){ inkErase(q[0],q[1]); return; }
+    if(INK.cur){ INK.cur.p.push(q); inkDraw(); }
+  });
+  const end=function(){
+    if(!drawing) return; drawing=false;
+    if(INK.cur&&INK.cur.p.length){ inkSnap(); INK.st.push(INK.cur); }
+    INK.cur=null; inkDraw(); inkSaveSoon();
+  };
+  c.addEventListener('pointerup',end); c.addEventListener('pointercancel',end);
+  window.addEventListener('pointerup',end);   // 캔버스 밖에서 떼도 획을 닫는다
+  window.addEventListener('resize',function(){ clearTimeout(_sv); inkFit(); });
+}
+function inkTool(name,btn){
+  INK.tool=(INK.tool===name)?null:name;
+  document.body.classList.toggle('inkon',!!INK.tool);
+  document.querySelectorAll('#inkbar .tl').forEach(function(b){ b.classList.remove('on'); });
+  if(INK.tool&&btn) btn.classList.add('on');
+  const sw=document.getElementById('inksw');
+  if(sw){ sw.innerHTML=''; 
+    if(INK.tool==='pen'||INK.tool==='hl'){
+      (INK.tool==='hl'?HLS:PENS).forEach(function(p){
+        const b=document.createElement('button'); b.className='sw'; b.style.background=p[0]; b.title=p[1];
+        if((INK.tool==='hl'?INK.hl:INK.color)===p[0]) b.classList.add('on');
+        b.onclick=function(){ if(INK.tool==='hl') INK.hl=p[0]; else INK.color=p[0]; inkTool(INK.tool, 
+          document.querySelector('#inkbar .tl.on')); };
+        sw.appendChild(b);
+      });
+    } }
+}
+function inkBar(){
+  if(document.getElementById('inkbar')) document.getElementById('inkbar').remove();
+  const bar=document.createElement('div'); bar.id='inkbar';
+  bar.innerHTML='<span id="inkst"></span>'
+   +'<button class="tl" id="inkP" title="펜">✏️</button>'
+   +'<button class="tl" id="inkH" title="형광펜">🖍️</button>'
+   +'<button class="tl" id="inkE" title="지우개(획 단위)">🧽</button>'
+   +'<span id="inksw" style="display:flex;gap:4px"></span>'
+   +'<span class="sep"></span>'
+   +'<button id="inkU" title="되돌리기">↶</button>'
+   +'<button id="inkR" title="다시 실행">↷</button>'
+   +'<button id="inkC" title="전체 지우기">🗑️</button>';
+  document.body.appendChild(bar);
+  bar.querySelector('#inkP').onclick=function(){ inkTool('pen',this); };
+  bar.querySelector('#inkH').onclick=function(){ inkTool('hl',this); };
+  bar.querySelector('#inkE').onclick=function(){ inkTool('er',this); };
+  bar.querySelector('#inkU').onclick=function(){
+    if(!INK.hist.length) return;
+    INK.redo.push(INK.st.slice()); INK.st=INK.hist.pop(); inkDraw(); inkSave(); inkBtns(); };
+  bar.querySelector('#inkR').onclick=function(){
+    if(!INK.redo.length) return;
+    INK.hist.push(INK.st.slice()); INK.st=INK.redo.pop(); inkDraw(); inkSave(); inkBtns(); };
+  bar.querySelector('#inkC').onclick=function(){
+    if(!INK.st.length) return;
+    if(!confirm('이 리포트의 필기를 전부 지울까요?')) return;
+    inkSnap(); INK.st=[]; inkDraw(); inkSave(); };
+  inkBtns();
+}
+function inkInit(id){
+  INK.id=id; INK.tool=null; document.body.classList.remove('inkon');
+  const old=inkCanvas(); if(old) old.remove();
+  const c=document.createElement('canvas'); c.id='inkc';
+  document.querySelector('.wrap').appendChild(c);
+  INK.base=0; inkLoad(); inkFit(); inkBind(); inkBar(); inkSave();
+}
 
 function bindDual(root){
   (root||document).querySelectorAll('.segbtn').forEach(function(bar){
@@ -112,6 +374,8 @@ function bindDual(root){
 
 async function renderList(){
   $('#cr').textContent='';
+  document.body.classList.remove('inkon');
+  ['inkbar','inkc'].forEach(function(i){ const e=document.getElementById(i); if(e) e.remove(); });
   let d;
   try{ d=await jget('/data/repsum.json'); }
   catch(e){ $('#app').innerHTML='<div class="note">아직 정밀요약이 없다. (/data/repsum.json 없음)</div>'; return; }
@@ -144,6 +408,11 @@ async function renderOne(id){
    +(d.u?'<a href="'+esc(d.u)+'" target="_blank" rel="noopener">원문 PDF 열기</a>':'')+'</span></div></div>'
    +'<article class="rs">'+(d.html||'')+'</article>';
   bindDual($('.rs'));
+  await loadTerms();
+  markTerms($('.rs'));          // 용어 → 툴팁 (문장 쪼개기보다 먼저)
+  sentenceBreaks($('.rs'));     // 문장 단위 줄바꿈
+  inkInit(id);                  // 필기 레이어
+  setTimeout(inkFit,350);       // 레이아웃 안정 후 캔버스 높이 재조정
   // 본문 내부 앵커(#sum, #c0 …)는 해시를 바꾸지 않고 스크롤만 — 바꾸면 목록으로 되돌아간다
   $('.rs').querySelectorAll('a[href^="#"]').forEach(function(a){
     a.addEventListener('click',function(ev){

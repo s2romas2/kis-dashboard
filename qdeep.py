@@ -12,7 +12,13 @@ BASE = 'https://opendart.fss.or.kr/api'
 OUTDIR = 'public/data/qdeep'
 MAXRUN = int(os.environ.get('MAXRUN', '10'))
 REFRESH_DAYS = 25  # 분기마다 새 보고서 반영
-PV = 4  # 파서 버전 — 올리면 기존 수집분 재수집 (v4: 수주잔고 잔액·잔량·억원·KAI형, 고객 표 계정과목 오염 배제)
+PV = 5  # 파서 버전 — 올리면 기존 수집분 재수집
+# v5: 품목별 매출 파서를 자기검증형으로 교체. 품목 합을 원문 '합계' 행과 대조해
+#     오차 2% 초과면 저장하지 않는다. 고친 것 — '-' 칸을 지워 뒤 연도 값이
+#     당겨지던 열 밀림(RF머트리얼즈 2019년 매출이 21.1Q 자리로 들어감),
+#     판로(내수·수출) 행이 품목으로 등록, '제품 계' 소계 2배 중복,
+#     단위 표기를 표 안에서 못 찾아 1000배 틀어짐, 유형 '기타'가 '상품 기타'에
+#     합쳐짐, 머리글이 2행인 표를 통째로 건너뜀.
 START_YEAR = 2021
 UA = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36'}
 DEBUG = []
@@ -109,16 +115,6 @@ def tables(h):
         out.append(rows)
     return out
 
-def unit_mult(h, pos):
-    """표 앞 3000자에서 (단위: …) 탐지"""
-    seg = h[max(0, pos - 3000):pos]
-    if '백만원' in seg[-600:]:
-        return 1e6
-    if '억원' in seg[-600:]:
-        return 1e8
-    if '천원' in seg[-600:]:
-        return 1e3
-    return 1.0
 
 TYPE_WORDS = {'제품', '상품', '용역', '기타', '제품기타', '상품기타', '제품등', '상품등', '임대', '서비스',
               '수출', '내수', '국내', '해외', '합계', '계', '총계', '소계', '매출', '제상품'}
@@ -127,64 +123,289 @@ def _is_numlike(c):
     cc = c.replace(' ', '')
     return cc in ('-', '') or tonum(cc) is not None
 
-def parse_sales(h):
-    """품목별 매출 누적: {품목: 원} — 내수/수출/계 중첩·단순 나열 서식 모두 지원"""
-    out = {}
-    for m in re.finditer(r'<TABLE[\s\S]*?</TABLE>', h, re.I):
-        t = tables(m.group(0))[0]
-        if not t:
+def _norm(s): return re.sub(r'\s+', '', s or '')
+
+# ── 합계·소계 판정 ──────────────────────────────────────────────
+# '계'로 끝나는 말 중 소계인 것만 잡는다. '시계·온도계·중계' 같은 품목명을
+# 합계로 오인하면 품목이 통째로 사라지므로 접두어를 화이트리스트로 둔다.
+_TOT_EXACT = {'계', '합계', '총계', '소계', '누계', '총합계', '합계액', '전체'}
+_TOT_PREFIX = {'', '합', '소', '총', '누', '제품', '상품', '용역', '공사', '임대', '서비스',
+               '기타', '부문', '전체', '당기', '전기', '당분기', '당반기', '내수', '수출',
+               '국내', '해외', '제상품', '제품상품', '매출'}
+def _is_total(s):
+    n = _norm(s)
+    if not n: return False
+    if n in _TOT_EXACT: return True
+    if any(w in n for w in ('합계', '총계', '소계', '누계')): return True
+    if n.endswith('계') and n[:-1] in _TOT_PREFIX: return True
+    return False
+
+# 매출 '유형' 라벨 — 품목명이 아니라 분류
+SALE_TYPES = ('제품', '상품', '용역', '제상품', '제품등', '상품등', '임대', '서비스', '공사',
+              '기타', '제품매출', '상품매출', '용역매출', '기타매출', '임대매출', '공사매출',
+              '제품및상품', '제품상품')
+# 유형 추적용 — '기타'처럼 품목으로도 쓰이는 말은 제외한다
+TYPE_SETTERS = ('제품', '상품', '용역', '공사', '임대', '서비스', '제상품',
+                '제품매출', '상품매출', '용역매출', '임대매출', '공사매출')
+# 판로 라벨 — 이 행은 '앞선 품목'에 더해야 하고, 품목이 되면 안 된다
+CHAN_WORDS = ('수출', '내수', '국내', '해외', '수출액', '내수액', '로컬', '로칼', '직수출',
+              '내수매출', '수출매출', 'local', 'LOCAL', '아시아', '미주', '유럽', '중국')
+HDR_WORDS = ('구분', '사업부문', '부문', '매출유형', '품목', '주요상표', '구체적용도', '용도',
+             '매출액', '금액', '비율', '비중', '단위', '판매경로', '제품명')
+# 품목이 아닌 조정 행 — 더하면 합계가 어긋나고 품목 목록을 더럽힌다
+ADJ_RE = re.compile(r'(연결\s*조정|내부거래|상계|제거|내부\s*매출)')
+
+UNITS = (('십억원', 1e9), ('백만원', 1e6), ('억원', 1e8), ('천만원', 1e7),
+         ('만원', 1e4), ('천원', 1e3), ('원', 1.0))
+def unit_mult(h, pos):
+    """표 바로 앞의 마지막 '(단위 : X)' 표기로 배수를 정한다.
+    앞쪽 다른 표의 단위 문구를 집으면 값이 1000배 틀어진다(대주전자재료)."""
+    seg = h[max(0, pos - 3000):pos]
+    ms = list(re.finditer(r'단\s*위\s*[:：]\s*([^)＜<]{1,24})', seg))
+    if ms:
+        u = _norm(ms[-1].group(1))
+        for w, mu in UNITS:
+            if w in u: return mu
+    for w, mu in UNITS[:-1]:
+        if w in _norm(seg[-400:]): return mu
+    return 1.0
+
+def unit_from_rows(rows):
+    """표 자체의 앞 2행에 '(단위 : 백만원)' 이 들어 있는 서식이 많다.
+    문맥만 보면 이 표기를 놓쳐 값이 100만배 틀어진다(이수페타시스·대주전자재료)."""
+    head = ' '.join(' '.join(r) for r in rows[:2])
+    m = list(re.finditer(r'단\s*위\s*[:：]\s*([^)＜<]{1,24})', head))
+    if m:
+        u = _norm(m[-1].group(1))
+        for w, mu in UNITS:
+            if w in u: return mu
+    return None
+
+def sales_mult(h, pos, rows):
+    """표 안의 단위 표기를 우선하고, 없으면 표 앞 문맥을 본다."""
+    return unit_from_rows(rows) or unit_mult(h, pos)
+
+def _tonum(c):
+    c = _norm(c).replace(',', '')
+    if c in ('', '-', '­', '–', '—', '해당사항없음'): return None
+    neg = c.startswith('(') and c.endswith(')')
+    if neg: c = c[1:-1]
+    if not re.fullmatch(r'-?\d+(\.\d+)?', c): return None
+    v = float(c)
+    return -v if neg else v
+
+def _lead(row):
+    """첫 '값 자리' 앞의 텍스트 셀들. '-' 는 값 자리의 시작일 수도 있어
+    뒤에 숫자가 하나라도 있으면 값으로 본다."""
+    out = []
+    for i, c in enumerate(row):
+        if _tonum(c) is not None: break
+        n = _norm(c)
+        if n in DASH:
+            if any(_tonum(x) is not None for x in row[i + 1:]): break
             continue
-        flat = ' '.join(' '.join(r) for r in t[:2])
-        if not (('매출유형' in flat or '매출실적' in flat or '매출액' in flat) and any('품' in c or '부문' in c for c in t[0])):
-            continue
-        mult = unit_mult(h, m.start())
-        has_types = any(c.replace(' ', '') in ('수출', '내수') for r in t for c in r[:4])
-        cur_item = None
-        res = {}
-        for r in t[1:]:
-            if not r:
-                continue
-            # 선행 텍스트 셀들(첫 숫자 전까지) / 첫 숫자값
-            lead, val = [], None
-            for c in r:
-                if _is_numlike(c):
-                    v = tonum(c.replace(' ', ''))
-                    if v is not None:
-                        val = v
-                    break
-                lead.append(c.strip())
-            norm = [c.replace(' ', '') for c in lead]
-            # 품목 후보 = 유형·합계 단어가 아닌 마지막 텍스트 셀
-            cand = [c for c, n in zip(lead, norm) if n not in TYPE_WORDS]
-            if has_types:
-                is_total_row = bool(norm) and norm[-1] in ('합계', '계', '소계')
-                tail_is_type = bool(norm) and norm[-1] in ('수출', '내수', '국내', '해외', '합계', '계', '소계')
-                SALE_TYPES = ('제품', '상품', '용역', '제상품', '제품기타', '상품기타', '제품등', '상품등', '임대', '서비스')
-                if tail_is_type and len(lead) >= 2:
-                    prevn = norm[-2]
-                    if prevn in ('합계', '총계'):
-                        cur_item = None  # 전사 합계 구간
-                    elif prevn in SALE_TYPES:
-                        c2 = [c for c, n in zip(lead[:-1], norm[:-1]) if n not in TYPE_WORDS]
-                        if c2:
-                            cur_item = c2[-1][:20]
-                    else:
-                        cur_item = lead[-2][:20]  # 유형 바로 앞 셀 = 품목 ('기타' 같은 품목명 허용)
-                elif not tail_is_type and cand:
-                    cur_item = cand[-1][:20]
-                if is_total_row and cur_item and val is not None:
-                    res[cur_item] = val * mult
-            else:
-                if cand and val is not None:
-                    key = cand[-1][:20]
-                    if not key.replace(' ', '').startswith(('합계', '총계')):
-                        res[key] = val * mult
-        # 전사 합계로 의심되는 키 제거
-        res = {k: v for k, v in res.items() if k.replace(' ', '') not in ('합계', '총계', '소계')}
-        if res:
-            out = res
-            break
+        if n: out.append(c.strip())
     return out
+
+DASH = ('-', '–', '—', '­', '', '해당사항없음', 'N/A', '-')
+def _vals(row):
+    """선행 텍스트 셀 뒤의 '값 자리'를 순서대로 돌려준다.
+    '-' 는 0 으로 자리를 지킨다 — 빼버리면 뒤쪽 기간 값이 앞으로 당겨진다."""
+    out, started = [], False
+    for c in row:
+        v = _tonum(c)
+        if v is not None:
+            out.append(v); started = True; continue
+        n = _norm(c)
+        if n in DASH:
+            if started or out: out.append(0.0)
+            else: out.append(0.0); started = True
+            continue
+        if started: break            # 값 구간 뒤의 주석 셀 — 끝
+    return out
+
+def _period_count(rows):
+    """머리글에서 기간 열 수와 '당기' 위치 → (k, nper)"""
+    best = []
+    for r in rows[:3]:
+        ys = []
+        for c in r:
+            m = re.search(r'(20\d{2})\s*년', c)
+            if m: ys.append(int(m.group(1))); continue
+            m = re.search(r'제\s*(\d{1,3})\s*기', c)
+            if m: ys.append(int(m.group(1)))
+        if len(ys) >= 2 and len(ys) > len(best): best = ys
+    if not best: return 0, 1
+    return best.index(max(best)), len(best)
+
+# ── 표 선별 ────────────────────────────────────────────────────
+GOOD_CTX = re.compile(r'(매출\s*실적|매출\s*현황|매출액?\s*추이|품목별\s*매출|부문별\s*매출)')
+BAD_CTX  = re.compile(r'(판매\s*경로|판매\s*전략|가격\s*변동|판매\s*가격|주요\s*제품\s*등?의?\s*현황'
+                      r'|수주\s*상황|생산\s*실적|생산\s*능력|원재료|재무상태|현금흐름|주식|배당)')
+def table_is_sales(rows, ctx):
+    """매출실적 표인지 — 문맥 + 머리글로 판정.
+    머리글이 1행이 아닌 표가 많다('(단위 : 백만원)' 가 첫 행인 경우) → 앞 3행을 본다."""
+    if BAD_CTX.search(ctx or '') and not GOOD_CTX.search(ctx or ''): return False
+    head = _norm(' '.join(' '.join(r) for r in rows[:3]))
+    if '판매경로' in head or '판매가격' in head: return False
+    has_type = any(w in head for w in ('매출유형', '사업부문', '부문', '매출유형'))
+    has_item = any(w in head for w in ('품목', '품 목', '제품', '품명', '제조장비'))
+    good = bool(GOOD_CTX.search(ctx or ''))
+    if good and (has_type or has_item or '구분' in head): return True
+    return has_type and has_item
+
+# ── 본체 ──────────────────────────────────────────────────────
+def pick_best(tabs):
+    """한 섹션의 여러 표 중 진짜 매출실적 표를 고른다.
+    품목 수가 많은 표를 고르면 지주회사 배당수익 표 같은 것이 뽑힌다(심텍).
+    재구성 합계가 가장 큰 표가 전사 매출실적 표다."""
+    best = None
+    for t in tabs:
+        r, why = parse_sales_table(t['rows'], t['mult'], t.get('ctx', ''))
+        if not r: continue
+        tot = sum(abs(v) for v in r.values())
+        if best is None or tot > best[0]: best = (tot, r, why)
+    return (best[1], best[2]) if best else (None, 'no-table')
+
+def parse_sales_table(rows, mult, ctx=''):
+    if len(rows) < 3: return None, 'rows<3'
+    if not table_is_sales(rows, ctx): return None, 'not-a-sales-table'
+    k, nper = _period_count(rows)
+
+    # 전사 합계 후보를 모두 모은다. 일진전기처럼 합계 묶음이
+    # 내수/수출/계 3행으로 쪼개진 표에서는 '계' 행이 진짜 합계다.
+    tot_cands = []
+    for idx, r in enumerate(rows):
+        lead = _lead(r); nv = _vals(r)
+        if not lead or not nv: continue
+        if any(w in _norm(c) for c in lead for w in ('합계', '총계')):
+            tot_cands.append(nv)
+            for r2 in rows[idx + 1:]:                  # 합계 묶음의 하위 행(내수·수출·계)
+                l2 = _lead(r2); v2 = _vals(r2)
+                if not l2 or not v2: break
+                n2 = [_norm(c) for c in l2]
+                if len(n2) == 1 and (n2[0] in set(_norm(w) for w in CHAN_WORDS) or _is_total(n2[0])):
+                    tot_cands.append(v2)
+                else: break
+    if not tot_cands:
+        for r in reversed(rows):
+            lead = _lead(r)
+            if lead and _vals(r) and _is_total(lead[-1]): tot_cands.append(_vals(r)); break
+    if not tot_cands: return None, 'no-total-row'
+
+    m0 = len(tot_cands[0]) // nper if nper and len(tot_cands[0]) % nper == 0 else 1
+    pinned = nper >= 2                                  # 머리글에서 기간을 읽었다
+    cands = []
+    for tn in tot_cands:
+        js = [k * m0, k] if pinned else ([k * m0, k, 0] + list(range(len(tn))))
+        for j in js:
+            if 0 <= j < len(tn) and (id(tn), j) not in [(id(a), b) for a, b in cands]:
+                cands.append((tn, j))
+
+    DROP = set(_norm(w) for w in SALE_TYPES) | set(_norm(w) for w in CHAN_WORDS) \
+         | set(_norm(w) for w in HDR_WORDS)
+    SETTERS = set(_norm(w) for w in TYPE_SETTERS)
+    CHANS = set(_norm(w) for w in CHAN_WORDS)
+
+    best = None
+    for tn, j in cands:
+        total = tn[j]
+        if not total or abs(total) < 1: continue
+        items, cur_type, cur_item, in_total = {}, None, None, False
+        keymap = {}                                     # 공백 제거 키 → 대표 표기
+        type_items = 0                                  # 현재 유형 그룹에서 담은 품목 수
+        for r in rows[1:]:
+            lead = _lead(r)
+            nums = _vals(r)
+            norm = [_norm(c) for c in lead]
+            # 합계 그룹 진입/이탈 — 합계 묶음 안의 내수·수출 행까지 건너뛴다.
+            # 단 '상품 계'처럼 그 유형에서 담은 품목이 하나도 없으면 소계가 아니라
+            # 그 유형의 유일한 매출이므로 품목으로 받는다(한솔케미칼 상품 28,614).
+            if lead and any(_is_total(c) for c in norm):
+                sub = [c for c, n in zip(lead, norm) if _is_total(n)]
+                only_sub = (_norm(sub[-1]) not in ('합계', '총계', '총합계')
+                            and not _norm(sub[-1]).startswith(('합계', '총계')))
+                if only_sub and type_items == 0 and j < len(nums):
+                    nm2 = re.sub(r'\s+', ' ', sub[-1]).strip()[:24]
+                    items[nm2] = items.get(nm2, 0) + nums[j]
+                    cur_item = nm2; type_items += 1
+                    continue
+                if not (len(norm) == 1 and norm[0] in CHANS): in_total = True
+                continue
+            if lead and len(norm) == 1 and norm[0] in CHANS and in_total:
+                continue
+            if lead and not (len(norm) == 1 and norm[0] in CHANS):
+                in_total = False
+            if not lead or j >= len(nums): continue
+            val = nums[j]
+            if val is None: continue
+            if norm and norm[-1] in set(_norm(w) for w in HDR_WORDS): continue
+            if norm and norm[0] in SETTERS:
+                if lead[0].strip() != cur_type: type_items = 0
+                cur_type = lead[0].strip()
+            cand_names = [c for c, n in zip(lead, norm) if n not in DROP]
+            if cand_names:
+                name = cand_names[-1]
+            elif len(norm) == 1 and norm[0] in CHANS and cur_item:
+                name = cur_item                       # 판로 행은 앞선 품목에 더한다
+            elif len(norm) == 1 and norm[0] in CHANS:
+                continue                              # 앞선 품목이 없는 판로 행은 버린다
+            elif len(lead) >= 2:
+                # ['상품','기타'] / ['기타','기타'] — 행 안에 유형과 품목이 다 있다.
+                # cur_type 을 끌어오면 '기타 기타'가 '상품 기타'에 합쳐진다.
+                a, b = lead[0].strip(), lead[-1].strip()
+                name = a if _norm(a) == _norm(b) else (a + ' ' + b)
+            else:
+                name = lead[-1]
+                if _norm(name) == '기타' and cur_type: name = cur_type + ' 기타'
+            name = re.sub(r'\s+', ' ', name).strip()[:24]
+            if not name: continue
+            if ADJ_RE.search(name): continue          # 연결조정 행은 품목이 아니다
+            key = _norm(name)
+            if key not in keymap:
+                keymap[key] = name; type_items += 1
+            cur_item = keymap[key]
+            items[keymap[key]] = items.get(keymap[key], 0) + val
+        if not items: continue
+        s = sum(items.values())
+        err = abs(s - total) / abs(total)
+        if best is None or err < best[0]: best = (err, j, items, total, s)
+        if err <= 0.005: break
+
+    if best is None: return None, 'no-candidate'
+    err, j, items, total, s = best
+    if err > 0.02:
+        return None, 'mismatch col%d sum=%.0f total=%.0f err=%.1f%%' % (j, s, total, err * 100)
+    scaled = s * mult
+    if scaled > 5e14 or (0 < abs(scaled) < 1e7):
+        # 500조원 초과 / 1,000만원 미만 = 단위 표기를 잘못 읽은 것.
+        # 역산해 고치면 추정치가 되므로 저장하지 않고 비운다.
+        return None, 'unit-suspect total=%.3g원 (mult=%g)' % (scaled, mult)
+    return ({k2: v * mult for k2, v in items.items()},
+            'ok col%d err=%.2f%% n=%d' % (j, err * 100, len(items)))
+
+# ── 품목별 매출 (v2, 자기검증형) ────────────────────────────────
+def parse_sales(h):
+    """품목별 매출 누적 {품목: 원}.
+    표의 합계 행과 품목 합을 대조해 맞지 않으면 아무것도 돌려주지 않는다.
+    틀린 값을 저장하는 것보다 비어 있는 것이 낫다."""
+    r, _ = parse_sales_qc(h)
+    return r or {}
+
+def parse_sales_qc(h):
+    """(결과, 사유) — 사유는 대시보드에 '왜 비었는지' 표시하기 위한 것"""
+    tabs = []
+    for m in re.finditer(r'<TABLE[\s\S]*?</TABLE>', h, re.I):
+        rows = tables(m.group(0))[0]
+        if not rows or len(rows) < 3:
+            continue
+        ctx = re.sub(r'\s+', ' ', re.sub('<[^>]+>', ' ', h[max(0, m.start() - 400):m.start()]))
+        tabs.append({'rows': rows,
+                     'mult': unit_from_rows(rows) or unit_mult(h, m.start()),
+                     'ctx': ctx})
+    if not tabs:
+        return None, 'no-table'
+    return pick_best(tabs)
 
 def parse_price(h):
     """품목별 판가(누적평균): {품목: (값, 단위문자)}"""
@@ -425,13 +646,15 @@ def collect(code, name, corp):
         slot = {}
         if 'sal' in sec:
             h = viewer(rcp, *sec['sal'])
-            slot['sales'] = parse_sales(h)
+            slot['sales'], slot['sales_qc'] = parse_sales_qc(h)
+            slot['sales'] = slot['sales'] or {}
             slot['backlog'] = parse_backlog(h)
         if 'prd' in sec:
             h = viewer(rcp, *sec['prd'])
             slot['price'] = parse_price(h)
             if not slot.get('sales'):
-                slot['sales'] = parse_sales(h)
+                r2, qc2 = parse_sales_qc(h)
+                if r2: slot['sales'], slot['sales_qc'] = r2, qc2
         if 'fac' in sec:
             h = viewer(rcp, *sec['fac'])
             slot['prod'] = parse_prod(h)

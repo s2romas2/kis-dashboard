@@ -159,7 +159,14 @@ async function loadTerms(){
 function markTerms(root){
   if(!TKEYS.length) return;
   const esc2=function(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');};
-  const rx=new RegExp('('+TKEYS.map(esc2).join('|')+')','g');
+  // 영문·숫자로만 된 약어는 긴 단어 안에서 잡히지 않게 경계를 붙인다.
+  //   AIDC 안의 IDC, 1.024Tbps 안의 Tb, Boston Dynamics 안의 Dy 를 막는다.
+  //   한글 용어는 조사가 붙으므로(가동률은·수주잔고가) 경계를 붙이지 않는다.
+  const pat=function(w){
+    const e=esc2(w);
+    return /[가-힣]/.test(w) ? e : '(?<![A-Za-z])'+e+'(?![A-Za-z])';
+  };
+  const rx=new RegExp('('+TKEYS.map(pat).join('|')+')','g');
   const seen={};
   const walker=document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
   const jobs=[]; let n;

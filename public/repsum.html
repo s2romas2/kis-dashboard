@@ -393,7 +393,7 @@ async function renderList(){
    +'<div class="lst">'+items.map(function(r){
       return '<a class="it" href="#r='+esc(r.id)+'"><div class="t">'+(r.tier==='desk'?'🧩 통합본 · ':r.tier==='guide'?'🧭 가이드 · ':'')+esc(r.t)+'</div>'
         +'<div class="m">'+esc(r.b||'')+(r.an&&r.an.length?' · '+esc(r.an.join(', ')):'')+' · '+esc(r.d||'')
-        +(r.pages?' · '+r.pages+'페이지':'')+(r.written?' · 요약 '+esc(r.written):'')+'</div>'
+        +(r.pages?' · '+r.pages+'페이지':'')+(r.written?' · 요약 '+esc(r.written):'')+(r.u?' · 📄 원문 링크':'')+'</div>'
         +(r.lead?'<div class="l">'+esc(r.lead)+'</div>':'')+'</a>';
    }).join('')+'</div>';
 }
@@ -412,8 +412,8 @@ async function renderOne(id){
    +'<div class="meta"><b>'+esc(d.b||'')+'</b>'+(d.d?' · '+esc(d.d)+((d.tier==='guide'||d.tier==='desk')?' 작성':' 발간'):'')+(d.pages?' · 전체 '+d.pages+'페이지':'')
    +(an?' · 작성 <b>'+esc(an)+'</b>':'')+'<br>'
    +(d.cover?'커버 종목: '+esc(d.cover)+'<br>':'')
-   +'<span class="src">'+(d.tier==='guide'||d.tier==='desk'?'작성 ':'요약 작성 ')+esc(d.written||'')+' · '+esc(d.srcnote||'숫자는 모두 원문 기재값')+' · '
-   +(d.u?'<a href="'+esc(d.u)+'" target="_blank" rel="noopener">원문 PDF 열기</a>':'')+'</span></div></div>'
+   +'<span class="src">'+(d.tier==='guide'||d.tier==='desk'?'작성 ':'요약 작성 ')+esc(d.written||'')+' · '+esc(d.srcnote||'숫자는 모두 원문 기재값')
+   +'</span>'+((d.u||d.unote)?'<br>'+(d.u?'<a class="back" style="margin:6px 6px 0 0;font-weight:700" href="'+esc(d.u)+'" target="_blank" rel="noopener">📄 원문 PDF 열기</a>':'')+(d.unote?'<span class="src">'+esc(d.unote)+'</span>':''):'')+'</div></div>'
    +'<article class="rs">'+(d.html||'')+'</article>';
   bindDual($('.rs'));
   await loadTerms();

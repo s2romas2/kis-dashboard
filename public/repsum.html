@@ -387,9 +387,11 @@ async function renderList(){
   try{ d=await jget('/data/repsum.json'); }
   catch(e){ $('#app').innerHTML='<div class="note">아직 정밀요약이 없다. (/data/repsum.json 없음)</div>'; return; }
   const own=r=>(r.tier==='desk'||r.tier==='guide')?1:0;
-  const items=(d.items||[]).slice().sort((a,b)=>String(b.d||'').localeCompare(String(a.d||''))||own(b)-own(a));
+  // 로봇 긴 글(tier 'guide')은 📚 교과서 › 🤖 로봇(/robobook.html)으로 옮겼다 — 목록에서는 숨기고 주소(#r=…)는 그대로 열린다
+  const items=(d.items||[]).filter(r=>r.tier!=='guide').sort((a,b)=>String(b.d||'').localeCompare(String(a.d||''))||own(b)-own(a));
   $('#app').innerHTML='<div class="hd"><h1>리포트 정밀요약 <small style="font-size:14px;color:#667085;font-weight:400">'+items.length+'건</small></h1></div>'
-   +'<div class="note">'+esc(d.note||'')+'<br>수집·작성 '+esc(d.updated||'')+'</div>'
+   +'<div class="note">'+esc(d.note||'')+'<br>수집·작성 '+esc(d.updated||'')
+   +'<br>로봇 가이드·기업 지도는 📚 교과서 › 🤖 로봇으로 옮겼습니다 — <a href="/robobook.html">로봇 교과서 열기</a></div>'
    +'<div class="lst">'+items.map(function(r){
       return '<a class="it" href="#r='+esc(r.id)+'"><div class="t">'+(r.tier==='desk'?'🧩 통합본 · ':r.tier==='guide'?'🧭 가이드 · ':'')+esc(r.t)+'</div>'
         +'<div class="m">'+esc(r.b||'')+(r.an&&r.an.length?' · '+esc(r.an.join(', ')):'')+' · '+esc(r.d||'')
@@ -402,12 +404,13 @@ async function renderOne(id){
   let d;
   try{ d=await jget('/data/repsum_'+id+'.json'); }
   catch(e){ $('#app').innerHTML='<div class="note">해당 요약을 찾지 못했다: '+esc(id)+'</div>'; return; }
-  $('#cr').innerHTML=' › '+esc(d.b||'');
+  const isGuide=d.tier==='guide';   // 로봇 긴 글은 교과서에서 들어온다
+  $('#cr').innerHTML=isGuide?' › 교과서 › <a href="/robobook.html">🤖 로봇</a>':' › '+esc(d.b||'');
   const an=(d.an||[]).join(', ');
   const tt=String(d.t||''); const i=tt.indexOf('(feat');
   const main=i>0?tt.slice(0,i).trim():tt, sub=i>0?tt.slice(i).trim():'';
   $('#app').innerHTML=
-    '<a class="back" href="#">‹ 정밀요약 목록</a>'
+    (isGuide?'<a class="back" href="/robobook.html">‹ 🤖 로봇 교과서</a>':'<a class="back" href="#">‹ 정밀요약 목록</a>')
    +'<div class="hd"><h1>'+esc(main)+(sub?'<br><span class="sub">'+esc(sub)+'</span>':'')+'</h1>'
    +'<div class="meta"><b>'+esc(d.b||'')+'</b>'+(d.d?' · '+esc(d.d)+((d.tier==='guide'||d.tier==='desk')?' 작성':' 발간'):'')+(d.pages?' · 전체 '+d.pages+'페이지':'')
    +(an?' · 작성 <b>'+esc(an)+'</b>':'')+'<br>'

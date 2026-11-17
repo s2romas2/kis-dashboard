@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>로봇 교과서 — 신체 비유로 보는 구조 · 부품 분류와 국내 기업 · 특장점과 리스크 · 증권사 리포트</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; background:#f4f6fa; color:#1a1f2e; }
+a { color:#1d4ed8; text-decoration:none; } a:hover { text-decoration:underline; }
+.wrap { max-width:1360px; margin:0 auto; padding:14px 14px 80px; display:grid; grid-template-columns:270px minmax(0,1fr); gap:16px; align-items:start; }
+.side { position:sticky; top:8px; max-height:calc(100vh - 16px); overflow:auto; background:#fff; border:1px solid #e4e7ec; border-radius:12px; padding:10px; font-size:12.5px; }
+.side h2 { font-size:14px; margin:2px 4px 8px; }
+.side input { width:100%; border:1.5px solid #d7dce6; border-radius:8px; padding:6px 8px; font:inherit; margin-bottom:6px; }
+.side details { margin-bottom:2px; } .side summary { cursor:pointer; padding:5px 6px; border-radius:6px; font-weight:800; color:#1a2a4a; list-style:none; }
+.side summary::-webkit-details-marker { display:none; } .side summary:before { content:'▸ '; color:#98a2b3; } .side details[open]>summary:before { content:'▾ '; }
+.side .mid { margin:6px 0 2px 12px; font-size:11px; font-weight:800; color:#667085; }
+.side a.g { display:block; padding:3px 6px 3px 20px; border-radius:6px; color:#344054; line-height:1.45; } .side a.g:hover { background:#f2f4f7; text-decoration:none; }
+.side a.g.on { background:#eaf2ff; color:#1d4ed8; font-weight:800; } .side a.g small { color:#98a2b3; font-weight:400; }
+.side a.c { display:block; padding:2px 6px 2px 34px; color:#667085; font-size:12px; } .side a.c.on { color:#1d4ed8; font-weight:800; }
+.sr { border:1px solid #e4e7ec; border-radius:8px; max-height:240px; overflow:auto; margin-bottom:6px; } .sr a { display:block; padding:5px 8px; border-bottom:1px solid #f2f4f7; color:#344054; } .sr a small { color:#98a2b3; }
+main { min-width:0; }
+h1 { font-size:23px; margin:4px 0 4px; line-height:1.3; } h1 small { font-size:13px; color:#667085; font-weight:400; }
+h2 { font-size:16px; margin:20px 0 8px; color:#1a2a4a; } h2 small { font-weight:400; color:#667085; font-size:12px; }
+h3 { font-size:13.5px; color:#1a2a4a; margin-bottom:6px; } h3 small { font-weight:400; color:#667085; font-size:11.5px; }
+.crumb { font-size:12px; color:#667085; margin-bottom:2px; } .crumb a { color:#667085; }
+.meta { font-size:12px; color:#475467; background:#fff; border:1px solid #e4e7ec; border-radius:10px; padding:7px 10px; margin:8px 0 12px; line-height:1.7; } .meta b { color:#1a2a4a; }
+.lead { font-size:14.5px; line-height:1.75; color:#1a1f2e; margin:6px 0 10px; }
+.card { background:#fff; border:1px solid #e4e7ec; border-radius:12px; padding:12px 14px; margin-bottom:12px; font-size:13px; line-height:1.75; }
+.card p { margin-bottom:8px; } .card p:last-child { margin-bottom:0; }
+.mini { font-size:11.5px; color:#667085; line-height:1.6; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; } .grid2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(420px,1fr)); gap:12px; }
+.kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-bottom:12px; }
+.grid4 { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+ul.nb li { padding-left:0; } ul.nb li:before { content:none; }
+details.toc > summary { font-weight:800; color:#1a2a4a; padding:6px; cursor:pointer; list-style:none; border:1.5px solid #d7dce6; border-radius:8px; margin-bottom:6px; display:none; } details.toc > summary:before { content:'☰ '; color:#667085; }
+.kpi { background:#fff; border:1px solid #e4e7ec; border-radius:12px; padding:9px 12px; } .kpi .k { font-size:11.5px; color:#667085; } .kpi .v { font-size:19px; font-weight:800; margin-top:1px; } .kpi .n { font-size:11px; color:#98a2b3; margin-top:1px; line-height:1.4; }
+.vz { background:#fff; border:1px solid #e4e7ec; border-radius:12px; padding:10px 12px; } .vzt { font-size:13px; font-weight:800; color:#1a2a4a; } .vzt small { display:block; font-weight:400; color:#667085; font-size:11.5px; margin-top:1px; }
+.vzc { position:relative; height:210px; margin-top:6px; } .lg { display:flex; flex-wrap:wrap; gap:4px 12px; font-size:11.5px; color:#475467; margin-top:4px; } .lg i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:4px; vertical-align:-1px; }
+table { width:100%; border-collapse:collapse; font-size:12.5px; } th, td { padding:6px 8px; border-bottom:1px solid #eef0f4; text-align:right; vertical-align:top; } th { background:#f8fafc; color:#475467; font-size:11.5px; white-space:nowrap; }
+td.l, th.l { text-align:left; } td.nw { white-space:nowrap; } .tw { overflow-x:auto; border:1px solid #e4e7ec; border-radius:10px; background:#fff; }
+tr.me td { background:#f5f9ff; font-weight:700; }
+.tag { display:inline-block; font-size:10.5px; padding:1px 6px; border-radius:8px; font-weight:800; white-space:nowrap; }
+.t확인 { background:#dcfce7; color:#15803d; } .t회사발언 { background:#d1fae5; color:#047857; } .t증권사 { background:#dbeafe; color:#1d4ed8; } .t보도 { background:#e0e7ff; color:#3730a3; } .t판단 { background:#fef3c7; color:#b45309; } .t의혹 { background:#fee2e2; color:#b42318; }
+.sumlink { display:inline-block; font-size:10.5px; font-weight:800; padding:1px 7px; border-radius:8px; background:#eef4ff; color:#1d4ed8; border:1px solid #cfe0f5; white-space:nowrap; text-decoration:none; }
+.sumlink:hover { background:#dbeafe; text-decoration:none; }
+.sx { font-size:10.5px; color:#667085; margin-left:2px; } .sx a { color:#667085; text-decoration:underline; }
+ul.pl { list-style:none; } ul.pl li { padding:5px 0 5px 20px; position:relative; border-bottom:1px dashed #eef0f4; } ul.pl li:last-child { border-bottom:0; } ul.pl li:before { position:absolute; left:0; top:5px; font-weight:800; }
+ul.st li:before { content:'▲'; color:#2a78d6; } ul.wk li:before { content:'▽'; color:#98a2b3; } ul.dot li:before { content:'•'; color:#98a2b3; }
+.chips { display:flex; flex-wrap:wrap; gap:6px; } .chip { display:inline-block; border:1.5px solid #d7dce6; background:#fff; border-radius:16px; padding:3px 10px; font-size:12px; color:#344054; font-weight:700; } a.chip:hover { border-color:#2a78d6; text-decoration:none; } .chip.w { border-color:#2a78d6; color:#1d4ed8; background:#f5f9ff; } .chip small { font-weight:400; color:#98a2b3; }
+.flow { display:flex; flex-wrap:wrap; align-items:stretch; gap:6px; margin-top:6px; } .flow div { flex:1 1 150px; background:#f8fafc; border:1px solid #e4e7ec; border-radius:10px; padding:8px 10px; font-size:12px; line-height:1.55; position:relative; } .flow div.on { background:#eaf2ff; border-color:#2a78d6; font-weight:700; } .flow b { display:block; font-size:10.5px; color:#667085; font-weight:800; margin-bottom:2px; }
+.fig { background:#fff; border:1px solid #e4e7ec; border-radius:12px; padding:8px; margin-bottom:12px; } .fig svg { width:100%; height:auto; display:block; max-width:900px; margin:0 auto; }
+.fig text { font-size:12px; fill:#1a1f2e; } .fig .s { font-size:11px; fill:#667085; } .fig .b { font-weight:700; } .fig .w { font-size:11.5px; font-weight:700; fill:#b54708; } .fig .bw { font-weight:700; fill:#fff; font-size:12.5px; } .fig .sw { font-size:11px; fill:#fff; } .fig .ld { stroke:#98a2b3; stroke-width:1; fill:none; }
+ol.how { margin-left:20px; } ol.how li { margin-bottom:3px; }
+dl.terms { display:grid; grid-template-columns:minmax(120px,max-content) 1fr; gap:4px 12px; font-size:12.5px; } dl.terms dt { font-weight:800; color:#1a2a4a; } dl.terms dd { color:#344054; }
+details.d > summary { cursor:pointer; font-weight:800; color:#1a2a4a; font-size:13px; padding:4px 0; }
+.lv { display:inline-block; width:18px; text-align:center; font-weight:800; } .lvbad { color:#b42318; } .lvwarn { color:#b54708; } .lvok { color:#15803d; } .lvinfo { color:#667085; }
+.note { background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:8px 12px; font-size:12.5px; color:#78350f; margin-bottom:12px; line-height:1.7; }
+.topc { border-left:4px solid #2a78d6; }
+.co h3 a { color:#1a2a4a; } .co .pos { color:#344054; margin-bottom:6px; }
+.btns { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; } .btns a, .btns button { border:1.5px solid #d7dce6; background:#fff; border-radius:20px; padding:5px 12px; font:inherit; font-size:12.5px; font-weight:700; color:#475467; cursor:pointer; }
+@media (max-width:1100px) { .grid4 { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:900px) { .kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } details.toc > summary { display:block; } .wrap { grid-template-columns:1fr; } .side { position:static; max-height:none; } .grid2 { grid-template-columns:1fr; } h1 { font-size:20px; } dl.terms { grid-template-columns:1fr; } dl.terms dd { margin-bottom:6px; } }
+@media print { body { background:#fff; } .side, #nav, nav, .btns, .noprint { display:none !important; } .wrap { display:block; padding:0; } .card, .vz, .kpi, .fig { break-inside:avoid; } h2 { break-after:avoid; } }
+</style>
+<style>
+/* ───────── 한글 줄바꿈: 단어 중간에서 끊기지 않게 (전역) */
+body, p, td, th, li, dd, dt, .mini, .note, .nb, .easy, .card, .keynote, .warnfc, .lead, .meta, .pos { word-break:keep-all; overflow-wrap:break-word; }
+p, li, dd, .keynote, .nb, .note, .warnfc, .easy p, .card p { text-wrap:pretty; }
+
+/* ───────── 표 아래 개념 설명 — 작은 회색 글씨를 읽히는 크기로 */
+.keynote { background:#fff; border:1px solid #e4e7ec; border-left:4px solid #2a78d6; border-radius:10px;
+  padding:11px 14px; margin:-2px 0 16px; font-size:13.5px; line-height:1.95; color:#28303f; }
+.keynote b, .keynote strong { color:#0f2847; }
+.keynote .h { display:block; font-size:11.5px; font-weight:800; color:#2a78d6; letter-spacing:.4px; margin-bottom:4px; }
+.keynote + .keynote { margin-top:-10px; }
+.keynote.warn { border-left-color:#eb6834; }
+.keynote.warn .h { color:#c2410c; }
+
+/* 핵심 한 줄 — 가장 강한 강조 */
+.key1 { background:linear-gradient(90deg,#fff8e7,#fffdf7); border:1px solid #fcd98a; border-left:5px solid #eda100;
+  border-radius:10px; padding:12px 15px; margin:6px 0 16px; font-size:14px; line-height:1.9; color:#3d2b06; }
+.key1 b { color:#8a5a00; }
+.key1 .h { display:block; font-size:11.5px; font-weight:800; color:#b45309; letter-spacing:.4px; margin-bottom:4px; }
+
+/* 표 안 강조 */
+td.hl, th.hl { background:#f3f8ff; }
+td b, th b { color:#0f2847; }
+.cmp td.k { font-weight:800; color:#0f2847; background:#fafcff; }
+tr.hi td { background:#fffaf0; }
+
+/* 쉬운설명 / 자세한설명 토글 */
+.seg { display:inline-flex; border:1.5px solid #d7dce6; border-radius:20px; overflow:hidden; background:#fff; margin:2px 0 10px; }
+.seg button { border:none; background:none; font:inherit; font-size:12.5px; font-weight:800; color:#667085; padding:6px 15px; cursor:pointer; }
+.seg button.on { background:#2a78d6; color:#fff; }
+.easy { background:#f6fbff; border:1px solid #cfe4fb; border-radius:12px; padding:13px 15px; margin-bottom:12px; font-size:14px; line-height:1.95; color:#13395e; }
+.easy p { margin-bottom:10px; } .easy p:last-child { margin-bottom:0; }
+.easy .h { font-size:11.5px; font-weight:800; color:#2a78d6; letter-spacing:.4px; margin-bottom:6px; }
+.deepbox { background:#fff; border:1px solid #e4e7ec; border-radius:12px; padding:13px 15px; margin-bottom:12px; font-size:13.5px; line-height:1.95; color:#1f2937; }
+.deepbox p { margin-bottom:10px; } .deepbox p:last-child { margin-bottom:0; }
+.deepbox .h { font-size:11.5px; font-weight:800; color:#667085; letter-spacing:.4px; margin-bottom:6px; }
+
+/* 특장점·리스크 2단 */
+.sr2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:12px; margin-bottom:12px; }
+.riskbox { background:#fff; border:1px solid #f3cfcf; border-radius:12px; padding:11px 13px; }
+.riskbox h3 { color:#b42318; }
+.strongbox { background:#fff; border:1px solid #cfe4d4; border-radius:12px; padding:11px 13px; }
+.strongbox h3 { color:#15803d; }
+ul.rk { list-style:none; } ul.rk li { padding:6px 0 6px 21px; position:relative; border-bottom:1px dashed #f6eaea; font-size:13px; line-height:1.8; }
+ul.rk li:last-child { border-bottom:0; } ul.rk li:before { content:'!'; position:absolute; left:4px; top:6px; font-weight:800; color:#b42318; }
+ul.sg { list-style:none; } ul.sg li { padding:6px 0 6px 21px; position:relative; border-bottom:1px dashed #eaf3ec; font-size:13px; line-height:1.8; }
+ul.sg li:last-child { border-bottom:0; } ul.sg li:before { content:'▲'; position:absolute; left:0; top:6px; font-weight:800; color:#15803d; }
+
+.nb { background:#f8fafc; border:1px solid #e4e7ec; border-radius:10px; padding:11px 14px; font-size:13.5px; line-height:1.9; color:#28303f; margin-bottom:14px; }
+.nb b { color:#0f2847; }
+.warnfc { background:#fff7ed; border:1px solid #fdba74; border-left:5px solid #f97316; border-radius:10px; padding:11px 14px; font-size:13.5px; line-height:1.9; color:#7c2d12; margin-bottom:14px; }
+.warnfc b { color:#9a3412; }
+.cmp th.l, .cmp td.l { text-align:left; } .cmp td { text-align:center; }
+.ok { color:#15803d; font-weight:800; } .bad { color:#b42318; font-weight:800; } .mid2 { color:#b45309; font-weight:800; }
+.pill { display:inline-block; font-size:11px; font-weight:800; padding:2px 8px; border-radius:10px; background:#eef2f7; color:#475467; }
+.pill.c { background:#eaf2ff; color:#1d4ed8; }
+
+/* 그림 */
+.fig { background:#fff; border:1px solid #e4e7ec; border-radius:12px; padding:12px 10px 8px; margin-bottom:8px; }
+.fig svg { width:100%; height:auto; display:block; max-width:960px; margin:0 auto; }
+.figcap { font-size:12.5px; color:#475467; line-height:1.8; text-align:center; margin:2px 0 16px; padding:0 10px; }
+.figcap b { color:#1a2a4a; }
+
+/* 본문 기본 글씨를 조금 키움 */
+.mini { font-size:12.5px; color:#5b6472; line-height:1.8; }
+.card { font-size:13.5px; line-height:1.9; }
+@media (max-width:620px){ .keynote,.key1,.nb,.warnfc { font-size:13px; } .easy { font-size:13.5px; } }
+@media print { .seg { display:none !important; } .easy,.deepbox { background:#fff; } .deepbox { display:block !important; } }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
+<script src="/nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+  <aside class="side" id="side"><h2>🤖 로봇 교과서</h2><div class="mini">불러오는 중…</div></aside>
+  <main id="main"><div class="card">불러오는 중…</div></main>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const f0=v=>v==null||isNaN(v)?'—':Math.round(v).toLocaleString(), f1=v=>v==null||isNaN(v)?'—':Number(v).toFixed(1);
+const eok=v=>v==null||isNaN(v)?'—':Math.abs(v)>=10000?(v/10000).toFixed(Math.abs(v)>=100000?0:1).replace(/\B(?=(\d{3})+(?!\d))/g,',')+'조':Math.round(v).toLocaleString()+'억';
+const VZ={c:['#2a78d6','#eb6834','#1baf7a','#eda100','#e87ba4','#7a5cd6'], gray:'#c9cdd4', ink:'#1a1f2e', sub:'#667085', grid:'#eef0f3', font:'-apple-system,"Segoe UI","Malgun Gothic",sans-serif'};
+let TREE, CHD, BB, REP={}, SV={}, PRD={}, CH={}, G2C={}, CO2CH={};
+const j=async(u)=>{ try{ const r=await fetch(u,{cache:'no-store'}); if(!r.ok) return null; return await r.json(); }catch(e){ return null; } };
+function mk(id,cfg){ if(CH[id]) CH[id].destroy(); const el=$(id); if(!el) return; CH[id]=new Chart(el.getContext('2d'),cfg); }
+function killCharts(){ for(const k in CH){ try{ CH[k].destroy(); }catch(e){} delete CH[k]; } }
+Chart.defaults.font.family=VZ.font; Chart.defaults.font.size=11; Chart.defaults.color=VZ.sub;
+const vzLabel={id:'vzLabel', afterDatasetsDraw(ch,_a,o){ if(!o||!o.fmt) return; const ctx=ch.ctx; ctx.save(); ctx.font='600 11px '+VZ.font; ctx.fillStyle=VZ.ink; const hz=ch.options.indexAxis==='y';
+  ch.data.datasets.forEach((ds,di)=>{ if(o.only!=null&&o.only!==di) return; ch.getDatasetMeta(di).data.forEach((el,i)=>{ const v=ds.data[i]; if(v==null) return; const t=o.fmt(v,i,di); if(!t) return;
+    if(hz){ ctx.textAlign=v<0?'right':'left'; ctx.textBaseline='middle'; ctx.fillText(t, el.x+(v<0?-5:5), el.y); } else { ctx.textAlign='center'; ctx.textBaseline=v<0?'top':'bottom'; ctx.fillText(t, el.x, el.y+(v<0?4:-4)); } }); }); ctx.restore(); }};
+const ax=(o)=>Object.assign({grid:{color:VZ.grid,drawTicks:false},border:{display:false},ticks:{color:VZ.sub,padding:6}},o||{});
+function hbar(id,labels,data,colors,o){ o=o||{}; mk(id,{type:'bar',data:{labels,datasets:[{data,backgroundColor:colors,borderRadius:4,borderSkipped:false,maxBarThickness:16}]},plugins:[vzLabel],
+  options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',layout:{padding:{right:o.pad||58,left:0}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+(o.fmt?o.fmt(c.raw):c.raw)}},vzLabel:{fmt:o.fmt||(v=>f0(v))}},
+    scales:{x:ax({ticks:{color:VZ.sub,maxTicksLimit:5,callback:o.tick||(v=>f0(v))}}),y:ax({grid:{display:false},ticks:{color:VZ.ink,font:{size:11.5}}})}}}); }
+function vbar(id,labels,sets,o){ o=o||{}; mk(id,{type:'bar',data:{labels,datasets:sets},plugins:[vzLabel],
+  options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:18}},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.dataset.label+' '+(o.fmt?o.fmt(c.raw):f0(c.raw))}},vzLabel:{fmt:o.lab,only:o.only}},
+    scales:{x:ax({grid:{display:false},ticks:{color:VZ.sub,maxRotation:0,autoSkip:labels.length>12,maxTicksLimit:11,font:{size:10}}}),y:ax({beginAtZero:!!o.zero,ticks:{callback:v=>f0(v),maxTicksLimit:5}})}}}); }
+function vline(id,labels,sets,o){ o=o||{}; mk(id,{type:'line',data:{labels,datasets:sets},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.dataset.label+' '+(o.fmt?o.fmt(c.raw):f1(c.raw))}}},
+    elements:{line:{borderWidth:2,tension:.25},point:{radius:2.5,hitRadius:10}},
+    scales:{x:ax({grid:{display:false},ticks:{color:VZ.sub,maxRotation:0,autoSkip:labels.length>12,maxTicksLimit:11,font:{size:10}}}),y:ax({ticks:{callback:o.tick||(v=>f1(v)),maxTicksLimit:5},suggestedMin:o.min,suggestedMax:o.max})}}}); }
+function vclip(s,w){ s=String(s||'').trim(); let n=0,i=0; for(;i<s.length;i++){ n+=/[ᄀ-￿]/.test(s[i])?1:0.58; if(n>w) break; } return i<s.length?s.slice(0,Math.max(1,i-1)).trim()+'…':s; }
+
+/* ───────── 공통 조각 */
+const TAGN={'증권사':'증권사·조사기관'};
+const tagH=t=>t?`<span class="tag t${esc(t)}">${esc(TAGN[t]||t)}</span>`:'';
+function srcH(ch,s){ if(!s||!s.length) return ''; return '<span class="sx">'+s.map(i=>{ const x=(ch.src||[])[i]; return !x?'':x.u?`<a href="${esc(x.u)}" target="_blank" rel="noopener" title="${esc(x.t)}">[${i+1}]</a>`:`<span title="${esc(x.t)}">[${i+1}]</span>`; }).join('')+'</span>'; }
+const claim=(ch,x)=>`${esc(x.t)} ${tagH(x.tag)}${srcH(ch,x.s)}`;
+const coN=c=>(TREE.co||{})[c]||((PRD[c]||{}).n)||c;
+const coLink=c=>`<a href="#c=${c}">${esc(coN(c))}</a>`;
+const sv=c=>{ const a=SV[c]; return a?{pbr:a[0],per:a[1],cap:a[2],px:a[3],roe:a[4]}:{}; };
+function pathOf(gid){ for(const T of TREE.top) for(const M of T.mid) for(const g of M.g) if(g.id===gid) return [T,M,g]; return null; }
+function topOf(tid){ return TREE.top.find(T=>T.id===tid)||null; }
+function groupsOf(code){ const out=[]; for(const T of TREE.top) for(const M of T.mid) for(const g of M.g) if(g.co.includes(code)) out.push([T,M,g]);
+  const p=(TREE.prim||{})[code]; if(p){ const i=out.findIndex(x=>x[2].id===p[2]); if(i>0) out.unshift(out.splice(i,1)[0]); }   // 대표 자리(prim)를 맨 앞에
+  return out; }
+function chOf(gid){ const id=G2C[gid]; return id?CHD.ch[id]:null; }
+function chCo(code){ const r=CO2CH[code]; return r?{ch:CHD.ch[r[0]],co:CHD.ch[r[0]].companies[r[1]]}:null; }
+const byCap=(a,b)=>((sv(b).cap||0)-(sv(a).cap||0));
+const priceDay=()=>String(SV._at||'').slice(0,10);
+
+/* ───────── 기본 지식 (교과서 앞머리) */
+const BASIC_WRITTEN='2026-11-17';
+const FIG={
+body:`<svg viewBox="0 0 920 400" xmlns="http://www.w3.org/2000/svg">
+<text class="b" x="18" y="22" style="font-size:14px">로봇을 사람 몸에 비유하면</text>
+<text class="s" x="18" y="40">칸을 누르면 그 분류로 간다. 왼쪽 파란 칸은 사용자 제공 그림(머니칸)에 있던 5개 부위, 오른쪽 주황 점선 칸은 이 교과서가 더한 부위다.</text>
+<line x1="340" y1="376" x2="580" y2="376" stroke="#eb6834" stroke-width="2" stroke-dasharray="5 4"/>
+<line x1="442" y1="250" x2="436" y2="306" stroke="#98a2b3" stroke-width="14" stroke-linecap="round"/>
+<line x1="436" y1="306" x2="434" y2="358" stroke="#98a2b3" stroke-width="12" stroke-linecap="round"/>
+<line x1="478" y1="250" x2="484" y2="306" stroke="#98a2b3" stroke-width="14" stroke-linecap="round"/>
+<line x1="484" y1="306" x2="486" y2="358" stroke="#98a2b3" stroke-width="12" stroke-linecap="round"/>
+<rect x="416" y="358" width="32" height="13" rx="5" fill="#98a2b3"/><rect x="472" y="358" width="32" height="13" rx="5" fill="#98a2b3"/>
+<line x1="412" y1="146" x2="394" y2="198" stroke="#98a2b3" stroke-width="12" stroke-linecap="round"/>
+<line x1="394" y1="198" x2="386" y2="244" stroke="#98a2b3" stroke-width="10" stroke-linecap="round"/>
+<line x1="508" y1="146" x2="526" y2="198" stroke="#98a2b3" stroke-width="12" stroke-linecap="round"/>
+<line x1="526" y1="198" x2="534" y2="244" stroke="#98a2b3" stroke-width="10" stroke-linecap="round"/>
+<circle cx="384" cy="257" r="10" fill="#dbeafe" stroke="#2a78d6" stroke-width="2"/><circle cx="536" cy="257" r="10" fill="#dbeafe" stroke="#2a78d6" stroke-width="2"/>
+<rect x="420" y="132" width="80" height="118" rx="14" fill="#f8fafc" stroke="#667085" stroke-width="2"/>
+<rect x="430" y="186" width="60" height="54" rx="6" fill="none" stroke="#eb6834" stroke-width="1.5" stroke-dasharray="4 3"/>
+<rect x="444" y="148" width="32" height="22" rx="4" fill="#fde9d3" stroke="#eb6834" stroke-width="1.5"/><rect x="476" y="155" width="4" height="8" fill="#eb6834"/>
+<rect x="452" y="118" width="16" height="16" fill="#98a2b3"/>
+<circle cx="460" cy="92" r="28" fill="#dbeafe" stroke="#2a78d6" stroke-width="2"/>
+<circle cx="450" cy="88" r="4" fill="#eb6834"/><circle cx="470" cy="88" r="4" fill="#eb6834"/>
+<path d="M460,120 L460,140 L502,140 L521,196 L530,238" fill="none" stroke="#eb6834" stroke-width="1.6" stroke-dasharray="3 3"/>
+<g fill="#2a78d6" stroke="#fff" stroke-width="2"><circle cx="412" cy="146" r="8"/><circle cx="508" cy="146" r="8"/><circle cx="394" cy="198" r="7"/><circle cx="526" cy="198" r="7"/><circle cx="442" cy="250" r="8"/><circle cx="478" cy="250" r="8"/><circle cx="436" cy="306" r="7"/><circle cx="484" cy="306" r="7"/></g>
+<path class="ld" d="M258,85 L432,90"/><path class="ld" d="M258,147 L403,146"/><path class="ld" d="M258,209 L374,255"/><path class="ld" d="M258,271 L424,236"/><path class="ld" d="M258,333 L428,308"/>
+<path class="ld" d="M662,85 L476,88"/><path class="ld" d="M662,147 L481,159"/><path class="ld" d="M662,209 L491,212"/><path class="ld" d="M662,271 L532,238"/><path class="ld" d="M662,333 L580,376"/>
+<a href="#t=brain"><rect x="18" y="60" width="240" height="50" rx="8" fill="#eaf2ff" stroke="#2a78d6" stroke-width="1.5"/><text class="b" x="30" y="81" style="font-size:12.5px">머리 — 두뇌</text><text class="s" x="30" y="99">연산 칩 · AI 모델 · 제어·운영 소프트웨어</text></a>
+<a href="#t=drive"><rect x="18" y="122" width="240" height="50" rx="8" fill="#eaf2ff" stroke="#2a78d6" stroke-width="1.5"/><text class="b" x="30" y="143" style="font-size:12.5px">근육·관절 — 구동부</text><text class="s" x="30" y="161">액추에이터 = 모터 + 감속기·스크류</text></a>
+<a href="#t=hand"><rect x="18" y="184" width="240" height="50" rx="8" fill="#eaf2ff" stroke="#2a78d6" stroke-width="1.5"/><text class="b" x="30" y="205" style="font-size:12.5px">손 — 말단 장치(End-effector)</text><text class="s" x="30" y="223">로봇손 · 그리퍼</text></a>
+<a href="#t=oem"><rect x="18" y="246" width="240" height="50" rx="8" fill="#eaf2ff" stroke="#2a78d6" stroke-width="1.5"/><text class="b" x="30" y="267" style="font-size:12.5px">몸통 — 로봇 본체</text><text class="s" x="30" y="285">휴머노이드 · 협동로봇 · 산업용 로봇</text></a>
+<a href="#g=om_amr"><rect x="18" y="308" width="240" height="50" rx="8" fill="#eaf2ff" stroke="#2a78d6" stroke-width="1.5"/><text class="b" x="30" y="329" style="font-size:12.5px">다리 — 이동 수단</text><text class="s" x="30" y="347">자율이동 로봇(AMR) · 무인운반차(AGV)</text></a>
+<a href="#t=sense"><rect x="662" y="60" width="240" height="50" rx="8" fill="#fff7ed" stroke="#eb6834" stroke-width="1.5" stroke-dasharray="5 3"/><text class="b" x="674" y="81" style="font-size:12.5px">눈·감각 — 감지</text><text class="s" x="674" y="99">카메라 · LiDAR · 힘·촉각 센서</text></a>
+<a href="#g=bd_batt"><rect x="662" y="122" width="240" height="50" rx="8" fill="#fff7ed" stroke="#eb6834" stroke-width="1.5" stroke-dasharray="5 3"/><text class="b" x="674" y="143" style="font-size:12.5px">심장 — 에너지</text><text class="s" x="674" y="161">배터리 셀 · 팩</text></a>
+<a href="#g=bd_frame"><rect x="662" y="184" width="240" height="50" rx="8" fill="#fff7ed" stroke="#eb6834" stroke-width="1.5" stroke-dasharray="5 3"/><text class="b" x="674" y="205" style="font-size:12.5px">뼈대 — 몸체·소재</text><text class="s" x="674" y="223">구조물 · 경량 소재 · 모터 속 자석</text></a>
+<a href="#t=ctrl"><rect x="662" y="246" width="240" height="50" rx="8" fill="#fff7ed" stroke="#eb6834" stroke-width="1.5" stroke-dasharray="5 3"/><text class="b" x="674" y="267" style="font-size:12.5px">신경 — 제어·전장</text><text class="s" x="674" y="285">서보 드라이브 · 엔코더 · 전선</text></a>
+<a href="#t=ops"><rect x="662" y="308" width="240" height="50" rx="8" fill="#fff7ed" stroke="#eb6834" stroke-width="1.5" stroke-dasharray="5 3"/><text class="b" x="674" y="329" style="font-size:12.5px">일터 — 설치·관제</text><text class="s" x="674" y="347">현장 설치(SI) · 관제 · 스마트팩토리</text></a>
+<text class="s" x="460" y="393" text-anchor="middle">파란 점 = 관절(액추에이터가 들어가는 자리) · 주황 점선 = 신경(전선)과 일터(바닥)</text>
+</svg>`,
+joint:`<svg viewBox="0 0 920 340" xmlns="http://www.w3.org/2000/svg">
+<defs><marker id="jA" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#667085"/></marker>
+<marker id="jB" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#eb6834"/></marker></defs>
+<text class="b" x="18" y="22" style="font-size:14px">관절 하나(액추에이터)의 속 구조</text>
+<text class="s" x="18" y="40">제어기가 전류를 정하고 → 모터가 돌고 → 감속기 또는 스크류가 힘의 모양을 바꾸고 → 센서가 잰 값이 다시 제어기로 돌아간다.</text>
+<text class="b" x="18" y="86" style="font-size:12.5px">회전형</text><text class="s" x="18" y="103">관절을 돌린다</text><text class="s" x="18" y="118">(비트는 힘, 토크)</text>
+<rect x="150" y="64" width="160" height="60" rx="8" fill="#f8fafc" stroke="#98a2b3"/><text class="b" x="230" y="88" text-anchor="middle">제어기 + 엔코더</text><text class="s" x="230" y="106" text-anchor="middle">전류를 정하고 각도를 잰다 · 8%</text>
+<rect x="340" y="64" width="160" height="60" rx="8" fill="#dbeafe" stroke="#2a78d6"/><text class="b" x="420" y="88" text-anchor="middle">모터</text><text class="s" x="420" y="106" text-anchor="middle">빨리 돈다, 힘은 약하다 · 33%</text>
+<rect x="530" y="64" width="160" height="60" rx="8" fill="#fde9d3" stroke="#eb6834" stroke-width="2"/><text class="w" x="610" y="88" text-anchor="middle" style="font-size:12.5px">감속기</text><text class="s" x="610" y="106" text-anchor="middle">천천히, 대신 세게 · 31%</text>
+<rect x="720" y="64" width="182" height="60" rx="8" fill="#f8fafc" stroke="#98a2b3"/><text class="b" x="811" y="88" text-anchor="middle">힘·토크 센서</text><text class="s" x="811" y="106" text-anchor="middle">걸리는 힘을 잰다 · 25%</text>
+<path d="M312,94 L336,94" stroke="#667085" stroke-width="1.8" marker-end="url(#jA)"/><path d="M502,94 L526,94" stroke="#667085" stroke-width="1.8" marker-end="url(#jA)"/><path d="M692,94 L716,94" stroke="#667085" stroke-width="1.8" marker-end="url(#jA)"/>
+<path d="M811,126 L811,144 L230,144 L230,128" fill="none" stroke="#eb6834" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#jB)"/><text class="w" x="520" y="140" text-anchor="middle">잰 값을 되돌려 보낸다(되먹임)</text>
+<text class="b" x="18" y="196" style="font-size:12.5px">선형</text><text class="s" x="18" y="213">밀고 당긴다</text><text class="s" x="18" y="228">(직선으로 큰 힘)</text>
+<rect x="150" y="174" width="160" height="60" rx="8" fill="#f8fafc" stroke="#98a2b3"/><text class="b" x="230" y="198" text-anchor="middle">제어기 + 엔코더</text><text class="s" x="230" y="216" text-anchor="middle">7.5%</text>
+<rect x="340" y="174" width="160" height="60" rx="8" fill="#dbeafe" stroke="#2a78d6"/><text class="b" x="420" y="198" text-anchor="middle">모터</text><text class="s" x="420" y="216" text-anchor="middle">31%</text>
+<rect x="530" y="174" width="160" height="60" rx="8" fill="#fde9d3" stroke="#eb6834" stroke-width="2"/><text class="w" x="610" y="198" text-anchor="middle" style="font-size:12.5px">유성 롤러 스크류</text><text class="s" x="610" y="216" text-anchor="middle">회전을 직선 힘으로 · 35%</text>
+<rect x="720" y="174" width="182" height="60" rx="8" fill="#f8fafc" stroke="#98a2b3"/><text class="b" x="811" y="198" text-anchor="middle">힘·토크 센서</text><text class="s" x="811" y="216" text-anchor="middle">24%</text>
+<path d="M312,204 L336,204" stroke="#667085" stroke-width="1.8" marker-end="url(#jA)"/><path d="M502,204 L526,204" stroke="#667085" stroke-width="1.8" marker-end="url(#jA)"/><path d="M692,204 L716,204" stroke="#667085" stroke-width="1.8" marker-end="url(#jA)"/>
+<rect x="18" y="258" width="884" height="68" rx="8" fill="#fffbeb" stroke="#fde68a"/>
+<text class="s" x="32" y="279"><tspan class="w">읽는 법</tspan> — %는 액추에이터 한 개 원가 안에서의 몫이다. NH투자증권이 2030년 Tesla Optimus를 가정해 낸 값(증권사 가정) [NH p.115].</text>
+<text class="s" x="32" y="297">Optimus Gen2는 회전형 14개 + 선형 14개를 쓴다 [NH p.116]. 주황 칸(감속기·스크류)이 회전형과 선형을 가르는 부품이고, 정밀 가공이 어려워</text>
+<text class="s" x="32" y="315">공급이 모자라기 쉬운 자리다. 힘 규격은 회전형이 20 · 110 · 180Nm, 선형이 500 · 3,900 · 8,000N 세 종류씩이다 [NH p.116].</text>
+</svg>`,
+cost:`<svg viewBox="0 0 920 300" xmlns="http://www.w3.org/2000/svg">
+<text class="b" x="18" y="22" style="font-size:14px">원가 순위 한 장 — 휴머노이드 1대 값은 어디에 들어가는가</text>
+<text class="s" x="18" y="40">가로 막대 전체가 로봇 1대 원가 100%. 위는 2026년 예상, 아래는 2030년 전망(NH투자증권 고사양 기준, 증권사 가정).</text>
+<text class="b" x="18" y="98">2026년</text><text class="s" x="18" y="114">예상</text>
+<rect x="110" y="72" width="474" height="48" fill="#2a78d6"/><text class="bw" x="347" y="94" text-anchor="middle">액추에이터(근육·관절) 60.0%</text><text class="sw" x="347" y="111" text-anchor="middle">모터 · 감속기 · 스크류 · 센서 · 제어기</text>
+<rect x="584" y="72" width="134.3" height="48" fill="#eb6834"/><text class="bw" x="651" y="94" text-anchor="middle">로봇손 17.0%</text>
+<rect x="718.3" y="72" width="31.6" height="48" fill="#1baf7a"/>
+<rect x="749.9" y="72" width="150.1" height="48" fill="#c9cdd4"/><text class="b" x="825" y="94" text-anchor="middle">그 밖 19.0%</text><text class="s" x="825" y="111" text-anchor="middle">배터리 · 외장 등(계산)</text>
+<text class="b" x="734" y="62" text-anchor="middle" style="fill:#15803d">연산 칩 4.0%</text><path d="M734,66 L734,72" stroke="#15803d" stroke-width="1.5"/>
+<text class="b" x="18" y="186">2030년</text><text class="s" x="18" y="202">전망</text>
+<rect x="110" y="160" width="410.8" height="48" fill="#2a78d6"/><text class="bw" x="315" y="182" text-anchor="middle">액추에이터 52.0%</text>
+<rect x="520.8" y="160" width="116.1" height="48" fill="#eb6834"/><text class="bw" x="579" y="182" text-anchor="middle">로봇손 14.7%</text>
+<rect x="636.9" y="160" width="132.7" height="48" fill="#1baf7a"/><text class="bw" x="703" y="182" text-anchor="middle">연산 칩 16.8%</text><text class="sw" x="703" y="199" text-anchor="middle">비중이 커지는 유일한 부품</text>
+<rect x="769.6" y="160" width="130.4" height="48" fill="#c9cdd4"/><text class="b" x="835" y="182" text-anchor="middle">그 밖 16.5%</text><text class="s" x="835" y="199" text-anchor="middle">(계산)</text>
+<path d="M734,122 L703,158" stroke="#15803d" stroke-width="1.5" stroke-dasharray="4 3"/>
+<rect x="18" y="226" width="884" height="62" rx="8" fill="#f8fafc" stroke="#e4e7ec"/>
+<text class="s" x="32" y="247"><tspan class="b">순위</tspan> — ① 액추에이터 50~60% ② 로봇손 15~19% ③ 연산 칩 4% → 17%. 세 가지를 합치면 2028년에 82%라는 것이 NH의 계산이다 [NH p.38].</text>
+<text class="s" x="32" y="265">로봇손 15~19%는 NH 15% · DS 17.3% · Morgan Stanley 17.2%(2차 인용) · BofA 19%를 모은 범위다. 출처마다 기종·연도·묶는 범위가 달라</text>
+<text class="s" x="32" y="281">숫자가 다르다. '그 밖'은 100에서 세 가지를 뺀 값(계산)이고 배터리(0.5~4%) · 외장·구조물(6~12%) 등이 들어 있다.</text>
+</svg>`
+};
+const KINDS=[
+ ['<b>산업용 로봇</b>','공장에서 용접·조립·이송을 하는 큰 로봇 팔','2025년 신규 설치 <b>60만 대 이상</b>, 가동 약 500만 대','<b class="ok">이미 옴</b> (성숙)','om_ind'],
+ ['<b>협동로봇</b>','사람 옆에서 함께 일하는 가벼운 로봇 팔','산업용 설치의 11% — 약 6.6만 대(계산)','<b class="mid2">왔으나 수익성 미흡</b>','om_cobot'],
+ ['<b>물류 로봇</b><br><span class="mini">AMR · AGV</span>','창고·공장 안에서 물건을 나르는 이동 로봇','운송·물류 117,500대(전문 서비스 로봇 약 25만 대 가운데 47%)<br><span class="mini">Amazon 한 곳이 누적 100만 대를 자체 사용</span>','<b class="ok">이미 옴</b>','om_amr'],
+ ['<b>서비스 로봇</b><br><span class="mini">청소 · 서빙 · 수술</span>','집·식당·병원에서 한 가지 일을 하는 로봇','가정용(소비자용) 로봇 3,420만 대 · 수술 로봇 8,400대(+57%)<br><span class="mini">서빙·접객은 전문 서비스 로봇 2위 분야, 한국 보급 1.6만~1.7만 대</span>','<b class="ok">이미 옴</b><br><span class="mini">청소는 대량, 수술은 고수익, 서빙은 저가 경쟁</span>','om_svc'],
+ ['<b>휴머노이드</b>','사람 모양으로 만들어 여러 가지 일을 시키려는 로봇','약 7,000대(IFR, 키 140cm 초과)~13,000대(Omdia)','<b class="bad">아직</b> (시범 → 초기 양산)','om_human'],
+];
+const BODYP=[
+ ['머리 (두뇌)','연산 칩 · AI 모델 · 제어·운영 소프트웨어','보고 판단해 움직임을 계산한다','t=brain','두뇌 (칩·AI·소프트웨어)','있음'],
+ ['근육·관절','액추에이터 · 감속기 · 모터 · 스크류','힘을 내고 자세를 제어한다','t=drive','구동부','있음'],
+ ['손','로봇손 · 그리퍼(End-effector)','쥐고 돌리고 놓는다','t=hand','손 (말단 장치)','있음'],
+ ['몸통','로봇 본체 — 휴머노이드 · 협동로봇 · 산업용 로봇','부품을 묶어 한 대의 로봇으로 만든다','t=oem','완제품','있음'],
+ ['다리 (이동)','자율이동 로봇(AMR) · 무인운반차(AGV)','스스로 옮겨 다닌다','g=om_amr','완제품 › 물류 이동','있음'],
+ ['눈·감각','카메라 · LiDAR · 힘·토크 센서 · 촉각 센서 · IMU','보고, 거리를 재고, 눌림과 기울기를 느낀다','t=sense','감지','<span class="mid2">더함</span>'],
+ ['신경','서보 드라이브 · 모션 컨트롤러 · 엔코더 · 전선','두뇌의 명령을 관절로 전하고 각도를 되돌려 보낸다','t=ctrl','제어·전장','<span class="mid2">더함</span>'],
+ ['심장','배터리 셀 · 팩','전기를 담아 내보낸다','g=bd_batt','에너지·몸체·소재 › 에너지','<span class="mid2">더함</span>'],
+ ['뼈대','구조물(알루미늄·마그네슘) · 경량 수지 · 모터 속 자석','몸을 받치고 무게를 줄인다','g=bd_frame','에너지·몸체·소재 › 몸체','<span class="mid2">더함</span>'],
+ ['일터 (몸 밖)','현장 설치(SI) · 관제 소프트웨어 · 스마트팩토리','로봇을 현장에 깔고 여러 대를 함께 굴린다','t=ops','설치·관제·스마트팩토리','<span class="mid2">더함</span>'],
+];
+const COSTR=[
+ ['<b>① 액추에이터</b><br><span class="mini">근육·관절</span>','<b>50~60%</b>','NH 60.0%(2026년) → 52.0%(2030년) [NH p.38]<br>BofA 2030년 회전형 24% + 선형 27%','모터·감속기·스크류·센서·제어기가 이 안에 들어 있다','t=drive'],
+ ['<b>② 로봇손</b>','<b>15~19%</b>','NH 15% · DS 17.3% · Morgan Stanley 17.2%(2차 인용) · BofA 19%','양손 기준. 출처가 달라도 숫자가 모이는 드문 항목','t=hand'],
+ ['<b>③ 연산 칩</b><br><span class="mini">AP</span>','<b>4% → 17%</b>','NH 4.0%(2026년) → 16.8%(2030년) [NH p.38]','시간이 갈수록 <b>비중이 커지는 유일한 부품</b>','g=br_chip'],
+ ['외장·구조물','6~12%','NH 외장재 6% [NH p.107] · BofA 기타(구조물 등) 12%','묶는 범위가 출처마다 다르다','g=bd_frame'],
+ ['배터리','0.5~4%','Morgan Stanley 0.5%(2차 인용) ~ BofA 4%','원가 몫은 작지만 가동 시간을 정한다','g=bd_batt'],
+];
+const CHAIN=[
+ ['① 소재','희토류·자석, 알루미늄·마그네슘, 경량 수지','bd_magnet'],
+ ['② 부품','감속기 · 모터 · 스크류 · 센서 · 칩','dr_harm'],
+ ['③ 모듈','액추에이터(관절 묶음) · 로봇손 · 배터리 팩','dr_mod'],
+ ['④ 완제품','휴머노이드 · 협동 · 산업용 · 서비스 · 물류 로봇','om_human'],
+ ['⑤ 설치·관제','현장 설치(SI) · 관제 소프트웨어 · 구독(RaaS)','op_fleet'],
+ ['⑥ 수요처','자동차·전자 공장, 물류센터, 조선소, 병원, 가정','sf_si'],
+];
+const STEPS=[
+ ['① 기대','전망 · 목표','증권사 출하 전망, 로봇 회사의 목표 생산능력, 정부 계획','C'],
+ ['② 설계 채택','샘플 · 사양','샘플 테스트, 시제품 납품, 양산 사양 공개','C → B'],
+ ['③ 양산 발주','계약 · 공시','공급계약 공시, 초도 양산, 공장 착공','A'],
+ ['④ 매출','분기 실적','실적에서 로봇 매출이 따로 보임, 인도 대수','A'],
+ ['⑤ 이익','마진','가동률, 영업이익률, 판매 단가 유지','A'],
+];
+/* 사용자 제공 그림(머니칸 「로봇 관련주 테마 밸류체인」)의 5개 밸류체인 — 재조판. [그림 표기, 종목코드, 이 교과서의 세분류, 점검] */
+const VCIMG=[
+ ['① Actuator / Gear','로봇의 근육',[
+   ['로보티즈','108490','dr_mod','맞다. 관절 모듈(다이나믹셀)이 주력이고 로봇손·학습 데이터까지 넓혔다 — 손·두뇌 분류에도 함께 올렸다.'],
+   ['하이젠알앤엠','160190','dr_motor','맞다. 본업은 산업용 모터·서보모터이고 로봇 관절용 모터·액추에이터로 넓히는 중이다.'],
+   ['삼현','437730','dr_mod','맞다. 모터+감속기+제어기 일체형. 북미 고객사향 초도 양산 예정(2026년 12월) [NH p.132].'],
+   ['에스피지','058610','dr_harm','맞다. 다만 매출 대부분은 가전·산업용 기어드 모터이고 정밀감속기 몫은 4~7%로 자료마다 다르다.'],
+   ['알에스오토메이션','140670','ct_drive','근육보다 <b>신경</b>에 가깝다. 드라이브·컨트롤러·엔코더를 만든다 → 제어·전장으로 분류.'],
+   ['에스비비테크','389500','dr_harm','맞다. 하모닉 감속기 전문.']]],
+ ['② End-Effector','로봇의 손',[
+   ['피앤에스로보틱스','460940','hd_hand','<b class="bad">미확인</b> — 이 교과서의 재료에 이 회사의 사업 내용이 없다. 그림의 분류를 그대로 따랐다.'],
+   ['원익로보틱스','','hd_hand','<b>비상장</b>이다. 상장사는 지분 76.3%를 가진 모회사 <a href="#c=030530">원익홀딩스</a>(지주사) [NH p.162]. 로봇손은 자회사의 사업이다.']]],
+ ['③ 휴머노이드 · 협동 · 산업용','로봇 본체',[
+   ['두산로보틱스','454910','om_cobot','맞다. 협동로봇. 로봇 운영 소프트웨어와 설치(SI)도 한다.'],
+   ['레인보우로보틱스','277810','om_human','맞다. 양팔 이동 로봇·협동로봇. 삼성전자의 연결 자회사(지분 35%) [NH p.43].'],
+   ['뉴로메카','348340','om_cobot','맞다. 협동로봇 팔.'],
+   ['나우로보틱스','459510','om_ind','산업용 로봇. 회사별 고객·현장은 재료에서 확인하지 못했다.'],
+   ['로보스타','090360','om_ind','산업용 로봇. 회사별 고객·현장은 재료에서 확인하지 못했다.'],
+   ['미래컴퍼니','049950','om_med','<b class="bad">미확인</b> — 재료에 사업 내용이 없다. 수술 로봇을 하는 회사로 알려져 있어 의료 로봇에 <b>임시로</b> 넣었다. 그림처럼 휴머노이드·협동·산업용 본체로 볼 근거는 찾지 못했다.']]],
+ ['④ AI Vision / SLAM / OS','로봇 두뇌',[
+   ['씨메스','475400','br_vision','정식 종목명은 <b>씨메스로보틱스</b>. 3D 비전과 AI로 물건을 알아보고 집게 하는 회사 — 두뇌 중에서도 "눈으로 본 것을 해석하는 소프트웨어"다. 현장 설치도 한다.'],
+   ['클로봇','466100','op_fleet','맞다. 길 찾기·관제 소프트웨어. 다만 2025년 매출에서 순수 솔루션은 2.2%이고 서비스·자회사의 로봇 공급이 크다. ⑤에도 다시 나온다(한 회사 두 칸).']]],
+ ['⑤ AMR / AGV / 서비스로봇','이동',[
+   ['티로보틱스','117730','om_amr','진공 환경용 로봇과 물류 로봇을 함께 한다.'],
+   ['원익홀딩스','030530','hd_hand','②의 원익로보틱스(자회사)와 <b>지주사·자회사 관계로 두 칸</b>에 걸렸다. 재료로 확인되는 것은 로봇손뿐이고 이동 로봇 사업은 확인하지 못했다 → 손 분류에만 넣었다.'],
+   ['유진로봇','056080','om_amr','물류 로봇과 청소 로봇.'],
+   ['현대무벡스','319400','sf_logi','재료에서는 공장·창고 물류 자동화 기업으로 분류된다 → 스마트팩토리 › 물류 자동화가 대표 자리이고, 물류 이동에도 함께 올렸다.'],
+   ['에브리봇','270660','om_svc','청소 로봇을 소비자에게 판다 — "이동"보다 서비스 로봇에 가깝다.'],
+   ['클로봇','466100','op_fleet','④와 겹친다. 로봇 본체를 만들지 않고, 자회사가 해외 로봇을 들여와 공급한다.']]],
+];
+const DEEPREAD=[
+ ['robot-guide-2026-11','섹터 가이드','로봇 섹터 가이드 — 아직 오지 않은 산업을 보는 법','보는 법 · 증권사와 투자자의 관점 · 원가 순위 · 부품별 강자 · 국가별 쓰임새'],
+ ['robot-map-2026-11','기업 지도 ①','국가별 기업 순위 · 특장점 · 밸류','미국·중국·한국·일본·유럽 기업을 기대감(시총)·실적(매출)·밸류 부담(PSR)으로 줄 세움'],
+ ['robot-parts-2026-11','기업 지도 ②','부품 분류(대·중·세부)별 기업 순위와 역할','8개 대분류·53개 세부 분류마다 세계 강자와 국내 기업의 역할'],
+ ['robot-sw-2026-11','기업 지도 ③','소프트웨어 · 스마트팩토리와 원가 분석 모음','로봇 소프트웨어·스마트팩토리 분류, 국내 기업 역할 카드, 원가 분석 28건 비교'],
+];
+
+/* ───────── 조각 만들기 */
+function tbl(head,rows,cls){ return `<div class="tw"><table class="${cls||''}"><tr>${head.map(h=>`<th class="l">${h}</th>`).join('')}</tr>`+
+  rows.map(r=>'<tr>'+r.map((c,i)=>`<td class="${i===0?'l k':''}">${c}</td>`).join('')+'</tr>').join('')+'</table></div>'; }
+function fig(name,cap){ return `<div class="fig">${FIG[name]||''}</div>`+(cap?`<div class="figcap">${cap}</div>`:''); }
+function keyn(h,html,warn){ return `<div class="keynote${warn?' warn':''}"><span class="h">${esc(h)}</span>${html}</div>`; }
+function key1(h,html){ return `<div class="key1"><span class="h">${esc(h)}</span>${html}</div>`; }
+let _dn=0;
+function dual(easyHtml,deepHtml){
+  const id='d'+(++_dn);
+  return `<div class="seg noprint" data-dual="${id}"><button type="button" class="on" data-m="e">쉬운 설명</button><button type="button" data-m="d">자세한 설명</button></div>
+    <div class="easy" id="${id}e"><div class="h">쉬운 설명</div>${easyHtml}</div>
+    <div class="deepbox" id="${id}d" style="display:none"><div class="h">자세한 설명</div>${deepHtml}</div>`;
+}
+function bindDual(root){
+  (root||document).querySelectorAll('[data-dual]').forEach(seg=>{
+    const id=seg.dataset.dual;
+    seg.querySelectorAll('button').forEach(b=>{ b.onclick=()=>{
+      seg.querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+      const e=$(id+'e'), d=$(id+'d'); if(!e||!d) return;
+      if(b.dataset.m==='e'){ e.style.display=''; d.style.display='none'; } else { d.style.display=''; e.style.display='none'; }
+    };});
+  });
+}
+
+
+/* 본문 문단 안의 출처 표기 (보도 s0, s1) → 태그 + 각주 링크 */
+function proseH(ch,t){
+  const src=ch.src||[];
+  return esc(t).replace(/\(([^()]*\bs\d+[^()]*)\)/g,(m,inner)=>{
+    const body=inner.replace(/\bs(\d+)\b/g,(_,n)=>{ const i=+n, x=src[i];
+      return !x?`[?]`:x.u?`<a href="${esc(x.u)}" target="_blank" rel="noopener" title="${esc(x.t)}">[${i+1}]</a>`:`<span title="${esc(x.t)}">[${i+1}]</span>`; });
+    return `<span class="sx">(${body})</span>`;
+  });
+}
+
+
+/* ───────── 증권사 리포트 (개념 / 산업·관련기업 / 개별기업) */
+const REPT={concept:['개념','로봇·휴머노이드가 무엇인지부터 설명하는 자료. 오래된 것도 쓸모가 있어 기간을 넓게 잡는다'],
+            industry:['산업·관련기업','산업 전망과 밸류체인 안 여러 기업을 함께 다룬 자료'],
+            company:['개별 기업','종목 단위 분석']};
+const dDays=d=>{ const t=Date.parse(d+'T00:00:00'); return isNaN(t)?null:Math.floor((Date.now()-t)/864e5); };
+function repRow(r){
+  const ag=dDays(r.d), fresh=ag!=null&&ag<=183;
+  return `<tr><td class="l nw">${esc(r.d||'')}${fresh?' <span class="pill c">6개월</span>':''}</td>
+    <td class="l nw">${esc(r.b||'')}${(r.an||[]).length?`<div class="mini">${esc((r.an||[]).join(', '))}</div>`:''}</td>
+    <td class="l">${r.u?`<a href="${esc(r.u)}" target="_blank" rel="noopener">${esc(r.t||'')}</a>`:esc(r.t||'')}
+      ${r.sum?` <a class="sumlink" href="/repsum.html#r=${esc(r.sum)}">🔍 정밀요약</a>`:''}
+      ${r.why?`<div class="mini">${esc(r.why)}</div>`:(r.note?`<div class="mini" style="color:#98a2b3">${esc(r.note)}</div>`:'')}</td>
+    ${r.code?`<td class="l nw">${TREE.co[r.code]?coLink(r.code):esc(r.code)}</td>`:'<td></td>'}</tr>`;
+}
+function repSection(tier,rows,opts){
+  opts=opts||{};
+  if(!rows||!rows.length) return opts.hideEmpty?'':`<div class="mini" style="margin-bottom:10px">${esc(REPT[tier][0])} 리포트는 아직 모으지 못했다.</div>`;
+  rows=rows.slice().sort((a,b)=>String(b.d||'').localeCompare(String(a.d||'')));
+  const n6=rows.filter(r=>{const a=dDays(r.d); return a!=null&&a<=183;}).length;
+  return `<h3 style="margin:14px 0 4px">${esc(REPT[tier][0])} <small>${rows.length}건 · 최근 6개월 ${n6}건</small></h3>
+    <div class="mini" style="margin-bottom:5px">${esc(REPT[tier][1])}</div>
+    <div class="tw" style="margin-bottom:8px"><table><tr><th class="l">발행일</th><th class="l">증권사</th><th class="l">제목</th><th class="l">${tier==='company'?'종목':''}</th></tr>
+    ${rows.map(repRow).join('')}</table></div>`;
+}
+function repBlock(){
+  if(!REP||!(REP.concept||REP.industry||REP.company)) return '';
+  const n=(REP.concept||[]).length+(REP.industry||[]).length+(REP.company||[]).length;
+  if(!n) return '';
+  return `<h2>증권사 리포트 <small>${n}건 · 수집 ${esc(REP.updated||'')}</small></h2>`+
+    repSection('concept',REP.concept)+repSection('industry',REP.industry)+repSection('company',REP.company)+
+    `<div class="mini" style="margin-bottom:14px">제목을 누르면 원문 PDF가 열린다(공개 주소가 없는 리포트는 제목만). <b>🔍 정밀요약</b>은 이 사이트의 리포트 정밀요약으로 이어진다. 리포트의 목표주가·전망치는 <b>증권사 추정</b>이지 확정된 숫자가 아니다.</div>`;
+}
+function repOf(code){
+  const out=[];
+  for(const t of ['company','industry','concept'])
+    for(const r of (REP&&REP[t])||[]) if(r.code===code) out.push(Object.assign({},r,{tier:t}));
+  return out.sort((a,b)=>String(b.d||'').localeCompare(String(a.d||'')));
+}
+
+/* ───────── 왼쪽 목차 */
+function renderSide(cur){
+  const h=['<h2><a href="#" style="color:#1a2a4a">🤖 로봇 교과서</a></h2><input id="q" placeholder="기업명·종목코드 찾기" autocomplete="off"><div id="sr"></div>',
+    `<details class="toc" ${innerWidth>900||!(cur.gid||cur.code||cur.top)?'open':''}><summary>목차 (대분류 → 중분류 → 세분류)</summary>`];
+  for(const T of TREE.top){
+    const n=new Set(T.mid.flatMap(M=>M.g.flatMap(g=>g.co))).size;
+    const open=cur.top===T.id||(cur.gid&&(pathOf(cur.gid)||[])[0]&&pathOf(cur.gid)[0].id===T.id);
+    h.push(`<details ${open?'open':''}><summary><a href="#t=${T.id}" style="color:inherit">${esc(T.name)}</a> <small style="color:#98a2b3;font-weight:400">${n}</small></summary>`);
+    for(const M of T.mid){
+      h.push(`<div class="mid">${esc(M.name)}</div>`);
+      for(const g of M.g){
+        const on=cur.gid===g.id, wr=G2C[g.id]?' ✍':'';
+        h.push(`<a class="g ${on?'on':''}" href="#g=${g.id}">${esc(g.name)}<small> · ${g.co.length}${wr}</small></a>`);
+        if(on) for(const c of g.co.slice().sort(byCap)) h.push(`<a class="c ${cur.code===c?'on':''}" href="#c=${c}">${esc(coN(c))}</a>`);
+      }
+    }
+    h.push('</details>');
+  }
+  const free=Object.values(CHD.ch||{}).filter(c=>!(c.groups||[]).length);
+  if(free.length){ h.push(`<details ${cur.cid?'open':''}><summary>기술 장 <small style="color:#98a2b3;font-weight:400">${free.length}</small></summary>`);
+    for(const c of free) h.push(`<a class="g ${cur.cid===c.id?'on':''}" href="#ch=${c.id}">${esc(c.title)}<small> · ${(c.companies||[]).length} ✍</small></a>`);
+    h.push('</details>'); }
+  h.push('</details><div class="mini" style="margin-top:8px;padding:0 4px">✍ 표시는 글로 쓴 분야입니다. 나머지는 숫자와 분류만 나옵니다.</div>');
+  $('side').innerHTML=h.join('');
+  const q=$('q'); q.addEventListener('input',()=>{
+    const v=q.value.trim().toLowerCase(); const sr=$('sr'); if(!v){ sr.innerHTML=''; sr.className=''; return; }
+    const hit=Object.keys(TREE.co).filter(c=>c.includes(v)||coN(c).toLowerCase().includes(v)).sort(byCap).slice(0,30);
+    sr.className=hit.length?'sr':'';
+    sr.innerHTML=hit.map(c=>`<a href="#c=${c}">${esc(coN(c))} <small>${c}</small></a>`).join('')||'';
+  });
+}
+
+/* ───────── 메타 줄 (작성일 규칙) */
+function metaLine(written){
+  const bits=[];
+  if(written) bits.push(`<b>작성일</b> ${esc(written)}`);
+  bits.push(`<b>분류</b> ${esc(TREE.updated||'—')}`);
+  if(priceDay()) bits.push(`<b>주가·PER 기준일</b> ${priceDay()}`);
+  if(BB&&BB.asof) bits.push(`<b>실적</b> ${esc(BB.asof)} 기준 (수집 ${esc(String(BB.updated||'').slice(0,10))})`);
+  else bits.push(`<b>실적</b> 숫자 수집 전 <span style="color:#98a2b3">(첫 수집이 끝나면 5년 실적·공시 이력이 나온다)</span>`);
+  return `<div class="meta">${bits.join(' · ')}</div>`;
+}
+
+/* ───────── 홈 */
+function renderHome(){
+  killCharts();
+  const nT=TREE.top.length, nM=TREE.top.reduce((a,T)=>a+T.mid.length,0),
+        nG=TREE.top.reduce((a,T)=>a+T.mid.reduce((b,M)=>b+M.g.length,0),0),
+        nC=Object.keys(TREE.co).length, chs=Object.values(CHD.ch||{}),
+        nW=chs.length, nWC=chs.reduce((a,c)=>a+(c.companies||[]).length,0);
+  const gA=(ref,txt)=>`<a href="#${ref}">${txt}</a>`;
+  const h=[`<h1>로봇 교과서 <small>신체 비유로 보는 구조 · 부품 분류와 국내 기업 · 특장점과 리스크 · 증권사 리포트</small></h1>`, metaLine(BASIC_WRITTEN),
+   `<div class="kpis">
+     <div class="kpi"><div class="k">대분류</div><div class="v">${nT}</div><div class="n">근육·관절부터 설치·관제까지</div></div>
+     <div class="kpi"><div class="k">중분류 · 세분류</div><div class="v">${nM} · ${nG}</div><div class="n">세분류가 공부 단위</div></div>
+     <div class="kpi"><div class="k">기업</div><div class="v">${nC}</div><div class="n">국내 상장사</div></div>
+     <div class="kpi"><div class="k">글로 쓴 분야</div><div class="v">${nW}</div><div class="n">기업 카드 ${nWC}개 · 특장점·리스크</div></div>
+   </div>`,
+   `<div class="nb"><b>읽는 순서</b> — ① 아래 기본 지식(로봇의 종류 → 신체 비유 → 관절 하나의 속 → 원가 순위 → 밸류체인 → 보는 법 5단계)을 먼저 보고 ② 대분류에서 관심 부위를 고른 뒤 ③ 세분류로 들어가 분야 설명을 읽고 ④ 기업으로 들어가 숫자·특장점·리스크를 본다. 분야 설명은 <b>쉬운 설명 / 자세한 설명</b>을 버튼으로 바꿔 볼 수 있다.<br>
+     <b>이 교과서는 휴머노이드에 무게를 뒀다.</b> 휴머노이드는 아직 매출이 거의 없는 산업이라, 숫자 가운데 상당수가 <b>증권사 가정</b>이다. 그런 숫자에는 "증권사 가정"이라고 적고 리포트 쪽수를 붙였다([NH p.38] 식). 기업은 국내 상장사만 분류에 넣었고, 해외·비상장 기업은 분야 설명 안에서 다룬다.</div>`,
+
+   `<h2>더 깊이 읽기 <small>긴 글 4편 · 리포트 정밀요약에서 이쪽으로 옮겼다</small></h2>`,
+   `<div class="grid4" style="margin-bottom:6px">${DEEPREAD.map(([id,k,t,d])=>`<a class="card deepc" href="/repsum.html#r=${id}" style="display:block;border-left:4px solid #2a78d6;margin-bottom:0;color:inherit;text-decoration:none">
+      <span class="pill c">${esc(k)}</span><h3 style="margin:6px 0 4px;color:#1d4ed8">${esc(t)}</h3><div class="mini">${esc(d)}</div></a>`).join('')}</div>
+    <div class="mini" style="margin-bottom:14px">아래 기본 지식과 분야 설명은 이 네 편과 증권사 리포트 3건을 교과서 길이로 줄인 것이다. 표·그림·출처 전체는 긴 글에 있다.</div>`,
+
+   `<h2>1. 로봇의 종류 — 이미 온 로봇과 아직 오지 않은 로봇</h2>`,
+   key1('가장 먼저 갈라 볼 것','로봇은 <b>이미 팔리고 있는 로봇</b>(산업용·협동·물류·청소·수술)과 <b>아직 오지 않은 로봇</b>(휴머노이드)으로 나뉜다. 매출은 앞쪽에서 나오고, 주가의 기대는 뒤쪽에 매겨진다. 2025년 기준 로봇청소기 회사 한 곳(Roborock)의 매출이 휴머노이드 1위권 회사(Unitree) 전체 매출의 약 11배다(계산).'),
+   `<div class="card" style="padding:0;overflow:hidden;margin-bottom:12px">${tbl(['종류','쉬운 말','2025년 물량','단계','이 교과서에서'],KINDS.map(r=>[r[0],r[1],r[2],r[3],gA('g='+r[4],esc((pathOf(r[4])||[{},{},{name:''}])[2].name.split(' — ')[0])||'보기')]),'cmp')}</div>`,
+   keyn('숫자의 출처와 한계','물량은 국제로봇연맹(IFR) World Robotics 2026의 2025년 실적이다 — <a href="https://ifr.org/ifr-press-releases/news/five-million-robots-now-operate-in-factories-globally" target="_blank" rel="noopener">산업용(2026-09-24)</a> · <a href="https://ifr.org/ifr-press-releases/news/global-sales-of-professional-service-robots-surge-24-percent" target="_blank" rel="noopener">서비스(2026-09-30)</a>. 서비스 로봇 숫자는 <b>IFR 표본 238개 업체 기준</b>이고 전체 추정치가 아니다. 협동로봇 약 6.6만 대는 "산업용 설치의 11%"에서 계산한 값이다. 휴머노이드는 집계 기관마다 정의가 달라 7,000대(IFR)와 13,000대(Omdia)가 함께 쓰인다. 서빙 로봇 한국 보급 대수는 국내 보도 기준이다.<br>IFR은 휴머노이드를 "실험실에서 시범으로 넘어가는 단계이고 안전·학습 데이터·경제성이 과제"라고 평가한다. 나라별 사정은 '+gA('ch=country','국가별 지형')+' 장에 있다.'),
+
+   `<h2>2. 로봇의 구조 — 사람 몸에 비유하면</h2>`,
+   fig('body','<b>머리·근육·관절·손·몸통·다리</b>는 사용자가 준 밸류체인 그림(머니칸)의 비유를 새로 그린 것이고, <b>눈·감각·심장·뼈대·신경·일터</b>는 이 교과서가 더했다. 칸을 누르면 그 분류로 간다.'),
+   dual(
+    `<p>로봇은 사람 몸에 빗대면 쉽다. <b>머리</b>에는 보고 판단하는 두뇌(연산 칩과 AI, 제어·운영 소프트웨어)가 있다. <b>근육과 관절</b> 자리에는 힘을 내고 자세를 잡는 액추에이터와 감속기가 있다. 물건을 쥐는 <b>손</b>은 엔드이펙터(End-effector)라고 부른다. <b>몸통</b>은 로봇 본체이고, <b>다리</b>는 스스로 돌아다니는 이동 수단이다.</p>
+     <p>여기에 다섯 가지를 더했다. 카메라와 센서는 <b>눈과 감각</b>, 모터에 전기를 보내는 드라이브와 전선은 <b>신경</b>, 배터리는 <b>심장</b>, 몸을 받치는 금속과 모터 속 자석은 <b>뼈대</b>다. 그리고 몸 밖에는 로봇이 일할 <b>일터</b>(설치·관제·스마트팩토리)가 있다.</p>
+     <p>돈으로 보면 몸의 절반 이상이 근육·관절이다. 증권사 가정으로 휴머노이드 1대 원가의 52~60%가 액추에이터이고 손이 15~19%다 [NH p.38]. 반대로 값이 가장 크게 매겨지는 곳은 머리(로봇 AI 모델)인데, 이 자리는 해외·비상장 기업이 대부분이다.</p>`,
+    `<p>이 교과서의 대분류 8개는 이 비유를 그대로 따른다 — 구동부(근육·관절) / 제어·전장(신경) / 감지(눈·감각) / 손(말단 장치) / 두뇌(칩·AI·소프트웨어) / 에너지·몸체·소재(심장·뼈대) / 완제품(몸통·다리) / 설치·관제·스마트팩토리(일터). 세분류는 부품 조사에서 나눈 53개 세부 분류와 소프트웨어·스마트팩토리 분류를 교과서에 맞게 묶은 것이다.</p>
+     <p>부위마다 국내 기업의 두께가 다르다. 구동부는 관절 모듈·모터 쪽에 상장사가 있지만(로보티즈·삼현·현대모비스) 스크류와 손가락용 코어리스 모터는 약하다 [NH p.59·65]. 힘·촉각 센서와 로봇손은 비상장 회사가 중심이고, 카메라는 대기업 부품사(삼성전기·LG이노텍)가 들어간다. 두뇌 모델은 해외·비상장이고, 국내 상장사는 관제·설치(SI) 쪽에 가장 많이 몰려 있다.</p>
+     <p>휴머노이드 1대에는 손을 빼고도 관절이 30개 안팎이다. Tesla Optimus Gen2는 회전형 14개와 선형 14개를 쓴다 [NH p.116]. 그래서 근육·관절은 부품 수로도 원가로도 가장 큰 부위다.</p>
+     <p>한 회사가 여러 부위에 걸치는 경우가 많다. 로보티즈는 관절 모듈·손·학습 데이터에, 클로봇은 관제 소프트웨어와 이동 로봇 공급에, 원익홀딩스는 자회사를 통해 손에 걸친다. 이 교과서는 회사마다 대표 자리를 하나 정하고, 나머지 자리에도 함께 올렸다.</p>`),
+   `<div class="card" style="padding:0;overflow:hidden;margin-bottom:12px">${tbl(['몸의 부위','로봇에서는','하는 일','이 교과서의 분류','사용자 제공 그림'],BODYP.map(r=>[esc(r[0]),esc(r[1]),esc(r[2]),gA(r[3],esc(r[4])),r[5]]),'cmp')}</div>`,
+
+   `<h2>3. 관절 하나의 속 — 액추에이터</h2>`,
+   fig('joint','<b>위는 돌리는 관절(회전형), 아래는 밀고 당기는 관절(선형).</b> 둘의 차이는 주황 칸 하나 — 감속기냐 스크류냐다.'),
+   dual(
+    `<p>관절 하나를 뜯어 보면 네 가지가 들어 있다. ① 빨리 도는 <b>모터</b> ② 그 회전을 "천천히, 대신 세게"로 바꾸는 <b>감속기</b>(자전거의 저단 기어와 같다), 또는 회전을 밀고 당기는 직선 힘으로 바꾸는 <b>스크류</b>(나사) ③ 지금 몇 도 돌았는지, 힘이 얼마나 걸리는지 재는 <b>센서</b> ④ 모터에 전기를 얼마나 줄지 초당 수만 번 정하는 <b>제어기</b>.</p>
+     <p>이 넷을 한 덩어리로 묶은 것이 <b>액추에이터</b>다. 돌리는 것은 회전형, 밀고 당기는 것은 선형이라고 부른다.</p>
+     <p>로봇 회사는 이 묶음을 직접 설계하는 경우가 많다. 그래서 부품 회사를 볼 때는 "묶음 전체를 맡는가, 그 속의 감속기·모터·스크류 한 가지를 넣는가"를 먼저 가른다.</p>`,
+    `<p>액추에이터 속 원가는 서너 부품에 고르게 나뉜다. NH투자증권의 2030년 Tesla Optimus 예상(증권사 가정)에서 회전형은 모터 33% · 감속기 31% · 힘/토크 센서 25% · 제어기+엔코더 8%, 선형은 유성 롤러 스크류 35% · 모터 31% · 힘/토크 센서 24% · 제어기+엔코더 7.5%다 [NH p.115].</p>
+     <p>감속기는 쓰임에 따라 셋으로 갈린다. 얇고 가벼운 하모닉(파동기어), 무거운 하중을 버티는 RV·사이클로이드(산업용 로봇의 허리·어깨, 휴머노이드 하체), 단순하고 싼 정밀 유성이다. 정밀 유성은 저감속(QDD)과 다단 고감속 두 갈래로 쓰인다 [NH p.58][DS p.18].</p>
+     <p>가장 급한 병목은 스크류다. 유성 롤러 스크류(PRS)는 선으로 맞닿아 힘이 세지만 정밀 연삭이 필요하고, 비중국 공급은 2028년 수요의 10%에 못 미친다는 추정이 있다 [NH p.59]. 연삭기 납기가 12~24개월이라 증설이 느리다는 조사도 있다.</p>
+     <p>제어기는 로봇 회사의 핵심 설계 자산이어서 외주가 잘 열리지 않고, 묶음 조립을 밖에 맡기는 것은 대량 양산 단계에 가서라는 것이 NH의 정리다 [NH p.53]. 국내에서는 현대모비스가 Boston Dynamics Atlas용 액추에이터를 맡아 2028년 미국 공장 연 35만 개를 계획하고 [하나 p.64], 삼현이 북미 고객사향 초도 양산(2026년 12월)을 앞두고 있다 [NH p.132]. 자세한 것은 ${gA('g=dr_mod','액추에이터 모듈·모터')} · ${gA('g=dr_harm','감속기·스크류·베어링')} 분야에 있다.</p>`),
+
+   `<h2>4. 원가 순위 한 장</h2>`,
+   fig('cost','<b>액추에이터가 절반 이상, 손이 그다음, 연산 칩은 지금은 작지만 2030년에 세 번째로 올라선다</b>는 것이 NH투자증권의 가정이다.'),
+   `<div class="card" style="padding:0;overflow:hidden;margin-bottom:12px">${tbl(['부품','원가에서 차지하는 몫','출처별 숫자','읽는 법','분류'],COSTR.map(r=>[r[0],r[1],r[2],r[3],gA(r[4],'보기')]),'cmp')}</div>`,
+   keyn('이 숫자들은 전부 추정이다','양산된 휴머노이드의 실제 원가표는 공개된 적이 없다. 위 숫자는 증권사·조사기관이 기종(Optimus Gen2 등)·연도(2026~2030)·양산 대수를 <b>가정해서</b> 낸 값이고, 그래서 출처마다 다르다. 예를 들어 센서 몫은 NH 계산으로 12.7%(힘/토크 센서만), DS 표로는 37.0%(센서 전체)다 — 재는 범위가 다르기 때문이다. 왜 다른지, 어떻게 읽을지는 '+gA('ch=bom','원가 분석 읽기')+' 장에 정리했다.',true),
+
+   `<h2>5. 밸류체인 — 소재에서 수요처까지</h2>`,
+   `<div class="flow">${CHAIN.map(([a,b,g])=>`<div${g?' class="on"':''}><b>${esc(a)}</b>${g?`<a href="#g=${g}">${esc(b)}</a>`:esc(b)}</div>`).join('')}</div><div style="height:10px"></div>`,
+   key1('어디서 갈리는가','① <b>모듈은 로봇 회사가 직접 설계</b>하는 경우가 많고, 조립 외주는 대량 양산 단계에 열린다 [NH p.53]. 부품 회사는 그 전에 설계 안에 들어가 있어야 한다.<br>② <b>부품 병목은 스크류</b>다 — 유성 롤러 스크류의 비중국 공급은 2028년 수요의 10% 미만(증권사 추정) [NH p.59].<br>③ <b>국내 상장사는 ⑤ 설치·관제에 가장 많다.</b> 값이 가장 크게 매겨지는 로봇 AI 모델은 해외·비상장이다. <span class="tag t판단">판단</span> 근거: 소프트웨어 분류에서 국내 상장사 대부분이 관제·SI·구독 칸에 있다는 점(긴 글 ③).'),
+
+   `<h2>6. 보는 법 — 기대에서 이익까지 5단계</h2>`,
+   `<div class="flow">${STEPS.map(([a,b,c,d],i)=>`<div${i===1||i===2?' class="on"':''}><b>${esc(a)} — ${esc(b)}</b><span style="font-weight:400">${esc(c)}</span><span class="mini" style="display:block;margin-top:3px">근거 등급 ${esc(d)}</span></div>`).join('')}</div><div style="height:10px"></div>`,
+   key1('전망의 크기가 아니라 증거의 단계를 본다','아직 실적이 없는 산업은 "지금 나온 증거가 어느 단계인가"로 본다. 국내 휴머노이드 부품주는 대부분 <b>② 설계 채택 ~ ③ 양산 발주 초입</b>에 있다(위 그림의 파란 칸). 계약·공시로 확인되는 것은 삼현의 초도 양산, 현대모비스의 공장 계획, 에스비비테크의 공급계약 정도이고, 2028년 숫자는 거의 증권사 가정이다. <span class="tag t판단">판단</span> 근거: 리포트 3건의 수주·공시 서술을 단계별로 나눈 결과(섹터 가이드).'),
+   keyn('양산도 단계가 있다 — NH투자증권의 틀','<b>1단계</b>(2024년 하반기~2026년 하반기) 로봇 회사 한 곳이 연 3천 대 안팎, 시제품·실증 → <b>2단계</b>(2027년 상반기~2028년 하반기) 연 1.5만 대 안팎, 파는 것보다 데이터 수집이 목적 → <b>3단계</b>(2028년 하반기~) 연 10만 대, 상용화 [NH p.7·11·33]. 연 10만 대는 시간당 12.5대 이상인데 지금은 손으로 시간당 1~2대를 만든다 [NH p.33]. <span class="tag t증권사">증권사·조사기관</span><br>단계마다 무엇을 증거로 칠지, 증권사 3곳이 어디서 같고 어디서 갈리는지는 '+gA('ch=howto','아직 오지 않은 산업을 보는 법')+' 장에 있다.'),
+
+   `<h2>7. 사용자 제공 그림의 5개 밸류체인 — 지금 사업과 대조</h2>`,
+   `<div class="nb">사용자가 준 그림(머니칸(Money Khan) 「로봇 관련주 테마 밸류체인」)의 "세부 밸류체인 & 관련 기업" 표를 다시 짠 것이다. <b>그림 자체는 싣지 않았다.</b> 맨 오른쪽 열은 이 교과서의 재료(증권사 리포트 3건과 조사 노트)와 대조한 결과이고, 재료로 확인되지 않는 것은 "미확인"이라고 적었다.</div>`,
+   `<div class="tw" style="margin-bottom:8px"><table><tr><th class="l">그림의 칸</th><th class="l">그림에 적힌 기업</th><th class="l">이 교과서의 분류</th><th class="l">점검 — 지금 사업과 맞는가</th></tr>
+    ${VCIMG.map(([k,sub,rows])=>rows.map(([n,code,gid,chk],i)=>{ const p=pathOf(gid);
+      return `<tr>${i===0?`<td class="l" rowspan="${rows.length}" style="background:#fafcff"><b>${esc(k)}</b><div class="mini">${esc(sub)}</div></td>`:''}
+        <td class="l nw">${code&&TREE.co[code]?coLink(code)+` <small style="color:#98a2b3">${code}</small>`:esc(n)}${code&&TREE.co[code]&&TREE.co[code]!==n?`<div class="mini">그림 표기: ${esc(n)}</div>`:''}</td>
+        <td class="l">${p?`<a href="#g=${gid}">${esc(p[0].name)} › ${esc(p[1].name)}</a>`:'—'}</td><td class="l">${chk}</td></tr>`; }).join('')).join('')}
+    </table></div>`,
+   keyn('이 표에서 알아둘 것','① <b>한 회사가 두 칸</b>에 있는 경우 — 클로봇(④·⑤), 원익홀딩스·원익로보틱스(②·⑤, 지주사와 자회사). ② <b>비상장</b> — 원익로보틱스. ③ <b>이름</b> — "씨메스"의 정식 종목명은 씨메스로보틱스. ④ <b>미확인</b> — 피앤에스로보틱스·미래컴퍼니는 재료에 사업 내용이 없어 특장점·리스크를 적지 못했다. ⑤ 그림에 <b>없는 칸</b> — 센서(눈·감각), 배터리, 소재·자석, 연산 칩, 스마트팩토리. 이 교과서는 이 칸들을 대분류로 더했다.',true),
+
+   `<h2>8. 대분류</h2><div class="grid">`];
+  for(const T of TREE.top){
+    const codes=[...new Set(T.mid.flatMap(M=>M.g.flatMap(g=>g.co)))].sort(byCap);
+    const wr=T.mid.flatMap(M=>M.g).filter(g=>G2C[g.id]).length;
+    h.push(`<div class="card"><h3><a href="#t=${T.id}">${esc(T.name)}</a> <small>세분류 ${T.mid.reduce((a,M)=>a+M.g.length,0)} · 기업 ${codes.length}${wr?` · 글로 쓴 분야 ${wr}`:''}</small></h3>
+      <div class="mini" style="margin-bottom:7px">${esc(T.desc)}</div>
+      <div class="chips">${codes.slice(0,8).map(c=>`<a class="chip" href="#c=${c}">${esc(coN(c))}<small> ${eok(sv(c).cap)}</small></a>`).join('')}${codes.length>8?`<a class="chip w" href="#t=${T.id}">+${codes.length-8}</a>`:''}</div></div>`);
+  }
+  h.push('</div>');
+  h.push(repBlock());
+  h.push(`<h2>글로 쓴 분야 <small>${nW}개 장 · 기업 카드 ${nWC}개에 특장점과 리스크</small></h2><div class="chips" style="margin-bottom:8px">${chs.length?chs.map(c=>`<a class="chip w" href="${(c.groups||[]).length?`#g=${c.groups[0]}`:`#ch=${c.id}`}">${esc(c.title)}<small> ${(c.companies||[]).length}사</small></a>`).join(''):'<span class="mini">아직 없습니다.</span>'}</div>
+    <div class="mini" style="margin-bottom:14px">세분류 전부가 위 장 가운데 하나에 이어져 있다. 한 회사가 여러 장에 나오면 대표 자리의 장에 자세한 카드가, 나머지 장에는 그 역할만 짧게 있다.</div>`);
+  h.push(`<div class="mini">이 교과서가 판단을 대신하지 않는다. 사라거나 팔라는 뜻으로 쓴 문장은 없다. 기업의 실적·시세 숫자는 DART 공시와 시세 API에서 그대로 받아오고, 글로 쓴 부분은 문장마다 태그(확인·회사발언·증권사·보도·판단)와 출처를 붙였다. 태그가 <b>증권사</b>이면 추정·가정이고, <b>판단</b>이면 근거를 문장 안에 적었다. 그림은 모두 새로 그린 것이다.</div>`);
+  $('main').innerHTML=h.join('');
+  bindDual($('main'));
+}
+
+/* ───────── 대분류 */
+function renderTop(tid){
+  killCharts(); const T=topOf(tid); if(!T){ $('main').innerHTML='<div class="card">없는 대분류입니다.</div>'; return; }
+  const codes=[...new Set(T.mid.flatMap(M=>M.g.flatMap(g=>g.co)))].sort(byCap);
+  const h=[`<div class="crumb"><a href="#">로봇 교과서</a> › ${esc(T.name)}</div><h1>${esc(T.name)}</h1>`,
+    `<div class="lead">${esc(T.desc)}</div>`, metaLine(null)];
+  for(const M of T.mid){
+    h.push(`<h2>${esc(M.name)}</h2><div class="grid">`);
+    for(const g of M.g){
+      const ch=chOf(g.id);
+      h.push(`<div class="card"><h3><a href="#g=${g.id}">${esc(g.name)}</a> <small>기업 ${g.co.length}${ch?' · ✍ 글 있음':''}</small></h3>
+        ${ch?`<div class="mini" style="margin-bottom:7px">${esc(ch.one||'')}</div>`:''}
+        <div class="chips">${g.co.slice().sort(byCap).map(c=>`<a class="chip" href="#c=${c}">${esc(coN(c))}<small> ${eok(sv(c).cap)}</small></a>`).join('')}</div></div>`);
+    }
+    h.push('</div>');
+  }
+  h.push(`<h2>이 대분류의 기업 — 시가총액 순</h2>`+peerTable(codes,null));
+  h.push(peerChartsHtml('tp'));
+  $('main').innerHTML=h.join('');
+  peerCharts('tp',codes.slice(0,14),null);
+}
+
+/* ───────── peer 표·차트 (같은 분야 비교) */
+function peerTable(codes,me){
+  const rows=codes.map(c=>{ const v=sv(c); const f=((BB.co[c]||{}).fin)||{};
+    const r4=(f.rq||[]).slice(-4), o4=(f.oq||[]).slice(-4);
+    const ttmR=r4.every(x=>x!=null)&&r4.length===4?r4.reduce((a,b)=>a+b,0):null;
+    const ttmO=o4.every(x=>x!=null)&&o4.length===4?o4.reduce((a,b)=>a+b,0):null;
+    const opm=(ttmR&&ttmO!=null&&ttmR>0)?ttmO/ttmR*100:null;
+    return {c,v,ttmR,opm};
+  });
+  return `<div class="tw"><table><tr><th class="l">기업</th><th>시가총액</th><th>주가</th><th>PER</th><th>PBR</th><th>ROE</th><th>최근 4분기 매출</th><th>영업이익률</th><th class="l">주요 사업</th></tr>`+
+   rows.map(r=>`<tr class="${me===r.c?'me':''}"><td class="l nw">${coLink(r.c)} <small style="color:#98a2b3">${r.c}</small></td>
+     <td class="nw">${eok(r.v.cap)}</td><td>${f0(r.v.px)}</td><td>${r.v.per==null?'—':f1(r.v.per)}</td><td>${r.v.pbr==null?'—':f1(r.v.pbr)}</td>
+     <td>${r.v.roe==null?'—':f1(r.v.roe)+'%'}</td><td class="nw">${eok(r.ttmR)}</td>
+     <td class="${r.opm==null?'':(r.opm<0?'bad':r.opm>=10?'ok':'')}">${r.opm==null?'—':f1(r.opm)+'%'}</td>
+     <td class="l mini">${esc(vclip((PRD[r.c]||{}).p||'',34))}</td></tr>`).join('')+
+   `</table></div><div class="mini" style="margin:5px 0 14px">시가총액·주가·PER·PBR·ROE는 시세 API 기준일 ${priceDay()||'—'}. 최근 4분기 매출·영업이익률은 DART 공시값을 더한 것으로, 네 분기가 모두 수집된 기업만 표시한다. PER가 비어 있으면 적자이거나 API가 값을 주지 않은 경우다.</div>`;
+}
+function peerChartsHtml(pfx){ return `<div class="grid4" style="margin:10px 0 14px">
+  <div class="vz"><div class="vzt">시가총액<small>억원</small></div><div class="vzc" id="${pfx}C"><canvas id="${pfx}c"></canvas></div></div>
+  <div class="vz"><div class="vzt">최근 4분기 매출<small>억원 · DART 공시값 합</small></div><div class="vzc" id="${pfx}R"><canvas id="${pfx}r"></canvas></div></div>
+  <div class="vz"><div class="vzt">영업이익률<small>% · 최근 4분기</small></div><div class="vzc" id="${pfx}O"><canvas id="${pfx}o"></canvas></div></div>
+  <div class="vz"><div class="vzt">PER<small>배 · 적자는 제외</small></div><div class="vzc" id="${pfx}P"><canvas id="${pfx}p"></canvas></div></div></div>`; }
+function emptyIf(boxId,vals,msg){ const el=$(boxId); if(!el) return false;
+  if(vals.some(v=>v!=null)) return false;
+  el.innerHTML=`<div class="mini" style="display:flex;align-items:center;justify-content:center;height:100%;color:#98a2b3">${msg}</div>`; return true; }
+function peerCharts(pfx,codes,me){
+  const H=Math.max(110,codes.length*26+34);
+  ['C','R','O','P'].forEach(k=>{ const el=$(pfx+k); if(el) el.style.height=H+'px'; });
+  const L=codes.map(c=>vclip(coN(c),7));
+  const col=c=>me&&c===me?VZ.c[1]:VZ.c[0];
+  const cols=codes.map(col);
+  const fin=c=>((BB.co[c]||{}).fin)||{};
+  const ttm=(c,k)=>{ const a=(fin(c)[k]||[]).slice(-4); return a.length===4&&a.every(x=>x!=null)?a.reduce((x,y)=>x+y,0):null; };
+  const dCap=codes.map(c=>sv(c).cap??null);
+  const dRev=codes.map(c=>ttm(c,'rq'));
+  const dOpm=codes.map(c=>{ const r=ttm(c,'rq'),o=ttm(c,'oq'); return (r&&o!=null&&r>0)?Math.max(-60,Math.min(60,o/r*100)):null; });
+  const dPer=codes.map(c=>{ const p=sv(c).per; return p!=null&&p>0?Math.min(p,200):null; });
+  if(!emptyIf(pfx+'C',dCap,'시가총액 값 없음')) hbar(pfx+'c',L,dCap,cols,{fmt:v=>eok(v),pad:66});
+  if(!emptyIf(pfx+'R',dRev,'실적을 아직 받지 못함')) hbar(pfx+'r',L,dRev,cols,{fmt:v=>eok(v),pad:66});
+  if(!emptyIf(pfx+'O',dOpm,'실적을 아직 받지 못함'))
+    hbar(pfx+'o',L,dOpm,codes.map(c=>{ const r=ttm(c,'rq'),o=ttm(c,'oq'); const v=(r&&o!=null&&r>0)?o/r:0; return v<0?VZ.gray:col(c); }),{fmt:v=>f1(v)+'%',pad:54,tick:v=>f0(v)+'%'});
+  if(!emptyIf(pfx+'P',dPer,'모두 적자이거나 PER 값 없음')) hbar(pfx+'p',L,dPer,cols,{fmt:v=>f1(v)+'배',pad:56});
+}
+
+/* ───────── 5년 실적 블록 */
+function finBlocks(code){
+  const f=((BB.co[code]||{}).fin)||null;
+  if(!f||!(f.rq||[]).some(v=>v!=null)) return {html:`<div class="note">${BB.asof?'5년 실적을 아직 받지 못했습니다. 주 1회 도는 수집기가 다음 실행에서 이어 받습니다.':'<b>숫자 수집 전</b>입니다. 수집기가 처음 돌고 나면 5개년 분기·연간 실적이 여기에 나옵니다.'}</div>`,draw(){}};
+  const ql=BB.ql||[], ay=BB.ay||[];
+  const opm=(f.rq||[]).map((r,i)=>{ const o=(f.oq||[])[i]; return (r&&o!=null&&r>0)?Math.max(-100,Math.min(100,o/r*100)):null; });
+  const html=`<div class="grid2">
+    <div class="vz"><div class="vzt">연간 매출 · 영업이익<small>억원 · DART 공시값</small></div><div class="vzc" id="cA"><canvas id="cAc"></canvas></div>
+      <div class="lg"><span><i style="background:${VZ.c[0]}"></i>매출</span><span><i style="background:${VZ.c[1]}"></i>영업이익</span></div></div>
+    <div class="vz"><div class="vzt">분기 매출<small>억원</small></div><div class="vzc" id="cQ"><canvas id="cQc"></canvas></div></div>
+    <div class="vz"><div class="vzt">분기 영업이익 · 순이익<small>억원</small></div><div class="vzc" id="cO"><canvas id="cOc"></canvas></div>
+      <div class="lg"><span><i style="background:${VZ.c[1]}"></i>영업이익</span><span><i style="background:${VZ.gray}"></i>순이익</span></div></div>
+    <div class="vz"><div class="vzt">분기 영업이익률<small>% · ±100% 범위로 자름</small></div><div class="vzc" id="cM"><canvas id="cMc"></canvas></div></div>
+  </div>
+  <details class="d" style="margin:0 0 12px"><summary>숫자로 보기 (분기)</summary>
+   <div class="tw" style="margin-top:6px"><table><tr><th class="l">분기</th>${ql.map(q=>`<th>${esc(q)}</th>`).join('')}</tr>
+    <tr><td class="l">매출</td>${(f.rq||[]).map(v=>`<td>${f0(v)}</td>`).join('')}</tr>
+    <tr><td class="l">영업이익</td>${(f.oq||[]).map(v=>`<td>${f0(v)}</td>`).join('')}</tr>
+    <tr><td class="l">순이익</td>${(f.nq||[]).map(v=>`<td>${f0(v)}</td>`).join('')}</tr>
+    <tr><td class="l">기준</td>${String(f.fq||'').split('').map(x=>`<td class="mini">${x==='C'?'연결':x==='O'?'별도':'—'}</td>`).join('')}</tr></table></div>
+   <div class="tw" style="margin-top:6px"><table><tr><th class="l">연간</th>${ay.map(y=>`<th>${esc(y)}</th>`).join('')}</tr>
+    <tr><td class="l">매출</td>${(f.ar||[]).map(v=>`<td>${f0(v)}</td>`).join('')}</tr>
+    <tr><td class="l">영업이익</td>${(f.ao||[]).map(v=>`<td>${f0(v)}</td>`).join('')}</tr>
+    <tr><td class="l">순이익</td>${(f.an||[]).map(v=>`<td>${f0(v)}</td>`).join('')}</tr>
+    <tr><td class="l">기준</td>${String(f.fa||'').split('').map(x=>`<td class="mini">${x==='C'?'연결':x==='O'?'별도':'—'}</td>`).join('')}</tr></table></div>
+   <div class="mini" style="margin-top:5px">분기값은 각 보고서의 3개월 금액이고, 그 칸이 없으면 누적에서 차분한 값이다(4분기 = 연간 − 3분기 누적). 연결 우선, 그 분기에 연결이 없으면 별도. ${f.drop?'단위 오류로 보이는 칸은 비웠다.':''}</div>
+  </details>`;
+  return {html, draw(){
+    const nonNeg=a=>(a||[]).every(v=>v==null||v>=0);
+    vbar('cAc',ay,[{label:'매출',data:f.ar||[],backgroundColor:VZ.c[0],borderRadius:3,maxBarThickness:30},
+                   {label:'영업이익',data:f.ao||[],backgroundColor:VZ.c[1],borderRadius:3,maxBarThickness:30}],
+         {fmt:v=>eok(v),lab:(v,i,di)=>di===0?eok(v):null,only:0,zero:nonNeg(f.ar)&&nonNeg(f.ao)});
+    vbar('cQc',ql,[{label:'매출',data:f.rq||[],backgroundColor:VZ.c[0],borderRadius:3,maxBarThickness:22}],{fmt:v=>eok(v),lab:null,zero:nonNeg(f.rq)});
+    vbar('cOc',ql,[{label:'영업이익',data:f.oq||[],backgroundColor:VZ.c[1],borderRadius:3,maxBarThickness:16},
+                   {label:'순이익',data:f.nq||[],backgroundColor:VZ.gray,borderRadius:3,maxBarThickness:16}],{fmt:v=>eok(v),lab:null});
+    vline('cMc',ql,[{label:'영업이익률',data:opm,borderColor:VZ.c[1],backgroundColor:VZ.c[1],spanGaps:true}],{fmt:v=>f1(v)+'%',tick:v=>f0(v)+'%'});
+  }};
+}
+
+/* ───────── 공시 이력 블록 */
+const EVC={fund:['자금조달','#eb6834'],cap:['증자·감자','#eda100'],ma:['인수·매각','#2a78d6'],
+           tstk:['자기주식','#1baf7a'],ctrl:['최대주주 변경','#7a5cd6'],risk:['소송·제재·경고','#b42318']};
+function evCluster(ev){ const by={}; for(const e of ev||[]){ (by[e.c+'|'+e.k]=by[e.c+'|'+e.k]||[]).push(e); }
+  const out=[]; for(const k in by){ const g=by[k].slice().sort((a,b)=>(b.d||'').localeCompare(a.d||''));
+    const base=Object.assign({},g[g.length-1]); const last=g[0];
+    for(const e of g) for(const f of ['amt','who','why','how','pct','prc']) if(base[f]==null&&e[f]!=null) base[f]=e[f];
+    base.d=last.d; base.d0=g[g.length-1].d; base.n=g.length; out.push(base); }
+  return out.sort((a,b)=>(b.d||'').localeCompare(a.d||'')); }
+function evBlocks(code){
+  const x=BB.co[code]||{}; if(!x.ev_at) return {html:`<div class="note">${BB.asof?'공시 이력을 아직 받지 못했습니다.':'<b>숫자 수집 전</b>입니다. 수집기가 처음 돌고 나면 자금조달·인수매각·지배구조 이력이 여기에 나옵니다.'}</div>`,draw(){}};
+  const ev=evCluster(x.ev);
+  if(!ev.length) return {html:`<div class="nb">최근 5년 안에 자금조달·인수매각·최대주주 변경·소송·제재로 분류되는 공시가 없다. <span class="tag t확인">확인</span> <span class="mini">수집일 ${esc(x.ev_at)}</span></div>`,draw(){}};
+  const cats=[...new Set(ev.map(e=>e.c))];
+  const html=`<div class="vz" style="margin-bottom:10px"><div class="vzt">공시 이력 타임라인<small>최근 5년 · 점 하나가 공시 한 건(정정 포함은 묶어 셈)</small></div>
+     <div class="vzc" id="cE" style="height:${Math.max(120,cats.length*34+46)}px"><canvas id="cEc"></canvas></div>
+     <div class="lg">${cats.map(c=>`<span><i style="background:${(EVC[c]||['','#98a2b3'])[1]}"></i>${esc((EVC[c]||[c])[0])}</span>`).join('')}</div></div>
+   <div class="tw" style="margin-bottom:6px"><table><tr><th class="l">날짜</th><th class="l">종류</th><th class="l">공시 제목</th><th>금액</th><th class="l">상대방·사유</th></tr>
+    ${ev.map(e=>`<tr><td class="l nw">${esc(e.d||'')}${e.n>1?`<small style="color:#98a2b3"> +${e.n-1}</small>`:''}</td>
+      <td class="l nw"><span class="pill" style="background:${(EVC[e.c]||['','#98a2b3'])[1]}1f;color:${(EVC[e.c]||['','#667085'])[1]}">${esc((EVC[e.c]||[e.c])[0])}</span></td>
+      <td class="l">${esc(e.k||'')}${e.fix?' <small style="color:#98a2b3">(정정)</small>':''}</td>
+      <td class="nw">${e.amt!=null?eok(e.amt):'—'}</td>
+      <td class="l mini">${esc([e.who,e.why,e.how,e.pct!=null?e.pct+'%':null,e.prc!=null?f0(e.prc)+'원':null].filter(Boolean).join(' · '))}${e.dref?' <span title="정정 공시라 같은 종류 중 날짜가 가장 가까운 공시의 내용을 붙였다">↩</span>':''}</td></tr>`).join('')}
+   </table></div>
+   <div class="mini" style="margin-bottom:12px">주요사항보고서(pblntf_ty=B)와 거래소 공시(I) <b>제목</b>으로 분류한 것이다. 내용은 반드시 원문에서 확인한다 — <a href="https://dart.fss.or.kr/dsab007/main.do" target="_blank" rel="noopener">DART</a>. 수집일 ${esc(x.ev_at)}. ${x.ev_more?'공시 건수가 많아 일부만 받았다.':''}`+
+   `<br>이 표는 <b>사실의 목록</b>이고 좋고 나쁨의 판정이 아니다. 전환사채·유상증자는 주식 수가 늘 수 있다는 뜻이고, 소송·제재는 결과를 원문에서 봐야 한다.</div>`;
+  return {html, draw(){
+    // 날짜 어댑터 없이 쓰려고 x축은 linear(밀리초)로 두고 연도 눈금을 직접 만든다
+    const T=d=>new Date(d+'T00:00:00').getTime(), y0=BB.y0||2021, yN=new Date().getFullYear();
+    const ds=cats.map((c,i)=>({label:(EVC[c]||[c])[0], data:ev.filter(e=>e.c===c).map(e=>({x:T(e.d0||e.d),y:i,e})),
+      backgroundColor:(EVC[c]||['','#98a2b3'])[1], borderColor:'#fff', borderWidth:2, pointRadius:6, pointHoverRadius:8}));
+    mk('cEc',{type:'scatter',data:{datasets:ds},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{right:10,top:6}},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{ const e=c.raw.e; return ' '+(e.d0||e.d)+' '+vclip(e.k||'',38)+(e.who?' — '+e.who:'')+(e.amt!=null?' · '+eok(e.amt):''); }}}},
+      scales:{x:ax({type:'linear',min:T(y0+'-01-01'),max:Date.now()+864e5*20,
+                afterBuildTicks:a=>{ const tk=[]; for(let y=y0;y<=yN+1;y++) tk.push({value:T(y+'-01-01')}); a.ticks=tk.filter(t=>t.value<=a.max); },
+                ticks:{color:VZ.sub,callback:v=>new Date(v).getFullYear()+'년'}}),
+              y:ax({min:-0.5,max:cats.length-0.5,reverse:true,afterBuildTicks:a=>{ a.ticks=cats.map((_,i)=>({value:i})); },
+                ticks:{color:VZ.ink,font:{size:11},callback:v=>cats[v]?vclip((EVC[cats[v]]||[cats[v]])[0],9):''}})}}});
+  }};
+}
+
+/* ───────── 세분류(분야) */
+function renderChapter(cid){   // 세분류에 매이지 않는 기술 장(예: 전고체)
+  killCharts(); const ch=(CHD.ch||{})[cid];
+  if(!ch){ $('main').innerHTML='<div class="card">없는 장입니다.</div>'; return; }
+  chapterBody(ch,null,null,`<div class="crumb"><a href="#">로봇 교과서</a> › 기술 장</div><h1>${esc(ch.title)}</h1>`);
+}
+function renderGroup(gid){
+  killCharts(); const p=pathOf(gid); if(!p){ $('main').innerHTML='<div class="card">없는 분야입니다.</div>'; return; }
+  const [T,M,g]=p, ch=chOf(gid);
+  const h=[`<div class="crumb"><a href="#">로봇 교과서</a> › <a href="#t=${T.id}">${esc(T.name)}</a> › ${esc(M.name)}</div>`,
+    `<h1>${esc(g.name)}</h1>`];
+  if(!ch){
+    h.push(metaLine(null));
+    h.push(`<div class="note">이 분야는 아직 <b>글로 쓴 설명이 없다.</b> 분류와 숫자만 나온다. 분야를 지정해 요청하면 제품 설명·구조 그림·기업별 특장점과 리스크를 조사해 넣는다.</div>`);
+    h.push(peerTable(g.co.slice().sort(byCap),null), peerChartsHtml('gp'));
+    $('main').innerHTML=h.join(''); peerCharts('gp',g.co.slice().sort(byCap).slice(0,14),null); return;
+  }
+  chapterBody(ch,g,T,h.join('')); return;
+}
+function chapterBody(ch,g,T,headHtml){
+  const h=[headHtml];
+  h.push(`<div class="lead">${esc(ch.one||'')}</div>`, metaLine(ch.written));
+  // 쉬운/자세한 설명 토글
+  h.push(`<div class="seg noprint"><button id="bEasy" class="on" type="button">쉬운 설명</button><button id="bDeep" type="button">자세한 설명</button></div>`);
+  h.push(`<div id="vEasy" class="easy"><div class="h">쉬운 설명</div>${(ch.easy||[]).map(t=>`<p>${proseH(ch,t)}</p>`).join('')||'<p>아직 없습니다.</p>'}</div>`);
+  h.push(`<div id="vDeep" class="deepbox" style="display:none"><div class="h">자세한 설명</div>${(ch.deep||[]).map(t=>`<p>${proseH(ch,t)}</p>`).join('')||'<p>아직 없습니다.</p>'}</div>`);
+  if(ch.svg) h.push(`<div class="fig">${ch.svg}</div>`);
+  for(const t of (ch.tables||[])) h.push(`<h3 style="margin:12px 0 6px">${esc(t.t||'')}</h3><div class="tw"><table><tr>${(t.head||[]).map(x=>`<th class="l">${esc(x)}</th>`).join('')}</tr>`+
+    (t.rows||[]).map(r=>'<tr>'+r.map((c,i)=>`<td class="l">${i===0?'<b>'+esc(c)+'</b>':esc(c)}</td>`).join('')+'</tr>').join('')+`</table></div>`+
+    (t.note?`<div class="mini" style="margin:5px 0 14px">${esc(t.note)}</div>`:'<div style="height:12px"></div>'));
+  const w=ch.where||{};
+  if(w.proc||(w.how||[]).length||(w.chain||[]).length){
+    h.push(`<h2>어디에 어떻게 쓰이는가</h2><div class="card">`);
+    if(w.proc) h.push(`<p><b>공정상 위치</b> — ${esc(w.proc)}</p>`);
+    if((w.how||[]).length) h.push(`<b>쓰이는 순서</b><ol class="how">${w.how.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>`);
+    h.push('</div>');
+    if((w.chain||[]).length) h.push(`<div class="flow">${w.chain.map((x,i)=>`<div${i===1?' class="on"':''}><b>${['앞단','이 제품','쓰는 곳','최종 수요'][i]||''}</b>${esc(x)}</div>`).join('')}</div><div style="height:12px"></div>`);
+  }
+  if((ch.terms||[]).length) h.push(`<h2>용어</h2><div class="card"><dl class="terms">${ch.terms.map(t=>`<dt>${esc(t.t)}</dt><dd>${esc(t.d)}</dd>`).join('')}</dl></div>`);
+  if((ch.global||[]).length) h.push(`<h2>해외 경쟁 구도</h2><div class="card"><ul class="pl dot">${ch.global.map(x=>`<li><b>${esc(x.n)}</b> — ${esc(x.note)}${srcH(ch,x.s)}</li>`).join('')}</ul></div>`);
+  // 기업 비교 축
+  const cos=ch.companies||[], axes=ch.compare_axes||[];
+  if(cos.length&&axes.length) h.push(`<h2>기업 비교</h2><div class="tw" style="margin-bottom:14px"><table><tr><th class="l">기업</th>${axes.map(a=>`<th class="l">${esc(a)}</th>`).join('')}</tr>
+    ${cos.map(c=>`<tr><td class="l nw">${coLink(c.code)}</td>${axes.map(a=>`<td class="l mini">${esc((c.axes||{})[a]||'—')}</td>`).join('')}</tr>`).join('')}</table></div>`);
+  // 숫자 비교
+  const codes=[...new Set(((g&&g.co)||[]).concat(cos.map(c=>c.code)).filter(c=>TREE.co[c]))].sort(byCap);
+  h.push(`<h2>숫자 비교</h2>`+peerTable(codes,null)+peerChartsHtml('gp'));
+  // 기업별 특장점·리스크
+  if(cos.length){
+    h.push(`<h2>기업별 특장점과 리스크</h2>`);
+    for(const c of cos){
+      h.push(`<div class="card co"><h3><a href="#c=${c.code}">${esc(c.name)}</a> <small>${c.code} · ${eok(sv(c.code).cap)}</small></h3>
+        <div class="pos">${esc(c.pos||'')}</div>
+        ${c.alert?`<div class="warnfc"><b>주의</b> — ${esc(c.alert)}</div>`:''}`);
+      if((c.products||[]).length) h.push(`<div class="tw" style="margin-bottom:8px"><table><tr><th class="l">주요 제품</th><th class="l">어디에 어떻게 쓰이는가</th><th class="l">비중·규모</th></tr>
+        ${c.products.map(p=>`<tr><td class="l nw">${p.photo?`<a href="${esc(p.photo)}" target="_blank" rel="noopener">${esc(p.n)}</a>`:esc(p.n)}</td><td class="l">${esc(p.use||'')}</td><td class="l mini">${esc(p.share||'—')}</td></tr>`).join('')}</table></div>`);
+      if((c.customers||[]).length) h.push(`<div class="mini" style="margin-bottom:8px"><b>고객사</b> — ${c.customers.map(x=>claim(ch,x)).join(' / ')}</div>`);
+      h.push(`<div class="sr2">
+        <div class="strongbox"><h3>특장점</h3><ul class="sg">${(c.strong||[]).map(x=>`<li>${claim(ch,x)}</li>`).join('')||'<li class="mini">조사 중</li>'}</ul></div>
+        <div class="riskbox"><h3>리스크 요인</h3><ul class="rk">${(c.risk||[]).map(x=>`<li>${claim(ch,x)}</li>`).join('')||'<li class="mini">조사 중</li>'}</ul></div>
+      </div></div>`);
+    }
+  }
+  if((ch.watch||[]).length) h.push(`<h2>앞으로 볼 지표</h2><div class="card"><ul class="pl dot">${ch.watch.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`);
+  if((ch.unknown||[]).length) h.push(`<h2>확인하지 못한 것</h2><div class="note"><ul class="pl dot" style="margin:0">${ch.unknown.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`);
+  if((ch.src||[]).length) h.push(`<h2>출처</h2><div class="card mini"><ol style="margin-left:18px">${ch.src.map(s=>`<li>${s.u?`<a href="${esc(s.u)}" target="_blank" rel="noopener">${esc(s.t)}</a>`:esc(s.t)}</li>`).join('')}</ol></div>`);
+  $('main').innerHTML=h.join('');
+  const be=$('bEasy'), bd=$('bDeep');
+  if(be) be.onclick=()=>{ be.classList.add('on'); bd.classList.remove('on'); $('vEasy').style.display=''; $('vDeep').style.display='none'; };
+  if(bd) bd.onclick=()=>{ bd.classList.add('on'); be.classList.remove('on'); $('vDeep').style.display=''; $('vEasy').style.display='none'; };
+  peerCharts('gp',codes.slice(0,14),null);
+}
+
+/* ───────── 기업 */
+function renderCompany(code){
+  killCharts();
+  if(!TREE.co[code]){ $('main').innerHTML='<div class="card">이 교과서에 없는 종목입니다. <a href="#">처음으로</a></div>'; return; }
+  const gs=groupsOf(code), r=chCo(code), ch=r&&r.ch, c=r&&r.co, v=sv(code), prd=PRD[code]||{};
+  const fb=finBlocks(code), eb=evBlocks(code);
+  const h=[`<div class="crumb"><a href="#">로봇 교과서</a>${gs.length?` › <a href="#t=${gs[0][0].id}">${esc(gs[0][0].name)}</a> › <a href="#g=${gs[0][2].id}">${esc(gs[0][2].name)}</a>`:''}</div>`,
+    `<h1>${esc(coN(code))} <small>${code} · ${esc(prd.m==='K'?'KOSPI':prd.m==='Q'?'KOSDAQ':prd.m||'')}</small></h1>`,
+    `<div class="lead">${esc(prd.p||'')}</div>`,
+    metaLine(ch?ch.written:null)];
+  if(gs.length>1) h.push(`<div class="mini" style="margin:-6px 0 10px">이 회사는 세분류 ${gs.length}곳에 들어간다: ${gs.map(([T,M,g])=>`<a href="#g=${g.id}">${esc(g.name)}</a>`).join(' · ')}</div>`);
+  h.push(`<div class="kpis">
+    <div class="kpi"><div class="k">시가총액</div><div class="v">${eok(v.cap)}</div><div class="n">주가 ${f0(v.px)}원 · ${priceDay()||'—'}</div></div>
+    <div class="kpi"><div class="k">PER</div><div class="v">${v.per==null?'—':f1(v.per)}</div><div class="n">${v.per==null?'적자이거나 값 없음':'배'}</div></div>
+    <div class="kpi"><div class="k">PBR</div><div class="v">${v.pbr==null?'—':f1(v.pbr)}</div><div class="n">배</div></div>
+    <div class="kpi"><div class="k">ROE</div><div class="v">${v.roe==null?'—':f1(v.roe)+'%'}</div><div class="n">EPS ÷ BPS</div></div>
+  </div>`);
+  if(c){
+    const chHref=(ch.groups||[]).length?`#g=${ch.groups[0]}`:`#ch=${ch.id}`;
+    h.push(`<div class="nb"><b>이 분야에서의 자리</b> — ${esc(c.pos||'')} <span class="mini">· <a href="${chHref}">${esc(ch.title)}</a> 장에서 가져옴</span></div>`);
+    if(c.alert) h.push(`<div class="warnfc"><b>주의</b> — ${esc(c.alert)}</div>`);
+    const other=Object.values(CHD.ch||{}).filter(x=>x.id!==ch.id&&(x.companies||[]).some(y=>y.code===code));
+    if(other.length) h.push(`<div class="mini" style="margin:-6px 0 10px">이 회사는 다른 장에도 나온다: ${other.map(x=>`<a href="${(x.groups||[]).length?`#g=${x.groups[0]}`:`#ch=${x.id}`}">${esc(x.title)}</a>`).join(' · ')}</div>`);
+    if((c.products||[]).length) h.push(`<h2>주요 제품 — 어디에 어떻게 쓰이는가</h2><div class="tw" style="margin-bottom:12px"><table><tr><th class="l">제품</th><th class="l">쓰이는 곳과 방식</th><th class="l">비중·규모</th></tr>
+      ${c.products.map(p=>`<tr><td class="l nw">${p.photo?`<a href="${esc(p.photo)}" target="_blank" rel="noopener">${esc(p.n)}</a>`:esc(p.n)}</td><td class="l">${esc(p.use||'')}</td><td class="l mini">${esc(p.share||'—')}</td></tr>`).join('')}</table></div>
+      <div class="mini" style="margin:-8px 0 12px">제품명을 누르면 회사 공식 제품 페이지로 간다. 제품 사진은 이 사이트에 옮겨 싣지 않는다.</div>`);
+    if((c.customers||[]).length) h.push(`<h2>고객사</h2><div class="card"><ul class="pl dot">${c.customers.map(x=>`<li>${claim(ch,x)}</li>`).join('')}</ul></div>`);
+    h.push(`<h2>특장점과 리스크 요인</h2><div class="sr2">
+      <div class="strongbox"><h3>특장점 <small>경쟁사 대비 더 잘하는 것</small></h3><ul class="sg">${(c.strong||[]).map(x=>`<li>${claim(ch,x)}</li>`).join('')||'<li class="mini">조사 중</li>'}</ul></div>
+      <div class="riskbox"><h3>리스크 요인 <small>실적·주가를 망칠 수 있는 것</small></h3><ul class="rk">${(c.risk||[]).map(x=>`<li>${claim(ch,x)}</li>`).join('')||'<li class="mini">조사 중</li>'}</ul></div></div>`);
+    if((ch.compare_axes||[]).length&&c.axes) h.push(`<div class="tw" style="margin-bottom:12px"><table>${ch.compare_axes.map(a=>`<tr><th class="l" style="width:28%">${esc(a)}</th><td class="l">${esc(c.axes[a]||'—')}</td></tr>`).join('')}</table></div>`);
+  } else {
+    h.push(`<div class="note">이 기업은 아직 <b>글로 쓴 조사가 없다.</b> 아래 숫자(5년 실적·공시 이력·같은 분야 비교)는 자동 수집된 것이고, 특장점·리스크는 분야를 지정해 요청하면 조사해 넣는다.</div>`);
+  }
+  const rp=repOf(code);
+  if(rp.length) h.push(`<h2>이 종목 리포트 <small>${rp.length}건</small></h2>`+
+    `<div class="tw" style="margin-bottom:6px"><table><tr><th class="l">발행일</th><th class="l">증권사</th><th class="l">제목</th><th class="l">분류</th></tr>`+
+    rp.map(r=>{const ag=dDays(r.d),fresh=ag!=null&&ag<=183;
+      return `<tr><td class="l nw">${esc(r.d||'')}${fresh?' <span class="pill c">6개월</span>':''}</td>
+        <td class="l nw">${esc(r.b||'')}${(r.an||[]).length?`<div class="mini">${esc(r.an.join(', '))}</div>`:''}</td>
+        <td class="l">${r.u?`<a href="${esc(r.u)}" target="_blank" rel="noopener">${esc(r.t||'')}</a>`:esc(r.t||'')}${r.why?`<div class="mini">${esc(r.why)}</div>`:''}</td>
+        <td class="l nw mini">${esc((REPT[r.tier]||[''])[0])}</td></tr>`;}).join('')+
+    `</table></div><div class="mini" style="margin-bottom:12px">리포트의 목표주가·전망치는 증권사 추정이다. 링크를 눌러 원문에서 확인한다.</div>`);
+  h.push(`<h2>5개년 실적 <small>분기·연간 · DART 공시값</small></h2>`+fb.html);
+  h.push(`<h2>자금조달 · 인수매각 · 지배구조 이력 <small>최근 5년</small></h2>`+eb.html);
+  const peers=gs.length?[...new Set(gs.flatMap(([T,M,g])=>g.co))].sort(byCap):[];
+  if(peers.length>1){
+    h.push(`<h2>같은 세분류 기업과 비교 <small>${gs.map(([T,M,g])=>esc(g.name)).join(' · ')}</small></h2>`+peerTable(peers,code)+peerChartsHtml('cp'));
+  }
+  h.push(`<div class="btns noprint"><a href="https://dart.fss.or.kr/dsab007/main.do" target="_blank" rel="noopener">DART에서 이 회사 공시 보기</a>
+    <a href="/deep.html#c=${code}">종목 딥다이브</a><a href="/bands.html#c=${code}">밴드·V차트</a><button type="button" onclick="window.print()">인쇄 / PDF</button></div>`);
+  $('main').innerHTML=h.join('');
+  fb.draw(); eb.draw();
+  if(peers.length>1) peerCharts('cp',peers.slice(0,14),code);
+}
+
+/* ───────── 라우팅 */
+function route(){
+  const hs=location.hash||''; let m;
+  const cur={};
+  if((m=hs.match(/^#ch=([\w-]+)/))) cur.cid=m[1];
+  else if((m=hs.match(/^#g=([\w-]+)/))) cur.gid=m[1];
+  else if((m=hs.match(/^#c=([0-9A-Z]{6})/))) cur.code=m[1];
+  else if((m=hs.match(/^#t=([\w-]+)/))) cur.top=m[1];
+  if(cur.gid){ const p=pathOf(cur.gid); if(p) cur.top=p[0].id; }
+  if(cur.code){ const g=groupsOf(cur.code); if(g.length){ cur.gid=g[0][2].id; cur.top=g[0][0].id; } }
+  renderSide(cur);
+  if(hs.startsWith('#ch=')) renderChapter(hs.slice(4).split('&')[0]);
+  else if(hs.startsWith('#c=')&&cur.code) renderCompany(cur.code);
+  else if(hs.startsWith('#g=')) renderGroup(hs.slice(3).split('&')[0]);
+  else if(hs.startsWith('#t=')) renderTop(hs.slice(3).split('&')[0]);
+  else renderHome();
+  if(!hs) window.scrollTo(0,0);
+}
+
+(async function boot(){
+  const [tree,chd,bb,rep,svj,prd]=await Promise.all([
+    j('/data/robobook_tree.json'), j('/data/robobook_ch.json'), j('/data/robobook.json'),
+    j('/data/robobook_rep.json'), j('/data/stockvals.json'), j('/data/products.json')]);
+  if(!tree){ $('main').innerHTML='<div class="card">분류 파일(robobook_tree.json)을 불러오지 못했습니다.</div>'; return; }
+  TREE=tree; CHD=chd||{ch:{}}; BB=bb||{co:{},ql:[],ay:[]}; REP=rep||{};
+  if(!BB.co) BB.co={};
+  SV=(svj&&svj.map)||{}; SV._at=(svj&&svj.updated)||''; PRD=(prd&&prd.map)||{};
+  for(const id in (CHD.ch||{})){ const ch=CHD.ch[id];
+    for(const g of (ch.groups||[])) G2C[g]=id;
+    (ch.companies||[]).forEach((c,i)=>{ const p=(TREE.prim||{})[c.code], mine=!!p&&(ch.groups||[]).includes(p[2]);   // 기업 화면은 대표 자리가 속한 장의 카드를 쓴다
+      if(!CO2CH[c.code]||(mine&&!CO2CH[c.code][2])) CO2CH[c.code]=[id,i,mine]; }); }
+  addEventListener('hashchange',route); route();
+})();
+</script>
+</body>
+</html>

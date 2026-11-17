@@ -355,6 +355,119 @@ def cmp_pair(mine, theirs):
     if a is not None and b is not None: o['g'] = (min(a, G_CAP) - min(b, G_CAP), b)
     return o
 
+# ───────── PBR–ROE 판정 (11/17 추가)
+# 사용자 관점: 저PBR이어도 ROE가 함께 낮으면 의미 없음 / ROE가 높은데 저PBR이면 저평가 후보 / '적정 ROE + 저PBR'은 칸으로 자르지 않고
+# 비교 집단의 ROE–PBR 관계선에서 얼마나 떨어져 있는지(괴리율)로 본다. PBR ÷ ROE = PER이라 최근 4분기 ROE만 쓰면 저PER 꼬리표와 같아지므로
+# ROE는 최근 3개 연도 + 최근 4분기의 평균(평균 ROE)을 기본으로 쓴다. 비교는 A·B등급 peer 우선, 없으면 같은 분야(top) 관계선, 표본이 적으면 반도체 전체 관계선.
+PR = {'hi': 15.0, 'lo': 8.0, 'gap': 20.0, 'min_n': 10, 'roe_tol': 2.0, 'coe': 10.0}
+def _theil(pts):
+    """강건 직선 맞춤(기울기 = 두 점씩 이은 기울기들의 중앙값). pts [(x, y)] → (a, b, n) : y = a + b·x"""
+    n = len(pts)
+    if n < 5: return None
+    sl = [(pts[j][1] - pts[i][1]) / (pts[j][0] - pts[i][0]) for i in range(n) for j in range(i + 1, n) if abs(pts[j][0] - pts[i][0]) > 0.5]
+    if len(sl) < 5: return None
+    b = statistics.median(sl); a = statistics.median([y - b * x for x, y in pts])
+    return (round(a, 3), round(b, 4), n)
+def _roe_hist(code):
+    """valfacts 수집본(네이버 연간)의 확정 연도 ROE — 최근 3개 [[연도, ROE]]"""
+    try:
+        an = (json.load(open('public/data/vf/%s.json' % code, encoding='utf-8')).get('annual') or {})
+        roe = (an.get('rows') or {}).get('ROE') or {}
+        ys = [c[0] for c in an.get('cols') or [] if not c[1] and roe.get(c[0]) is not None]
+        return [[y[:4], roe[y]] for y in sorted(ys)[-3:]]
+    except Exception:
+        return []
+def pbr_roe(co, defpairs):
+    # 1) 종목별 평균 ROE
+    for c, r in co.items():
+        if 'cap' not in r: continue
+        h = _roe_hist(c); t = r.get('roe')
+        vals = [v for _, v in h] + ([t] if t is not None else [])
+        pr = {'hist': h, 'roe_t': t}
+        if vals:
+            pr['roe_n'] = rnd(sum(vals) / len(vals), 1); pr['roe_min'] = rnd(min(vals), 1)
+        r['pr'] = pr
+    ok = lambda r, k: r.get('pr') and r['pr'].get(k) is not None and 0 < r['pr'][k] <= 80 and r.get('pbr') and 0 < r['pbr'] <= 30
+    # 2) 관계선: 평균 ROE 기준(n)과 최근 4분기 ROE 기준(t), 전체와 분야별
+    lines = {'all': {}, 'top': {}}
+    for k, key in (('n', 'roe_n'), ('t', 'roe_t')):
+        L = _theil([(r['pr'][key], r['pbr']) for r in co.values() if ok(r, key)])
+        if L: lines['all'][k] = L
+    tops = sorted({r.get('top') for r in co.values() if r.get('top')})
+    for tp in tops:
+        d = {}
+        for k, key in (('n', 'roe_n'), ('t', 'roe_t')):
+            pts = [(r['pr'][key], r['pbr']) for r in co.values() if r.get('top') == tp and ok(r, key)]
+            if len(pts) >= PR['min_n']:
+                L = _theil(pts)
+                if L and L[1] > 0: d[k] = L          # 기울기가 음수면(ROE가 높을수록 PBR이 낮게 나오는 표본) 쓰지 않음
+        if d: lines['top'][tp] = d
+        pb = [r['pbr'] for r in co.values() if r.get('top') == tp and r.get('pbr') and r['pbr'] > 0]
+        if len(pb) >= 3: lines['top'].setdefault(tp, {})['pbr_med'] = rnd(statistics.median(pb))
+    pball = [r['pbr'] for r in co.values() if r.get('pbr') and r['pbr'] > 0]
+    lines['all']['pbr_med'] = rnd(statistics.median(pball)) if pball else None
+    def fair(r, k, key):
+        v = r['pr'].get(key)
+        if v is None or v <= 0 or not r.get('pbr'): return None, None, None
+        L = (lines['top'].get(r.get('top')) or {}).get(k); grp = r.get('top')
+        if not L: L = lines['all'].get(k); grp = 'all'
+        if not L: return None, None, None
+        f = max(L[0] + L[1] * v, 0.3)                     # 관계선이 주는 PBR(하한 0.3배)
+        return rnd(f), rnd((r['pbr'] / f - 1) * 100, 0), grp
+    # 3) peer(A·B) 비교: 현재 PBR 비율 × 평균 ROE 차이
+    pv = {}
+    for p in defpairs:
+        if p['grade'] not in ('A', 'B'): continue
+        for me, ot in ((p['a'], p['b']), (p['b'], p['a'])):
+            x, y = co.get(me) or {}, co.get(ot) or {}
+            if not (x.get('pbr') and y.get('pbr') and x.get('pr') and y.get('pr')): continue
+            if x['pr'].get('roe_n') is None or y['pr'].get('roe_n') is None or x['pbr'] <= 0 or y['pbr'] <= 0: continue
+            pv.setdefault(me, []).append((x['pbr'] / y['pbr'], x['pr']['roe_n'] - y['pr']['roe_n'], ot))
+    # 4) 판정
+    for c, r in co.items():
+        pr = r.get('pr')
+        if not pr: continue
+        rn = pr.get('roe_n'); pbr = r.get('pbr')
+        pr['lvl'] = None if rn is None else 'loss' if rn <= 0 else 'high' if rn >= PR['hi'] else 'mid' if rn >= PR['lo'] else 'low'
+        pr['fair_n'], pr['gap_n'], pr['grp'] = fair(r, 'n', 'roe_n')
+        pr['fair_t'], pr['gap_t'], _ = fair(r, 't', 'roe_t')
+        med = (lines['top'].get(r.get('top')) or {}).get('pbr_med') or lines['all'].get('pbr_med')
+        g = pr['gap_n']; lc = None; tneg = pr.get('roe_t') is not None and pr['roe_t'] <= 0
+        if pr['lvl'] == 'loss' or rn is None or not pbr or tneg: lc = 'loss'      # 평균 ROE가 0 이하이거나 최근 4분기 적자 — 판단하지 않음
+        elif g is not None:
+            if g <= -PR['gap']: lc = 'trap' if pr['lvl'] == 'low' else 'cheap'     # 저ROE면 선보다 싸도 '싼 이유 있음'(자산주 여부는 fl의 asset)
+            elif g >= PR['gap']: lc = 'rich' if pr['lvl'] == 'high' else 'over'
+            else: lc = 'trap' if (pr['lvl'] == 'low' and med and pbr < med * 0.8) else 'fair'
+        pr['line'] = lc
+        if c in pv:
+            pm_ = statistics.median([v[0] for v in pv[c]]); dm = statistics.median([v[1] for v in pv[c]])
+            pt = 'low' if pm_ <= CHEAP else 'high' if pm_ >= DEAR else 'mid'
+            rt = 'high' if dm >= PR['roe_tol'] else 'low' if dm <= -PR['roe_tol'] else 'mid'
+            pc = {('low', 'high'): 'cheap', ('low', 'mid'): 'cheap', ('low', 'low'): 'trap', ('mid', 'high'): 'cheap', ('mid', 'mid'): 'fair',
+                  ('mid', 'low'): 'over', ('high', 'high'): 'rich', ('high', 'mid'): 'over', ('high', 'low'): 'over'}[(pt, rt)]
+            if pr['lvl'] == 'loss' or tneg: pc = 'loss'
+            elif pc == 'cheap' and pr['lvl'] == 'low': pc = 'trap'           # peer보다 싸고 ROE가 높아도 평균 ROE 자체가 8% 미만이면 저평가 후보로 올리지 않음
+            pr['peer'] = {'cls': pc, 'pbr': rnd((pm_ - 1) * 100, 0), 'roe': rnd(dm, 1), 'n': len(pv[c]), 'with': [v[2] for v in pv[c]]}
+        pr['cls'] = (pr.get('peer') or {}).get('cls') or lc
+        pr['src'] = 'peer' if pr.get('peer') else 'line'
+        pr['split'] = bool(pr.get('peer') and lc and lc != 'loss' and pr['peer']['cls'] != lc)
+        # ROE의 질·방향
+        fl = []; t = pr.get('roe_t'); h = pr.get('hist') or []
+        if rn and t is not None and rn > 0 and t - rn >= 8 and t >= rn * 1.5: fl.append('peak34' if r.get('ph') in (3, 4) else 'peakroe')
+        if h and t is not None and t <= h[-1][1] - 3: fl.append('down')
+        if r.get('debt') is not None and r['debt'] >= 150 and rn and rn >= PR['hi']: fl.append('lev')
+        if 'nonop' in (r.get('warn') or []) or (r.get('ni') and r.get('op') and r['op'] > 0 and r['ni'] / r['op'] > 1.3): fl.append('nonop')
+        if rn and rn >= PR['coe'] and pbr and pbr < 1: fl.append('abs')
+        if pr['lvl'] == 'low' and g is not None and g <= -PR['gap'] and (r.get('debt') is not None and r['debt'] < 50): fl.append('asset')   # 저ROE인데 선보다도 20%↑ 싸고 부채 적음 — 자산주 가능(현금·주주환원 확인)
+        if len(h) < 3: fl.append('short')
+        pr['fl'] = fl
+    cnt = {}
+    for r in co.values():
+        k = (r.get('pr') or {}).get('cls')
+        if k: cnt[k] = cnt.get(k, 0) + 1
+    return {'th': PR, 'lines': lines, 'count': cnt,
+            'rule': '평균 ROE = 최근 3개 연도 ROE(네이버·FnGuide 연간, 지배주주 기준)와 최근 4분기 ROE(DART)의 평균. 관계선 = 같은 분야 기업들의 (평균 ROE, 현재 PBR)을 강건 직선(Theil–Sen)으로 맞춘 것, 분야 표본이 10개 미만이거나 기울기가 음수면 반도체 전체 선. 괴리율 = 현재 PBR ÷ 관계선이 주는 PBR − 1. A·B등급 peer가 있으면 peer와의 비교(PBR 비율 × 평균 ROE 차이)를 대표 판정으로 쓰고 관계선 판정을 함께 표시'}
+
 def main():
     DEF = load('semipeer_def.json')
     if not DEF: log('semipeer_def.json 없음'); sys.exit(1)
@@ -549,6 +662,10 @@ def main():
         if any('교차확인' in f for f in r['flags']): w.append('xchk')                             # DART vs 네이버 PER 20%↑ 차이
         r['warn'] = w
 
+    # 5-2) PBR–ROE 판정
+    try: prmeta = pbr_roe(co, DEF['pairs'])
+    except Exception as e: prmeta = None; log('PBR–ROE 판정 실패 %r' % e)
+
     # 6) 그룹 중앙값(참고 — 등급과 무관하게 같은 묶음 전체)
     groups = []
     for g in DEF['groups']:
@@ -567,7 +684,7 @@ def main():
            'rule': {'tag': 'A·B등급 peer와 쌍마다 비교해 (내 값 ÷ peer 값)의 중앙값이 0.9 이하면 낮음, 1.1 이상이면 높음(PER·PBR·PSR). ROE·영업이익률·ROA는 1%p, 성장률은 5%p, 부채비율은 20%p 넘게 차이 나면 높음/낮음',
                     'per': '대표 표시는 PER 꼬리표 하나(저PER·비슷·고PER). 최근 4분기 영업적자·순손실이거나 PER 150배 초과면 붙이지 않음. 성장률은 300% 상한으로 비교',
                     'basis': 'TTM = DART 최근 4분기 합산(확인값). TTMN = 네이버(FnGuide) 최근 4분기 주당순이익·주당순자산(DART 수집 전 임시). FY0 = KIS 전년 확정 실적'},
-           'co': co, 'pairs': pairs, 'groups': groups, 'fin': fin, 'fwd': fwd, 'prefcap': prefcap, 'nv': nv, 'corpmap': corpcache, 'debug': DEBUG[-40:]}
+           'pr': prmeta, 'co': co, 'pairs': pairs, 'groups': groups, 'fin': fin, 'fwd': fwd, 'prefcap': prefcap, 'nv': nv, 'corpmap': corpcache, 'debug': DEBUG[-40:]}
     # 빈 결과 가드: 시세가 붙은 종목이 기존의 1/3 미만이면 덮어쓰지 않는다
     n_new = sum(1 for r in co.values() if 'cap' in r); n_old = sum(1 for r in (prev.get('co') or {}).values() if 'cap' in r)
     if n_old and n_new < n_old / 3:

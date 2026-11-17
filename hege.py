@@ -11,6 +11,8 @@
 #   플래그: new1(1국면 신규 진입) entry2(2국면 초입: 직전 분기 ≠2 → 2) streak(2국면 연속 분기) slow(2국면이지만 영익 증가율 둔화)
 #           q4(최근 분기가 4Q — 인센티브 등 일회성 비용으로 3국면 오판 주의)
 # 필요 시크릿: DART_API_KEY   결과: public/data/hege.json
+# (11/17 추가) 같은 DART 응답에 들어 있는 당기순이익·자본총계·부채총계·자산총계를 함께 꺼내 public/data/finall.json 으로 저장
+#   — 전 상장사 PBR–ROE 판정(pbrroe.py)용. 호출 수는 늘지 않음. 이 부분이 실패해도 hege.json 은 그대로 만들어짐
 import os, sys, json, time, re, io, zipfile, datetime, urllib.request, urllib.parse, ssl
 import xml.etree.ElementTree as ET
 
@@ -119,6 +121,60 @@ def op_pri(nm):
     if nm.startswith('영업이익(') and '률' not in nm: return 1
     return None
 
+# ───────── 3-2. 전 상장사 순이익·자본(같은 응답에서 추가로 꺼냄)
+FIN = {}          # FIN[corp][(year,q)][fs][key] = (누적 손익 또는 기말 잔액, 우선순위)
+FIN_ERR = [0]
+def fin_key(nm, sj):
+    nm = (nm or '').replace(' ', '')
+    if sj == 'BS':
+        return {'자본총계': ('eq', 0), '자산총계': ('as', 0), '부채총계': ('li', 0)}.get(nm, (None, 9))
+    if nm in ('당기순이익', '당기순이익(손실)'): return ('ni', 0)
+    if nm in ('분기순이익', '분기순이익(손실)', '반기순이익', '반기순이익(손실)'): return ('ni', 1)
+    if re.fullmatch(r'(연결)?(당기|분기|반기)순(이익|손익)(\(손실\))?', nm): return ('ni', 2)
+    return (None, 9)
+def fin_grab(rows, year, q):
+    for r in rows or []:
+        sj = r.get('sj_div') or ''; fs = r.get('fs_div') or 'OFS'; corp = r.get('corp_code')
+        key, pri = fin_key(r.get('account_nm'), sj)
+        if key is None or not corp: continue
+        amt = tonum(r.get('thstrm_amount')); add = tonum(r.get('thstrm_add_amount'))
+        if key != 'ni' or q == 4: cum = amt                         # 재무상태표 = 기말 잔액, 사업보고서 손익 = 연간
+        elif add is not None: cum = add                             # 분기·반기 손익 = 누적
+        else: cum = amt if q == 1 else None                         # 누적이 없으면 1분기만 인정(2·3분기 3개월치를 누적으로 잘못 쓰지 않게)
+        if cum is None: continue
+        d = FIN.setdefault(corp, {}).setdefault((year, q), {}).setdefault(fs, {})
+        if key in d and d[key][1] <= pri: continue
+        d[key] = (cum, pri)
+def fin_rows(corp2code, uni, qs):
+    """종목별 최근 4분기 순이익·기말 자본·부채·자산 + 최근 3개 사업연도(순이익, 기말 자본). 단위 억"""
+    out = {}
+    E = 1e8
+    for corp, code in corp2code.items():
+        st = FIN.get(corp) or {}
+        for fs in ('CFS', 'OFS'):
+            g = lambda yy, qq, k: (((st.get((yy, qq)) or {}).get(fs) or {}).get(k) or (None,))[0]
+            last = next(((y, q) for (y, q) in reversed(qs) if g(y, q, 'eq') is not None and g(y, q, 'ni') is not None), None)
+            if not last: continue
+            y, q = last
+            if q == 4: ttm = g(y, 4, 'ni')
+            else:
+                a, b, c = g(y, q, 'ni'), g(y - 1, 4, 'ni'), g(y - 1, q, 'ni')
+                ttm = None if None in (a, b, c) else a + b - c
+            yr = []
+            for (yy, qq) in qs:
+                if qq == 4 and g(yy, 4, 'ni') is not None and g(yy, 4, 'eq'):
+                    yr.append([yy, round(g(yy, 4, 'ni') / E, 1), round(g(yy, 4, 'eq') / E, 1)])
+            if ttm is None and not yr: continue
+            u = uni.get(code) or {}
+            r = {'n': u.get('name'), 'mkt': u.get('mkt'), 'sec': u.get('sec'), 'fs': fs, 'q': '%dQ%02d' % (q, y % 100),
+                 'ni': None if ttm is None else round(ttm / E, 1), 'eq': round(g(y, q, 'eq') / E, 1), 'yr': yr[-3:]}
+            for k in ('li', 'as'):
+                v = g(y, q, k)
+                if v is not None: r[k] = round(v / E, 1)
+            out[code] = r
+            break
+    return out
+
 def dart_batch(corps, year, q, store):
     """store[corp][(year,q)] = {'rev':3개월, 'op':3개월, 'rev_cum':누적, 'op_cum':누적, 'fs':'CFS'|'OFS'}"""
     url = ('https://opendart.fss.or.kr/api/fnlttMultiAcnt.json?crtfc_key=%s&corp_code=%s&bsns_year=%d&reprt_code=%s'
@@ -141,6 +197,10 @@ def dart_batch(corps, year, q, store):
             qv = amt if add is not None else (amt if q == 1 else None)
         if k in d and d[k].get('pri', 9) <= pri: continue   # 우선순위 높은 계정명(매출액 > 수익(매출액) > 영업수익) 유지
         d[k] = {'q': qv, 'cum': cum, 'pri': pri}
+    try: fin_grab(j.get('list'), year, q)
+    except Exception as e:
+        FIN_ERR[0] += 1
+        if FIN_ERR[0] <= 3: log('fin_grab 실패 %r' % e)
     return 'ok'
 
 def build_series(store_corp, qs):
@@ -269,5 +329,20 @@ def main():
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     json.dump(out, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
     log('저장 %s rows=%d count=%s calls=%d' % (OUT, len(rows), cnt, calls))
+    # 전 상장사 순이익·자본 → finall.json (실패해도 위 결과에는 영향 없음)
+    try:
+        FOUT = os.path.join(os.path.dirname(OUT), 'finall.json')
+        fr = fin_rows(corp2code, uni, qs)
+        try: n_old = len(json.load(open(FOUT, encoding='utf-8')).get('rows') or {})
+        except Exception: n_old = 0
+        if len(fr) < max(300, n_old // 2) and not (LIMIT or ONLY):
+            log('finall: %d종목뿐(기존 %d) — 저장 생략' % (len(fr), n_old))
+        else:
+            json.dump({'updated': out['updated'], 'asof_quarter': out['asof_quarter'], 'n': len(fr), 'unit': '억원',
+                       'note': 'OpenDART 다중회사 주요계정. 연결 우선(없으면 별도). 순이익은 연결 전체(비지배지분 포함), ni = 최근 4분기 합(올해 누적 + 전년 연간 − 전년 동기 누적), eq·li·as = 최근 분기 말, yr = [연도, 순이익, 기말 자본]',
+                       'rows': fr}, open(FOUT, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
+            log('저장 %s %d종목 (grab 오류 %d)' % (FOUT, len(fr), FIN_ERR[0]))
+    except Exception as e:
+        log('finall 저장 실패 %r' % e)
 
 if __name__ == '__main__': main()

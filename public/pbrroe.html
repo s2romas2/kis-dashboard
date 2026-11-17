@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PBR–ROE 체크 — 전 상장사 · 업종 관계선 대비</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; background:#f4f6fa; color:#1a1f2e; }
+.wrap { max-width:1280px; margin:0 auto; padding:18px 14px 80px; }
+h1 { font-size:22px; margin:10px 0 4px; }
+h2 { font-size:15px; margin:18px 0 8px; color:#1a2a4a; }
+h2 small { font-weight:400; color:#667085; font-size:12px; }
+.sub { color:#667085; font-size:12.5px; margin-bottom:8px; line-height:1.6; }
+.easy { background:#f0f9ff; color:#075985; border-left:3px solid #38bdf8; padding:5px 10px; font-size:12px; margin:4px 0 8px; border-radius:0 8px 8px 0; line-height:1.6; }
+.card { background:#fff; border:1px solid #e4e7ec; border-radius:12px; padding:10px 12px; margin-bottom:10px; font-size:12.5px; line-height:1.7; }
+.bar { display:flex; flex-wrap:wrap; gap:6px; margin:6px 0; align-items:center; }
+.bar .lab { font-size:12px; font-weight:800; color:#475467; margin-right:2px; }
+.bar button { border:1.5px solid #d7dce6; background:#fff; border-radius:20px; padding:5px 12px; font:inherit; font-size:12.5px; font-weight:700; color:#475467; cursor:pointer; }
+.bar button.on { background:#1a2a4a; border-color:#1a2a4a; color:#fff; }
+select, input { border:1.5px solid #d7dce6; border-radius:8px; padding:5px 8px; font:inherit; font-size:12.5px; background:#fff; }
+table { width:100%; border-collapse:collapse; background:#fff; font-size:12.5px; }
+th, td { padding:6px 8px; border-bottom:1px solid #eef0f4; text-align:right; white-space:nowrap; }
+th { background:#f8fafc; color:#475467; font-size:11.5px; cursor:pointer; position:sticky; top:46px; z-index:2; } th.s { color:#2f6df6; }
+td.l, th.l { text-align:left; }
+.tw { overflow-x:auto; border:1px solid #e4e7ec; border-radius:10px; }
+tr.r { cursor:pointer; } tr.r:hover td { background:#f8fbff; } tr.open td { background:#eef4ff; }
+.mu { color:#98a2b3; } .mini { font-size:11px; color:#667085; }
+.pos { color:#0f7b3f; font-weight:700; } .neg { color:#d92d20; font-weight:700; }
+.prc { display:inline-block; font-size:10.5px; font-weight:800; padding:1px 7px; border-radius:9px; white-space:nowrap; }
+.prc.cheap { background:#0f7b3f; color:#fff; } .prc.trap { background:#fef3c7; color:#92400e; } .prc.fair { background:#f1f5f9; color:#475467; } .prc.rich { background:#dbeafe; color:#1d4ed8; } .prc.over { background:#fee2e2; color:#b42318; } .prc.loss { background:#fff; color:#98a2b3; border:1px dashed #c3c9d4; }
+.wn { display:inline-block; font-size:10.5px; font-weight:700; padding:1px 6px; border-radius:9px; background:#fef3c7; color:#92400e; margin-right:3px; } .wn.g { background:#dcfce7; color:#15803d; }
+.ph { display:inline-block; min-width:18px; text-align:center; font-size:11px; font-weight:800; border-radius:6px; padding:0 4px; }
+.p1 { background:#eef4ff; color:#1d4ed8; } .p2 { background:#e8f8ef; color:#0e9f5a; } .p3 { background:#fff3dc; color:#b7791f; } .p4 { background:#fde8e8; color:#d92d20; } .p0 { background:#f1f3f7; color:#667085; }
+.dt td { white-space:normal; text-align:left; background:#fbfcfe; }
+.dt table td { border-top:1px solid #f0f2f6; border-bottom:none; padding:5px 8px; white-space:normal; text-align:left; vertical-align:top; background:transparent; } .dt table td:first-child { white-space:nowrap; color:#475467; font-weight:700; width:150px; }
+a.lk { color:#1d4ed8; text-decoration:none; font-weight:700; } a.lk:hover { text-decoration:underline; }
+.leg { font-size:11.5px; color:#475467; display:flex; gap:14px; flex-wrap:wrap; margin:2px 2px 4px; align-items:center; } .leg i { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:4px; vertical-align:-1px; }
+.sum { display:flex; gap:8px; flex-wrap:wrap; margin:8px 0; } .sum div { background:#fff; border:1px solid #e4e7ec; border-radius:10px; padding:6px 12px; font-size:12px; cursor:pointer; } .sum div.on { border-color:#2f6df6; box-shadow:0 0 0 2px #dbe7ff; } .sum b { font-size:17px; margin-left:6px; }
+.tip { position:fixed; display:none; background:#1a1f2e; color:#fff; font-size:11.5px; padding:6px 9px; border-radius:8px; pointer-events:none; z-index:50; max-width:260px; line-height:1.5; }
+.note { background:#fff7e8; border:1px solid #f5d9a8; border-radius:10px; padding:10px 14px; font-size:12px; color:#7a5b1e; margin-top:12px; line-height:1.6; }
+@media (max-width:800px){ th,td{padding:5px 5px;font-size:11.5px} th{position:static} }
+</style>
+<script src="/nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+<h1>⚖️ PBR–ROE 체크 — 전 상장사</h1>
+<div class="sub" id="upd">불러오는 중…</div>
+<div class="easy">쉬운 말: ROE는 "자기 돈으로 1년에 몇 %를 버나", PBR은 "그 자기 돈의 몇 배 값에 거래되나"입니다. <b>많이 버는데 싸게 거래되면 저평가 후보, 적게 벌어서 싼 거면 싼 이유가 있는 것</b>입니다. 같은 업종 회사들의 "이만큼 벌면 보통 이만큼 값을 받는다"는 선을 긋고, 그 선보다 얼마나 싸거나 비싼지를 봅니다. 한 해 반짝 실적에 속지 않도록 ROE는 최근 3개 연도와 최근 4분기의 평균을 씁니다.</div>
+<div class="sum" id="sum"></div>
+<div class="bar">
+  <span class="lab">업종</span><select id="sec"><option value="">전체 (시장 전체 보기)</option></select>
+  <span class="lab">국면</span><select id="ph"><option value="">전체</option><option value="e">1국면 신규·2국면 초입</option><option value="2">2국면</option><option value="1">1국면</option><option value="3">3국면</option><option value="4">4국면</option></select>
+  <select id="cap"><option value="0">시총 전체</option><option value="1000">1천억↑</option><option value="3000">3천억↑</option><option value="10000">1조↑</option></select>
+  <select id="flt"><option value="">표시 전체</option><option value="abs">ROE 10%↑인데 PBR 1배 미만</option><option value="clean">주의 표시 없는 종목만</option><option value="asset">자산주 가능</option></select>
+  <input id="q" placeholder="종목명·코드 검색" style="width:170px">
+  <span class="mini" id="cnt"></span>
+</div>
+<div class="card" id="scbox"></div>
+<h2 id="secH" style="display:none"></h2>
+<div class="tw" id="secT" style="display:none"></div>
+<h2>종목 <small>머리글을 누르면 정렬 · 행을 누르면 계산 과정</small></h2>
+<div class="tw"><table id="t"><thead><tr>
+<th class="l" data-k="n">종목</th><th class="l" data-k="sec">업종</th><th class="l" data-k="cls">판정</th><th data-k="gap" class="s">업종 선 대비<br>괴리</th><th data-k="pbr">PBR</th><th data-k="fair">평균 ROE가<br>주는 PBR</th><th data-k="roe_n">평균 ROE</th><th data-k="roe_t">최근 4분기<br>ROE</th><th data-k="roe_min">최저 ROE</th><th data-k="gap_t">4분기 ROE<br>기준 괴리</th><th data-k="gap_m">시장 선 대비</th><th data-k="debt">부채비율</th><th class="l" data-k="ph">국면</th><th data-k="cap">시총</th><th class="l">표시</th>
+</tr></thead><tbody id="tb"></tbody></table></div>
+<div class="bar"><button id="more" style="display:none">더 보기</button></div>
+<div class="note" id="note"></div>
+</div>
+<div class="tip" id="tip"></div>
+<script>
+let D=null, R=[], CLS='cheap', SEC='', PH='', CAP=0, FLT='', Q='', SK='gap', SA=1, OPEN=null, LIM=200;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const PRL={cheap:['저평가 후보','평균 ROE 8% 이상인데 업종 선보다 PBR이 20% 넘게 낮음'],trap:['싼 이유 있음','PBR은 낮지만 평균 ROE도 8% 미만'],fair:['제값','ROE가 설명하는 만큼의 PBR(선에서 ±20% 안)'],rich:['비싼 우량','평균 ROE 15% 이상이고 PBR은 선보다 20% 넘게 높음'],over:['고평가 주의','평균 ROE에 비해 PBR이 20% 넘게 높음'],loss:['판단 제외','평균 ROE가 0 이하이거나 최근 4분기 적자']};
+const FL={peakroe:['올해 ROE 급등','최근 4분기 ROE가 평균보다 크게 높음 — 이어지면 4분기 기준이, 일시적이면 평균 기준이 맞습니다'],peak34:['ROE 정점 가능','올해 ROE는 높지만 헤게모니 3·4국면'],down:['ROE 하락 중','최근 4분기 ROE가 직전 연도보다 3%p 이상 낮음'],lev:['빚으로 만든 ROE?','부채비율 150% 이상'],abs:['ROE 10%↑·PBR 1배 미만','자본비용을 넘는 수익성인데 장부가보다 싸게 거래'],asset:['자산주 가능','ROE는 낮지만 선보다도 20% 넘게 싸고 부채가 적음 — 현금·배당·자사주 소각 변화가 촉매'],short:['이력 짧음','연간 ROE 이력 3년 미만'],chk:['숫자 확인 필요','PBR이 비정상적으로 낮게 계산됨 — 자본과 시가총액이 맞지 않을 수 있습니다(감자·합병·우선주·상장 직후 등). 원문 확인 전에는 믿지 마세요'],fin:['금융업','은행·보험·증권은 자본 구조가 달라 다른 업종과 직접 비교하면 안 됩니다']};
+const COL={cheap:'#0f7b3f',trap:'#d97706',fair:'#98a2b3',rich:'#2563eb',over:'#dc2626',loss:'#d0d5dd'};
+const f1=v=>v==null?'<span class="mu">—</span>':Number(v).toFixed(1)+'%', fx=v=>v==null?'<span class="mu">—</span>':Number(v).toFixed(2)+'배';
+const sg=v=>v==null?'<span class="mu">—</span>':`<span class="${v<0?'pos':v>0?'neg':''}">${v>0?'+':''}${v}%</span>`;
+const fcap=v=>v>=10000?(v/10000).toFixed(v>=100000?0:1)+'조':Math.round(v).toLocaleString()+'억';
+const prc=c=>`<span class="prc ${c}" title="${esc(PRL[c][1])}">${PRL[c][0]}</span>`;
+const flh=fl=>(fl||[]).map(f=>`<span class="wn ${f==='abs'?'g':''}" title="${esc((FL[f]||[])[1]||'')}">${esc((FL[f]||[f])[0])}</span>`).join('');
+function rows(){
+  let r=R;
+  if(CLS) r=r.filter(x=>x.cls===CLS);
+  if(SEC) r=r.filter(x=>x.sec===SEC);
+  if(PH==='e') r=r.filter(x=>x.e); else if(PH) r=r.filter(x=>String(x.ph)===PH);
+  if(CAP) r=r.filter(x=>x.cap>=CAP);
+  if(FLT==='abs') r=r.filter(x=>x.fl.includes('abs')); else if(FLT==='asset') r=r.filter(x=>x.fl.includes('asset')); else if(FLT==='clean') r=r.filter(x=>!x.fl.some(f=>f!=='abs'&&f!=='fin'));
+  if(Q) r=r.filter(x=>x.n.includes(Q)||x.c.includes(Q));
+  return r.slice().sort((a,b)=>{ const va=a[SK], vb=b[SK]; if(va==null&&vb==null) return b.cap-a.cap; if(va==null) return 1; if(vb==null) return -1; return (typeof va==='string'?va.localeCompare(vb):va-vb)*SA||b.cap-a.cap; });
+}
+function secInfo(n){ return D.sectors.find(s=>s.name===n); }
+function lineOf(x,k){ const s=secInfo(x.sec)||{}; const l=k==='t'?s.line_t:s.line; if(x.src==='s'&&l) return {l,nm:x.sec}; const m=(D.market||{})[k]; return m?{l:m,nm:'시장 전체'}:null; }
+function detail(x){
+  const TH=D.th, lv={high:`높음(${TH.hi}%↑)`,mid:`적정(${TH.lo}~${TH.hi}%)`,low:`낮음(${TH.lo}% 미만)`,loss:'0 이하'}[x.lvl];
+  const hist=x.hist.map(([y,v])=>`${y}년 <b>${v}%</b>`).concat(x.roe_t!=null?[`최근 4분기 <b>${x.roe_t}%</b>`]:[]).join(' · ');
+  const Ln=lineOf(x,'n'), Lt=lineOf(x,'t'); const eq=o=>o?`${esc(o.nm)} ${o.l[2]}개사: PBR = ${o.l[0]} + ${o.l[1]} × ROE(%)`:'관계선 없음';
+  let h=`<b>${esc(x.n)}</b> <span class="mu">${x.c} · ${esc(x.sec)} · ${x.fs==='OFS'?'별도':'연결'} · ${esc(x.q||'')} 기준</span> ${prc(x.cls)}
+   <div class="easy">쉬운 말: ${esc(PRL[x.cls][1])}.${x.src==='m'?' 이 업종은 표본이 적거나 ROE와 PBR의 관계가 뚜렷하지 않아 시장 전체 선으로 봤습니다.':''}</div><table>
+   <tr><td>ROE 이력</td><td>${hist} → <b>평균 ${x.roe_n}%</b> (최저 ${x.roe_min}%) · 수준 <b>${lv}</b><div class="mini">ROE = 순이익 ÷ 기말 자본(DART 주요계정, 연결 전체 기준)</div></td></tr>`;
+  if(x.fair!=null) h+=`<tr><td>평균 ROE 기준</td><td>평균 ROE ${x.roe_n}%인 회사가 보통 받는 PBR <b>${x.fair}배</b> vs 현재 <b>${x.pbr}배</b> → 괴리 ${sg(x.gap)}<div class="mini">${eq(Ln)} · ±${TH.gap}% 안이면 제값</div></td></tr>`;
+  if(x.fair_t!=null) h+=`<tr><td>최근 4분기 ROE 기준</td><td>ROE ${x.roe_t}%면 <b>${x.fair_t}배</b> → 괴리 ${sg(x.gap_t)}<div class="mini">${eq(Lt)} · 올해 수익성이 이어진다고 볼 때의 값</div></td></tr>`;
+  if(x.gap_m!=null) h+=`<tr><td>시장 전체 선 대비</td><td>${sg(x.gap_m)} <span class="mini">업종 전체가 싸거나 비쌀 때 참고 — 업종 안에서는 제값이어도 시장 전체로는 쌀 수 있습니다</span></td></tr>`;
+  if(x.debt!=null) h+=`<tr><td>부채비율</td><td>${x.debt}%</td></tr>`;
+  if(x.fl.length) h+=`<tr><td>주의·참고</td><td>${x.fl.map(f=>`<div><span class="wn ${f==='abs'?'g':''}">${esc((FL[f]||[f])[0])}</span> ${esc((FL[f]||[])[1]||'')}</div>`).join('')}</td></tr>`;
+  h+=`</table><div class="mini" style="margin-top:6px">더 보기: <a class="lk" href="/valws.html?c=${x.c}">밸류 워크시트</a> · <a class="lk" href="/bands.html#${x.c}">밴드·V차트</a> · <a class="lk" href="/semipeer.html#${x.c}">반도체 peer 상대밸류</a> · <a class="lk" href="https://finance.naver.com/item/main.naver?code=${x.c}" target="_blank" rel="noopener">네이버</a> · <a class="lk" href="https://dart.fss.or.kr/dsab007/main.do?option=corp&textCrpNm=${encodeURIComponent(x.n)}" target="_blank" rel="noopener">DART</a></div>`;
+  return h;
+}
+function render(){
+  const r=rows(); $('cnt').textContent=r.length.toLocaleString()+'개사';
+  document.querySelectorAll('#t th').forEach(th=>th.classList.toggle('s',th.dataset.k===SK));
+  document.querySelectorAll('#sum div').forEach(d=>d.classList.toggle('on',d.dataset.c===CLS));
+  let h='';
+  for(const x of r.slice(0,LIM)){
+    h+=`<tr class="r${OPEN===x.c?' open':''}" data-c="${x.c}"><td class="l"><b>${esc(x.n)}</b> <span class="mu" style="font-size:11px">${x.c}</span></td><td class="l mini">${esc(x.sec)}</td><td class="l">${prc(x.cls)}</td><td>${x.cls==='loss'?'<span class="mu">—</span>':sg(x.gap)}</td><td>${fx(x.pbr)}</td><td>${fx(x.fair)}</td><td>${f1(x.roe_n)}</td><td>${f1(x.roe_t)}</td><td>${f1(x.roe_min)}</td><td>${sg(x.gap_t)}</td><td>${sg(x.gap_m)}</td><td>${x.debt==null?'<span class="mu">—</span>':x.debt+'%'}</td><td class="l">${x.ph==null?'<span class="mu">—</span>':`<span class="ph p${x.ph}">${x.ph}</span>`}${x.e?' <span class="mini">초입</span>':''}</td><td>${fcap(x.cap)}</td><td class="l">${flh(x.fl)}</td></tr>`;
+    if(OPEN===x.c) h+=`<tr class="dt"><td colspan="15">${detail(x)}</td></tr>`;
+  }
+  $('tb').innerHTML=h||'<tr><td colspan="15" class="l" style="padding:16px;color:#667085">조건에 맞는 종목이 없습니다 — 판정·업종·시총 조건을 풀어 보세요.</td></tr>';
+  $('more').style.display=r.length>LIM?'':'none'; $('more').textContent=`더 보기 (${Math.min(LIM,r.length)} / ${r.length})`;
+  scatter(r); secTable();
+}
+function scatter(rs){
+  const el=$('scbox'); const base=SEC?R.filter(x=>x.sec===SEC):R; const sel=new Set(rs.map(x=>x.c));
+  const W=Math.max(560,Math.min(1220,el.clientWidth-24)), H=360, L=46, Rr=14, T=14, B=34, X0=-5, X1=45;
+  const pv=base.filter(x=>x.pbr>0).map(x=>x.pbr).sort((a,b)=>a-b); const Y1=Math.max(3,Math.min(12,Math.ceil((pv[Math.floor(pv.length*0.95)]||5)*1.2)));
+  const X=v=>L+(Math.max(X0,Math.min(X1,v))-X0)/(X1-X0)*(W-L-Rr), Y=v=>H-B-Math.max(0,Math.min(Y1,v))/Y1*(H-T-B);
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px">`;
+  const ys=Y1<=4?0.5:Y1<=8?1:2; for(let v=0;v<=Y1+1e-9;v+=ys) s+=`<line x1="${L}" y1="${Y(v)}" x2="${W-Rr}" y2="${Y(v)}" stroke="#eef0f4"/><text x="${L-6}" y="${Y(v)+3}" font-size="10" fill="#667085" text-anchor="end">${v}배</text>`;
+  for(let v=0;v<=X1;v+=5) s+=`<line x1="${X(v)}" y1="${T}" x2="${X(v)}" y2="${H-B}" stroke="#eef0f4"/><text x="${X(v)}" y="${H-B+14}" font-size="10" fill="#667085" text-anchor="middle">${v}%</text>`;
+  for(const v of [D.th.lo,D.th.hi]) s+=`<line x1="${X(v)}" y1="${T}" x2="${X(v)}" y2="${H-B}" stroke="#c7d2fe" stroke-dasharray="3,3"/>`;
+  s+=`<text x="${(W+L)/2}" y="${H-4}" font-size="11" fill="#475467" text-anchor="middle">평균 ROE (최근 3개 연도 + 최근 4분기)</text><text x="10" y="${T+8}" font-size="11" fill="#475467">PBR</text>`;
+  const line=(l,c,nm,dy)=>{ if(!l) return ''; const y0=Math.max(l[0],0), y1=l[0]+l[1]*X1; return `<line x1="${X(0)}" y1="${Y(y0)}" x2="${X(X1)}" y2="${Y(y1)}" stroke="${c}" stroke-width="1.7"/><text x="${X(X1)-4}" y="${Y(Math.min(y1,Y1))-5+dy}" font-size="10.5" fill="${c}" text-anchor="end">${esc(nm)} 선</text>`; };
+  s+=line((D.market||{}).n,'#1a2a4a','시장 전체',0); const si=SEC?secInfo(SEC):null; if(si&&si.line) s+=line(si.line,'#7c3aed',SEC,14);
+  const pts=base.filter(x=>x.roe_n!=null&&x.pbr>0).sort((a,b)=>sel.has(a.c)-sel.has(b.c)); const many=pts.length>600;
+  for(const x of pts){ const on=sel.has(x.c); if(many&&!on&&x.cap<2000) continue;
+    s+=`<circle cx="${X(x.roe_n).toFixed(1)}" cy="${Y(x.pbr).toFixed(1)}" r="${on?4.6:2.8}" fill="${COL[x.cls]}" opacity="${on?.92:.22}" ${on?'stroke="#fff" stroke-width="1"':''} style="cursor:pointer" data-go="${x.c}" data-tip="${esc(x.n)}|평균 ROE ${x.roe_n}% · PBR ${x.pbr}배|${PRL[x.cls][0]}${x.gap!=null&&x.cls!=='loss'?' · 선 대비 '+(x.gap>0?'+':'')+x.gap+'%':''}"/>`; }
+  s+='</svg>';
+  el.innerHTML=`<b style="font-size:13px;color:#1a2a4a">PBR ↔ 평균 ROE — ${SEC?esc(SEC):'시장 전체'}</b> <span class="mini">선 아래·오른쪽일수록 ROE에 비해 쌈 · 진한 점 = 지금 걸러진 종목 · 점을 누르면 그 종목${many?' · 흐린 점은 시총 2천억 이상만 표시':''}</span>${s}
+   <div class="leg">${Object.keys(PRL).map(k=>`<span><i style="background:${COL[k]}"></i>${PRL[k][0]}</span>`).join('')}<span class="mu">세로 점선 = 평균 ROE ${D.th.lo}% · ${D.th.hi}%</span></div>`;
+}
+function secTable(){
+  const H=$('secH'), T=$('secT');
+  if(SEC){ const s=secInfo(SEC)||{}; H.style.display=''; T.style.display='none';
+    H.innerHTML=`${esc(SEC)} <small>${s.n}개사 · 중앙 PBR ${s.pbr_med??'—'}배 · 중앙 평균 ROE ${s.roe_med??'—'}% · ${s.line?`관계선 PBR = ${s.line[0]} + ${s.line[1]} × ROE (${s.line[2]}개사)${s.line[1]<0.015?' — <b style="color:#b45309">기울기가 완만해 이 업종은 ROE가 PBR을 잘 설명하지 못합니다</b>':''}`:'<b style="color:#b45309">표본이 적거나 관계가 뚜렷하지 않아 시장 전체 선 사용</b>'}</small>`; return; }
+  H.style.display=''; T.style.display=''; H.innerHTML='업종별 요약 <small>행을 누르면 그 업종만 봅니다 · 저평가 후보가 많은 순</small>';
+  const ss=D.sectors.filter(s=>s.n>=5).slice().sort((a,b)=>(b.cnt.cheap||0)-(a.cnt.cheap||0)||b.n-a.n);
+  T.innerHTML=`<table><tr><th class="l">업종</th><th>종목 수</th><th>중앙 PBR</th><th>중앙 평균 ROE</th><th class="l">관계선</th>${Object.keys(PRL).map(k=>`<th>${PRL[k][0]}</th>`).join('')}</tr>`+
+    ss.map(s=>`<tr class="r" data-sec="${esc(s.name)}"><td class="l"><b>${esc(s.name)}</b></td><td>${s.n}</td><td>${s.pbr_med??'—'}배</td><td>${s.roe_med??'—'}%</td><td class="l mini">${s.line?`${s.line[0]} + ${s.line[1]} × ROE`:'시장 전체 선'}</td>${Object.keys(PRL).map(k=>`<td>${s.cnt[k]?(k==='cheap'?`<b class="pos">${s.cnt[k]}</b>`:s.cnt[k]):'<span class="mu">·</span>'}</td>`).join('')}</tr>`).join('')+'</table>';
+}
+const tip=$('tip');
+document.addEventListener('mousemove',e=>{ const g=e.target.closest&&e.target.closest('[data-tip]'); if(!g){ tip.style.display='none'; return; } const [a,b,c]=g.dataset.tip.split('|'); tip.innerHTML='<b>'+esc(a)+'</b><br>'+esc(b)+'<br>'+esc(c); tip.style.display='block'; tip.style.left=Math.min(innerWidth-270,e.clientX+14)+'px'; tip.style.top=(e.clientY+14)+'px'; });
+function openCo(c){ const x=R.find(v=>v.c===c); if(!x) return; if(!rows().some(v=>v.c===c)){ CLS=''; PH=''; CAP=0; FLT=''; Q=''; $('q').value=''; $('ph').value=''; $('cap').value='0'; $('flt').value=''; if(SEC&&x.sec!==SEC){ SEC=''; $('sec').value=''; } } OPEN=c; LIM=Math.max(LIM,rows().findIndex(v=>v.c===c)+20); render(); const tr=document.querySelector('tr.r[data-c="'+c+'"]'); if(tr) tr.scrollIntoView({block:'center',behavior:'smooth'}); }
+document.addEventListener('click',e=>{
+  if(e.target.closest('a')) return;
+  const go=e.target.closest('[data-go]'); if(go){ openCo(go.dataset.go); return; }
+  const sm=e.target.closest('#sum div'); if(sm){ CLS=sm.dataset.c; OPEN=null; LIM=200; render(); return; }
+  const st=e.target.closest('tr[data-sec]'); if(st){ SEC=st.dataset.sec; $('sec').value=SEC; OPEN=null; LIM=200; render(); window.scrollTo({top:$('scbox').offsetTop-60,behavior:'smooth'}); return; }
+  const th=e.target.closest('#t th[data-k]'); if(th){ const k=th.dataset.k; if(SK===k) SA=-SA; else { SK=k; SA=(k==='n'||k==='sec'||k==='gap'||k==='gap_t'||k==='gap_m'||k==='pbr'||k==='debt'||k==='cls')?1:-1; } render(); return; }
+  if(e.target.closest('tr.dt')) return;
+  const tr=e.target.closest('#t tr.r'); if(tr){ OPEN=OPEN===tr.dataset.c?null:tr.dataset.c; render(); }
+});
+$('more').onclick=()=>{ LIM+=300; render(); };
+$('sec').onchange=e=>{ SEC=e.target.value; OPEN=null; LIM=200; render(); };
+$('ph').onchange=e=>{ PH=e.target.value; render(); };
+$('cap').onchange=e=>{ CAP=+e.target.value; render(); };
+$('flt').onchange=e=>{ FLT=e.target.value; render(); };
+$('q').oninput=e=>{ Q=e.target.value.trim(); if(Q) CLS=''; LIM=200; render(); };
+fetch('/data/pbrroe.json?r='+Date.now()).then(r=>{ if(!r.ok) throw new Error('수집 전'); return r.json(); }).then(d=>{
+  D=d; const C=d.cols; R=d.rows.map(a=>{ const o={}; C.forEach((k,i)=>o[k]=a[i]); return o; });
+  $('upd').innerHTML=`대상 <b>${d.n.toLocaleString()}</b>개사 · 재무 ${esc(d.fin_q||'')} 기준(DART 수집 ${esc(d.fin_updated||'')}) · 시세 ${esc(d.price_updated||'')} · 계산 ${esc(d.updated)} — 재무는 주 1회와 실적 마감 직후, 시가총액(PBR)은 매일 갱신`;
+  $('sum').innerHTML=Object.keys(PRL).map(k=>`<div data-c="${k}" title="${esc(PRL[k][1])}">${prc(k)}<b>${(d.count[k]||0).toLocaleString()}</b></div>`).join('')+`<div data-c="">전체<b>${d.n.toLocaleString()}</b></div>`;
+  for(const s of d.sectors.slice().sort((a,b)=>a.name.localeCompare(b.name))){ const o=document.createElement('option'); o.value=s.name; o.textContent=`${s.name} (${s.n})`; $('sec').appendChild(o); }
+  $('note').innerHTML=`⚠️ ${esc(d.rule)}.<br>판정 기준선(평균 ROE ${d.th.lo}%·${d.th.hi}%, 괴리 ±${d.th.gap}%)은 정해 둔 값이지 검증된 값이 아닙니다. 금융업은 자본 구조가 달라 같은 업종 안에서만 비교하세요. 반도체는 <a class="lk" href="/semipeer.html">peer 상대밸류</a>에서 직접 경쟁사와의 비교와 지배주주 기준 숫자를 함께 볼 수 있습니다. 투자 권유가 아니라 걸러 보기 위한 참고 자료입니다.`;
+  const c=location.hash.slice(1); render(); if(c) openCo(c);
+}).catch(e=>{ $('upd').textContent='데이터가 아직 없습니다 — 헤게모니 수집(주 1회·실적 마감 직후)이 한 번 돈 뒤 채워집니다.'; });
+</script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+name: 전 상장사 PBR–ROE 판정 (매일 시세 반영)
+on:
+  schedule:
+    - cron: '50 9 * * 1-5'    # 평일 18:50 KST — 시세(stockvals 18:20) 뒤. 재무(finall.json)는 헤게모니 수집 때 갱신
+  workflow_dispatch: {}
+  push:
+    paths: ['pbrroe.py']
+permissions:
+  contents: write
+jobs:
+  pbrroe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 계산
+        run: python pbrroe.py
+      - name: 결과 커밋
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/pbrroe.json 2>/dev/null || true
+          git commit -m "PBR–ROE 판정 갱신" || echo "변경 없음"
+          git pull --rebase origin main || true
+          git push || true

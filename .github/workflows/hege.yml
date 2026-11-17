@@ -26,12 +26,15 @@ jobs:
         env:
           DART_API_KEY: ${{ secrets.DART_KEY }}
         run: python hege.py
+      - name: 전 상장사 PBR–ROE 계산(외부 호출 없음)
+        if: always()
+        run: python pbrroe.py || true
       - name: 결과 커밋
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/data/hege.json 2>/dev/null || true
+          git add public/data/hege.json public/data/finall.json public/data/pbrroe.json 2>/dev/null || true
           git commit -m "헤게모니 4국면 갱신" || echo "변경 없음"
           git pull --rebase origin main || true
           git push || true

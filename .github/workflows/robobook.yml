@@ -1,0 +1,107 @@
+name: 로봇 교과서 숫자 수집 (5년 실적·자금조달·인수매각)
+# 수집기는 연료전지·수소 교과서의 fcbook.py를 그대로 쓴다 — TREE·OUT 환경변수로 대상 파일만 바꾼다(수집기를 복사하지 않는다).
+# GitHub 러너에 따라 OpenDART가 응답하지 않는 경우가 있어, 끝내지 못하면 새 러너에서 최대 3번 이어서 시도한다.
+on:
+  schedule:
+    - cron: '40 23 * * 6'   # 일 08:40 KST (주 1회, 다른 교과서와 시간 띄움)
+    - cron: '40 23 15-20 2,5,8,11 *'   # 실적 공시 마감 직후 며칠은 매일
+  workflow_dispatch: {}
+  push:
+    paths: ['.github/workflows/robobook.yml', 'public/data/robobook_tree.json']   # 분류 파일을 올리면 첫 수집이 돈다
+permissions:
+  contents: write
+concurrency:
+  group: robobook
+  cancel-in-progress: false
+jobs:
+  try1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+    outputs:
+      done: ${{ steps.run.outputs.done }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main   # 앞선 시도가 커밋한 파일을 이어받기 위해 항상 최신 main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 수집
+        id: run
+        env:
+          DART_API_KEY: ${{ secrets.DART_KEY }}
+          BUDGET_MIN: '55'
+          TREE: public/data/robobook_tree.json
+          OUT: public/data/robobook.json
+        run: python fcbook.py
+      - name: 결과 커밋
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/robobook.json 2>/dev/null || true
+          git commit -m "로봇 교과서 숫자 갱신" || echo "변경 없음"
+          git pull --rebase origin main || true
+          git push || (git pull --rebase origin main && git push) || true
+  try2:
+    needs: try1
+    if: ${{ always() && needs.try1.outputs.done != '1' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+    outputs:
+      done: ${{ steps.run.outputs.done }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main   # 앞선 시도가 커밋한 파일을 이어받기 위해 항상 최신 main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 수집
+        id: run
+        env:
+          DART_API_KEY: ${{ secrets.DART_KEY }}
+          BUDGET_MIN: '55'
+          TREE: public/data/robobook_tree.json
+          OUT: public/data/robobook.json
+        run: python fcbook.py
+      - name: 결과 커밋
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/robobook.json 2>/dev/null || true
+          git commit -m "로봇 교과서 숫자 갱신" || echo "변경 없음"
+          git pull --rebase origin main || true
+          git push || (git pull --rebase origin main && git push) || true
+  try3:
+    needs: try2
+    if: ${{ always() && needs.try2.result != 'skipped' && needs.try2.outputs.done != '1' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+    outputs:
+      done: ${{ steps.run.outputs.done }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main   # 앞선 시도가 커밋한 파일을 이어받기 위해 항상 최신 main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 수집
+        id: run
+        env:
+          DART_API_KEY: ${{ secrets.DART_KEY }}
+          BUDGET_MIN: '55'
+          TREE: public/data/robobook_tree.json
+          OUT: public/data/robobook.json
+        run: python fcbook.py
+      - name: 결과 커밋
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/robobook.json 2>/dev/null || true
+          git commit -m "로봇 교과서 숫자 갱신" || echo "변경 없음"
+          git pull --rebase origin main || true
+          git push || (git pull --rebase origin main && git push) || true

@@ -386,11 +386,12 @@ async function renderList(){
   let d;
   try{ d=await jget('/data/repsum.json'); }
   catch(e){ $('#app').innerHTML='<div class="note">아직 정밀요약이 없다. (/data/repsum.json 없음)</div>'; return; }
-  const items=(d.items||[]).slice().sort((a,b)=>String(b.d||'').localeCompare(String(a.d||'')));
+  const own=r=>(r.tier==='desk'||r.tier==='guide')?1:0;
+  const items=(d.items||[]).slice().sort((a,b)=>String(b.d||'').localeCompare(String(a.d||''))||own(b)-own(a));
   $('#app').innerHTML='<div class="hd"><h1>리포트 정밀요약 <small style="font-size:14px;color:#667085;font-weight:400">'+items.length+'건</small></h1></div>'
    +'<div class="note">'+esc(d.note||'')+'<br>수집·작성 '+esc(d.updated||'')+'</div>'
    +'<div class="lst">'+items.map(function(r){
-      return '<a class="it" href="#r='+esc(r.id)+'"><div class="t">'+esc(r.t)+'</div>'
+      return '<a class="it" href="#r='+esc(r.id)+'"><div class="t">'+(r.tier==='desk'?'🧩 통합본 · ':r.tier==='guide'?'🧭 가이드 · ':'')+esc(r.t)+'</div>'
         +'<div class="m">'+esc(r.b||'')+(r.an&&r.an.length?' · '+esc(r.an.join(', ')):'')+' · '+esc(r.d||'')
         +(r.pages?' · '+r.pages+'페이지':'')+(r.written?' · 요약 '+esc(r.written):'')+'</div>'
         +(r.lead?'<div class="l">'+esc(r.lead)+'</div>':'')+'</a>';
@@ -408,10 +409,10 @@ async function renderOne(id){
   $('#app').innerHTML=
     '<a class="back" href="#">‹ 정밀요약 목록</a>'
    +'<div class="hd"><h1>'+esc(main)+(sub?'<br><span class="sub">'+esc(sub)+'</span>':'')+'</h1>'
-   +'<div class="meta"><b>'+esc(d.b||'')+'</b>'+(d.d?' · '+esc(d.d)+' 발간':'')+(d.pages?' · 전체 '+d.pages+'페이지':'')
+   +'<div class="meta"><b>'+esc(d.b||'')+'</b>'+(d.d?' · '+esc(d.d)+((d.tier==='guide'||d.tier==='desk')?' 작성':' 발간'):'')+(d.pages?' · 전체 '+d.pages+'페이지':'')
    +(an?' · 작성 <b>'+esc(an)+'</b>':'')+'<br>'
    +(d.cover?'커버 종목: '+esc(d.cover)+'<br>':'')
-   +'<span class="src">요약 작성 '+esc(d.written||'')+' · 숫자는 모두 원문 기재값 · '
+   +'<span class="src">'+(d.tier==='guide'||d.tier==='desk'?'작성 ':'요약 작성 ')+esc(d.written||'')+' · '+esc(d.srcnote||'숫자는 모두 원문 기재값')+' · '
    +(d.u?'<a href="'+esc(d.u)+'" target="_blank" rel="noopener">원문 PDF 열기</a>':'')+'</span></div></div>'
    +'<article class="rs">'+(d.html||'')+'</article>';
   bindDual($('.rs'));

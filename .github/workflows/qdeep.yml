@@ -6,6 +6,10 @@ on:
   workflow_dispatch: {}
   push:
     paths: ['qdeep.py', 'qdeep_targets.json']
+# 같은 수집을 두 개 동시에 돌리지 않는다. 새 실행이 들어오면 진행 중인 것을 취소한다.
+concurrency:
+  group: qdeep
+  cancel-in-progress: true
 permissions:
   contents: write
 jobs:

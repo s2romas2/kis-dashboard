@@ -99,7 +99,24 @@
          "cik": "0000707549"
         },
         {
+         "t": "VECO",
+         "n": "VEECO INSTRUMENTS INC",
+         "cik": "0000103145"
+        },
+        {
          "t": "TEL",
+         "notus": 1
+        },
+        {
+         "t": "JUSUNG",
+         "notus": 1
+        },
+        {
+         "t": "WONIK",
+         "notus": 1
+        },
+        {
+         "t": "EUGENE",
          "notus": 1
         }
        ]
@@ -159,6 +176,11 @@
          "t": "AEIS",
          "n": "ADVANCED ENERGY INDUSTRIES INC",
          "cik": "0000927003"
+        },
+        {
+         "t": "ACLS",
+         "n": "AXCELIS TECHNOLOGIES INC",
+         "cik": "0001113232"
         }
        ]
       }
@@ -216,6 +238,11 @@
          "t": "COHU",
          "n": "COHU INC",
          "cik": "0000021535"
+        },
+        {
+         "t": "AEHR",
+         "n": "AEHR TEST SYSTEMS",
+         "cik": "0001040470"
         }
        ]
       },
@@ -227,6 +254,22 @@
          "t": "FORM",
          "n": "FORMFACTOR INC",
          "cik": "0001039399"
+        },
+        {
+         "t": "ISC",
+         "notus": 1
+        },
+        {
+         "t": "TFE",
+         "notus": 1
+        },
+        {
+         "t": "OKINS",
+         "notus": 1
+        },
+        {
+         "t": "MCNEX",
+         "notus": 1
         }
        ]
       }
@@ -477,6 +520,23 @@
          "t": "AZZ",
          "n": "AZZ INC",
          "cik": "0000008947"
+        },
+        {
+         "t": "POWL",
+         "n": "POWELL INDUSTRIES INC",
+         "cik": "0000080420"
+        },
+        {
+         "t": "HYOSUNG",
+         "notus": 1
+        },
+        {
+         "t": "LSELEC",
+         "notus": 1
+        },
+        {
+         "t": "ILJIN",
+         "notus": 1
         }
        ]
       },
@@ -488,10 +548,6 @@
          "t": "GEV",
          "n": "GE Vernova Inc.",
          "cik": "0001996810"
-        },
-        {
-         "t": "MHI",
-         "notus": 1
         },
         {
          "t": "BWXT",
@@ -512,6 +568,29 @@
          "t": "TLN",
          "n": "Talen Energy Corp",
          "cik": "0001622536"
+        },
+        {
+         "t": "SMR",
+         "n": "NUSCALE POWER Corp",
+         "cik": "0001822966"
+        },
+        {
+         "t": "OKLO",
+         "n": "Oklo Inc.",
+         "cik": "0001849056"
+        },
+        {
+         "t": "NNE",
+         "n": "Nano Nuclear Energy Inc.",
+         "cik": "0001923891"
+        },
+        {
+         "t": "MHI",
+         "notus": 1
+        },
+        {
+         "t": "DOOSAN",
+         "notus": 1
         }
        ],
        "note": "대형 가스터빈 납기 적체가 구조적. 항공전용(aeroderivative) 터빈과 중고 터빈 시장까지 형성 [보도]"
@@ -602,6 +681,25 @@
          "t": "ACM",
          "n": "AECOM",
          "cik": "0000868857"
+        },
+        {
+         "t": "TPC",
+         "n": "TUTOR PERINI CORP",
+         "cik": "0000077543"
+        },
+        {
+         "t": "IESC",
+         "n": "IES Holdings, Inc.",
+         "cik": "0001048268"
+        },
+        {
+         "t": "LMB",
+         "n": "Limbach Holdings, Inc.",
+         "cik": "0001606163"
+        },
+        {
+         "t": "HANYANG",
+         "notus": 1
         }
        ]
       }
@@ -644,8 +742,26 @@
          "t": "CIEN",
          "n": "CIENA CORP",
          "cik": "0000936395"
+        },
+        {
+         "t": "AAOI",
+         "n": "APPLIED OPTOELECTRONICS, INC.",
+         "cik": "0001158114"
+        },
+        {
+         "t": "OESOL",
+         "notus": 1
+        },
+        {
+         "t": "OPTICORE",
+         "notus": 1
+        },
+        {
+         "t": "LIGHTRON",
+         "notus": 1
         }
-       ]
+       ],
+       "note": "CPO가 늦어지면 2026~27년 800G·1.6T 업그레이드 물량을 플러거블이 떠안는다. 해외 고객 2026년 1.6T 조달량이 1,000만 → 1,500만 → 2,000만개로 상향됐고 업계 전체 1.6T 2,500만·800G 5,500만개 추정 [전문매체]"
       },
       {
        "id": "lro_lpo",
@@ -799,6 +915,19 @@
          "t": "KLIC",
          "n": "KULICKE & SOFFA INDUSTRIES INC",
          "cik": "0000056978"
+        },
+        {
+         "t": "FORM",
+         "n": "FORMFACTOR INC",
+         "cik": "0001039399"
+        },
+        {
+         "t": "HANMI",
+         "notus": 1
+        },
+        {
+         "t": "LASERSSEL",
+         "notus": 1
         }
        ]
       }
@@ -870,6 +999,11 @@
          "t": "INTC",
          "n": "INTEL CORP",
          "cik": "0000050863"
+        },
+        {
+         "t": "ALMU",
+         "n": "Aeluma, Inc.",
+         "cik": "0001828805"
         }
        ]
       },
@@ -886,6 +1020,14 @@
          "t": "COHR",
          "n": "COHERENT CORP.",
          "cik": "0000820318"
+        },
+        {
+         "t": "RFMAT",
+         "notus": 1
+        },
+        {
+         "t": "OESOL",
+         "notus": 1
         }
        ],
        "note": "레이저를 뜨거운 ASIC 옆에서 떼어내 장비 앞면에 꽂는 방식. 400mW급 양산 가능한 곳이 사실상 한 곳 — CPO 전환이 고출력 레이저 양산 선별전이 된다 [업계자료]"
@@ -997,6 +1139,14 @@
         {
          "t": "PRY",
          "notus": 1
+        },
+        {
+         "t": "TAIHAN",
+         "notus": 1
+        },
+        {
+         "t": "LSCABLE",
+         "notus": 1
         }
        ]
       },
@@ -1050,6 +1200,14 @@
          "t": "HON",
          "n": "HONEYWELL INTERNATIONAL INC",
          "cik": "0000773840"
+        },
+        {
+         "t": "SAMHYUN",
+         "notus": 1
+        },
+        {
+         "t": "HIGEN",
+         "notus": 1
         }
        ]
       },
@@ -1083,6 +1241,14 @@
         {
          "t": "NABTESCO",
          "notus": 1
+        },
+        {
+         "t": "SPG",
+         "notus": 1
+        },
+        {
+         "t": "SBBTECH",
+         "notus": 1
         }
        ],
        "note": "비중국 하모닉 생산능력의 93%가 일본 선두 업체 한 곳. 2028년 비중국 휴머노이드 하모닉 수요가 생산능력의 절반, 2029년 공급 초과 전망 [DS]"
@@ -1097,6 +1263,22 @@
         },
         {
          "t": "SCHAEFFLER",
+         "notus": 1
+        },
+        {
+         "t": "ROBOTIS",
+         "notus": 1
+        },
+        {
+         "t": "SPG",
+         "notus": 1
+        },
+        {
+         "t": "HIGEN",
+         "notus": 1
+        },
+        {
+         "t": "SBBTECH",
          "notus": 1
         }
        ],
@@ -1113,8 +1295,13 @@
         {
          "t": "SPINEA",
          "notus": 1
+        },
+        {
+         "t": "SPG",
+         "notus": 1
         }
-       ]
+       ],
+       "note": "하중이 큰 허리 관절에 주로 쓰인다. 사이클로이드는 고감속(57~192:1)이라 중희토 부담이 낮은 쪽 [디일렉/DS]"
       },
       {
        "id": "screw",
@@ -1146,6 +1333,18 @@
        "co": [
         {
          "t": "MAXON",
+         "notus": 1
+        },
+        {
+         "t": "KPIM",
+         "notus": 1
+        },
+        {
+         "t": "DAESUNG",
+         "notus": 1
+        },
+        {
+         "t": "SPG",
          "notus": 1
         }
        ],
@@ -1192,6 +1391,16 @@
          "cik": "0001970622"
         },
         {
+         "t": "EMAT",
+         "n": "Evolution Metals & Technologies Corp.",
+         "cik": "0001866226"
+        },
+        {
+         "t": "ALOY",
+         "n": "REALLOYS INC.",
+         "cik": "0001567900"
+        },
+        {
          "t": "NVX",
          "notus": 1
         },
@@ -1201,6 +1410,10 @@
         },
         {
          "t": "PROTERIAL",
+         "notus": 1
+        },
+        {
+         "t": "SUNGLIM",
          "notus": 1
         }
        ],
@@ -1216,13 +1429,23 @@
          "cik": "0001801368"
         },
         {
-         "t": "LYSCF",
-         "notus": 1
-        },
-        {
          "t": "UUUU",
          "n": "ENERGY FUELS INC",
          "cik": "0001385849"
+        },
+        {
+         "t": "EMAT",
+         "n": "Evolution Metals & Technologies Corp.",
+         "cik": "0001866226"
+        },
+        {
+         "t": "NB",
+         "n": "NIOCORP DEVELOPMENTS LTD",
+         "cik": "0001512228"
+        },
+        {
+         "t": "LYSCF",
+         "notus": 1
         },
         {
          "t": "ARRNF",
@@ -1245,22 +1468,27 @@
          "cik": "0001801368"
         },
         {
-         "t": "LYSCF",
-         "notus": 1
-        },
-        {
          "t": "UUUU",
          "n": "ENERGY FUELS INC",
          "cik": "0001385849"
         },
         {
-         "t": "TMRC",
-         "notus": 1
+         "t": "NB",
+         "n": "NIOCORP DEVELOPMENTS LTD",
+         "cik": "0001512228"
         },
         {
          "t": "REEMF",
          "n": "RARE ELEMENT RESOURCES LTD",
          "cik": "0001419806"
+        },
+        {
+         "t": "LYSCF",
+         "notus": 1
+        },
+        {
+         "t": "TMRC",
+         "notus": 1
         }
        ]
       },
@@ -1286,6 +1514,11 @@
        "label": "힘·토크(F/T) 센서 — 6축",
        "co": [
         {
+         "t": "TER",
+         "n": "TERADYNE, INC",
+         "cik": "0000097210"
+        },
+        {
          "t": "NVT",
          "notus": 1
         },
@@ -1298,9 +1531,12 @@
          "notus": 1
         },
         {
-         "t": "TER",
-         "n": "TERADYNE, INC",
-         "cik": "0000097210"
+         "t": "AIDIN",
+         "notus": 1
+        },
+        {
+         "t": "ROBOTOUS",
+         "notus": 1
         }
        ],
        "note": "고감속으로 잃는 역구동(힘 감지)을 대신하는 핵심 부품. 6축 F/T 센서 가격이 핸드 한 개 값의 59~72% [DS]"
@@ -1310,7 +1546,11 @@
        "label": "촉각센서(손끝)",
        "co": [
         {
-         "t": "TEL",
+         "t": "AELROBOT",
+         "notus": 1
+        },
+        {
+         "t": "AIDIN",
          "notus": 1
         }
        ],
@@ -1370,15 +1610,20 @@
          "cik": "0000932787"
         },
         {
+         "t": "CGNX",
+         "n": "COGNEX CORP",
+         "cik": "0000851205"
+        },
+        {
          "t": "SONY",
          "notus": 1
         },
         {
-         "t": "CGNX",
-         "n": "COGNEX CORP",
-         "cik": "0000851205"
+         "t": "MCNEX",
+         "notus": 1
         }
-       ]
+       ],
+       "note": "카메라모듈 업체가 로봇 비전으로 넘어오는 경로가 실제로 열렸다 — 엠씨넥스가 현대차(보스턴다이내믹스) 로보틱스 공급망에 진입, 2027년 아틀라스 양산 확대 예상 [증권사]"
       }
      ]
     },
@@ -1517,6 +1762,18 @@
          "t": "TER",
          "n": "TERADYNE, INC",
          "cik": "0000097210"
+        },
+        {
+         "t": "ROBOTIS",
+         "notus": 1
+        },
+        {
+         "t": "TESOLLO",
+         "notus": 1
+        },
+        {
+         "t": "WONIK",
+         "notus": 1
         }
        ]
       },
@@ -1572,8 +1829,21 @@
         {
          "t": "1X",
          "notus": 1
+        },
+        {
+         "t": "HYUNDAI",
+         "notus": 1
+        },
+        {
+         "t": "SAMSUNG",
+         "notus": 1
+        },
+        {
+         "t": "LGE",
+         "notus": 1
         }
-       ]
+       ],
+       "note": "현대차 차세대 이동형 양팔 로봇 시제품에 일본(하모닉드라이브·나브테스코)과 국내(에스비비테크·에스피지) 감속기가 함께 쓰였고, 관계자는 양산품에서 국산 비중을 최대한 높이는 것이 목표라고 밝혔다 [디일렉]"
       },
       {
        "id": "cn",
@@ -1595,6 +1865,14 @@
   }
  },
  "cik": {
+  "AAOI": {
+   "cik": "0001158114",
+   "name": "APPLIED OPTOELECTRONICS, INC."
+  },
+  "ACLS": {
+   "cik": "0001113232",
+   "name": "AXCELIS TECHNOLOGIES INC"
+  },
   "ACM": {
    "cik": "0000868857",
    "name": "AECOM"
@@ -1607,9 +1885,21 @@
    "cik": "0000006281",
    "name": "ANALOG DEVICES INC"
   },
+  "AEHR": {
+   "cik": "0001040470",
+   "name": "AEHR TEST SYSTEMS"
+  },
   "AEIS": {
    "cik": "0000927003",
    "name": "ADVANCED ENERGY INDUSTRIES INC"
+  },
+  "ALMU": {
+   "cik": "0001828805",
+   "name": "Aeluma, Inc."
+  },
+  "ALOY": {
+   "cik": "0001567900",
+   "name": "REALLOYS INC."
   },
   "AMAT": {
    "cik": "0000006951",
@@ -1723,6 +2013,10 @@
    "cik": "0001571996",
    "name": "Dell Technologies Inc."
   },
+  "EMAT": {
+   "cik": "0001866226",
+   "name": "Evolution Metals & Technologies Corp."
+  },
   "EME": {
    "cik": "0000105634",
    "name": "EMCOR Group, Inc."
@@ -1783,6 +2077,10 @@
    "cik": "0001652535",
    "name": "ICHOR HOLDINGS, LTD."
   },
+  "IESC": {
+   "cik": "0001048268",
+   "name": "IES Holdings, Inc."
+  },
   "INTC": {
    "cik": "0000050863",
    "name": "INTEL CORP"
@@ -1806,6 +2104,10 @@
   "LITE": {
    "cik": "0001633978",
    "name": "Lumentum Holdings Inc."
+  },
+  "LMB": {
+   "cik": "0001606163",
+   "name": "Limbach Holdings, Inc."
   },
   "LRCX": {
    "cik": "0000707549",
@@ -1843,6 +2145,14 @@
    "cik": "0000723125",
    "name": "MICRON TECHNOLOGY INC"
   },
+  "NB": {
+   "cik": "0001512228",
+   "name": "NIOCORP DEVELOPMENTS LTD"
+  },
+  "NNE": {
+   "cik": "0001923891",
+   "name": "Nano Nuclear Energy Inc."
+  },
   "NTAP": {
    "cik": "0001002047",
    "name": "NetApp, Inc."
@@ -1859,6 +2169,10 @@
    "cik": "0001413447",
    "name": "NXP Semiconductors N.V."
   },
+  "OKLO": {
+   "cik": "0001849056",
+   "name": "Oklo Inc."
+  },
   "ONTO": {
    "cik": "0000704532",
    "name": "ONTO INNOVATION INC."
@@ -1870,6 +2184,10 @@
   "PLUG": {
    "cik": "0001093691",
    "name": "PLUG POWER INC"
+  },
+  "POWL": {
+   "cik": "0000080420",
+   "name": "POWELL INDUSTRIES INC"
   },
   "PWR": {
    "cik": "0001050915",
@@ -1894,6 +2212,10 @@
   "SMCI": {
    "cik": "0001375365",
    "name": "Super Micro Computer, Inc."
+  },
+  "SMR": {
+   "cik": "0001822966",
+   "name": "NUSCALE POWER Corp"
   },
   "SMTC": {
    "cik": "0000088941",
@@ -1927,6 +2249,10 @@
    "cik": "0001622536",
    "name": "Talen Energy Corp"
   },
+  "TPC": {
+   "cik": "0000077543",
+   "name": "TUTOR PERINI CORP"
+  },
   "TSLA": {
    "cik": "0001318605",
    "name": "Tesla, Inc."
@@ -1954,6 +2280,10 @@
   "UUUU": {
    "cik": "0001385849",
    "name": "ENERGY FUELS INC"
+  },
+  "VECO": {
+   "cik": "0000103145",
+   "name": "VEECO INSTRUMENTS INC"
   },
   "VRT": {
    "cik": "0001674101",
@@ -1986,6 +2316,12 @@
   "bridge power",
   "behind the meter",
   "aeroderivative",
-  "grain boundary diffusion"
+  "grain boundary diffusion",
+  "near-packaged optics",
+  "fiber array unit",
+  "heavy rare earth",
+  "neodymium magnet",
+  "behind-the-meter generation",
+  "200G EML"
  ]
 }

@@ -22,17 +22,17 @@
       ['/semibook.html', '💠 반도체', '대→중→세분류 · 분야별 제품 설명과 그림 · 기업별 5년 실적·이력·peer 강약점'],
       ['/battbook.html', '🔋 2차전지', '밸류체인 분류 · 쉬운 설명과 자세한 설명 · 기업별 특장점과 리스크 요인'],
       ['/fcbook.html', '⚡ 연료전지·수소', 'SOFC 중심 밸류체인 · 부품별 공급망 · 특장점과 리스크 · 증권사 리포트'],
-      ['/robobook.html', '🤖 로봇', '신체 비유로 보는 구조 · 부품 분류와 국내 기업 · 특장점과 리스크 · 증권사 리포트'],
     ]},
     { t: '실적', items: [
       ['/screener.html', '📊 실적 스크리닝', '성장·연속증가·흑자전환 + 잠정 반영'],
       ['/hege.html', '🧭 헤게모니 4국면', '매출 vs 영업이익 YoY로 1~4국면 분류 · 1국면 신규·2국면 초입 필터'],
+      ['/qoe.html', '💡 이익의 질', '매출·영익은 버티는데 순익만 급감한 분기 — 일회성 비용인지 DART 주석 원문에서 확인'],
+      ['/sec.html', '🇺🇸 미국 공시', '반도체·광통신·로봇을 밸류체인 세부 단계로 쪼개고, 각 칸의 미국 상장사 SEC 제출을 원문 링크까지 추적'],
       ['/flash.html', '⚡ 잠정실적 속보', '실적 공시 실시간 피드'],
       ['/insider.html', '💰 내부자 매수', '임원·대주주 1억↑ 장내매수'],
     ]},
     { t: '종목분석', items: [
       ['/valuefilter.html', '🎯 밸류 필터', 'PBR·PER·배당 조건 검색 + 엑셀'],
-      ['/pbrroe.html', '⚖️ PBR–ROE 체크', '전 상장사 · 평균 ROE에 비해 PBR이 싼지 · 같은 업종 관계선 대비 괴리'],
       ['/peg.html', '📏 소부장 PEG 밸류', '선행 PER ÷ 순이익 성장률 (린치 기준 등급)'],
       ['/semipeer.html', '⚖️ 반도체 peer 상대밸류', 'peer보다 싼데 이익 체력은 같거나 좋은 기업 · peer 선정 근거 · 국면 필터'],
       ['/upgrade.html', '🚀 체급개선', '기존 기술로 새 사업에 들어간 기업 — a 숫자 전 / b 숫자 확인 · 고객의 질 · 밴드·SOTP·증권사 목표가'],
@@ -131,4 +131,40 @@
       if (href.includes('#') && href.split('#')[0] === path) { e.preventDefault(); location.href = href; location.reload(); }
     });
   });
+})();
+
+// ── 이익의 질 조회 헬퍼 ─────────────────────────────────────────
+// 어느 페이지에서든 QOE.badge(code, '2026Q3') 를 부르면 경고 배지 HTML을 돌려준다.
+// 데이터는 처음 부를 때 한 번만 받아온다(안 부르면 네트워크를 쓰지 않는다).
+(function () {
+  let P = null;
+  function load() {
+    if (!P) P = fetch('/data/qoe.json', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : null).catch(() => null);
+    return P;
+  }
+  async function get(code, q) {
+    const d = await load();
+    if (!d || !d.co || !d.co[code]) return null;
+    const c = d.co[code];
+    const L = (c.ladder || []).find(x => x.q === q);
+    if (!L || L.flag !== 'below_op') return null;          // 영업 밖에서 꺾인 분기만
+    const ev = (c.ev || {})[q] || {};
+    const items = (ev.items || []).filter(i => i.explains !== false);
+    return { name: c.name, q, lad: L, ev, items };
+  }
+  async function badge(code, q) {
+    const r = await get(code, q);
+    if (!r) return '';
+    const top = r.items.slice(0, 2)
+      .map(i => i.name + ' ' + (i.chg > 0 ? '+' : '') + Math.round(i.chg) + '억').join(' · ');
+    const msg = r.items.length
+      ? '순익 급감의 원인이 영업 밖에서 확인됩니다 — ' + top
+      : '영업이익은 버티는데 순익만 꺾였습니다. 원인은 아직 확인되지 않았습니다.';
+    return '<a href="/qoe.html?q=' + encodeURIComponent(code) + '" style="display:block;text-decoration:none;'
+      + 'background:#fffdf8;border:1px solid #e3d9c3;border-radius:10px;padding:9px 12px;margin:8px 0;'
+      + 'font-size:12.5px;line-height:1.65;color:#7a5b16">💡 <b>이익의 질</b> · ' + msg
+      + ' <span style="color:#8a93a2">(근거 보기 →)</span></a>';
+  }
+  window.QOE = { get, badge };
 })();

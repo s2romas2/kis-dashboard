@@ -84,6 +84,9 @@ tr.hl-row td { background:#f2f6fe; }
 <div class="wrap">
   <h1>📞 콜 노트 <span style="font-size:12px;color:#98a2b3;font-weight:600">🔒 본인 전용 · 암호화 저장</span></h1>
   <div class="sub">팀더윤쎈 콜 아카이브 — 원본 슬라이드를 그대로 열람. 신규편입·비중조절·편출을 모아 <b>포트폴리오 현황</b>도 자동 정리합니다.</div>
+  <div id="bodyTop"></div>
+  <!-- 검색창은 고정 DOM — 목록을 다시 그려도 이 input 은 사라지지 않는다(한글 IME 조합 보호) -->
+  <div class="bar" id="qbar" style="display:none"><span id="qchips"></span><span style="width:8px"></span><input id="q" placeholder="🔍 검색" autocomplete="off"></div>
   <div id="body"><div class="gate"><div style="font-size:15px;font-weight:900">🔒 암호를 입력하세요</div>
     <input id="pw" type="password" placeholder="암호" autocomplete="off" onkeydown="if(event.key==='Enter'&&!event.isComposing) unlock()"><br>
     <button onclick="unlock()">열기</button><div class="err" id="err"></div></div></div>
@@ -222,8 +225,8 @@ function dailyView(){
   const L=base.filter(x=>KIND==='all'||x.kind===KIND);
   const days={}; L.forEach(x=>(days[x.d]=days[x.d]||[]).push(x));
   const ds=Object.keys(days).sort().reverse();
-  let h=`<div class="bar"><span class="meta">유형</span>${KINDS.map(k=>`<span class="chip kc-${k} ${KIND===k?'on':''}" onclick="KIND='${k}';draw()">${k==='all'?'전체':(DLABEL[k]||k).replace(/^\[(.+?)\].*$/,'$1')}${k!=='all'&&DLABEL[k]&&DLABEL[k].includes('=')?`<span style="font-weight:600;opacity:.75"> ${DLABEL[k].split('=')[1].trim()}</span>`:''}${kc[k]?` <b>${kc[k]}</b>`:''}</span>`).join('')}</div>
-  <div class="bar">${styleChips()}<span style="width:8px"></span><input id="q" placeholder="🔍 종목·요약 검색" value="${esc(Q)}" oninput="Q=this.value;draw();refocus()"></div>`;
+  const top=`<div class="bar"><span class="meta">유형</span>${KINDS.map(k=>`<span class="chip kc-${k} ${KIND===k?'on':''}" onclick="KIND='${k}';draw()">${k==='all'?'전체':(DLABEL[k]||k).replace(/^\[(.+?)\].*$/,'$1')}${k!=='all'&&DLABEL[k]&&DLABEL[k].includes('=')?`<span style="font-weight:600;opacity:.75"> ${DLABEL[k].split('=')[1].trim()}</span>`:''}${kc[k]?` <b>${kc[k]}</b>`:''}</span>`).join('')}</div>`;
+  let h='';
   const nsum=L.filter(x=>x.sum).length;
   h+=`<div class="meta" style="white-space:normal;margin-bottom:10px">요약 ${nsum}/${L.length}건 · 굵은 줄 = 핵심 한 줄, 아래 점은 근거 숫자 · <span class="sb 가치성장">가치성장</span> <span class="sb 모멘텀">모멘텀</span> 은 콜 슬라이드의 스타일 태그 · ↗ 원문</div>`;
   ds.slice(0,60).forEach((d,i)=>{
@@ -251,7 +254,7 @@ function dailyView(){
   });
   if(ds.length>60) h+=`<div class="loading">${ds.length-60}일 더 있음 — 기수·검색으로 좁혀주세요</div>`;
   if(!ds.length) h+='<div class="loading">조건에 맞는 콜 없음</div>';
-  return h;
+  return {top:top, body:h};
 }
 function draw(){
   const L=D.list; const cnt={}; L.forEach(x=>cnt[x.kind]=(cnt[x.kind]||0)+1);
@@ -264,7 +267,9 @@ function draw(){
   </div>
   <div class="bar"><span class="chip ${VIEW==='list'?'on':''}" onclick="VIEW='list';draw()">📋 콜 목록</span><span class="chip ${VIEW==='daily'?'on':''}" onclick="VIEW='daily';draw()">📅 일자별 정리</span><span class="chip ${VIEW==='pf'?'on':''}" onclick="VIEW='pf';draw()">💼 포트폴리오 현황</span>
     <span style="width:8px"></span>${['all',...[...new Set(D.list.map(x=>x.g).filter(Boolean))].sort((a,b)=>+b-+a)].map(g=>`<span class="chip ${G===g?'on':''}" onclick="G='${g}';draw()">${g==='all'?'전 기수':g+'기'}</span>`).join('')}</div>`;
-  if(VIEW==='daily'){ h+=dailyView(); document.getElementById('body').innerHTML=h; return; }
+  if(VIEW==='daily'){ const dv=dailyView();
+    document.getElementById('bodyTop').innerHTML=h+dv.top; qShow('🔍 종목·요약 검색');
+    document.getElementById('body').innerHTML=dv.body; return; }
   if(VIEW==='pf'){
     const pf=portfolio();
     h+=pieCard();
@@ -273,10 +278,14 @@ function draw(){
         <td><span class="kd ${p.last}">${p.last}</span></td><td>${p.ld}</td>
         <td style="font-size:11.5px;color:#475467">${p.hist.map(hh=>`${hh[0].slice(5)} ${hh[1]}`).join(' → ')}</td></tr>`).join('')}</table>
       <div class="meta" style="margin-top:8px;white-space:normal">※ 콜 제목·키워드 기준 자동 정리 — 편입 비중 숫자는 원본 슬라이드에서 확인</div></div>`;
+    document.getElementById('bodyTop').innerHTML='';
+    document.getElementById('qbar').style.display='none';
     document.getElementById('body').innerHTML=h; return;
   }
-  h+=`<div class="bar">${KINDS.map(k=>`<span class="chip ${KIND===k?'on':''}" onclick="KIND='${k}';draw()">${k==='all'?'전체':k}${cnt[k]?' '+cnt[k]:''}</span>`).join('')}</div>
-  <div class="bar">${styleChips()}<span style="width:8px"></span><input id="q" placeholder="🔍 종목·키워드·제목 검색" value="${esc(Q)}" oninput="Q=this.value;draw();refocus()"></div>`;
+  h+=`<div class="bar">${KINDS.map(k=>`<span class="chip ${KIND===k?'on':''}" onclick="KIND='${k}';draw()">${k==='all'?'전체':k}${cnt[k]?' '+cnt[k]:''}</span>`).join('')}</div>`;
+  // 검색창은 다시 그리지 않는다 — 타이핑마다 input 을 새로 만들면 한글 IME 조합이 끊긴다
+  document.getElementById('bodyTop').innerHTML=h; h='';
+  qShow('🔍 종목·키워드·제목 검색');
   const rows=L.filter(x=>(KIND==='all'||x.kind===KIND)&&(G==='all'||x.g===G)&&passStyle(x)&&(!Q||(x.t+' '+x.kw+' '+x.stock+' '+(x.sum||'')).toLowerCase().includes(Q.toLowerCase())));
   let day='';
   rows.slice(0,300).forEach((x,i)=>{
@@ -293,7 +302,27 @@ function draw(){
   h+=`<div class="meta" style="margin-top:10px;white-space:normal">갱신 ${D.updated} · "콜 업데이트해줘"로 최신분 반영</div>`;
   document.getElementById('body').innerHTML=h;
 }
-function refocus(){ const el=document.getElementById('q'); if(el){ el.focus(); el.setSelectionRange(el.value.length,el.value.length);} }
+// 검색창 보이기 — input 자체는 건드리지 않는다(조합 중인 글자가 날아가므로)
+function qShow(ph){
+  document.getElementById('qbar').style.display='';
+  document.getElementById('qchips').innerHTML=styleChips();
+  const el=document.getElementById('q');
+  if(el.placeholder!==ph) el.placeholder=ph;
+}
+// 검색창 입력 — input 이 교체되지 않으므로 한글 조합이 끊기지 않는다.
+(function(){
+  const el=document.getElementById('q'); if(!el) return;
+  let tmr;
+  const go=function(){ Q=el.value; draw(); };
+  const soon=function(){ clearTimeout(tmr); tmr=setTimeout(go,140); };
+  el.addEventListener('input',soon);
+  el.addEventListener('compositionend',soon);   // 한 글자 완성 시점
+  el.addEventListener('keydown',function(e){
+    if(e.isComposing) return;                   // 조합 중 Enter 는 글자 확정이다
+    if(e.key==='Enter'){ clearTimeout(tmr); go(); }
+    else if(e.key==='Escape'&&el.value){ el.value=''; clearTimeout(tmr); go(); }
+  });
+})();
 (async()=>{ try{ const pw=sessionStorage.getItem('calls_pw'); if(pw){ document.getElementById('pw').value=pw; await unlock(); } }catch(e){} })();
 </script>
 </body>

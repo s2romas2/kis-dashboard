@@ -90,6 +90,9 @@ h1 { font-size:22px; margin:10px 0 4px; }
     💰 <b>이익 체크</b> — 주도주는 이익성장률이 매 분기 커지는 특징 → QoQ 성장률이 직전 분기보다 커지면 <b>가속🔥</b>, 작아지면 <b>둔화⚠</b>(힘을 잃어갈 위험). 분기 실적은 <b>DART 정기보고서</b>(전 상장사 분기 매출·영업이익)에서 가져옵니다.<br>
     🧭 <b>헤게모니 4국면과 함께</b> — 주가 신호(시장의 인정, 주 단위)와 이익 구조(원인, 분기 단위)를 겹쳐 봅니다. 종목마다 국면 배지가 붙고, 아래 4개 조합으로 바로 걸러집니다.
   </div>
+  <div id="bodyTop"></div>
+  <!-- 검색창은 고정 DOM — 목록을 다시 그려도 이 input 은 사라지지 않는다(한글 IME 조합 보호) -->
+  <div class="bar" id="qbar" style="display:none"><input id="q" placeholder="종목명·코드·섹터 검색" autocomplete="off"></div>
   <div id="body"><div class="loading">불러오는 중…</div></div>
 </div>
 <script>
@@ -187,7 +190,11 @@ function draw(){
     <div class="fbar"><b>헤게모니 국면</b>`+HGS.map(([k,lb])=>{ const n=k==='all'?null:list.filter(x=>{const g=x.hg; if(!g||g.ph==null) return k==='na'; return k==='e'?(g.new1||g.entry2):String(g.ph)===k;}).length; return (n===0&&k!=='all')?'':`<span class="scf ${HG===k?'on':''}" onclick="setHG('${k}')">${lb}${n==null?'':' '+n}</span>`; }).join('')+`</div>
     <div class="fbar" style="margin-bottom:0"><b>조합</b>`+Object.keys(CBS).map(k=>`<span class="scf ${CB===k?'on':''}" onclick="setCB('${k}')">${CBS[k][0]} ${cbn[k]}</span>`).join('')+(CB?` <span class="scf" onclick="setCB('${CB}')">✕ 조합 해제</span>`:'')+`</div>
     ${Object.keys(UP).length?`<div class="fbar" style="margin:7px 0 0"><b>체급개선</b><span class="scf ${UPF?'on':''}" onclick="setUP()">🚀 체급개선 목록 종목만 ${list.filter(x=>UP[x.code]).length}</span> <a class="lk" href="/upgrade.html">체급개선 목록 ${Object.keys(UP).length}종목 보기 →</a><span style="font-size:11px;color:#98a2b3">목록에 있어도 주가 신호(정배열·경고·이탈)가 없으면 여기엔 안 나옵니다</span></div>`:''}</div>`;
-  h+=`<div class="bar"><input id="q" placeholder="종목명·코드·섹터 검색" value="${Q}" oninput="Q=this.value;draw();refocus()"></div>`;
+  // 검색창은 다시 그리지 않는다.
+  // 타이핑마다 input 을 새로 만들면 한글 IME 조합이 끊겨 '아남'이 'ㅇㅏㄴㅏㅁ'으로 분리된다.
+  // 여기서 위쪽(#bodyTop)을 확정하고, 검색창은 고정 DOM(#qbar)으로 남겨 둔다.
+  document.getElementById('bodyTop').innerHTML=h; h='';
+  document.getElementById('qbar').style.display='';
   if(CB==='D'){ h+=watchH(W); h+=`<div style="font-size:11px;color:#98a2b3;margin-top:10px">시총 상위 ${D.capTop||1000}종목 · 갱신 ${D.updated||''}</div>`; document.getElementById('body').innerHTML=h; return; }
   // 섹터 필터 칩 — 현재 상태 필터 기준 건수 표시
   const base=list.filter(x=>(FILT==='all'||x.state===FILT)&&hgOk(x)&&(!CB||x.cb===CB)&&(!UPF||UP[x.code]));
@@ -250,7 +257,20 @@ function watchH(W){
   rows.sort((a,b)=>{ const n=x=>(x.ma||[]).filter(Boolean).length; return n(b)-n(a)||(b.cap||0)-(a.cap||0); }).map(x=>`<tr><td class="l"><b>${x.name}</b> <span class="cd">${x.code}${x.sector?' · '+x.sector:''}</span> ${upB(x.code)}</td><td class="l">${hgB(x.hg)}</td><td class="${(x.hg.rg||0)>=0?'pos':'neg'}">${pcH(x.hg.rg)}</td><td class="${(x.hg.og||0)>=0?'pos':'neg'}">${pcH(x.hg.og)}</td>${x.ma?x.ma.map(v=>`<td>${ok(v)}</td>`).join(''):'<td colspan="3" style="color:#98a2b3">주봉 부족</td>'}<td class="${(x.chg13w||0)>=0?'pos':'neg'}">${x.chg13w==null?'-':pc(x.chg13w)}</td><td class="l">${stl[x.st]||'<span style="color:#98a2b3">없음</span>'}</td><td>${fmt(x.cap)}</td><td class="l"><a class="lk" href="/bands.html#${x.code}">밴드</a> · <a class="lk" href="/valws.html?c=${x.code}">워크시트</a></td></tr>`).join('')+
   `</table></div>`+(rows.length?'':'<div class="loading">조건에 맞는 종목 없음</div>');
 }
-function refocus(){ const el=document.getElementById('q'); if(el){ el.focus(); el.setSelectionRange(el.value.length,el.value.length);} }
+// 검색창 입력 — input 이 교체되지 않으므로 한글 조합이 끊기지 않는다.
+(function(){
+  const el=document.getElementById('q'); if(!el) return;
+  let tmr;
+  const go=function(){ Q=el.value; draw(); };
+  const soon=function(){ clearTimeout(tmr); tmr=setTimeout(go,140); };
+  el.addEventListener('input',soon);
+  el.addEventListener('compositionend',soon);   // 한 글자 완성 시점
+  el.addEventListener('keydown',function(e){
+    if(e.isComposing) return;                   // 조합 중 Enter 는 글자 확정이다
+    if(e.key==='Enter'){ clearTimeout(tmr); go(); }
+    else if(e.key==='Escape'&&el.value){ el.value=''; clearTimeout(tmr); go(); }
+  });
+})();
 function setF(f){ FILT=f; SEC='all'; draw(); }
 function setSec(s){ SEC=s; draw(); }
 function setTW(t){ TW=t; draw(); }

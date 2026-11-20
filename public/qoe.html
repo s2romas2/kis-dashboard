@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>이익의 질 · 한국 대시보드</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin:0; background:#f6f7f9; color:#1a1f2e; font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; }
+.wrap { max-width:1140px; margin:0 auto; padding:20px 18px 48px; }
+header { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+h1 { font-size:20px; margin:0; font-weight:800; }
+.sub { color:#6b7280; font-size:12.5px; margin:3px 0 0; line-height:1.6; }
+a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
+.meta { font-size:12px; color:#8a93a2; }
+.panel { background:#fff; border:1px solid #eceef2; border-radius:14px; padding:16px 18px; margin:14px 0; box-shadow:0 1px 2px rgba(20,30,60,.04); }
+.panel h2 { font-size:14px; margin:0 0 10px; font-weight:700; }
+.hint { font-size:11.5px; color:#8a93a2; margin-top:8px; line-height:1.7; }
+.hint b { color:#5b6472; }
+.loading { text-align:center; padding:40px; color:#6b7280; font-size:13px; line-height:1.8; }
+
+/* 방법 설명 */
+.steps { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:4px; }
+.step { background:#fafbfd; border:1px solid #eef1f5; border-radius:11px; padding:11px 13px; }
+.step .n { font-size:11px; font-weight:800; color:#2f6df6; letter-spacing:.3px }
+.step .t { font-size:13px; font-weight:700; margin:3px 0 4px }
+.step .d { font-size:11.5px; color:#6b7280; line-height:1.65 }
+.tag { display:inline-block; font-size:10.5px; font-weight:700; border-radius:6px; padding:1px 6px; vertical-align:1px; margin-left:4px }
+.tag.c { background:#eef4ff; color:#2563d6 } .tag.v { background:#e8f6ee; color:#157f4a }
+.tag.j { background:#fdf2e3; color:#9a6212 } .tag.u { background:#f0f2f5; color:#6b7280 }
+
+/* 필터 */
+.ctrl { display:flex; flex-wrap:wrap; gap:8px; align-items:center }
+.ctrl select, .ctrl input { border:1px solid #d7dce4; border-radius:9px; padding:7px 10px; font:inherit; font-size:13px }
+.ctrl label { font-size:12.5px; color:#5b6472; display:flex; align-items:center; gap:5px; cursor:pointer }
+.cnt { font-size:12px; color:#8a93a2; margin-left:auto }
+
+/* 종목 카드 */
+.co { border:1px solid #eceef2; border-radius:13px; padding:13px 15px; margin:10px 0; background:#fff; box-shadow:0 1px 2px rgba(20,30,60,.04) }
+.co.ev { border-color:#e3d9c3; background:#fffdf8 }
+.co h3 { font-size:14.5px; margin:0 0 2px; font-weight:800 }
+.co h3 .code { font-size:11.5px; color:#8a93a2; font-weight:600; margin-left:5px }
+.co h3 .q { font-size:12px; color:#2f6df6; font-weight:700; margin-left:7px }
+.lad { display:flex; gap:7px; flex-wrap:wrap; margin:9px 0 4px }
+.cell { flex:1 1 110px; border:1px solid #eef1f5; border-radius:9px; padding:7px 10px; background:#fafbfd }
+.cell .k { font-size:10.5px; color:#8a93a2; font-weight:700 }
+.cell .v { font-size:15px; font-weight:800; margin-top:1px; font-variant-numeric:tabular-nums }
+.cell .a { font-size:11px; color:#6b7280; margin-top:1px }
+.up { color:#157f4a } .dn { color:#d32d3f } .fl { color:#5b6472 }
+.cell.hit { background:#fdeaec; border-color:#f4cdd2 }
+.verdict { font-size:12.5px; line-height:1.7; margin:8px 0 0; padding:9px 12px; border-radius:10px; background:#f2f6fe; color:#28408a }
+.verdict.none { background:#f6f7f9; color:#6b7280 }
+table { width:100%; border-collapse:collapse; margin-top:9px; font-size:12.5px }
+th,td { border-bottom:1px solid #eef1f5; padding:6px 7px; text-align:right; font-variant-numeric:tabular-nums }
+th { background:#fafbfd; font-size:11px; color:#5b6472; font-weight:700; text-align:right; white-space:nowrap }
+th:first-child, td:first-child { text-align:left }
+.dart { font-size:11.5px; color:#2f6df6; text-decoration:none }
+.ref { font-size:11px; color:#8a93a2; margin-top:6px; line-height:1.6 }
+@media (max-width:760px){ .wrap{padding:14px 10px 40px} .steps{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<script src="/nav.js"></script>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>💡 이익의 질 <span style="display:inline-block;background:#f0f4fa;color:#5b6472;border-radius:8px;padding:2px 8px;font-size:11px;font-weight:600;vertical-align:3px">DART 주석 원문 근거</span></h1>
+      <div class="sub">매출·영업이익은 버티는데 <b>순이익만</b> 급감한 분기를 찾아, 그 원인이 일회성 비용인지 공시 원문에서 확인합니다.<br>
+        순익 감소를 곧 사이클의 끝으로 읽지 않기 위한 공통 근거입니다.</div>
+      <div style="margin-top:6px"><a class="back" href="/">← 섹터 대시보드</a> &nbsp; <a class="back" href="/screener.html">📊 실적 스크리닝</a> &nbsp; <a class="back" href="/deep.html">🔬 종목 딥다이브</a></div>
+    </div>
+    <div class="meta" id="meta">불러오는 중…</div>
+  </header>
+
+  <div class="panel">
+    <h2>어떻게 판정하나</h2>
+    <div class="steps">
+      <div class="step"><div class="n">1단계</div><div class="t">계단 분해<span class="tag c">계산</span></div>
+        <div class="d">매출 → 영업이익 → 순이익 YoY를 나란히 놓고 <b>어느 단에서 꺾였는지</b> 특정합니다. 영업이익은 버티는데 순익만 꺾였다면 원인은 영업 밖입니다.</div></div>
+      <div class="step"><div class="n">2단계</div><div class="t">공시 원문 확인<span class="tag v">확인</span></div>
+        <div class="d">그 분기 보고서의 <b>주석</b>에서 당기·전기 표를 짝지어 전년 동기 대비 크게 튄 항목을 금액까지 뽑습니다. 계정 이름에 기대지 않으므로 '잡손실'처럼 사전에 없는 항목도 잡힙니다.</div></div>
+      <div class="step"><div class="n">3단계</div><div class="t">비우기<span class="tag u">미확인</span></div>
+        <div class="d">소계·총계 행, 사업 규모와 함께 커지는 일상 비용, 순익을 끌어내리지 않은 반대 방향 항목은 설명으로 쓰지 않습니다. <b>설명할 수 없으면 비웁니다.</b></div></div>
+    </div>
+    <div class="hint"><b>읽을 때 주의</b> — 주석 금액의 기간 기준(<b>누계</b>/<b>분기</b>)은 보고서마다 다릅니다. 각 분기에 기준을 그대로 적어 두었습니다. 기준이 다른 숫자를 분기 순익 변동폭으로 나누면 비율이 틀리므로, 이 화면은 <b>비율을 계산하지 않습니다</b>. 비현금 표시는 손상차손·평가손익처럼 현금이 나가지 않는 항목이라는 <span class="tag j">판단</span>입니다.</div>
+  </div>
+
+  <div class="panel">
+    <div class="ctrl">
+      <input id="q" placeholder="🔍 종목명·코드" autocomplete="off" style="width:min(240px,100%)">
+      <select id="per"><option value="">전체 분기</option></select>
+      <label><input type="checkbox" id="onlyev" checked> 공시근거 있는 것만</label>
+      <select id="sort"><option value="q">최근 분기순</option><option value="ni">순익 낙폭순</option><option value="amt">일회성 금액순</option></select>
+      <span class="cnt" id="cnt"></span>
+    </div>
+  </div>
+
+  <div id="list"><div class="loading">불러오는 중…</div></div>
+  <div class="panel"><div class="hint" id="foot"></div></div>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const eok=v=>v==null?'—':(Math.abs(v)>=10000?(v/10000).toFixed(1)+'조':Math.round(v).toLocaleString()+'억');
+const pct=v=>v==null?'—':(v>0?'+':'')+v.toFixed(1)+'%';
+const cls=v=>v==null?'fl':(v>0?'up':(v<0?'dn':'fl'));
+const qlab=q=>q.replace(/^(\d{2})(\d{2})Q(\d)$/,'$2.$3Q');
+let ROWS=[], UP='';
+
+function card(r){
+  const L=r.lad, ev=r.ev||{};
+  const items=(ev.items||[]).filter(i=>i.explains!==false);   // 구버전 수집분은 필드가 없다
+  const oth=(ev.items||[]).filter(i=>i.explains===false);
+  const d=document.createElement('div');
+  d.className='co'+(items.length?' ev':'');
+  let h=`<h3>${r.name}<span class="code">${r.code}</span><span class="q">${qlab(r.q)}</span></h3>`;
+  h+=`<div class="lad">
+    <div class="cell"><div class="k">매출</div><div class="v ${cls(L.revY)}">${pct(L.revY)}</div><div class="a">${eok(L.rev)}</div></div>
+    <div class="cell"><div class="k">영업이익</div><div class="v ${cls(L.opY)}">${pct(L.opY)}</div><div class="a">${eok(L.op)}</div></div>
+    <div class="cell hit"><div class="k">순이익</div><div class="v ${cls(L.niY)}">${pct(L.niY)}</div><div class="a">${eok(L.ni)}</div></div>
+  </div>`;
+  if(items.length){
+    h+=`<div class="verdict"><b>영업 밖에서 꺾였고, 공시에서 원인이 확인됩니다.</b> 아래 항목은 그 분기 보고서 주석의 당기·전기 금액 차이입니다. 기간 기준 <b>${ev.basis||'미상'}</b>.</div>`;
+    h+='<table><thead><tr><th>주석 항목</th><th>당기</th><th>전기</th><th>증감</th><th>성격</th></tr></thead><tbody>';
+    for(const i of items.slice(0,6)){
+      const nc = i.cash==='noncash' ? '<span class="tag j">비현금</span>' : '';
+      const rt = i.routine ? '<span class="tag u">일상비용</span>' : '';
+      h+=`<tr><td>${i.name}${nc}${rt}</td><td>${eok(i.cur)}</td><td>${eok(i.prev)}</td><td class="${cls(-i.chg)}">${(i.chg>0?'+':'')+Math.round(i.chg).toLocaleString()}억</td><td>${i.kind||'—'}</td></tr>`;
+    }
+    h+='</tbody></table>';
+    if(oth.length) h+=`<div class="ref">반대 방향(순익을 끌어내리지 않은) 항목: ${oth.slice(0,3).map(i=>i.name+' '+(i.chg>0?'+':'')+Math.round(i.chg)+'억').join(' · ')}</div>`;
+    if(ev.tax!=null) h+=`<div class="ref">같은 보고서의 법인세비용 ${eok(ev.tax)} <span class="tag v">확인</span> — 유효세율은 누계 기준으로만 비교하세요. 분기 법인세는 예상 연간 유효세율을 배분한 값이라 분기 단독값이 널뜁니다.</div>`;
+    if(ev.rcp) h+=`<div class="ref"><a class="dart" target="_blank" rel="noopener" href="https://dart.fss.or.kr/dsaf001/main.do?rcpNo=${ev.rcp}">DART 원문 보고서 열기 →</a></div>`;
+  } else {
+    const why = ev.why==='no_report' ? '해당 분기 정기보고서를 찾지 못했습니다.'
+              : (ev.items ? '주석에서 순익 감소를 설명하는 일회성 항목을 찾지 못했습니다.' : '아직 원문을 확인하지 않았습니다.');
+    h+=`<div class="verdict none"><b>영업 밖에서 꺾였지만 원인은 비워 둡니다.</b> ${why} 영업과 무관한 어딘가에서 빠진 것은 분명하나, 근거 없이 원인을 적지 않습니다.</div>`;
+    if(ev.rcp) h+=`<div class="ref"><a class="dart" target="_blank" rel="noopener" href="https://dart.fss.or.kr/dsaf001/main.do?rcpNo=${ev.rcp}">DART 원문 보고서 열기 →</a></div>`;
+  }
+  d.innerHTML=h; return d;
+}
+
+function render(){
+  const kw=$('#q').value.trim().toLowerCase(), per=$('#per').value, oe=$('#onlyev').checked, so=$('#sort').value;
+  let rs=ROWS.filter(r=>{
+    if(per && r.q!==per) return false;
+    if(oe && !((r.ev.items||[]).some(i=>i.explains!==false))) return false;
+    if(kw && !(r.name.toLowerCase().includes(kw)||r.code.includes(kw))) return false;
+    return true;
+  });
+  if(so==='ni') rs.sort((a,b)=>(a.lad.niY??0)-(b.lad.niY??0));
+  else if(so==='amt') rs.sort((a,b)=>amt(b)-amt(a));
+  else rs.sort((a,b)=>b.q.localeCompare(a.q)||(a.lad.niY??0)-(b.lad.niY??0));
+  $('#cnt').textContent=rs.length+'개 분기';
+  const L=$('#list'); L.textContent='';
+  if(!rs.length){ L.innerHTML='<div class="loading">조건에 맞는 분기가 없습니다.<br>「공시근거 있는 것만」을 끄면 원인을 아직 확인하지 않은 분기까지 볼 수 있습니다.</div>'; return; }
+  const f=document.createDocumentFragment();
+  rs.slice(0,250).forEach(r=>f.appendChild(card(r)));
+  L.appendChild(f);
+  if(rs.length>250){ const m=document.createElement('div'); m.className='loading'; m.textContent='상위 250개만 표시했습니다. 검색이나 분기 선택으로 좁혀 주세요.'; L.appendChild(m); }
+}
+function amt(r){ return (r.ev.items||[]).filter(i=>i.explains!==false).reduce((s,i)=>s+Math.abs(i.chg||0),0); }
+
+(async()=>{
+  let d;
+  try{ d=await (await fetch('/data/qoe.json',{cache:'no-store'})).json(); }
+  catch(e){ $('#list').innerHTML='<div class="loading">아직 수집된 데이터가 없습니다. (/data/qoe.json)</div>'; return; }
+  UP=d.updated||''; const st=d.stat||{};
+  $('#meta').textContent=`${UP} · 종목 ${st.co??'?'} · 영업 밖 꺾임 ${st.below_op??'?'}분기 · 공시근거 ${st.with_evidence??'?'}분기`;
+  const qs=new Set();
+  for(const [code,c] of Object.entries(d.co||{})){
+    for(const L of (c.ladder||[])){
+      if(L.flag!=='below_op') continue;
+      const ev=(c.ev||{})[L.q]||{};
+      ROWS.push({code,name:c.name||code,q:L.q,lad:L,ev}); qs.add(L.q);
+    }
+  }
+  const sel=$('#per');
+  [...qs].sort().reverse().forEach(q=>{ const o=document.createElement('option'); o.value=q; o.textContent=qlab(q); sel.appendChild(o); });
+  $('#foot').innerHTML=`판정 기준 — 순이익 YoY ${d.rule?.NI_DROP ?? -30}% 이하로 꺾였고, 영업이익 YoY는 ${d.rule?.OP_HOLD ?? -10}%보다 좋고, 매출 YoY는 ${d.rule?.REV_HOLD ?? -5}%보다 좋으며, 순익YoY와 영익YoY의 괴리가 ${d.rule?.GAP_MIN ?? 25}%p 이상인 분기를 '영업 밖에서 꺾임'으로 봅니다. 분기 손익은 실적 비교 데이터, 일회성 항목은 DART 주석 원문이 출처입니다. 원문을 캐는 작업은 1회 실행에서 종목 수가 제한되므로 공시근거는 순차적으로 채워집니다.`;
+  const pre=new URLSearchParams(location.search).get('q');
+  if(pre){ $('#q').value=pre; $('#onlyev').checked=false; }   // 배지에서 넘어온 경우 전부 보여준다
+  ['#q','#per','#onlyev','#sort'].forEach(s=>$(s).addEventListener('input',render));
+  render();
+})();
+</script>
+</body>
+</html>

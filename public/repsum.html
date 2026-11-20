@@ -243,7 +243,7 @@ function inkStroke(ctx,s,k){
   ctx.save();
   ctx.lineJoin='round';
   if(s.t==='hl'){ ctx.globalAlpha=.34; ctx.globalCompositeOperation='multiply';
-                  ctx.lineCap='butt'; ctx.lineWidth=16*k; ctx.strokeStyle=s.c;
+                  ctx.lineCap='butt'; ctx.lineWidth=(s.hw||16)*k; ctx.strokeStyle=s.c;
                   ctx.beginPath(); s.p.forEach(function(q,i){ i?ctx.lineTo(q[0]*k,q[1]*k):ctx.moveTo(q[0]*k,q[1]*k); });
                   ctx.stroke(); }
   else{ ctx.lineCap='round'; ctx.strokeStyle=s.c;
@@ -262,6 +262,13 @@ function inkSave(){
   const s=document.getElementById('inkst'); if(s) s.textContent=INK.st.length?INK.st.length+'획 저장됨':'';
 }
 let _sv; function inkSaveSoon(){ clearTimeout(_sv); _sv=setTimeout(inkSave,600); }
+// 600ms 디바운스 중에 탭을 닫으면 마지막 획이 날아간다 — 숨김·종료 시 즉시 기록한다.
+(function(){
+  const flush=function(){ if(INK.id){ clearTimeout(_sv); inkSave(); } };
+  window.addEventListener('pagehide',flush);
+  window.addEventListener('beforeunload',flush);
+  document.addEventListener('visibilitychange',function(){ if(document.hidden) flush(); });
+})();
 function inkLoad(){
   INK.st=[];INK.hist=[];INK.redo=[];
   try{ const r=JSON.parse(localStorage.getItem(inkKey())||'null');
@@ -272,15 +279,62 @@ function inkBtns(){
   if(u) u.disabled=!INK.hist.length;
   if(r) r.disabled=!INK.redo.length;
 }
+// 커서 아래에 있는 '글줄'의 세로 중앙과 높이를 캔버스 좌표로 돌려준다.
+// 형광펜을 줄에 맞춰 자로 잰 듯 긋기 위한 것. 글줄을 못 찾으면 null.
+function inkLineAt(e){
+  const c=inkCanvas(); if(!c) return null;
+  const prev=c.style.pointerEvents;
+  c.style.pointerEvents='none';            // 캔버스를 잠깐 통과시켜 밑의 글자를 집는다
+  let box=null;
+  try{
+    let node=null, off=0;
+    if(document.caretRangeFromPoint){
+      const r=document.caretRangeFromPoint(e.clientX,e.clientY);
+      if(r){ node=r.startContainer; off=r.startOffset; }
+    }else if(document.caretPositionFromPoint){
+      const pz=document.caretPositionFromPoint(e.clientX,e.clientY);
+      if(pz){ node=pz.offsetNode; off=pz.offset; }
+    }
+    if(node && node.nodeType===3 && node.length){
+      const rg=document.createRange();
+      const a=Math.max(0,Math.min(off,node.length-1));
+      rg.setStart(node,a); rg.setEnd(node,Math.min(node.length,a+1));
+      const rects=[].slice.call(rg.getClientRects());
+      const hit=rects.filter(function(r){ return e.clientY>=r.top-3 && e.clientY<=r.bottom+3; })[0] || rects[0];
+      if(hit && hit.height>4) box={cy:(hit.top+hit.bottom)/2, h:hit.height};
+    }
+  }catch(_){}
+  c.style.pointerEvents=prev;
+  if(!box) return null;
+  const b=c.getBoundingClientRect(), k=INK.base?c.clientWidth/INK.base:1;
+  return {y:(box.cy-b.top)/k, h:box.h/k};
+}
+
 function inkXY(e){
   const c=inkCanvas(), b=c.getBoundingClientRect(), k=INK.base?c.clientWidth/INK.base:1;
   return [(e.clientX-b.left)/k,(e.clientY-b.top)/k, e.pressure&&e.pressure>0?e.pressure:0.5];
 }
+// 점이 아니라 선분까지의 거리로 판정한다.
+// 형광펜 직선은 양 끝에만 점이 있어서 점 기준으로는 가운데가 안 지워진다.
+function segDist(px,py,ax,ay,bx,by){
+  const dx=bx-ax, dy=by-ay, L=dx*dx+dy*dy;
+  let t = L ? ((px-ax)*dx+(py-ay)*dy)/L : 0;
+  t = t<0?0:(t>1?1:t);
+  const qx=ax+t*dx, qy=ay+t*dy;
+  return Math.hypot(px-qx, py-qy);
+}
+function inkHit(s,x,y){
+  const pad = (s.t==='hl' ? (s.hw||16)/2 : (s.w||2.4)) + 9;
+  if(!s.p||!s.p.length) return false;
+  if(s.p.length===1) return Math.hypot(s.p[0][0]-x, s.p[0][1]-y) < pad;
+  for(let i=1;i<s.p.length;i++){
+    if(segDist(x,y,s.p[i-1][0],s.p[i-1][1],s.p[i][0],s.p[i][1]) < pad) return true;
+  }
+  return false;
+}
 function inkErase(x,y){
-  const R=11, before=INK.st.length;
-  INK.st=INK.st.filter(function(s){
-    return !s.p.some(function(q){ return Math.abs(q[0]-x)<R && Math.abs(q[1]-y)<R; });
-  });
+  const before=INK.st.length;
+  INK.st=INK.st.filter(function(s){ return !inkHit(s,x,y); });
   if(INK.st.length!==before){ inkDraw(); inkSaveSoon(); }
 }
 function inkBind(){
@@ -293,63 +347,104 @@ function inkBind(){
     e.preventDefault();
     const q=inkXY(e);
     if(INK.tool==='er'){ inkSnap(); inkErase(q[0],q[1]); return; }
-    INK.cur={t:INK.tool,c:INK.tool==='hl'?INK.hl:INK.color,w:2.4,p:[q]};
+    if(INK.tool==='hl'){
+      // 줄에 맞춰 자로 잰 듯 — 글줄을 찾으면 그 중앙에, 못 찾으면 누른 자리에 수평 고정
+      const ln=inkLineAt(e);
+      const ry=ln?ln.y:q[1];
+      const hw=ln?Math.max(11,Math.min(34,ln.h*0.82)):16;
+      INK.cur={t:'hl',c:INK.hl,hw:hw,ry:ry,p:[[q[0],ry,1],[q[0],ry,1]]};
+    }else{
+      INK.cur={t:INK.tool,c:INK.color,w:2.4,p:[q]};
+    }
     inkDraw();
   });
   c.addEventListener('pointermove',function(e){
     if(!drawing||!INK.tool) return;
     const q=inkXY(e);
     if(INK.tool==='er'){ inkErase(q[0],q[1]); return; }
-    if(INK.cur){ INK.cur.p.push(q); inkDraw(); }
+    if(!INK.cur) return;
+    if(INK.cur.t==='hl'){ INK.cur.p[1]=[q[0],INK.cur.ry,1]; }   // 끝점의 x만 따라간다
+    else{ INK.cur.p.push(q); }
+    inkDraw();
   });
   const end=function(){
     if(!drawing) return; drawing=false;
-    if(INK.cur&&INK.cur.p.length){ inkSnap(); INK.st.push(INK.cur); }
+    if(INK.cur&&INK.cur.p.length){
+      const tiny = INK.cur.t==='hl' && Math.abs(INK.cur.p[1][0]-INK.cur.p[0][0])<3;
+      if(!tiny){ inkSnap(); INK.st.push(INK.cur); }
+    }
     INK.cur=null; inkDraw(); inkSaveSoon();
   };
   c.addEventListener('pointerup',end); c.addEventListener('pointercancel',end);
   window.addEventListener('pointerup',end);   // 캔버스 밖에서 떼도 획을 닫는다
   window.addEventListener('resize',function(){ clearTimeout(_sv); inkFit(); });
 }
+// 되돌리기·다시실행을 함수로 빼서 버튼과 단축키가 같은 경로를 쓰게 한다
+function inkUndo(){
+  if(!INK.hist.length) return false;
+  INK.redo.push(INK.st.slice()); INK.st=INK.hist.pop();
+  inkDraw(); inkSave(); inkBtns(); return true;
+}
+function inkRedo(){
+  if(!INK.redo.length) return false;
+  INK.hist.push(INK.st.slice()); INK.st=INK.redo.pop();
+  inkDraw(); inkSave(); inkBtns(); return true;
+}
+// Ctrl+Z 되돌리기 / Ctrl+Shift+Z·Ctrl+Y 다시실행 (맥은 Cmd)
+(function(){
+  document.addEventListener('keydown',function(e){
+    if(!INK.id) return;                                   // 리포트를 보고 있을 때만
+    const t=e.target, tag=t&&t.tagName;
+    if(tag==='INPUT'||tag==='TEXTAREA'||(t&&t.isContentEditable)) return;
+    if(!(e.ctrlKey||e.metaKey) || e.altKey) return;
+    const k=(e.key||'').toLowerCase();
+    if(k==='z'&&!e.shiftKey){ if(inkUndo()) e.preventDefault(); }
+    else if((k==='z'&&e.shiftKey)||k==='y'){ if(inkRedo()) e.preventDefault(); }
+  });
+})();
+
+// 색 선택은 도구를 바꾸지 않는다.
+// 예전에는 색 버튼이 inkTool(INK.tool, …)을 다시 불러 토글로 도구가 꺼졌다 —
+// 색을 고르면 그려지지 않는 버그였다.
+function inkSwatches(){
+  const sw=document.getElementById('inksw'); if(!sw) return;
+  sw.innerHTML='';
+  if(INK.tool!=='pen'&&INK.tool!=='hl') return;
+  (INK.tool==='hl'?HLS:PENS).forEach(function(p){
+    const b=document.createElement('button'); b.className='sw'; b.style.background=p[0]; b.title=p[1];
+    if((INK.tool==='hl'?INK.hl:INK.color)===p[0]) b.classList.add('on');
+    b.onclick=function(){
+      if(INK.tool==='hl') INK.hl=p[0]; else INK.color=p[0];
+      inkSwatches();                       // 선택 표시만 갱신, 도구는 그대로
+    };
+    sw.appendChild(b);
+  });
+}
 function inkTool(name,btn){
   INK.tool=(INK.tool===name)?null:name;
   document.body.classList.toggle('inkon',!!INK.tool);
   document.querySelectorAll('#inkbar .tl').forEach(function(b){ b.classList.remove('on'); });
   if(INK.tool&&btn) btn.classList.add('on');
-  const sw=document.getElementById('inksw');
-  if(sw){ sw.innerHTML=''; 
-    if(INK.tool==='pen'||INK.tool==='hl'){
-      (INK.tool==='hl'?HLS:PENS).forEach(function(p){
-        const b=document.createElement('button'); b.className='sw'; b.style.background=p[0]; b.title=p[1];
-        if((INK.tool==='hl'?INK.hl:INK.color)===p[0]) b.classList.add('on');
-        b.onclick=function(){ if(INK.tool==='hl') INK.hl=p[0]; else INK.color=p[0]; inkTool(INK.tool, 
-          document.querySelector('#inkbar .tl.on')); };
-        sw.appendChild(b);
-      });
-    } }
+  inkSwatches();
 }
 function inkBar(){
   if(document.getElementById('inkbar')) document.getElementById('inkbar').remove();
   const bar=document.createElement('div'); bar.id='inkbar';
   bar.innerHTML='<span id="inkst"></span>'
    +'<button class="tl" id="inkP" title="펜">✏️</button>'
-   +'<button class="tl" id="inkH" title="형광펜">🖍️</button>'
+   +'<button class="tl" id="inkH" title="형광펜 — 글줄에 맞춰 수평으로 그어집니다">🖍️</button>'
    +'<button class="tl" id="inkE" title="지우개(획 단위)">🧽</button>'
    +'<span id="inksw" style="display:flex;gap:4px"></span>'
    +'<span class="sep"></span>'
-   +'<button id="inkU" title="되돌리기">↶</button>'
-   +'<button id="inkR" title="다시 실행">↷</button>'
+   +'<button id="inkU" title="되돌리기 (Ctrl+Z)">↶</button>'
+   +'<button id="inkR" title="다시 실행 (Ctrl+Shift+Z)">↷</button>'
    +'<button id="inkC" title="전체 지우기">🗑️</button>';
   document.body.appendChild(bar);
   bar.querySelector('#inkP').onclick=function(){ inkTool('pen',this); };
   bar.querySelector('#inkH').onclick=function(){ inkTool('hl',this); };
   bar.querySelector('#inkE').onclick=function(){ inkTool('er',this); };
-  bar.querySelector('#inkU').onclick=function(){
-    if(!INK.hist.length) return;
-    INK.redo.push(INK.st.slice()); INK.st=INK.hist.pop(); inkDraw(); inkSave(); inkBtns(); };
-  bar.querySelector('#inkR').onclick=function(){
-    if(!INK.redo.length) return;
-    INK.hist.push(INK.st.slice()); INK.st=INK.redo.pop(); inkDraw(); inkSave(); inkBtns(); };
+  bar.querySelector('#inkU').onclick=function(){ inkUndo(); };
+  bar.querySelector('#inkR').onclick=function(){ inkRedo(); };
   bar.querySelector('#inkC').onclick=function(){
     if(!INK.st.length) return;
     if(!confirm('이 리포트의 필기를 전부 지울까요?')) return;
@@ -386,16 +481,13 @@ async function renderList(){
   let d;
   try{ d=await jget('/data/repsum.json'); }
   catch(e){ $('#app').innerHTML='<div class="note">아직 정밀요약이 없다. (/data/repsum.json 없음)</div>'; return; }
-  const own=r=>(r.tier==='desk'||r.tier==='guide')?1:0;
-  // 로봇 긴 글(tier 'guide')은 📚 교과서 › 🤖 로봇(/robobook.html)으로 옮겼다 — 목록에서는 숨기고 주소(#r=…)는 그대로 열린다
-  const items=(d.items||[]).filter(r=>r.tier!=='guide').sort((a,b)=>String(b.d||'').localeCompare(String(a.d||''))||own(b)-own(a));
+  const items=(d.items||[]).slice().sort((a,b)=>String(b.d||'').localeCompare(String(a.d||'')));
   $('#app').innerHTML='<div class="hd"><h1>리포트 정밀요약 <small style="font-size:14px;color:#667085;font-weight:400">'+items.length+'건</small></h1></div>'
-   +'<div class="note">'+esc(d.note||'')+'<br>수집·작성 '+esc(d.updated||'')
-   +'<br>로봇 가이드·기업 지도는 📚 교과서 › 🤖 로봇으로 옮겼습니다 — <a href="/robobook.html">로봇 교과서 열기</a></div>'
+   +'<div class="note">'+esc(d.note||'')+'<br>수집·작성 '+esc(d.updated||'')+'</div>'
    +'<div class="lst">'+items.map(function(r){
-      return '<a class="it" href="#r='+esc(r.id)+'"><div class="t">'+(r.tier==='desk'?'🧩 통합본 · ':r.tier==='guide'?'🧭 가이드 · ':'')+esc(r.t)+'</div>'
+      return '<a class="it" href="#r='+esc(r.id)+'"><div class="t">'+esc(r.t)+'</div>'
         +'<div class="m">'+esc(r.b||'')+(r.an&&r.an.length?' · '+esc(r.an.join(', ')):'')+' · '+esc(r.d||'')
-        +(r.pages?' · '+r.pages+'페이지':'')+(r.written?' · 요약 '+esc(r.written):'')+(r.u?' · 📄 원문 링크':'')+'</div>'
+        +(r.pages?' · '+r.pages+'페이지':'')+(r.written?' · 요약 '+esc(r.written):'')+'</div>'
         +(r.lead?'<div class="l">'+esc(r.lead)+'</div>':'')+'</a>';
    }).join('')+'</div>';
 }
@@ -404,19 +496,18 @@ async function renderOne(id){
   let d;
   try{ d=await jget('/data/repsum_'+id+'.json'); }
   catch(e){ $('#app').innerHTML='<div class="note">해당 요약을 찾지 못했다: '+esc(id)+'</div>'; return; }
-  const isGuide=d.tier==='guide';   // 로봇 긴 글은 교과서에서 들어온다
-  $('#cr').innerHTML=isGuide?' › 교과서 › <a href="/robobook.html">🤖 로봇</a>':' › '+esc(d.b||'');
+  $('#cr').innerHTML=' › '+esc(d.b||'');
   const an=(d.an||[]).join(', ');
   const tt=String(d.t||''); const i=tt.indexOf('(feat');
   const main=i>0?tt.slice(0,i).trim():tt, sub=i>0?tt.slice(i).trim():'';
   $('#app').innerHTML=
-    (isGuide?'<a class="back" href="/robobook.html">‹ 🤖 로봇 교과서</a>':'<a class="back" href="#">‹ 정밀요약 목록</a>')
+    '<a class="back" href="#">‹ 정밀요약 목록</a>'
    +'<div class="hd"><h1>'+esc(main)+(sub?'<br><span class="sub">'+esc(sub)+'</span>':'')+'</h1>'
-   +'<div class="meta"><b>'+esc(d.b||'')+'</b>'+(d.d?' · '+esc(d.d)+((d.tier==='guide'||d.tier==='desk')?' 작성':' 발간'):'')+(d.pages?' · 전체 '+d.pages+'페이지':'')
+   +'<div class="meta"><b>'+esc(d.b||'')+'</b>'+(d.d?' · '+esc(d.d)+' 발간':'')+(d.pages?' · 전체 '+d.pages+'페이지':'')
    +(an?' · 작성 <b>'+esc(an)+'</b>':'')+'<br>'
    +(d.cover?'커버 종목: '+esc(d.cover)+'<br>':'')
-   +'<span class="src">'+(d.tier==='guide'||d.tier==='desk'?'작성 ':'요약 작성 ')+esc(d.written||'')+' · '+esc(d.srcnote||'숫자는 모두 원문 기재값')
-   +'</span>'+((d.u||d.unote)?'<br>'+(d.u?'<a class="back" style="margin:6px 6px 0 0;font-weight:700" href="'+esc(d.u)+'" target="_blank" rel="noopener">📄 원문 PDF 열기</a>':'')+(d.unote?'<span class="src">'+esc(d.unote)+'</span>':''):'')+'</div></div>'
+   +'<span class="src">요약 작성 '+esc(d.written||'')+' · 숫자는 모두 원문 기재값 · '
+   +(d.u?'<a href="'+esc(d.u)+'" target="_blank" rel="noopener">원문 PDF 열기</a>':'')+'</span></div></div>'
    +'<article class="rs">'+(d.html||'')+'</article>';
   bindDual($('.rs'));
   await loadTerms();

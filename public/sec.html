@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>미국 공시 — 밸류체인 단계별 SEC 제출 추적</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; background:#f4f6fa; color:#1a1f2e; }
+.wrap { max-width:1480px; margin:0 auto; padding:18px 14px 60px; }
+h1 { font-size:22px; margin:10px 0 4px; }
+.sub { color:#667085; font-size:13px; margin-bottom:12px; line-height:1.6; }
+.lg { background:#fff; border:1px solid #e4e7ec; border-radius:12px; padding:12px 14px; margin-bottom:12px; font-size:12.5px; line-height:1.8; }
+.lg b { color:#1a2a4a; }
+.bar { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; align-items:center; }
+.bar .lab { font-size:12px; font-weight:800; color:#475467; margin-right:2px; }
+.bar button { border:1.5px solid #d7dce6; background:#fff; border-radius:20px; padding:6px 12px; font:inherit; font-size:12.5px; font-weight:700; color:#475467; cursor:pointer; }
+.bar button.on { background:#1a2a4a; border-color:#1a2a4a; color:#fff; }
+.bar input { border:1.5px solid #d7dce6; border-radius:8px; padding:6px 10px; font:inherit; font-size:13px; background:#fff; width:190px; }
+.cnt { font-size:12px; color:#667085; margin-left:auto; }
+.grp { background:#fff; border:1px solid #e4e7ec; border-radius:12px; margin-bottom:12px; overflow:hidden; }
+.grp > h3 { font-size:14px; padding:10px 14px; background:#f8fafc; border-bottom:1px solid #e4e7ec; }
+.st { padding:10px 14px; border-bottom:1px dashed #eef0f4; }
+.st:last-child { border-bottom:none; }
+.st h4 { font-size:13px; margin-bottom:3px; }
+.st .note { font-size:12px; color:#7a2e0e; background:#fffaf5; border-left:3px solid #f0b429; padding:5px 9px; border-radius:6px; margin:4px 0 6px; line-height:1.7; }
+.co { display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; }
+.c { border:1px solid #e4e7ec; border-radius:9px; padding:5px 9px; font-size:12px; background:#fff; cursor:pointer; min-width:96px; }
+.c:hover { border-color:#2f6df6; }
+.c.nous { background:#f8fafc; color:#98a2b3; cursor:default; }
+.c .t { font-weight:800; color:#1a2a4a; } .c.nous .t { color:#98a2b3; }
+.c .d { font-size:10.5px; color:#667085; }
+.c .f { font-size:10px; display:inline-block; background:#eef4ff; color:#1a2a4a; border-radius:5px; padding:0 4px; font-weight:700; margin-left:3px; }
+.c.new { border-color:#2f6df6; box-shadow:0 0 0 2px #eef4ff inset; }
+dialog { border:none; border-radius:14px; padding:0; max-width:760px; width:94%; box-shadow:0 20px 60px rgba(16,24,40,.22); }
+dialog header { padding:12px 16px; border-bottom:1px solid #e4e7ec; display:flex; align-items:center; gap:8px; }
+dialog header h3 { font-size:15px; } dialog header button { margin-left:auto; border:none; background:#eef0f4; border-radius:8px; padding:5px 10px; cursor:pointer; font:inherit; }
+dialog .bd { padding:10px 16px 16px; max-height:66vh; overflow:auto; }
+table { width:100%; border-collapse:collapse; font-size:12.5px; }
+th, td { padding:6px 8px; border-bottom:1px solid #eef0f4; text-align:left; }
+th { color:#667085; font-size:11.5px; }
+a { color:#2f6df6; }
+.ft { font-size:12.5px; line-height:1.9; }
+.ft .q { font-weight:800; color:#1a2a4a; }
+.ft .hit { display:inline-block; background:#f8fafc; border:1px solid #e4e7ec; border-radius:7px; padding:1px 6px; margin:2px 3px 2px 0; font-size:11.5px; }
+.mu { color:#98a2b3; }
+@media (max-width:640px){ .wrap{padding:14px 10px 50px;} }
+</style>
+</head>
+<body>
+<div id="nav"></div>
+<div class="wrap">
+  <h1>🇺🇸 미국 공시 — 밸류체인 단계별 추적</h1>
+  <div class="sub" id="sub">불러오는 중…</div>
+  <div class="lg">
+    <b>무엇인가</b> — 반도체·광통신·로봇을 <b>세부 단계로 쪼개고</b>, 각 칸에 들어가는 미국 상장사의 SEC 제출(10-K·10-Q·8-K·20-F 등)을 매일 받아옵니다.
+    회사명을 누르면 제출 이력과 <b>원문 링크</b>가 열립니다.<br>
+    <b>회색 칸</b>은 미국 상장이 아니어서 SEC로 받을 수 없는 곳입니다(일본·유럽·호주 상장, 비상장) — 밸류체인의 빈자리를 숨기지 않으려고 같이 적어 둡니다.<br>
+    <b>주황 메모</b>는 그 단계의 병목과 중국 의존도입니다. 근거가 있는 것만 적었고 출처 꼬리표를 붙였습니다.
+  </div>
+  <div class="bar">
+    <span class="lab">섹터</span><span id="secbar"></span>
+    <input id="q" placeholder="회사·티커 검색" autocomplete="off">
+    <button id="newonly">최근 7일 제출만</button>
+    <span class="cnt" id="cnt"></span>
+  </div>
+  <div id="body"></div>
+  <div class="grp" id="ftsbox" style="display:none">
+    <h3>🔎 원문 전문검색 — 이 말을 자기 사업보고서에 쓴 미국 기업</h3>
+    <div class="st ft" id="fts"></div>
+  </div>
+</div>
+<dialog id="dlg"><header><h3 id="dt"></h3><button onclick="document.getElementById('dlg').close()">닫기</button></header><div class="bd" id="db"></div></dialog>
+<script src="/nav.js"></script>
+<script>
+let TAX=null, IDX=null, FTS=null, SEC='semi', Q='', NEW=false;
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const days=d=>{ if(!d) return 999; return (Date.now()-new Date(d+'T00:00:00').getTime())/864e5; };
+
+async function boot(){
+  try{
+    TAX=await fetch('/data/sec_tax.json').then(r=>r.json());
+    IDX=await fetch('/data/sec/index.json').then(r=>r.json()).catch(()=>({co:{}}));
+    FTS=await fetch('/data/sec/fts.json').then(r=>r.json()).catch(()=>null);
+  }catch(e){ document.getElementById('sub').textContent='자료를 불러오지 못했습니다.'; return; }
+  document.getElementById('sub').innerHTML=
+    `분류 ${Object.keys(TAX.sectors).length}섹터 · 세부단계 ${Object.values(TAX.sectors).reduce((a,s)=>a+s.groups.reduce((b,g)=>b+g.stages.length,0),0)}개 · `+
+    `SEC 수집 ${IDX.n||0}종목 · 갱신 ${esc(IDX.updated||'-')}`;
+  const sb=document.getElementById('secbar');
+  sb.innerHTML=Object.entries(TAX.sectors).map(([k,v])=>
+    `<button data-s="${k}" class="${k===SEC?'on':''}">${esc(v.label)}</button>`).join(' ');
+  sb.onclick=e=>{ const b=e.target.closest('button'); if(!b) return; SEC=b.dataset.s;
+    [...sb.querySelectorAll('button')].forEach(x=>x.classList.toggle('on',x===b)); draw(); };
+  const qi=document.getElementById('q'); let tm;
+  qi.addEventListener('input',()=>{ clearTimeout(tm); tm=setTimeout(()=>{ Q=qi.value.trim().toLowerCase(); draw(); },140); });
+  const nb=document.getElementById('newonly');
+  nb.onclick=()=>{ NEW=!NEW; nb.classList.toggle('on',NEW); draw(); };
+  draw(); drawFts();
+}
+function card(c){
+  if(c.notus) return `<div class="c nous" title="미국 상장이 아니라 SEC로 받을 수 없습니다"><div class="t">${esc(c.t)}</div><div class="d">비(非)SEC</div></div>`;
+  const r=(IDX.co||{})[c.t];
+  const fresh=r&&days(r.last)<=7;
+  return `<div class="c ${fresh?'new':''}" data-t="${esc(c.t)}">
+    <div class="t">${esc(c.t)}${r?`<span class="f">${esc(r.lastf)}</span>`:''}</div>
+    <div class="d">${esc((r&&r.n)||(c.n||'')).slice(0,22)}</div>
+    <div class="d">${r?esc(r.last):'<span class="mu">수집 전</span>'}</div></div>`;
+}
+function draw(){
+  const S=TAX.sectors[SEC]; let h='', n=0;
+  for(const g of S.groups){
+    let gh='';
+    for(const st of g.stages){
+      let co=st.co;
+      if(Q) co=co.filter(c=>c.t.toLowerCase().includes(Q)||((c.n||'')+'').toLowerCase().includes(Q));
+      if(NEW) co=co.filter(c=>!c.notus&&(IDX.co||{})[c.t]&&days(IDX.co[c.t].last)<=7);
+      if(!co.length) continue;
+      n+=co.filter(c=>!c.notus).length;
+      gh+=`<div class="st"><h4>${esc(st.label)}</h4>`+
+          (st.note?`<div class="note">${esc(st.note)}</div>`:'')+
+          `<div class="co">${co.map(card).join('')}</div></div>`;
+    }
+    if(gh) h+=`<div class="grp"><h3>${esc(g.label)}</h3>${gh}</div>`;
+  }
+  document.getElementById('body').innerHTML=h||'<div class="lg">해당 조건에 맞는 기업이 없습니다.</div>';
+  document.getElementById('cnt').textContent=`${n}개 기업`;
+}
+function drawFts(){
+  if(!FTS||!FTS.q) return;
+  const box=document.getElementById('ftsbox'); box.style.display='';
+  document.getElementById('fts').innerHTML=Object.entries(FTS.q).map(([q,v])=>
+    `<div style="margin-bottom:6px"><span class="q">${esc(q)}</span> <span class="mu">${v.n}건</span><br>`+
+    (v.hits.length? v.hits.slice(0,12).map(x=>`<span class="hit">${esc(x.t||x.n.slice(0,14))} <span class="mu">${esc(x.d)}</span></span>`).join('')
+                  : '<span class="mu">최근 400일 10-K·10-Q·20-F 본문에서 찾지 못했습니다</span>')+'</div>').join('')
+    +`<div class="mu" style="margin-top:6px">검색 시각 ${esc(FTS.at||'')} · 이 목록에는 위 분류표에 없는 기업도 나옵니다 — 새 후보를 찾는 용도입니다.</div>`;
+}
+document.addEventListener('click',async e=>{
+  const c=e.target.closest('.c[data-t]'); if(!c) return;
+  const t=c.dataset.t;
+  const dlg=document.getElementById('dlg');
+  document.getElementById('dt').textContent=t+' 제출 이력';
+  document.getElementById('db').innerHTML='불러오는 중…';
+  dlg.showModal();
+  try{
+    const d=await fetch(`/data/sec/${t}.json`).then(r=>r.json());
+    document.getElementById('dt').textContent=`${t} · ${d.meta.name}`;
+    document.getElementById('db').innerHTML=
+      `<div class="mu" style="margin-bottom:8px">${esc(d.meta.sic||'')} · ${esc(d.meta.ex||'')} · 밸류체인 위치 ${esc((d.nodes||[]).join(', '))}</div>`+
+      `<table><thead><tr><th>제출일</th><th>종류</th><th>기준일</th><th>원문</th></tr></thead><tbody>`+
+      d.rows.map(r=>`<tr><td>${esc(r.d)}</td><td><b>${esc(r.f)}</b></td><td class="mu">${esc(r.rd||'')}</td>`+
+        `<td><a href="${esc(r.u)}" target="_blank" rel="noopener">SEC 원문 열기</a></td></tr>`).join('')+
+      `</tbody></table>`;
+  }catch(err){ document.getElementById('db').innerHTML='<span class="mu">아직 수집되지 않은 종목입니다.</span>'; }
+});
+boot();
+</script>
+</body></html>

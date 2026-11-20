@@ -154,6 +154,18 @@ async function show(code){
   document.getElementById('result').style.display='';
   document.getElementById('empty').style.display='none';
   const name=(q&&q.name)||(cmp&&cmp.name)||code;
+  // 이익의 질 — 영업 밖에서 꺾인 최근 분기가 있으면 경고 배지를 띄운다.
+  // 매출·영익은 버티는데 순익만 급감한 것을 사이클의 끝으로 오독하지 않기 위함.
+  try{
+    let box=document.getElementById('qoeBox');
+    if(!box){ box=document.createElement('div'); box.id='qoeBox';
+      const R=document.getElementById('result'); R.insertBefore(box, R.firstChild); }
+    box.innerHTML='';
+    if(window.QOE && cmp && cmp.qs && cmp.qs.length){
+      const ks=cmp.qs.map(r=>r[0]).sort().slice(-6).reverse();
+      for(const k of ks){ const h=await window.QOE.badge(code,k); if(h){ box.innerHTML=h; break; } }
+    }
+  }catch(e){}
   // 종합 분석 노트
   try{
     if(!window.DNOTES) window.DNOTES=await jget('/deepnotes.json')||{};

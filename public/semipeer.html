@@ -247,8 +247,13 @@ const SIGD={lowper:'A·B등급 peer보다 PER이 10% 이상 낮음',midper:'peer
 // 꼬리표 정의: good = 유리한 방향
 const TG={per:{n:'PER',lo:'저PER',hi:'고PER',good:'low',u:'x',d:1},pbr:{n:'PBR',lo:'저PBR',hi:'고PBR',good:'low',u:'x',d:2},psr:{n:'PSR',lo:'저PSR',hi:'고PSR',good:'low',u:'x',d:2},
   roe:{n:'ROE',lo:'저ROE',hi:'고ROE',good:'high',u:'p',d:1},opm:{n:'영업이익률',lo:'저마진',hi:'고마진',good:'high',u:'p',d:1},g:{n:'이익 성장률',lo:'저성장',hi:'고성장',good:'high',u:'g',d:0},
-  roa:{n:'ROA',lo:'저ROA',hi:'고ROA',good:'high',u:'p',d:1},debt:{n:'부채비율',lo:'저부채',hi:'고부채',good:'low',u:'p',d:0}};
+  roa:{n:'ROA',lo:'저ROA',hi:'고ROA',good:'high',u:'p',d:1},debt:{n:'부채비율',lo:'저부채',hi:'고부채',good:'low',u:'p',d:0},
+  // 선행(포워드) — 올해 증권사 추정 이익·매출로 나눈 배수. 확정이 아니라 추정이다.
+  per_f:{n:'선행 PER',lo:'저PER',hi:'고PER',good:'low',u:'x',d:1},
+  pbr_f:{n:'선행 PBR',lo:'저PBR',hi:'고PBR',good:'low',u:'x',d:2},
+  psr_f:{n:'선행 PSR',lo:'저PSR',hi:'고PSR',good:'low',u:'x',d:2}};
 const TGK=['per','pbr','psr','roe','opm','g','roa','debt'];
+const TGF=['per_f','pbr_f','psr_f'];
 const WN={peak:['이익 급증','이익이 1년 새 3배 넘게 뛰었거나 흑자전환 — 호황 정점에서는 PER이 가장 낮게 보입니다'],nonop:['영업외 이익','순이익이 영업이익보다 30% 넘게 큼 — 일회성 이익일 수 있어 P/OP를 함께 보세요'],ph34:['3·4국면','헤게모니 국면이 3(이익 증가율 둔화) 또는 4(매출·이익 감소)'],one:['비교 상대 1곳','B등급 peer 하나만으로 붙은 꼬리표'],pure:['반도체 비중 작음','전사 멀티플이 반도체 사업 가치를 그대로 반영하지 않음'],xchk:['PER 교차확인 차이','DART 기준과 네이버(FnGuide) PER이 20% 넘게 다름']};
 const fv=(k,v)=>{ if(v==null) return '—'; const t=TG[k]; return t.u==='x'?Number(v).toFixed(t.d)+'배':t.u==='g'?fg(v):Number(v).toFixed(t.d)+'%'; };
 // 숫자 옆 화살표: 태그가 low/high일 때만
@@ -397,8 +402,10 @@ function detail(x){
   if(dc&&dc.global) h+=`<div class="pm" style="margin-bottom:8px"><b>해외 peer(자료에 실명)</b> ${dc.global.map(esc).join(', ')}</div>`;
   h+=`<div class="pm" style="margin-bottom:8px"><b>공정</b> ${stg(x.stage)}${(x.procs||[]).length?' '+x.procs.map(esc).join(' · '):''}</div>`;
   h+=tagTiles(x);
+  h+=fwdTiles(x);
   h+=abBlock(x);
   h+=finBlock(x);
+  h+=blgBlock(x);
   if(x.flags&&x.flags.length) h+=`<div class="warn">${x.flags.map(f=>'⚠ '+esc(f)).join('<br>')}</div>`;
   if(dc&&dc.nopeer) h+=`<div class="gb"><b>국내 상장 직접 peer 없음</b> — ${esc(dc.nopeer)}</div>`;
   if(x.sig==='nopeer'&&ps.length) h+=`<div class="gb">A·B등급 peer가 없어 꼬리표를 붙이지 않았습니다. 아래 C등급 쌍은 숫자만 나란히 놓은 것으로, "흔히 같이 비교되지만 직접 비교하면 안 되는 이유"를 보여 주는 참고 자료입니다.</div>`;
@@ -560,11 +567,43 @@ const NOPROC={chip:['여덟 공정 전부',' 칩을 직접 만들기 때문에 �
  dist:['공정 아님','장비·소재를 들여와 파는 유통이라 공정을 직접 수행하지 않습니다.'],
  etc:['공정 밖','반도체 여덟 공정 밖의 사업입니다.']};
 
+let EDG=null;   // semipeer_edge.json — peer 대비 특장점(기술·원가·레버리지·락인), 리포트·전문매체 조사
+let BLG=null;   // semipeer_backlog.json — 정기보고서 수주상황 표에서 뽑은 수주잔고 시계열
+let FWD=null;   // semipeer_fwd.json — 올해(FY1) 증권사 추정(FnGuide 컨센서스)
+// 선행 배수는 그날 시세(cap)와 추정 이익·매출로 그 자리에서 계산한다 — 주가가 움직이면 배수도 같이 움직여야 하므로.
+//  · 선행 PER = 시가총액 ÷ 추정 지배주주 순이익
+//  · 선행 PSR = 시가총액 ÷ 추정 매출
+//  · 선행 PBR = 시가총액 ÷ (현재 자기자본 + 추정 순이익 × (1 − 배당성향))  ← 증자·자사주는 반영하지 않은 추정
+function fwdOf(c){
+  if(!FWD) return null;
+  const e=FWD[c]; if(!e) return null;
+  // 선행의 기준은 '내년'이다. 내년 추정(n2)이 있으면 그것을 쓰고, 없으면 올해(n1)를 쓰되
+  // 화면에 '올해 기준'이라고 못박는다 — 두 기준을 한 숫자로 섞지 않는다.
+  const r=e.n2||e.n1; if(!r) return null;
+  const x=(D.co||{})[c]; if(!x) return null;
+  const cap=x.cap; if(!cap) return null;
+  const o={fy:r.fy, src:r.src, payout:r.payout, next:!!e.n2, thisyr:!e.n2};
+  if(r.ni!=null&&r.ni>0) o.per_f=+(cap/r.ni).toFixed(2);
+  if(r.rev!=null&&r.rev>0) o.psr_f=+(cap/r.rev).toFixed(2);
+  if(x.eq!=null&&r.ni!=null){
+    const po=(r.payout!=null?r.payout:0)/100;
+    const eqf=x.eq + r.ni*(1-po);
+    if(eqf>0) o.pbr_f=+(cap/eqf).toFixed(2);
+  }
+  if(r.ni!=null&&r.ni0!=null&&r.ni0>0) o.g_ni=+((r.ni/r.ni0-1)*100).toFixed(1);
+  if(r.rev!=null&&r.rev0!=null&&r.rev0>0) o.g_rev=+((r.rev/r.rev0-1)*100).toFixed(1);
+  if(r.op!=null&&r.op0!=null&&r.op0>0) o.g_op=+((r.op/r.op0-1)*100).toFixed(1);
+  o.raw=r;
+  return o;
+}
 let SDT=null, SDTL=0, ABT={};   // 소부장 맵 기업 상세(semidetail.json)·쉬운 설명(semipeer_about.json) — 상세를 처음 열 때만 받는다
 function needSDT(){
   if(SDT||SDTL) return;
   SDTL=1;
   fetch('/data/semipeer_about.json').then(r=>r.json()).then(a=>{ ABT=(a&&a.co)||{}; if(OPEN) render(); }).catch(()=>{});
+  fetch('/data/semipeer_fwd.json').then(r=>r.json()).then(a=>{ FWD=(a&&a.co)||{}; if(OPEN) render(); }).catch(()=>{ FWD={}; });
+  fetch('/data/semipeer_backlog.json').then(r=>r.json()).then(a=>{ BLG=(a&&a.co)||{}; if(OPEN) render(); }).catch(()=>{ BLG={}; });
+  fetch('/data/semipeer_edge.json').then(r=>r.json()).then(a=>{ EDG=(a&&a.co)||{}; if(OPEN) render(); }).catch(()=>{ EDG={}; });
   fetch('/data/semidetail.json').then(r=>r.json()).then(d=>{ SDT=(d&&d.co)||{}; if(OPEN) render(); }).catch(()=>{ SDT={}; });
 }
 // 체력 쪽에서 peer보다 나은 항목만 모은다(밸류 꼬리표인 저PER·저PBR·저PSR은 '특장점'이 아니라 가격이므로 뺀다)
@@ -617,6 +656,32 @@ const VALP={
  '⑧ 패키징':'첨단 패키징은 증설이 선행하고 실적이 뒤따릅니다 — 올해 PER보다 증설 완료 후 이익으로 보세요.',
  '공통 인프라':'수주 인식 시점에 따라 분기 실적이 튑니다 — 단일 분기 배수는 쓰지 마세요.',
 };
+// ───── peer 대비 특장점 — 네 갈래
+// "싸다"는 가격이고 "낫다"는 체력이다. 숫자로 드러나는 체력(edgeList) 위에,
+// 숫자에는 안 잡히는 네 갈래를 리포트·전문매체에서 찾아 붙인다.
+//   기술 / 원가·내재화 / 영업 레버리지(언제부터) / 고객 인증·락인
+const EDGA=[['tech','🔬 기술적 장점'],['cost','💰 원가·내재화'],['lev','📈 영업 레버리지 — 언제부터'],['lock','🔒 고객 인증·락인']];
+const GTAG={'확인':'확인','회사발언':'회사','증권사':'증권사','보도':'보도','판단':'판단'};
+function edgeDeep(x){
+  if(EDG===null) return '';
+  const r=EDG[x.c];
+  if(!r) return `<div class="sec"><b class="t">peer 대비 특장점 — 기술·원가·레버리지·락인</b> `+
+    `<span class="none">아직 조사 전입니다. 위의 숫자 비교(특장점·리스크요인)와 아래 peer 쌍 카드로 보세요.</span></div>`;
+  let h=`<div class="sec"><b class="t">peer 대비 특장점</b> <span class="mu">— 증권사 리포트·반도체 전문매체에서 찾은 것. 문장마다 출처</span>`;
+  EDGA.forEach(([k,lab])=>{
+    const v=r[k]||[];
+    if(!v.length) return;
+    h+=`<div style="margin-top:4px"><b style="font-size:12px">${lab}</b><ul class="ed">`+
+       v.map(o=>`<li>${esc(o.t)}<span class="tagn" title="${esc(o.s||'')}">${esc(GTAG[o.g]||o.g||'조사')}</span></li>`).join('')+
+       `</ul></div>`;
+  });
+  const miss=EDGA.filter(([k])=>!(r[k]||[]).length).map(([,lab])=>lab.replace(/^\S+\s/,''));
+  if(miss.length) h+=`<div class="q mu">아직 찾지 못한 갈래: ${miss.map(esc).join(' · ')}</div>`;
+  if(r.peer) h+=`<div class="q" style="margin-top:3px"><b>peer와 견주면</b> ${esc(r.peer)}</div>`;
+  if(r.refs&&r.refs.length) h+=`<div class="q mu">출처 — ${r.refs.map(f=>esc(`${f.b} ${f.d} 「${f.t}」`)).join(' · ')}</div>`;
+  h+=`<div class="q mu">증권사 추정치는 확정이 아닙니다. 숫자는 출처에 적힌 그대로이고 다시 계산하지 않았습니다.</div>`;
+  return h+`</div>`;
+}
 function valMethod(x){
   const V=VALM[x.stage]||VALM.etc;
   const ex=(x.procs||[]).map(pz=>VALP[pz]).filter(Boolean);
@@ -660,6 +725,7 @@ function aboutCard(x){
   h+= (rk.length||rr.length)?`<ul class="rk">${rr.map(t=>`<li>${esc(t)}<span class="tagn">조사</span></li>`).join('')}${rk.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`:' <span class="none">숫자·자동 점검에서 걸린 신호는 없습니다(조사하지 않은 위험까지 없다는 뜻은 아닙니다).</span>';
   if(caut) h+=`<div class="q" style="margin-top:3px"><b>비교할 때 주의</b> ${esc(caut)}</div>`;
   h+=`</div>`;
+  h+=edgeDeep(x);
   h+=valMethod(x);
   h+=`</div>`;
   return h;
@@ -685,6 +751,107 @@ function tagTiles(x){
   return h;
 }
 // ───── 실적 블록: 최근 4분기 vs 1년 전 표 + 분기 매출·영업이익 막대
+// ───── 선행(포워드) 배수: 올해 증권사 추정 기준
+// 트레일링(최근 4분기)은 "이미 벌어 놓은 것"이고, 선행은 "올해 벌 것으로 보는 것"이다.
+// 실적이 급하게 꺾이거나 튀는 구간에서는 둘이 크게 갈라지므로 나란히 둔다.
+function fwdTiles(x){
+  if(FWD===null) return '';
+  const my=fwdOf(x.c);
+  const prs=(D.pairs||[]).filter(p=>(p.a===x.c||p.b===x.c)&&(p.g==='A'||p.g==='B'))
+      .map(p=>{ const o=p.a===x.c?p.b:p.a; const ot=D.co[o]||{}; return {o,n:ot.n||o,g:p.g,val:fwdOf(o)||{}}; });
+  const has=my&&(my.per_f!=null||my.psr_f!=null||my.pbr_f!=null);
+  if(!has&&!prs.some(r=>r.val.per_f!=null)) return '';
+  const med=k=>{ const v=prs.map(r=>r.val[k]).filter(z=>z!=null&&isFinite(z)&&z>0&&!(k==='per_f'&&z>(D.th&&D.th.permax||150))).sort((a,b)=>a-b);
+    if(!v.length) return null; const n=v.length; return +(n%2?v[n>>1]:(v[(n>>1)-1]+v[n>>1])/2).toFixed(2); };
+  const trail={per_f:'per',pbr_f:'pbr',psr_f:'psr'};
+
+  const yr=my&&my.fy?esc(my.fy)+'년':'내년';
+  let h=`<h5 style="margin-top:10px">선행(포워드) 배수 <span class="mu" style="font-weight:500">— 오늘 주가 ÷ <b>${yr}</b> 추정 실적</span>`+
+        `<span class="tagn">증권사 추정</span></h5>`;
+  h+=`<div class="q" style="margin:2px 0 4px">최근 4분기(트레일링)는 <b>이미 벌어 놓은 숫자</b>, 선행은 <b>${yr}에 벌 것으로 보는 숫자</b>입니다. `+
+     `둘이 크게 벌어지면 그만큼 실적이 급하게 변한다는 뜻입니다. `+
+     `${my&&my.src?esc(my.src):'증권사 추정'} · <b>확정이 아니라 추정</b>입니다.</div>`;
+  if(my&&my.thisyr) h+=`<div class="q" style="color:#92400e"><b>⚠ 내년 추정치가 없어 올해(${esc(my.fy)}년) 기준으로 계산했습니다.</b> `+
+     `내년 추정은 KIS 종목추정실적(한국투자증권 리서치 단일 추정)만 공개해 커버 종목에 한정됩니다. `+
+     `연말이 가까우면 올해 숫자는 사실상 확정값이라 '선행'의 뜻이 약합니다 — 트레일링과 비슷하게 보세요.</div>`;
+  if(!has) return h+`<div class="q"><span class="none">이 기업은 증권사 추정치가 없습니다(미커버). 아래 peer 값만 참고하세요.</span></div>`+
+      `<div class="tiles">${TGF.map(k=>{ const pm=med(k); if(pm==null) return '';
+        return `<div class="tile"><div class="k">${TG[k].n}</div><div class="v">—</div><div class="p">peer 중앙값 ${fv(k,pm)}</div></div>`;}).join('')}</div>`;
+
+  h+=`<div class="tiles">${TGF.map(k=>{
+      const v=my[k]; const pm=med(k); if(v==null&&pm==null) return '';
+      const tk=trail[k], tv=x[tk];
+      let gap='';
+      if(v!=null&&tv!=null&&tv>0){ const d=v/tv-1;
+        gap=`<div class="p">최근 4분기 ${fv(tk,tv)} → <b>${d<=-0.05?'싸짐':d>=0.05?'비싸짐':'비슷'}</b> ${(d*100).toFixed(0)}%</div>`; }
+      return `<div class="tile"><div class="k">${TG[k].n}</div><div class="v">${fv(k,v)}</div>`+
+             `${tilePlot(k,v,prs,pm)}${prs.length>=2?`<div class="p">peer 중앙값 ${fv(k,pm)}</div>`:''}${gap}</div>`;
+    }).join('')}</div>`;
+
+  const g=[];
+  if(my.g_rev!=null) g.push(`매출 ${fg(my.g_rev)}`);
+  if(my.g_op!=null)  g.push(`영업이익 ${fg(my.g_op)}`);
+  if(my.g_ni!=null)  g.push(`순이익 ${fg(my.g_ni)}`);
+  if(g.length) h+=`<div class="q">${esc(my.fy)}년 추정 증감(전년 대비) — ${g.join(' · ')}</div>`;
+  // peer 끼리 기준 연도가 섞이면 비교가 깨진다 — 섞였으면 알려 준다
+  const yrs=[...new Set(prs.map(r=>r.val.fy).filter(Boolean).concat(my.fy?[my.fy]:[]))];
+  if(yrs.length>1) h+=`<div class="q" style="color:#92400e">⚠ 비교 대상의 추정 기준 연도가 섞여 있습니다(${yrs.sort().map(esc).join(' · ')}) — peer 중앙값을 그대로 믿지 마세요.</div>`;
+  if(my.pbr_f!=null) h+=`<div class="q">선행 PBR은 <b>그해 번 돈이 자본에 쌓인다</b>고 보고 계산했습니다(배당성향 ${my.payout!=null?my.payout+'%':'0%로 가정'}). 유상증자·자사주는 반영하지 않았습니다.</div>`;
+  return h;
+}
+// ───── 수주잔고: 분기별 증감과 "언제 매출이 되나"
+// 잔고의 절대액만으로는 뜻이 약하다. 늘고 있나(QoQ·YoY), 지금 매출 속도로 몇 분기치인가,
+// 그리고 그 일감의 납기가 언제인가 — 셋을 같이 놓는다.
+function blgBlock(x){
+  if(BLG===null) return '';
+  const r=BLG[x.c];
+  if(!r||!(r.s&&r.s.length)){
+    if(!r) return '';
+    return `<h5 style="margin-top:10px">📦 수주잔고</h5><div class="q"><span class="none">이 회사는 정기보고서 수주상황 표에 잔고 금액을 싣지 않습니다.</span>`+
+           (r.note?`<br>회사 설명: ${esc(r.note)}<span class="tagn">확인</span>`:'')+`</div>`;
+  }
+  const s=r.s.slice(-9), last=s[s.length-1], rg=r.recog||{};
+  const mx=Math.max.apply(null,s.map(p=>p.eok))||1;
+  const fe=v=>v==null?'—':(v>=10000?(v/10000).toFixed(2)+'조':Math.round(v).toLocaleString()+'억');
+
+  let h=`<h5 style="margin-top:10px">📦 수주잔고 <span class="mu" style="font-weight:500">— 분기별 증감과 언제 매출이 되나</span><span class="tagn">확인</span></h5>`;
+  h+=`<div class="q" style="margin:2px 0 4px">정기보고서 <b>수주상황 표</b>의 잔고입니다. 앞으로 매출로 바뀔 일감이라, `+
+     `<b>늘고 있는지</b>와 <b>지금 매출 속도로 몇 분기치인지</b>를 같이 봐야 뜻이 생깁니다.</div>`;
+
+  // 요약 타일
+  const tiles=[];
+  tiles.push(`<div class="tile"><div class="k">최근 수주잔고</div><div class="v">${fe(last.eok)}</div><div class="p">${esc(last.q)} 기준</div></div>`);
+  if(last.qoq!=null) tiles.push(`<div class="tile"><div class="k">전분기 대비</div><div class="v">${fg(last.qoq)}</div><div class="p">QoQ</div></div>`);
+  if(last.yoy!=null) tiles.push(`<div class="tile"><div class="k">1년 전 대비</div><div class="v">${fg(last.yoy)}</div><div class="p">YoY</div></div>`);
+  if(rg.cover_q!=null) tiles.push(`<div class="tile"><div class="k">몇 분기치 일감</div><div class="v">${rg.cover_q.toFixed(1)}분기</div><div class="p">최근 1년 매출의 ${rg.cover_pct}%</div></div>`);
+  h+=`<div class="tiles">${tiles.join('')}</div>`;
+
+  // 분기 막대
+  h+=`<table class="cmp ft" style="width:100%;min-width:0"><thead><tr><th class="l">분기</th><th>수주잔고</th><th>QoQ</th><th>YoY</th><th class="l" style="width:38%">추이</th></tr></thead><tbody>`+
+     s.slice().reverse().map(p=>`<tr><td class="l"><b>${esc(p.q)}</b></td><td>${fe(p.eok)}</td>`+
+       `<td>${p.qoq==null?'—':fgh(p.qoq)}</td><td>${p.yoy==null?'—':fgh(p.yoy)}</td>`+
+       `<td class="l"><div style="height:8px;background:#e8ecf3;border-radius:4px;overflow:hidden"><div style="height:100%;width:${(p.eok/mx*100).toFixed(1)}%;background:#2563eb;border-radius:4px"></div></div></td></tr>`).join('')+
+     `</tbody></table>`;
+
+  // 인식 — 언제 매출이 되나
+  if(rg.by_year||rg.due){
+    h+=`<div class="sec" style="margin-top:6px"><b class="t">언제 매출이 되나</b> <span class="mu">— 공급계약 공시의 납기 기준</span>`;
+    if(rg.open_eok!=null) h+=`<div class="q">납기가 아직 남은 계약 <b>${fe(rg.open_eok)}</b></div>`;
+    if(rg.by_year){
+      const ys=Object.keys(rg.by_year).sort();
+      h+=`<div class="q">납기 연도별 — ${ys.map(y=>`${esc(y)}년 <b>${fe(rg.by_year[y])}</b>`).join(' · ')}</div>`;
+    }
+    if(rg.due&&rg.due.length){
+      h+=`<table class="cmp ft" style="width:100%;min-width:0"><thead><tr><th class="l">품목</th><th class="l">상대방</th><th>금액</th><th>납기</th></tr></thead><tbody>`+
+         rg.due.map(d=>`<tr><td class="l">${esc(d.t||'—')}</td><td class="l">${esc(d.cp||'—')}</td><td>${fe(d.eok)}</td><td>${esc(d.end)}</td></tr>`).join('')+
+         `</tbody></table>`;
+    }
+    h+=`</div>`;
+  }
+  if(r.note) h+=`<div class="q"><b>회사가 밝힌 수주 인식 기준</b> ${esc(r.note)}<span class="tagn">확인</span></div>`;
+  h+=`<div class="q mu">잔고가 늘어도 납기가 길면 매출 인식은 뒤로 밀립니다. 반대로 잔고가 줄어드는 건 매출로 바뀌고 있다는 뜻일 수도, 신규 수주가 끊겼다는 뜻일 수도 있어 둘을 같이 봐야 합니다.</div>`;
+  return h;
+}
 function finBlock(x){
   if(x.rev==null&&x.op==null&&x.ni==null) return '';
   const row=(lab,cur,prev,g,extra)=>`<tr><td class="l"><b>${lab}</b>${extra||''}</td><td>${fw(cur)}</td><td>${fw(prev)}</td><td>${fgh(g)}</td></tr>`;

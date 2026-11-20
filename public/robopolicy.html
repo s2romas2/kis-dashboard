@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>로봇 자석·중희토 정책 추적 · 한국 대시보드</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin:0; background:#f6f7f9; color:#1a1f2e; font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; }
+.wrap { max-width:1020px; margin:0 auto; padding:20px 18px 56px; }
+header { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+h1 { font-size:20px; margin:0; font-weight:800; }
+.sub { color:#6b7280; font-size:12.5px; margin:3px 0 0; line-height:1.75; max-width:780px; }
+a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
+.panel { background:#fff; border:1px solid #eceef2; border-radius:14px; padding:16px 18px; margin:14px 0; box-shadow:0 1px 2px rgba(20,30,60,.04); }
+.panel h2 { font-size:14px; margin:0 0 9px; font-weight:800; }
+.loading { text-align:center; padding:48px; color:#6b7280; font-size:13px; }
+.warn { background:#fffaf5; border-left:3px solid #f0b429; padding:11px 14px; border-radius:0 10px 10px 0; font-size:12.8px; color:#7a2e0e; line-height:1.8; margin-top:8px; }
+/* 사슬 */
+.chain { counter-reset:c; margin:0; padding:0; list-style:none; }
+.chain li { counter-increment:c; position:relative; padding:7px 0 7px 32px; font-size:13px; line-height:1.75; border-bottom:1px dashed #eef1f5; }
+.chain li:last-child { border-bottom:0; }
+.chain li::before { content:counter(c); position:absolute; left:0; top:8px; width:21px; height:21px; border-radius:50%;
+  background:#1a2a4a; color:#fff; font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+/* 타임라인 */
+.it { border:1px solid #e3e8f0; border-radius:14px; margin:12px 0; overflow:hidden; background:#fff; }
+.it .hd { padding:12px 16px; background:linear-gradient(180deg,#fbfcfe,#fff); border-bottom:1px solid #eef1f5; }
+.when { display:inline-block; font-size:11.5px; font-weight:800; color:#fff; background:#2f6df6; border-radius:6px; padding:2px 9px; margin-right:8px; }
+.when.soon { background:#d92d20; } .when.past { background:#9aa7bd; }
+.it h3 { display:inline; font-size:15px; font-weight:800; margin:0; }
+.dd { font-size:11.5px; color:#8a93a2; margin-top:6px; }
+.bd { padding:12px 16px 15px; }
+.bd p { font-size:13px; line-height:1.8; margin:0 0 7px; color:#28303f; }
+.bd .lbl { font-size:11px; font-weight:800; color:#8a93a2; letter-spacing:.3px; }
+.two { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:8px; }
+.two > div { border-radius:10px; padding:9px 12px; font-size:12.5px; line-height:1.7; }
+.two .g { background:#edf8f1; border:1px solid #d6edde; color:#14532d; }
+.two .b { background:#fdeeed; border:1px solid #f6d9d6; color:#7f1d1d; }
+.two .lbl { display:block; margin-bottom:2px; }
+.watch { margin:8px 0 0; padding-left:18px; }
+.watch li { font-size:12.5px; line-height:1.8; color:#475467; }
+.st { font-size:12.5px; background:#f4f7fd; border-radius:9px; padding:8px 12px; line-height:1.75; margin-top:8px; }
+.src { font-size:11.5px; color:#8a93a2; margin-top:7px; }
+table { width:100%; border-collapse:collapse; margin-top:6px; }
+th,td { border-bottom:1px solid #eef1f5; padding:8px 7px; font-size:12.5px; text-align:left; vertical-align:top; line-height:1.7; }
+th { font-size:11.5px; color:#8a93a2; font-weight:700; }
+.co { color:#1a2a4a; font-weight:700; }
+.hint { font-size:11.5px; color:#8a93a2; line-height:1.75; margin-top:10px; }
+@media (max-width:640px){ .two{grid-template-columns:1fr} .wrap{padding:14px 12px 40px} }
+</style>
+</head>
+<body>
+<div id="gnavhost"></div>
+<div class="wrap">
+  <header>
+    <div><h1>🧲 로봇 자석·중희토 정책 추적</h1><p class="sub" id="sub">—</p></div>
+    <a class="back" href="/">← 대시보드</a>
+  </header>
+  <div id="body"><div class="loading">불러오는 중…</div></div>
+</div>
+<script src="/nav.js"></script>
+<script>
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+// 남은 날짜로 급한 정도를 표시한다 — 날짜가 지나면 회색, 60일 안이면 빨강.
+function dstate(when){
+  const m = when.match(/^(\d{4})-(\d{2})(?:-(\d{2}))?$/);
+  if (!m) return ['', ''];
+  const d = new Date(+m[1], +m[2]-1, +(m[3]||1));
+  const days = Math.round((d - new Date()) / 864e5);
+  if (days < 0) return ['past', '지남'];
+  if (days <= 60) return ['soon', `D-${days}`];
+  return ['', `D-${days}`];
+}
+
+fetch('/data/robopolicy.json').then(r => r.json()).then(D => {
+  document.getElementById('sub').textContent = D.lead;
+  let h = `<div class="panel"><h2>⛓️ 왜 이 정책이 국내 로봇 부품과 연결되나</h2>`
+    + `<ol class="chain">` + D.chain.map(c => `<li>${esc(c)}</li>`).join('') + `</ol>`
+    + `<div class="warn">${esc(D.correction)}</div></div>`;
+
+  h += `<div class="panel"><h2>📅 추적 일정</h2>`
+    + D.items.map(it => {
+        const [cls, lab] = dstate(it.when);
+        return `<div class="it"><div class="hd"><span class="when ${cls}">${esc(it.when)}</span>`
+          + `<h3>${esc(it.label)}</h3><div class="dd">${esc(lab)}</div></div><div class="bd">`
+          + `<p><span class="lbl">무엇을</span><br>${esc(it.what)}</p>`
+          + `<p><span class="lbl">왜 중요한가</span><br>${esc(it.why)}</p>`
+          + `<div class="two"><div class="g"><span class="lbl">국내 부품에 유리</span>${esc(it.good)}</div>`
+          + `<div class="b"><span class="lbl">국내 부품에 불리</span>${esc(it.bad)}</div></div>`
+          + (it.status ? `<div class="st"><b>현재 상태</b> — ${esc(it.status)}</div>` : '')
+          + (it.watch ? `<div class="lbl" style="margin-top:9px">무엇을 지켜보나</div><ul class="watch">`
+              + it.watch.map(w => `<li>${esc(w)}</li>`).join('') + `</ul>` : '')
+          + `<div class="src">근거 — ${esc(it.src)}</div></div></div>`;
+      }).join('') + `</div>`;
+
+  h += `<div class="panel"><h2>🇰🇷 ${esc(D.ko.lead)}</h2>`
+    + `<table><thead><tr><th style="width:17%">묶음</th><th style="width:43%">왜 걸리나</th><th>해당 기업</th></tr></thead><tbody>`
+    + D.ko.rows.map(r => `<tr><td class="co">${esc(r.g)}</td><td>${esc(r.why)}</td><td>${esc(r.co.join(' · '))}</td></tr>`).join('')
+    + `</tbody></table><div class="hint">${esc(D.note)}</div></div>`;
+
+  h += `<div class="hint">갱신 ${esc(D.updated)}</div>`;
+  document.getElementById('body').innerHTML = h;
+}).catch(() => {
+  document.getElementById('body').innerHTML = '<div class="loading">자료를 불러오지 못했습니다.</div>';
+});
+</script>
+</body>
+</html>

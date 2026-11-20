@@ -1,0 +1,1991 @@
+{
+ "updated": "2026-11-20",
+ "ver": 1,
+ "note": "미국 상장사(SEC 수집 대상)와 비(非)SEC 상장·비상장(맥락용)을 구분. notus=1이면 SEC 수집 대상이 아님.",
+ "sectors": {
+  "semi": {
+   "label": "반도체",
+   "groups": [
+    {
+     "id": "mem",
+     "label": "메모리",
+     "stages": [
+      {
+       "id": "maker",
+       "label": "칩 제조",
+       "co": [
+        {
+         "t": "MU",
+         "n": "MICRON TECHNOLOGY INC",
+         "cik": "0000723125"
+        },
+        {
+         "t": "INTC",
+         "n": "INTEL CORP",
+         "cik": "0000050863"
+        },
+        {
+         "t": "WDC",
+         "n": "WESTERN DIGITAL CORP",
+         "cik": "0000106040"
+        },
+        {
+         "t": "STX",
+         "n": "Seagate Technology Holdings plc",
+         "cik": "0001137789"
+        },
+        {
+         "t": "SNDK",
+         "n": "Sandisk Corp",
+         "cik": "0002023554"
+        }
+       ]
+      },
+      {
+       "id": "mod",
+       "label": "모듈·SSD 완제품",
+       "co": [
+        {
+         "t": "SMCI",
+         "n": "Super Micro Computer, Inc.",
+         "cik": "0001375365"
+        },
+        {
+         "t": "DELL",
+         "n": "Dell Technologies Inc.",
+         "cik": "0001571996"
+        },
+        {
+         "t": "HPE",
+         "n": "Hewlett Packard Enterprise Co",
+         "cik": "0001645590"
+        },
+        {
+         "t": "NTAP",
+         "n": "NetApp, Inc.",
+         "cik": "0001002047"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "front",
+     "label": "전공정 장비",
+     "stages": [
+      {
+       "id": "litho",
+       "label": "노광",
+       "co": [
+        {
+         "t": "ASML",
+         "n": "ASML HOLDING NV",
+         "cik": "0000937966"
+        }
+       ]
+      },
+      {
+       "id": "depo_etch",
+       "label": "증착·식각",
+       "co": [
+        {
+         "t": "AMAT",
+         "n": "APPLIED MATERIALS INC /DE",
+         "cik": "0000006951"
+        },
+        {
+         "t": "LRCX",
+         "n": "LAM RESEARCH CORP",
+         "cik": "0000707549"
+        },
+        {
+         "t": "TEL",
+         "notus": 1
+        }
+       ]
+      },
+      {
+       "id": "clean_cmp",
+       "label": "세정·CMP",
+       "co": [
+        {
+         "t": "ACMR",
+         "n": "ACM Research, Inc.",
+         "cik": "0001680062"
+        },
+        {
+         "t": "ENTG",
+         "n": "ENTEGRIS INC",
+         "cik": "0001101302"
+        }
+       ]
+      },
+      {
+       "id": "meas",
+       "label": "계측·검사",
+       "co": [
+        {
+         "t": "KLAC",
+         "n": "KLA CORP",
+         "cik": "0000319201"
+        },
+        {
+         "t": "ONTO",
+         "n": "ONTO INNOVATION INC.",
+         "cik": "0000704532"
+        },
+        {
+         "t": "CAMT",
+         "n": "CAMTEK LTD",
+         "cik": "0001109138"
+        },
+        {
+         "t": "NVMI",
+         "n": "NOVA LTD.",
+         "cik": "0001109345"
+        }
+       ]
+      },
+      {
+       "id": "ion",
+       "label": "이온주입·열처리",
+       "co": [
+        {
+         "t": "AMAT",
+         "n": "APPLIED MATERIALS INC /DE",
+         "cik": "0000006951"
+        },
+        {
+         "t": "AEIS",
+         "n": "ADVANCED ENERGY INDUSTRIES INC",
+         "cik": "0000927003"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "back",
+     "label": "후공정·패키징",
+     "stages": [
+      {
+       "id": "osat",
+       "label": "OSAT",
+       "co": [
+        {
+         "t": "AMKR",
+         "n": "AMKOR TECHNOLOGY, INC.",
+         "cik": "0001047127"
+        },
+        {
+         "t": "ASX",
+         "n": "ASE Technology Holding Co., Ltd.",
+         "cik": "0001122411"
+        }
+       ]
+      },
+      {
+       "id": "bond",
+       "label": "본더·다이어태치",
+       "co": [
+        {
+         "t": "KLIC",
+         "n": "KULICKE & SOFFA INDUSTRIES INC",
+         "cik": "0000056978"
+        },
+        {
+         "t": "BESI",
+         "notus": 1
+        }
+       ]
+      },
+      {
+       "id": "test",
+       "label": "테스터·핸들러",
+       "co": [
+        {
+         "t": "TER",
+         "n": "TERADYNE, INC",
+         "cik": "0000097210"
+        },
+        {
+         "t": "ADVT",
+         "notus": 1
+        },
+        {
+         "t": "COHU",
+         "n": "COHU INC",
+         "cik": "0000021535"
+        }
+       ]
+      },
+      {
+       "id": "probe",
+       "label": "프로브카드·소켓",
+       "co": [
+        {
+         "t": "FORM",
+         "n": "FORMFACTOR INC",
+         "cik": "0001039399"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "mat",
+     "label": "소재",
+     "stages": [
+      {
+       "id": "wafer",
+       "label": "웨이퍼",
+       "co": [
+        {
+         "t": "SUMCO",
+         "notus": 1
+        }
+       ]
+      },
+      {
+       "id": "chem",
+       "label": "공정 화학·가스",
+       "co": [
+        {
+         "t": "ENTG",
+         "n": "ENTEGRIS INC",
+         "cik": "0001101302"
+        },
+        {
+         "t": "LIN",
+         "n": "LINDE PLC",
+         "cik": "0001707925"
+        },
+        {
+         "t": "APD",
+         "n": "Air Products & Chemicals, Inc.",
+         "cik": "0000002969"
+        },
+        {
+         "t": "CBT",
+         "n": "CABOT CORP",
+         "cik": "0000016040"
+        }
+       ]
+      },
+      {
+       "id": "photo",
+       "label": "포토레지스트",
+       "co": [
+        {
+         "t": "JSR",
+         "notus": 1
+        },
+        {
+         "t": "TOK",
+         "notus": 1
+        }
+       ]
+      },
+      {
+       "id": "sub",
+       "label": "기판·ABF",
+       "co": [
+        {
+         "t": "IBDEN",
+         "notus": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "part",
+     "label": "부품·서브시스템",
+     "stages": [
+      {
+       "id": "sub_assy",
+       "label": "서브시스템",
+       "co": [
+        {
+         "t": "UCTT",
+         "n": "Ultra Clean Holdings, Inc.",
+         "cik": "0001275014"
+        },
+        {
+         "t": "ICHR",
+         "n": "ICHOR HOLDINGS, LTD.",
+         "cik": "0001652535"
+        },
+        {
+         "t": "AEIS",
+         "n": "ADVANCED ENERGY INDUSTRIES INC",
+         "cik": "0000927003"
+        },
+        {
+         "t": "MKSI",
+         "n": "MKS INC",
+         "cik": "0001049502"
+        }
+       ]
+      },
+      {
+       "id": "qtz_sic",
+       "label": "쿼츠·SiC 소모품",
+       "co": [
+        {
+         "t": "CRS",
+         "n": "CARPENTER TECHNOLOGY CORP",
+         "cik": "0000017843"
+        }
+       ]
+      },
+      {
+       "id": "pump",
+       "label": "진공펌프·열관리",
+       "co": [
+        {
+         "t": "MKSI",
+         "n": "MKS INC",
+         "cik": "0001049502"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "chip",
+     "label": "칩·설계",
+     "stages": [
+      {
+       "id": "gpu_asic",
+       "label": "GPU·AI ASIC",
+       "co": [
+        {
+         "t": "NVDA",
+         "n": "NVIDIA CORP",
+         "cik": "0001045810"
+        },
+        {
+         "t": "AMD",
+         "n": "ADVANCED MICRO DEVICES INC",
+         "cik": "0000002488"
+        },
+        {
+         "t": "AVGO",
+         "n": "Broadcom Inc.",
+         "cik": "0001730168"
+        },
+        {
+         "t": "MRVL",
+         "n": "Marvell Technology, Inc.",
+         "cik": "0001835632"
+        }
+       ]
+      },
+      {
+       "id": "eda_ip",
+       "label": "EDA·IP",
+       "co": [
+        {
+         "t": "SNPS",
+         "n": "SYNOPSYS INC",
+         "cik": "0000883241"
+        },
+        {
+         "t": "CDNS",
+         "n": "CADENCE DESIGN SYSTEMS INC",
+         "cik": "0000813672"
+        },
+        {
+         "t": "ARM",
+         "n": "ARM HOLDINGS PLC /UK",
+         "cik": "0001973239"
+        }
+       ]
+      },
+      {
+       "id": "foundry",
+       "label": "파운드리",
+       "co": [
+        {
+         "t": "TSM",
+         "n": "TAIWAN SEMICONDUCTOR MANUFACTURING CO LTD",
+         "cik": "0001046179"
+        },
+        {
+         "t": "GFS",
+         "n": "GLOBALFOUNDRIES Inc.",
+         "cik": "0001709048"
+        },
+        {
+         "t": "UMC",
+         "n": "UNITED MICROELECTRONICS CORP",
+         "cik": "0001033767"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "power",
+     "label": "전력·인프라",
+     "stages": [
+      {
+       "id": "ups_pdu",
+       "label": "UPS·전력분배·열관리",
+       "co": [
+        {
+         "t": "VRT",
+         "n": "Vertiv Holdings Co",
+         "cik": "0001674101"
+        },
+        {
+         "t": "ETN",
+         "n": "Eaton Corp plc",
+         "cik": "0001551182"
+        },
+        {
+         "t": "ABBN",
+         "notus": 1
+        },
+        {
+         "t": "SU",
+         "notus": 1
+        }
+       ]
+      },
+      {
+       "id": "trafo_switch",
+       "label": "변압기·스위치기어",
+       "co": [
+        {
+         "t": "ETN",
+         "n": "Eaton Corp plc",
+         "cik": "0001551182"
+        },
+        {
+         "t": "HUBB",
+         "n": "HUBBELL INC",
+         "cik": "0000048898"
+        },
+        {
+         "t": "PWR",
+         "n": "QUANTA SERVICES, INC.",
+         "cik": "0001050915"
+        },
+        {
+         "t": "AZZ",
+         "n": "AZZ INC",
+         "cik": "0000008947"
+        }
+       ]
+      },
+      {
+       "id": "gen_turbine",
+       "label": "발전설비(가스터빈·원자력)",
+       "co": [
+        {
+         "t": "GEV",
+         "n": "GE Vernova Inc.",
+         "cik": "0001996810"
+        },
+        {
+         "t": "MHI",
+         "notus": 1
+        },
+        {
+         "t": "BWXT",
+         "n": "BWX Technologies, Inc.",
+         "cik": "0001486957"
+        },
+        {
+         "t": "CEG",
+         "n": "Constellation Energy Corp",
+         "cik": "0001868275"
+        },
+        {
+         "t": "VST",
+         "n": "Vistra Corp.",
+         "cik": "0001692819"
+        },
+        {
+         "t": "TLN",
+         "n": "Talen Energy Corp",
+         "cik": "0001622536"
+        }
+       ],
+       "note": "대형 가스터빈 납기 적체가 구조적. 항공전용(aeroderivative) 터빈과 중고 터빈 시장까지 형성 [보도]"
+      },
+      {
+       "id": "fuelcell",
+       "label": "연료전지·분산전원",
+       "co": [
+        {
+         "t": "BE",
+         "n": "Bloom Energy Corp",
+         "cik": "0001664703"
+        },
+        {
+         "t": "PLUG",
+         "n": "PLUG POWER INC",
+         "cik": "0001093691"
+        },
+        {
+         "t": "FCEL",
+         "n": "FUELCELL ENERGY INC",
+         "cik": "0000886128"
+        }
+       ]
+      },
+      {
+       "id": "temp_power",
+       "label": "임시전력·브리지파워",
+       "co": [
+        {
+         "t": "GNRC",
+         "n": "GENERAC HOLDINGS INC.",
+         "cik": "0001474735"
+        },
+        {
+         "t": "CAT",
+         "n": "CATERPILLAR INC",
+         "cik": "0000018230"
+        },
+        {
+         "t": "CMI",
+         "n": "CUMMINS INC",
+         "cik": "0000026172"
+        },
+        {
+         "t": "ATMU",
+         "n": "Atmus Filtration Technologies Inc.",
+         "cik": "0001921963"
+        },
+        {
+         "t": "APG",
+         "n": "APi Group Corp",
+         "cik": "0001796209"
+        }
+       ],
+       "note": "그리드 연결 대기(PJM 등)로 가스터빈 납기가 2031년까지 밀리자, 데이터센터가 디젤·가스 발전기로 먼저 켜는 브리지 파워 수요가 생겼다 [보도]"
+      },
+      {
+       "id": "engineering",
+       "label": "EPC·데이터센터 건설",
+       "co": [
+        {
+         "t": "PWR",
+         "n": "QUANTA SERVICES, INC.",
+         "cik": "0001050915"
+        },
+        {
+         "t": "EME",
+         "n": "EMCOR Group, Inc.",
+         "cik": "0000105634"
+        },
+        {
+         "t": "MTZ",
+         "n": "MASTEC INC",
+         "cik": "0000015615"
+        },
+        {
+         "t": "FIX",
+         "n": "COMFORT SYSTEMS USA INC",
+         "cik": "0001035983"
+        },
+        {
+         "t": "J",
+         "n": "JACOBS SOLUTIONS INC.",
+         "cik": "0000052988"
+        },
+        {
+         "t": "ACM",
+         "n": "AECOM",
+         "cik": "0000868857"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "optics": {
+   "label": "광통신",
+   "groups": [
+    {
+     "id": "pkg",
+     "label": "엔진 패키징 방식",
+     "stages": [
+      {
+       "id": "pluggable",
+       "label": "플러거블(기존 주력)",
+       "co": [
+        {
+         "t": "COHR",
+         "n": "COHERENT CORP.",
+         "cik": "0000820318"
+        },
+        {
+         "t": "LITE",
+         "n": "Lumentum Holdings Inc.",
+         "cik": "0001633978"
+        },
+        {
+         "t": "FN",
+         "n": "Fabrinet",
+         "cik": "0001408710"
+        },
+        {
+         "t": "APH",
+         "n": "AMPHENOL CORP /DE/",
+         "cik": "0000820313"
+        },
+        {
+         "t": "CIEN",
+         "n": "CIENA CORP",
+         "cik": "0000936395"
+        }
+       ]
+      },
+      {
+       "id": "lro_lpo",
+       "label": "LRO·LPO(DSP 제거)",
+       "co": [
+        {
+         "t": "CRDO",
+         "n": "Credo Technology Group Holding Ltd",
+         "cik": "0001807794"
+        },
+        {
+         "t": "MRVL",
+         "n": "Marvell Technology, Inc.",
+         "cik": "0001835632"
+        },
+        {
+         "t": "AVGO",
+         "n": "Broadcom Inc.",
+         "cik": "0001730168"
+        }
+       ],
+       "note": "CPO 투자논리의 가장 강한 반대지표. 플러거블 상태로 전력을 30~60% 줄이면 CPO로 갈 이유가 약해진다 [업계자료]"
+      },
+      {
+       "id": "npo",
+       "label": "NPO(칩 옆 소켓형)",
+       "co": [
+        {
+         "t": "MOLX",
+         "notus": 1
+        },
+        {
+         "t": "SMTC",
+         "n": "SEMTECH CORP",
+         "cik": "0000088941"
+        },
+        {
+         "t": "APH",
+         "n": "AMPHENOL CORP /DE/",
+         "cik": "0000820313"
+        },
+        {
+         "t": "AVGO",
+         "n": "Broadcom Inc.",
+         "cik": "0001730168"
+        },
+        {
+         "t": "MRVL",
+         "n": "Marvell Technology, Inc.",
+         "cik": "0001835632"
+        }
+       ],
+       "note": "소켓형이라 현장 교체 가능. Open CPX MSA(Ciena·Coherent·Marvell·Molex·Samtec·TeraHop)가 표준화 추진 — 업계가 '납땜 말고 소켓'으로 무게 이동 [업계자료]"
+      },
+      {
+       "id": "cpo",
+       "label": "CPO(칩 패키지 동봉)",
+       "co": [
+        {
+         "t": "AVGO",
+         "n": "Broadcom Inc.",
+         "cik": "0001730168"
+        },
+        {
+         "t": "NVDA",
+         "n": "NVIDIA CORP",
+         "cik": "0001045810"
+        },
+        {
+         "t": "TSM",
+         "n": "TAIWAN SEMICONDUCTOR MANUFACTURING CO LTD",
+         "cik": "0001046179"
+        },
+        {
+         "t": "COHR",
+         "n": "COHERENT CORP.",
+         "cik": "0000820318"
+        },
+        {
+         "t": "LITE",
+         "n": "Lumentum Holdings Inc.",
+         "cik": "0001633978"
+        }
+       ],
+       "note": "실패 비용이 플러거블의 약 22배(교체가 납땜이라 현장 수리 불가). 광엔진 32개 직렬이면 개별 95% 수율도 전체 19% [업계자료]"
+      },
+      {
+       "id": "oio",
+       "label": "OIO(칩 I/O 광전환) — 개념 단계",
+       "co": [
+        {
+         "t": "AYAR",
+         "notus": 1
+        },
+        {
+         "t": "NVDA",
+         "n": "NVIDIA CORP",
+         "cik": "0001045810"
+        }
+       ],
+       "note": "칩 I/O 자체를 광으로 바꾸는 단계. CPO보다 기술적으로 앞서지만 현재는 구현 난도가 높아 상용 일정이 서 있지 않다 — 개념만 알아두면 되는 구간 [판단]"
+      }
+     ]
+    },
+    {
+     "id": "align",
+     "label": "광정렬 방식",
+     "stages": [
+      {
+       "id": "active",
+       "label": "액티브 정렬(빛 켜고 최적점 탐색)",
+       "co": [
+        {
+         "t": "FN",
+         "n": "Fabrinet",
+         "cik": "0001408710"
+        },
+        {
+         "t": "COHR",
+         "n": "COHERENT CORP.",
+         "cik": "0000820318"
+        }
+       ],
+       "note": "빛을 켜고 최적점을 찾는 방식. 정확하지만 건당 수 초~수십 초 → 이것이 CPO 양산의 처리량 상한 [업계자료]"
+      },
+      {
+       "id": "passive",
+       "label": "패시브 정렬(V-groove 기계기준)",
+       "co": [
+        {
+         "t": "FN",
+         "n": "Fabrinet",
+         "cik": "0001408710"
+        }
+       ]
+      },
+      {
+       "id": "equip",
+       "label": "정렬·본딩 장비",
+       "co": [
+        {
+         "t": "PI",
+         "notus": 1
+        },
+        {
+         "t": "MKSI",
+         "n": "MKS INC",
+         "cik": "0001049502"
+        },
+        {
+         "t": "KLIC",
+         "n": "KULICKE & SOFFA INDUSTRIES INC",
+         "cik": "0000056978"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "couple",
+     "label": "광결합 방식",
+     "stages": [
+      {
+       "id": "edge",
+       "label": "엣지 커플링(칩 가장자리)",
+       "co": [
+        {
+         "t": "COHR",
+         "n": "COHERENT CORP.",
+         "cik": "0000820318"
+        },
+        {
+         "t": "LITE",
+         "n": "Lumentum Holdings Inc.",
+         "cik": "0001633978"
+        }
+       ],
+       "note": "칩 가장자리 1mm에 붙일 수 있는 광섬유 수(shoreline)가 물리 상한. 기존 파이버 어레이 mm당 8개 [업계자료]"
+      },
+      {
+       "id": "grating",
+       "label": "그레이팅 커플링(수직 입사)",
+       "co": [
+        {
+         "t": "TSM",
+         "n": "TAIWAN SEMICONDUCTOR MANUFACTURING CO LTD",
+         "cik": "0001046179"
+        },
+        {
+         "t": "AVGO",
+         "n": "Broadcom Inc.",
+         "cik": "0001730168"
+        }
+       ]
+      },
+      {
+       "id": "fau",
+       "label": "FAU·파이버 어레이",
+       "co": [
+        {
+         "t": "FOCI",
+         "notus": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "laser",
+     "label": "광원(레이저) 배치",
+     "stages": [
+      {
+       "id": "onchip",
+       "label": "온칩·하이브리드 집적 레이저",
+       "co": [
+        {
+         "t": "TSM",
+         "n": "TAIWAN SEMICONDUCTOR MANUFACTURING CO LTD",
+         "cik": "0001046179"
+        },
+        {
+         "t": "INTC",
+         "n": "INTEL CORP",
+         "cik": "0000050863"
+        }
+       ]
+      },
+      {
+       "id": "els",
+       "label": "ELS·외부광원(ELSFP)",
+       "co": [
+        {
+         "t": "LITE",
+         "n": "Lumentum Holdings Inc.",
+         "cik": "0001633978"
+        },
+        {
+         "t": "COHR",
+         "n": "COHERENT CORP.",
+         "cik": "0000820318"
+        }
+       ],
+       "note": "레이저를 뜨거운 ASIC 옆에서 떼어내 장비 앞면에 꽂는 방식. 400mW급 양산 가능한 곳이 사실상 한 곳 — CPO 전환이 고출력 레이저 양산 선별전이 된다 [업계자료]"
+      },
+      {
+       "id": "eml_inp",
+       "label": "EML·InP 광칩(공통 병목)",
+       "co": [
+        {
+         "t": "LITE",
+         "n": "Lumentum Holdings Inc.",
+         "cik": "0001633978"
+        },
+        {
+         "t": "COHR",
+         "n": "COHERENT CORP.",
+         "cik": "0000820318"
+        },
+        {
+         "t": "AVGO",
+         "n": "Broadcom Inc.",
+         "cik": "0001730168"
+        },
+        {
+         "t": "SOI",
+         "notus": 1
+        }
+       ],
+       "note": "InP 웨이퍼·에피 캐파가 전 산업 최대 병목. 중국 인듐 수출통제로 6인치 InP 웨이퍼 가격 급등 [언론]"
+      }
+     ]
+    },
+    {
+     "id": "conn",
+     "label": "광커넥터 형태",
+     "stages": [
+      {
+       "id": "permanent",
+       "label": "영구접합(납땜·본딩)",
+       "co": [
+        {
+         "t": "AVGO",
+         "n": "Broadcom Inc.",
+         "cik": "0001730168"
+        },
+        {
+         "t": "TSM",
+         "n": "TAIWAN SEMICONDUCTOR MANUFACTURING CO LTD",
+         "cik": "0001046179"
+        }
+       ]
+      },
+      {
+       "id": "detach",
+       "label": "분리형 광커넥터·소켓",
+       "co": [
+        {
+         "t": "APH",
+         "n": "AMPHENOL CORP /DE/",
+         "cik": "0000820313"
+        },
+        {
+         "t": "SMTC",
+         "n": "SEMTECH CORP",
+         "cik": "0000088941"
+        },
+        {
+         "t": "USCONEC",
+         "notus": 1
+        },
+        {
+         "t": "GLW",
+         "n": "CORNING INC /NY",
+         "cik": "0000024741"
+        }
+       ]
+      },
+      {
+       "id": "ferrule",
+       "label": "MT 페룰·MPO",
+       "co": [
+        {
+         "t": "GLW",
+         "n": "CORNING INC /NY",
+         "cik": "0000024741"
+        },
+        {
+         "t": "FJTSY",
+         "notus": 1
+        }
+       ],
+       "note": "MT 페룰은 금형 기술이 전부라 캐파로 뚫리지 않는 영역. 리드타임이 길다 [업계자료]"
+      }
+     ]
+    },
+    {
+     "id": "fiber",
+     "label": "광섬유·케이블",
+     "stages": [
+      {
+       "id": "fiber",
+       "label": "광섬유·초고심수 케이블",
+       "co": [
+        {
+         "t": "GLW",
+         "n": "CORNING INC /NY",
+         "cik": "0000024741"
+        },
+        {
+         "t": "PRY",
+         "notus": 1
+        }
+       ]
+      },
+      {
+       "id": "amp",
+       "label": "광증폭기·펌프레이저",
+       "co": [
+        {
+         "t": "LITE",
+         "n": "Lumentum Holdings Inc.",
+         "cik": "0001633978"
+        },
+        {
+         "t": "COHR",
+         "n": "COHERENT CORP.",
+         "cik": "0000820318"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "robot": {
+   "label": "로봇(휴머노이드)",
+   "groups": [
+    {
+     "id": "act",
+     "label": "액츄에이터",
+     "stages": [
+      {
+       "id": "motor_frameless",
+       "label": "프레임리스·BLDC 모터",
+       "co": [
+        {
+         "t": "AME",
+         "n": "AMETEK INC/",
+         "cik": "0001037868"
+        },
+        {
+         "t": "RBC",
+         "n": "RBC Bearings INC",
+         "cik": "0001324948"
+        },
+        {
+         "t": "MOG-A",
+         "n": "MOOG INC.",
+         "cik": "0000067887"
+        },
+        {
+         "t": "HON",
+         "n": "HONEYWELL INTERNATIONAL INC",
+         "cik": "0000773840"
+        }
+       ]
+      },
+      {
+       "id": "motor_coreless",
+       "label": "코어리스 초소형 모터(핸드용)",
+       "co": [
+        {
+         "t": "MAXON",
+         "notus": 1
+        },
+        {
+         "t": "FAULHABER",
+         "notus": 1
+        },
+        {
+         "t": "PORTESCAP",
+         "notus": 1
+        }
+       ],
+       "note": "코어리스 모터는 스위스·독일이 양산 중이고 슬롯리스 모터로 대체 가능해 병목이 되기 어렵다 [DS]"
+      },
+      {
+       "id": "harmonic",
+       "label": "하모닉 감속기(중·고감속 30~160:1)",
+       "co": [
+        {
+         "t": "HDS",
+         "notus": 1
+        },
+        {
+         "t": "NABTESCO",
+         "notus": 1
+        }
+       ],
+       "note": "비중국 하모닉 생산능력의 93%가 일본 선두 업체 한 곳. 2028년 비중국 휴머노이드 하모닉 수요가 생산능력의 절반, 2029년 공급 초과 전망 [DS]"
+      },
+      {
+       "id": "planetary",
+       "label": "유성 감속기(고감속 전환 수혜)",
+       "co": [
+        {
+         "t": "NEUGART",
+         "notus": 1
+        },
+        {
+         "t": "SCHAEFFLER",
+         "notus": 1
+        }
+       ],
+       "note": "고감속 전환의 1차 수혜. 비중국 고감속 유성 수요 2028~30년 연평균 160% 성장, 2030년 약 18만대분 [DS]"
+      },
+      {
+       "id": "cycloid",
+       "label": "사이클로이드 RV(57~192:1)",
+       "co": [
+        {
+         "t": "NABTESCO",
+         "notus": 1
+        },
+        {
+         "t": "SPINEA",
+         "notus": 1
+        }
+       ]
+      },
+      {
+       "id": "screw",
+       "label": "롤러스크류·볼스크류(직선 관절)",
+       "co": [
+        {
+         "t": "RBC",
+         "n": "RBC Bearings INC",
+         "cik": "0001324948"
+        },
+        {
+         "t": "THK",
+         "notus": 1
+        },
+        {
+         "t": "EWELLIX",
+         "notus": 1
+        },
+        {
+         "t": "SKF",
+         "notus": 1
+        }
+       ],
+       "note": "직선형 관절용. 비중국 생산은 유럽 두 곳뿐이고 2028년 수요의 10%에도 못 미침. 독일 업체의 거점이 중국이라 비중국 기여는 제한적 [DS]"
+      },
+      {
+       "id": "micro_gear",
+       "label": "초소형 정밀기어(핸드 40세트/쌍)",
+       "co": [
+        {
+         "t": "MAXON",
+         "notus": 1
+        }
+       ],
+       "note": "직결 핸드의 구조적 병목. 핸드 한 쌍에 40세트. 비중국 수요 2028년 523만세트 = 선두 업체 생산량의 3.1배 [DS]"
+      },
+      {
+       "id": "bearing",
+       "label": "베어링",
+       "co": [
+        {
+         "t": "RBC",
+         "n": "RBC Bearings INC",
+         "cik": "0001324948"
+        },
+        {
+         "t": "TKR",
+         "n": "TIMKEN CO",
+         "cik": "0000098362"
+        },
+        {
+         "t": "THK",
+         "notus": 1
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "mag",
+     "label": "자석·희토류(규제 최전선)",
+     "stages": [
+      {
+       "id": "magnet",
+       "label": "NdFeB 영구자석 제조",
+       "co": [
+        {
+         "t": "MP",
+         "n": "MP Materials Corp. / DE",
+         "cik": "0001801368"
+        },
+        {
+         "t": "USAR",
+         "n": "USA Rare Earth, Inc.",
+         "cik": "0001970622"
+        },
+        {
+         "t": "NVX",
+         "notus": 1
+        },
+        {
+         "t": "VAC",
+         "notus": 1
+        },
+        {
+         "t": "PROTERIAL",
+         "notus": 1
+        }
+       ],
+       "note": "미국 금속 영구자석 수입의 72.7%가 중국산(2025). 휴머노이드 관련 품목 중 최고 비중 [DS/UN Comtrade]"
+      },
+      {
+       "id": "sep_heavy",
+       "label": "중희토(Dy·Tb) 분리",
+       "co": [
+        {
+         "t": "MP",
+         "n": "MP Materials Corp. / DE",
+         "cik": "0001801368"
+        },
+        {
+         "t": "LYSCF",
+         "notus": 1
+        },
+        {
+         "t": "UUUU",
+         "n": "ENERGY FUELS INC",
+         "cik": "0001385849"
+        },
+        {
+         "t": "ARRNF",
+         "notus": 1
+        },
+        {
+         "t": "ILKAF",
+         "notus": 1
+        }
+       ],
+       "note": "병목은 자석이 아니라 디스프로슘·터븀 분리 공정. 2026년 비중국 상업 분리는 호주 한 곳뿐이고 2027~28년 프랑스·미국·호주 가동 예정이나 서방 OEM 양산 사양 확정보다 늦다 [DS]"
+      },
+      {
+       "id": "mine",
+       "label": "희토류 채굴·정광",
+       "co": [
+        {
+         "t": "MP",
+         "n": "MP Materials Corp. / DE",
+         "cik": "0001801368"
+        },
+        {
+         "t": "LYSCF",
+         "notus": 1
+        },
+        {
+         "t": "UUUU",
+         "n": "ENERGY FUELS INC",
+         "cik": "0001385849"
+        },
+        {
+         "t": "TMRC",
+         "notus": 1
+        },
+        {
+         "t": "REEMF",
+         "n": "RARE ELEMENT RESOURCES LTD",
+         "cik": "0001419806"
+        }
+       ]
+      },
+      {
+       "id": "coating",
+       "label": "입계확산·표면처리(중희토 절감)",
+       "co": [
+        {
+         "t": "PROTERIAL",
+         "notus": 1
+        }
+       ],
+       "note": "입계확산(GBD)으로 Dy를 자석 표면에만 확산시켜 같은 등급을 절반 이하 Dy로 구현. 완전 탈중희토는 아니다 [DS]"
+      }
+     ]
+    },
+    {
+     "id": "sense",
+     "label": "센서",
+     "stages": [
+      {
+       "id": "ft",
+       "label": "힘·토크(F/T) 센서 — 6축",
+       "co": [
+        {
+         "t": "NVT",
+         "notus": 1
+        },
+        {
+         "t": "ATI",
+         "notus": 1
+        },
+        {
+         "t": "KISTLER",
+         "notus": 1
+        },
+        {
+         "t": "TER",
+         "n": "TERADYNE, INC",
+         "cik": "0000097210"
+        }
+       ],
+       "note": "고감속으로 잃는 역구동(힘 감지)을 대신하는 핵심 부품. 6축 F/T 센서 가격이 핸드 한 개 값의 59~72% [DS]"
+      },
+      {
+       "id": "tactile",
+       "label": "촉각센서(손끝)",
+       "co": [
+        {
+         "t": "TEL",
+         "notus": 1
+        }
+       ],
+       "note": "손끝 접촉력 보완. 고감속일수록 미세한 힘 감지가 어려워져 촉각센서 수요가 따라 커진다 [DS]"
+      },
+      {
+       "id": "encoder",
+       "label": "엔코더·관절 위치",
+       "co": [
+        {
+         "t": "RNST",
+         "notus": 1
+        },
+        {
+         "t": "HEIDENHAIN",
+         "notus": 1
+        },
+        {
+         "t": "AME",
+         "n": "AMETEK INC/",
+         "cik": "0001037868"
+        }
+       ]
+      },
+      {
+       "id": "imu",
+       "label": "IMU·자세",
+       "co": [
+        {
+         "t": "HON",
+         "n": "HONEYWELL INTERNATIONAL INC",
+         "cik": "0000773840"
+        },
+        {
+         "t": "TDK",
+         "notus": 1
+        },
+        {
+         "t": "STM",
+         "n": "STMicroelectronics N.V.",
+         "cik": "0000932787"
+        }
+       ]
+      },
+      {
+       "id": "vision",
+       "label": "공간·시각(카메라·LiDAR·ToF)",
+       "co": [
+        {
+         "t": "OUST",
+         "n": "Ouster, Inc.",
+         "cik": "0001816581"
+        },
+        {
+         "t": "STM",
+         "n": "STMicroelectronics N.V.",
+         "cik": "0000932787"
+        },
+        {
+         "t": "SONY",
+         "notus": 1
+        },
+        {
+         "t": "CGNX",
+         "n": "COGNEX CORP",
+         "cik": "0000851205"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "ctrl",
+     "label": "제어·통신(두뇌·신경망)",
+     "stages": [
+      {
+       "id": "soc",
+       "label": "로봇 SoC·엣지 AI",
+       "co": [
+        {
+         "t": "NVDA",
+         "n": "NVIDIA CORP",
+         "cik": "0001045810"
+        },
+        {
+         "t": "QCOM",
+         "n": "QUALCOMM INC/DE",
+         "cik": "0000804328"
+        },
+        {
+         "t": "TXN",
+         "n": "TEXAS INSTRUMENTS INC",
+         "cik": "0000097476"
+        },
+        {
+         "t": "NXPI",
+         "n": "NXP Semiconductors N.V.",
+         "cik": "0001413447"
+        },
+        {
+         "t": "STM",
+         "n": "STMicroelectronics N.V.",
+         "cik": "0000932787"
+        }
+       ]
+      },
+      {
+       "id": "driver",
+       "label": "모터 드라이버·게이트드라이버",
+       "co": [
+        {
+         "t": "TXN",
+         "n": "TEXAS INSTRUMENTS INC",
+         "cik": "0000097476"
+        },
+        {
+         "t": "ADI",
+         "n": "ANALOG DEVICES INC",
+         "cik": "0000006281"
+        },
+        {
+         "t": "ONTO",
+         "notus": 1
+        },
+        {
+         "t": "MCHP",
+         "n": "MICROCHIP TECHNOLOGY INC",
+         "cik": "0000827054"
+        },
+        {
+         "t": "INFN",
+         "notus": 1
+        }
+       ]
+      },
+      {
+       "id": "power_mgmt",
+       "label": "전원관리·배터리",
+       "co": [
+        {
+         "t": "ADI",
+         "n": "ANALOG DEVICES INC",
+         "cik": "0000006281"
+        },
+        {
+         "t": "MPWR",
+         "n": "MONOLITHIC POWER SYSTEMS, INC.",
+         "cik": "0001280452"
+        },
+        {
+         "t": "TXN",
+         "n": "TEXAS INSTRUMENTS INC",
+         "cik": "0000097476"
+        }
+       ]
+      },
+      {
+       "id": "net",
+       "label": "실시간 통신·네트워크",
+       "co": [
+        {
+         "t": "ADI",
+         "n": "ANALOG DEVICES INC",
+         "cik": "0000006281"
+        },
+        {
+         "t": "MCHP",
+         "n": "MICROCHIP TECHNOLOGY INC",
+         "cik": "0000827054"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "hand",
+     "label": "말단장치(엔드 이펙터)",
+     "stages": [
+      {
+       "id": "gripper",
+       "label": "산업용 그리퍼",
+       "co": [
+        {
+         "t": "ATLKY",
+         "notus": 1
+        },
+        {
+         "t": "TER",
+         "n": "TERADYNE, INC",
+         "cik": "0000097210"
+        },
+        {
+         "t": "ROK",
+         "n": "ROCKWELL AUTOMATION, INC",
+         "cik": "0001024478"
+        }
+       ]
+      },
+      {
+       "id": "dex_hand",
+       "label": "다지 로봇핸드(13~22 DoF)",
+       "co": [
+        {
+         "t": "TER",
+         "n": "TERADYNE, INC",
+         "cik": "0000097210"
+        }
+       ]
+      },
+      {
+       "id": "tendon",
+       "label": "전완 텐던 구동(와이어)",
+       "co": [],
+       "note": "모터를 팔뚝에 두고 와이어로 당기는 방식. 와이어 마모가 수명을 제한해 정비성에서 한계 [DS]"
+      },
+      {
+       "id": "direct",
+       "label": "직결 구동(관절마다 모터)",
+       "co": [],
+       "note": "손가락 관절마다 모터를 넣는 방식. 소형화를 위해 고감속을 택하고 역구동 소실은 센서로 보완 [DS]"
+      },
+      {
+       "id": "hybrid",
+       "label": "하이브리드(손바닥 모터+짧은 와이어)",
+       "co": [],
+       "note": "손바닥에 모터를 모으고 짧은 와이어로 제어. 원가 절감 수단으로 부상했으나 내구성 검증 전 [DS]"
+      }
+     ]
+    },
+    {
+     "id": "oem",
+     "label": "휴머노이드 OEM",
+     "stages": [
+      {
+       "id": "us",
+       "label": "미국·서방 OEM",
+       "co": [
+        {
+         "t": "TSLA",
+         "n": "Tesla, Inc.",
+         "cik": "0001318605"
+        },
+        {
+         "t": "FIGR",
+         "notus": 1
+        },
+        {
+         "t": "AGIL",
+         "notus": 1
+        },
+        {
+         "t": "BD",
+         "notus": 1
+        },
+        {
+         "t": "APPT",
+         "notus": 1
+        },
+        {
+         "t": "1X",
+         "notus": 1
+        }
+       ]
+      },
+      {
+       "id": "cn",
+       "label": "중국 OEM(비교용)",
+       "co": [
+        {
+         "t": "UBTECH",
+         "notus": 1
+        },
+        {
+         "t": "UNITREE",
+         "notus": 1
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ "cik": {
+  "ACM": {
+   "cik": "0000868857",
+   "name": "AECOM"
+  },
+  "ACMR": {
+   "cik": "0001680062",
+   "name": "ACM Research, Inc."
+  },
+  "ADI": {
+   "cik": "0000006281",
+   "name": "ANALOG DEVICES INC"
+  },
+  "AEIS": {
+   "cik": "0000927003",
+   "name": "ADVANCED ENERGY INDUSTRIES INC"
+  },
+  "AMAT": {
+   "cik": "0000006951",
+   "name": "APPLIED MATERIALS INC /DE"
+  },
+  "AMD": {
+   "cik": "0000002488",
+   "name": "ADVANCED MICRO DEVICES INC"
+  },
+  "AME": {
+   "cik": "0001037868",
+   "name": "AMETEK INC/"
+  },
+  "AMKR": {
+   "cik": "0001047127",
+   "name": "AMKOR TECHNOLOGY, INC."
+  },
+  "APD": {
+   "cik": "0000002969",
+   "name": "Air Products & Chemicals, Inc."
+  },
+  "APG": {
+   "cik": "0001796209",
+   "name": "APi Group Corp"
+  },
+  "APH": {
+   "cik": "0000820313",
+   "name": "AMPHENOL CORP /DE/"
+  },
+  "ARM": {
+   "cik": "0001973239",
+   "name": "ARM HOLDINGS PLC /UK"
+  },
+  "ASML": {
+   "cik": "0000937966",
+   "name": "ASML HOLDING NV"
+  },
+  "ASX": {
+   "cik": "0001122411",
+   "name": "ASE Technology Holding Co., Ltd."
+  },
+  "ATMU": {
+   "cik": "0001921963",
+   "name": "Atmus Filtration Technologies Inc."
+  },
+  "AVGO": {
+   "cik": "0001730168",
+   "name": "Broadcom Inc."
+  },
+  "AZZ": {
+   "cik": "0000008947",
+   "name": "AZZ INC"
+  },
+  "BE": {
+   "cik": "0001664703",
+   "name": "Bloom Energy Corp"
+  },
+  "BWXT": {
+   "cik": "0001486957",
+   "name": "BWX Technologies, Inc."
+  },
+  "CAMT": {
+   "cik": "0001109138",
+   "name": "CAMTEK LTD"
+  },
+  "CAT": {
+   "cik": "0000018230",
+   "name": "CATERPILLAR INC"
+  },
+  "CBT": {
+   "cik": "0000016040",
+   "name": "CABOT CORP"
+  },
+  "CDNS": {
+   "cik": "0000813672",
+   "name": "CADENCE DESIGN SYSTEMS INC"
+  },
+  "CEG": {
+   "cik": "0001868275",
+   "name": "Constellation Energy Corp"
+  },
+  "CGNX": {
+   "cik": "0000851205",
+   "name": "COGNEX CORP"
+  },
+  "CIEN": {
+   "cik": "0000936395",
+   "name": "CIENA CORP"
+  },
+  "CMI": {
+   "cik": "0000026172",
+   "name": "CUMMINS INC"
+  },
+  "COHR": {
+   "cik": "0000820318",
+   "name": "COHERENT CORP."
+  },
+  "COHU": {
+   "cik": "0000021535",
+   "name": "COHU INC"
+  },
+  "CRDO": {
+   "cik": "0001807794",
+   "name": "Credo Technology Group Holding Ltd"
+  },
+  "CRS": {
+   "cik": "0000017843",
+   "name": "CARPENTER TECHNOLOGY CORP"
+  },
+  "DELL": {
+   "cik": "0001571996",
+   "name": "Dell Technologies Inc."
+  },
+  "EME": {
+   "cik": "0000105634",
+   "name": "EMCOR Group, Inc."
+  },
+  "ENTG": {
+   "cik": "0001101302",
+   "name": "ENTEGRIS INC"
+  },
+  "ETN": {
+   "cik": "0001551182",
+   "name": "Eaton Corp plc"
+  },
+  "FCEL": {
+   "cik": "0000886128",
+   "name": "FUELCELL ENERGY INC"
+  },
+  "FIX": {
+   "cik": "0001035983",
+   "name": "COMFORT SYSTEMS USA INC"
+  },
+  "FN": {
+   "cik": "0001408710",
+   "name": "Fabrinet"
+  },
+  "FORM": {
+   "cik": "0001039399",
+   "name": "FORMFACTOR INC"
+  },
+  "GEV": {
+   "cik": "0001996810",
+   "name": "GE Vernova Inc."
+  },
+  "GFS": {
+   "cik": "0001709048",
+   "name": "GLOBALFOUNDRIES Inc."
+  },
+  "GLW": {
+   "cik": "0000024741",
+   "name": "CORNING INC /NY"
+  },
+  "GNRC": {
+   "cik": "0001474735",
+   "name": "GENERAC HOLDINGS INC."
+  },
+  "HON": {
+   "cik": "0000773840",
+   "name": "HONEYWELL INTERNATIONAL INC"
+  },
+  "HPE": {
+   "cik": "0001645590",
+   "name": "Hewlett Packard Enterprise Co"
+  },
+  "HUBB": {
+   "cik": "0000048898",
+   "name": "HUBBELL INC"
+  },
+  "ICHR": {
+   "cik": "0001652535",
+   "name": "ICHOR HOLDINGS, LTD."
+  },
+  "INTC": {
+   "cik": "0000050863",
+   "name": "INTEL CORP"
+  },
+  "J": {
+   "cik": "0000052988",
+   "name": "JACOBS SOLUTIONS INC."
+  },
+  "KLAC": {
+   "cik": "0000319201",
+   "name": "KLA CORP"
+  },
+  "KLIC": {
+   "cik": "0000056978",
+   "name": "KULICKE & SOFFA INDUSTRIES INC"
+  },
+  "LIN": {
+   "cik": "0001707925",
+   "name": "LINDE PLC"
+  },
+  "LITE": {
+   "cik": "0001633978",
+   "name": "Lumentum Holdings Inc."
+  },
+  "LRCX": {
+   "cik": "0000707549",
+   "name": "LAM RESEARCH CORP"
+  },
+  "MCHP": {
+   "cik": "0000827054",
+   "name": "MICROCHIP TECHNOLOGY INC"
+  },
+  "MKSI": {
+   "cik": "0001049502",
+   "name": "MKS INC"
+  },
+  "MOG-A": {
+   "cik": "0000067887",
+   "name": "MOOG INC."
+  },
+  "MP": {
+   "cik": "0001801368",
+   "name": "MP Materials Corp. / DE"
+  },
+  "MPWR": {
+   "cik": "0001280452",
+   "name": "MONOLITHIC POWER SYSTEMS, INC."
+  },
+  "MRVL": {
+   "cik": "0001835632",
+   "name": "Marvell Technology, Inc."
+  },
+  "MTZ": {
+   "cik": "0000015615",
+   "name": "MASTEC INC"
+  },
+  "MU": {
+   "cik": "0000723125",
+   "name": "MICRON TECHNOLOGY INC"
+  },
+  "NTAP": {
+   "cik": "0001002047",
+   "name": "NetApp, Inc."
+  },
+  "NVDA": {
+   "cik": "0001045810",
+   "name": "NVIDIA CORP"
+  },
+  "NVMI": {
+   "cik": "0001109345",
+   "name": "NOVA LTD."
+  },
+  "NXPI": {
+   "cik": "0001413447",
+   "name": "NXP Semiconductors N.V."
+  },
+  "ONTO": {
+   "cik": "0000704532",
+   "name": "ONTO INNOVATION INC."
+  },
+  "OUST": {
+   "cik": "0001816581",
+   "name": "Ouster, Inc."
+  },
+  "PLUG": {
+   "cik": "0001093691",
+   "name": "PLUG POWER INC"
+  },
+  "PWR": {
+   "cik": "0001050915",
+   "name": "QUANTA SERVICES, INC."
+  },
+  "QCOM": {
+   "cik": "0000804328",
+   "name": "QUALCOMM INC/DE"
+  },
+  "RBC": {
+   "cik": "0001324948",
+   "name": "RBC Bearings INC"
+  },
+  "REEMF": {
+   "cik": "0001419806",
+   "name": "RARE ELEMENT RESOURCES LTD"
+  },
+  "ROK": {
+   "cik": "0001024478",
+   "name": "ROCKWELL AUTOMATION, INC"
+  },
+  "SMCI": {
+   "cik": "0001375365",
+   "name": "Super Micro Computer, Inc."
+  },
+  "SMTC": {
+   "cik": "0000088941",
+   "name": "SEMTECH CORP"
+  },
+  "SNDK": {
+   "cik": "0002023554",
+   "name": "Sandisk Corp"
+  },
+  "SNPS": {
+   "cik": "0000883241",
+   "name": "SYNOPSYS INC"
+  },
+  "STM": {
+   "cik": "0000932787",
+   "name": "STMicroelectronics N.V."
+  },
+  "STX": {
+   "cik": "0001137789",
+   "name": "Seagate Technology Holdings plc"
+  },
+  "TER": {
+   "cik": "0000097210",
+   "name": "TERADYNE, INC"
+  },
+  "TKR": {
+   "cik": "0000098362",
+   "name": "TIMKEN CO"
+  },
+  "TLN": {
+   "cik": "0001622536",
+   "name": "Talen Energy Corp"
+  },
+  "TSLA": {
+   "cik": "0001318605",
+   "name": "Tesla, Inc."
+  },
+  "TSM": {
+   "cik": "0001046179",
+   "name": "TAIWAN SEMICONDUCTOR MANUFACTURING CO LTD"
+  },
+  "TXN": {
+   "cik": "0000097476",
+   "name": "TEXAS INSTRUMENTS INC"
+  },
+  "UCTT": {
+   "cik": "0001275014",
+   "name": "Ultra Clean Holdings, Inc."
+  },
+  "UMC": {
+   "cik": "0001033767",
+   "name": "UNITED MICROELECTRONICS CORP"
+  },
+  "USAR": {
+   "cik": "0001970622",
+   "name": "USA Rare Earth, Inc."
+  },
+  "UUUU": {
+   "cik": "0001385849",
+   "name": "ENERGY FUELS INC"
+  },
+  "VRT": {
+   "cik": "0001674101",
+   "name": "Vertiv Holdings Co"
+  },
+  "VST": {
+   "cik": "0001692819",
+   "name": "Vistra Corp."
+  },
+  "WDC": {
+   "cik": "0000106040",
+   "name": "WESTERN DIGITAL CORP"
+  }
+ },
+ "fts": [
+  "high bandwidth memory",
+  "co-packaged optics",
+  "linear pluggable optics",
+  "external laser source",
+  "humanoid robot",
+  "rare earth magnet",
+  "dysprosium",
+  "harmonic drive",
+  "planetary gearbox",
+  "roller screw",
+  "force torque sensor",
+  "tactile sensor",
+  "silicon photonics",
+  "InP wafer",
+  "bridge power",
+  "behind the meter",
+  "aeroderivative",
+  "grain boundary diffusion"
+ ]
+}

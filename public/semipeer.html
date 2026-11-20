@@ -591,6 +591,48 @@ function riskList(x){
   const v=VFI[x.c]; if(v&&(v.fl||[]).length) v.fl.forEach(f=>out.push((f[0]==='bad'?'경영진 자동 점검 — 문제: ':'경영진 자동 점검 — 주의: ')+f[1]));
   return out;
 }
+// ───── 이 회사에 맞는 평가법 ──────────────────────────────────────────────
+// 업종마다 숫자가 생기는 구조가 달라서, 같은 PER을 들이대면 틀린 결론이 나온다.
+// 단계(stage)로 큰 갈래를 잡고, 8대공정으로 한 번 더 좁힌다.
+const VALM={
+ chip:  ['정상화 이익 PER · EV/EBITDA','PBR 밴드 · DCF',
+         '메모리는 가격 사이클이 이익을 흔든다. 정점 이익에 PER을 곱하면 가장 비쌀 때 가장 싸 보인다 — 몇 해 평균 이익(정상화 이익)으로 다시 계산해 보세요.'],
+ design:['DCF · EV/Sales','Forward PER · PEG',
+         '팹리스는 공장이 없어 자산이 적습니다. PBR은 뜻이 약하고, 성장이 몇 해 이어지느냐는 가정이 값의 대부분을 만듭니다.'],
+ dist:  ['Forward PER · EV/EBIT','P/FCF',
+         '유통은 마진이 얇아 매출이 커도 이익이 적습니다. PSR은 과대평가로 이어지기 쉬우니 영업이익 기준으로 보세요.'],
+ pre:   ['Forward PER · EV/EBIT','DCF · Historical Band',
+         '전공정 장비·소재는 고객 캐펙스에 후행합니다. 지난 실적보다 수주잔고·고객 투자계획이 먼저 움직입니다.'],
+ post:  ['Forward PER · EV/EBITDA','EV/EBIT · Historical Band',
+         '후공정은 설비 투자가 커서 감가상각이 이익을 누릅니다. EBITDA로 보되, 그만큼 캐펙스가 계속 나간다는 점을 같이 보세요.'],
+ both:  ['Forward PER · EV/EBIT','EV/EBITDA · DCF',''],
+ infra: ['EV/EBITDA · P/FCF','Forward PER',
+         '공통 인프라는 공장 전체에 깔리는 설비라 수주가 뭉텅이로 들어옵니다. 한 해 실적만 보면 들쭉날쭉합니다.'],
+ etc:   ['Forward PER · EV/EBIT','PBR',''],
+};
+const VALP={
+ '① 웨이퍼 제조':'원판 소재는 장기계약·증설 사이클이 길어 EV/EBITDA와 캐펙스를 같이 봅니다.',
+ '③ 포토(노광)':'노광 관련은 미세화 투자에 직결돼 Forward PER의 이익 추정 자체가 변수입니다.',
+ '⑦ EDS 테스트':'테스트는 가동률이 이익을 좌우합니다 — EV/EBITDA가 설비 부담을 가릴 수 있습니다.',
+ '⑧ 패키징':'첨단 패키징은 증설이 선행하고 실적이 뒤따릅니다 — 올해 PER보다 증설 완료 후 이익으로 보세요.',
+ '공통 인프라':'수주 인식 시점에 따라 분기 실적이 튑니다 — 단일 분기 배수는 쓰지 마세요.',
+};
+function valMethod(x){
+  const V=VALM[x.stage]||VALM.etc;
+  const ex=(x.procs||[]).map(pz=>VALP[pz]).filter(Boolean);
+  let h=`<div class="sec"><b class="t">🧮 이 회사에 맞는 평가법</b> <span class="mu">— 업종마다 숫자가 생기는 구조가 다릅니다</span>`+
+        `<div class="q" style="margin-top:3px"><b>주력</b> ${esc(V[0])} · <b>보조</b> ${esc(V[1])}</div>`;
+  if(V[2]) h+=`<div class="q">${esc(V[2])}</div>`;
+  ex.slice(0,2).forEach(t=>{ h+=`<div class="q">${esc(t)}</div>`; });
+  // 이 회사 숫자에서 바로 걸리는 것만 덧붙인다 — 일반론은 위에서 이미 말했다
+  const al=[];
+  if(x.sig==='loss'||x.per==null||x.per<=0) al.push('지금은 적자(또는 이익이 미미)라 PER·PEG가 성립하지 않습니다 — PSR·EV/Sales와 현금흐름으로 보세요.');
+  if(x.roe!=null&&x.roe>=15&&x.debt!=null&&x.debt>=150) al.push(`ROE ${fv('roe',x.roe)}가 높지만 부채비율이 ${fv('debt',x.debt)}입니다 — 빚을 키워 올린 ROE인지 확인하세요.`);
+  if(x.pbr!=null&&x.pbr<1&&x.roe!=null&&x.roe<5) al.push('PBR이 1배 아래인데 ROE도 낮습니다 — 자산이 이익을 못 내고 있다는 뜻일 수 있어, 싸다고 보기 어렵습니다.');
+  if(x.stage==='chip'&&x.per!=null&&x.per>0&&x.per<8) al.push('메모리에서 한 자릿수 PER은 이익 정점의 신호인 경우가 많습니다 — 정상화 이익으로 다시 계산해 보세요.');
+  if(al.length) h+=`<ul class="rk" style="margin-top:4px">${al.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`;
+  return h+`</div>`;
+}
 function aboutCard(x){
   const dc=DEF?DEF.co[x.c]:null; if(!dc) return '';
   const sd=(SDT||{})[x.c]||null;
@@ -617,7 +659,9 @@ function aboutCard(x){
   const rr=riskResearched(x.c);
   h+= (rk.length||rr.length)?`<ul class="rk">${rr.map(t=>`<li>${esc(t)}<span class="tagn">조사</span></li>`).join('')}${rk.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`:' <span class="none">숫자·자동 점검에서 걸린 신호는 없습니다(조사하지 않은 위험까지 없다는 뜻은 아닙니다).</span>';
   if(caut) h+=`<div class="q" style="margin-top:3px"><b>비교할 때 주의</b> ${esc(caut)}</div>`;
-  h+=`</div></div>`;
+  h+=`</div>`;
+  h+=valMethod(x);
+  h+=`</div>`;
   return h;
 }
 // ───── peer 대비 한눈에: 지표별 내 값 · peer 중앙값 · 꼬리표

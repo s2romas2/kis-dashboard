@@ -12,7 +12,12 @@ BASE = 'https://opendart.fss.or.kr/api'
 OUTDIR = 'public/data/qdeep'
 MAXRUN = int(os.environ.get('MAXRUN', '10'))
 REFRESH_DAYS = 25  # 분기마다 새 보고서 반영
-PV = 5  # 파서 버전 — 올리면 기존 수집분 재수집
+PV = 6  # 파서 버전 — 올리면 기존 수집분 재수집
+# v6: 판가 파서도 교체. 구버전은 '주요 제품 등의 현황'(단위: 백만원, %) 표를
+#     판가 표로 집어 2019년 매출액 13,638 을 판가로 저장했다(정답 5,892원).
+#     이제 단위가 판가 단위여야 하고, 문맥에 '가격변동'이 있어야 하며,
+#     내수·수출은 단가가 달라 합치지 않고 접미사로 구분한다.
+#     고객명은 공백 제거 키로 묶어 'A 사'/'A사' 로 시계열이 끊기지 않게 한다.
 # v5: 품목별 매출 파서를 자기검증형으로 교체. 품목 합을 원문 '합계' 행과 대조해
 #     오차 2% 초과면 저장하지 않는다. 고친 것 — '-' 칸을 지워 뒤 연도 값이
 #     당겨지던 열 밀림(RF머트리얼즈 2019년 매출이 21.1Q 자리로 들어감),
@@ -123,7 +128,11 @@ def _is_numlike(c):
     cc = c.replace(' ', '')
     return cc in ('-', '') or tonum(cc) is not None
 
-def _norm(s): return re.sub(r'\s+', '', s or '')
+# 주석 기호를 떼고 공백을 지운다. '내수(*1)' 이 판로로 인식되지 않아
+# 품목으로 등록되던 문제(이수페타시스) 때문에 필요하다.
+_FOOT = re.compile(r'\(\s*(?:\*|주|note)\s*\d*\s*\)|\*+\d*$|주\s*\d+\s*$', re.I)
+def _norm(s):
+    return re.sub(r'\s+', '', _FOOT.sub('', s or ''))
 
 # ── 합계·소계 판정 ──────────────────────────────────────────────
 # '계'로 끝나는 말 중 소계인 것만 잡는다. '시계·온도계·중계' 같은 품목명을
@@ -407,31 +416,67 @@ def parse_sales_qc(h):
         return None, 'no-table'
     return pick_best(tabs)
 
+# ── 품목별 판가 (v2) ──────────────────────────────────────────────
+# 구버전은 '주요 제품 등의 현황'(단위: 백만원, %) 표를 판가 표로 집어
+# 2019년 매출액 13,638 을 판가로 저장했다. 정답은 5,892원(2021.3Q).
+# 이제 ① 단위가 판가 단위(원/USD/$)여야 하고 ② 문맥에 '가격변동'이 있어야 하며
+# ③ 당기 열을 머리글에서 읽고 ④ '-' 칸은 자리를 지켜 열이 밀리지 않게 한다.
+PRICE_UNIT = re.compile(r'(^|[^백만천])원\s*$|^원$|USD|US\$|\$|달러|천원|원/|/개|/EA|/kg|/톤', re.I)
+MONEY_UNIT = re.compile(r'(백만원|십억원|억원|조원)')
+PRICE_CTX  = re.compile(r'(가격\s*변동|판매\s*가격|단가\s*추이|가격\s*추이)')
+PRICE_SKIP = {'구분', '주요제품', '주요상품', '제품', '상품', '품목', '품 목', '용역', '서비스', '합계', '계'}
+
 def parse_price(h):
     """품목별 판가(누적평균): {품목: (값, 단위문자)}"""
-    out = {}
     for m in re.finditer(r'<TABLE[\s\S]*?</TABLE>', h, re.I):
         pos = m.start()
-        seg = h[max(0, pos - 800):pos]
-        um = re.search(r'단\s*위\s*[:：]\s*([^)＜<]{1,14})', seg)
-        t = tables(m.group(0))[0]
-        if not t or len(t) < 2:
+        rows = tables(m.group(0))[0]
+        if not rows or len(rows) < 2:
             continue
-        head = ' '.join(t[0])
-        if not ('품' in head and ('기' in head or '분기' in head)):
+        ctx = re.sub(r'\s+', ' ', re.sub('<[^>]+>', ' ', h[max(0, pos - 1200):pos]))
+        if not PRICE_CTX.search(ctx):
             continue
-        # 가격 표 추정: 행이 [품목, 숫자...]이고 근처에 '가격' 또는 단위가 원/…
-        near = h[max(0, pos - 2500):pos]
-        if '가격변동' not in near and '판매가격' not in near and '가격' not in near:
-            continue
-        for r in t[1:]:
-            if len(r) >= 2 and tonum(r[0]) is None:
-                v = tonum(r[1])
-                if v is not None and v > 0:
-                    out[r[0].strip()[:20]] = (v, (um.group(1).strip() if um else ''))
+        # 단위 — 표 안쪽 표기를 우선하고, 없으면 표 바로 앞 문맥
+        um = None
+        headtxt = ' '.join(' '.join(r) for r in rows[:2])
+        for src in (headtxt, ctx[-300:]):
+            mm = list(re.finditer(r'단\s*위\s*[:：]\s*([^)＜<]{1,16})', src))
+            if mm:
+                um = mm[-1].group(1).strip(); break
+        um = re.sub(r'&nbsp;?|&#160;', ' ', um or '')
+        um = re.sub(r'\s+', ' ', um).strip()
+        if not um or MONEY_UNIT.search(um) or not PRICE_UNIT.search(um):
+            continue                                   # 금액 표(백만원 등)는 판가가 아니다
+        k, nper = _period_count(rows)
+        CH = set(_norm(w) for w in CHAN_WORDS)
+        SKIP = set(_norm(w) for w in PRICE_SKIP)
+        out, cur_item = {}, None
+        for r in rows[1:]:
+            lead = _lead(r); nums = _vals(r)
+            if not lead or not nums:
+                continue
+            norm = [_norm(x) for x in lead]
+            if any(_is_total(c) for c in norm):
+                continue
+            j = k if k < len(nums) else 0
+            v = nums[j]
+            if v is None or v <= 0:
+                continue
+            cand = [c for c, n in zip(lead, norm) if n not in SKIP and n not in CH]
+            if cand:
+                cur_item = re.sub(r'\s+', ' ', cand[-1]).strip()[:22]
+                name = cur_item
+            elif cur_item:
+                name = cur_item                        # 판로만 적힌 행 — 앞선 품목에 붙인다
+            else:
+                continue
+            # 내수·수출은 단가가 서로 다르므로 합치지 않고 접미사로 구분한다
+            ch = next((lead[i].strip() for i, n in enumerate(norm) if n in CH), '')
+            if ch: name = '%s %s' % (name, re.sub(r'\s+', '', ch))
+            out[name[:28]] = (v, um)
         if out:
-            break
-    return out
+            return out
+    return {}
 
 def parse_prod(h):
     """생산능력·생산실적·가동률(누적): {품목: {'cap':, 'act':, 'util':%}} — 헤더 열 위치 기반"""
@@ -451,7 +496,8 @@ def parse_prod(h):
         for r in t[1:]:
             if not r or re.fullmatch(r'[\d,.\-△()% ]*', r[0] or ''):
                 continue
-            name = r[0].strip()[:20]
+            # 셀 안쪽 공백이 그대로 라벨이 되는 표가 많다('공          장')
+            name = re.sub(r'\s+', ' ', r[0]).strip()[:20]
             if name.replace(' ', '') in ('계', '합계', '총계'):
                 name = '전체'
             # rowspan으로 앞열이 병합된 행은 끝에서 정렬
@@ -471,6 +517,10 @@ def parse_prod(h):
             cap = tonum(cell(ic)) if ic is not None else None
             act = tonum(cell(ia)) if ia is not None else None
             if any(x is not None for x in (cap, act, util)):
+                # '전체' 행이 유일한 부문과 값이 같으면 중복이므로 넣지 않는다(비에이치)
+                if name == '전체' and len(res) == 1 and \
+                   abs((list(res.values())[0].get('util') or -1) - (util if util is not None else -2)) < 0.01:
+                    continue
                 res[name] = {'cap': cap, 'act': act, 'util': util}
         if res:
             break
@@ -491,6 +541,8 @@ def parse_customers(h):
     for m in re.finditer(r'매출[^<]{0,40}10%[^<]{0,80}?(?:외부\s*고객|고객)', h):
         seg = h[m.start(): m.start() + 10000]
         mult = 1e3 if '천원' in seg[:1200] else (1e6 if '백만원' in seg[:1200] else 1e3)
+        if '억원' in seg[:1200] and '백만원' not in seg[:1200] and '천원' not in seg[:1200]:
+            mult = 1e8
         for tm in re.finditer(r'<TABLE[\s\S]*?</TABLE>', seg, re.I):
             t = tables(tm.group(0))[0]
             out = {}
@@ -511,7 +563,10 @@ def parse_customers(h):
                         if v is not None:
                             break
                     if v is not None and v > 0:
-                        out[nm[:16]] = v * mult
+                        # 'A 사' / 'A사' 처럼 공백만 다른 표기는 같은 고객이다.
+                        # 분기마다 표기가 바뀌면 시계열이 끊기므로 공백 제거 키로 묶는다.
+                        disp = re.sub(r'\s+', '', nm)[:16]
+                        out[disp] = out.get(disp, 0) + v * mult
             if out and len(out) <= 10 and (tot == 0 or fin / tot <= 0.5):
                 return out
     return {}
@@ -688,6 +743,11 @@ def collect(code, name, corp):
             c1 = (cum[lb].get('sales') or {}).get(it)
             c0 = (cum.get(pl, {}).get('sales') or {}).get(it) if pl else 0
             sq = (c1 - c0) if (c1 is not None and c0 is not None) else None
+            # 분기 매출이 음수로 나오면 회사가 품목 이름을 바꿨거나 정정한 것이다
+            # (예: '레이저용 패키지' → '레이저 모듈용 패키지'). 누적 차감의 부작용이지
+            # 실제 매출이 아니므로 숫자를 지어내지 않고 비운다.
+            if sq is not None and sq < 0:
+                sq = None
             sales_q[it].append(round(sq / 1e8, 1) if sq is not None else None)
             # 물량·판가: 누적물량 = 누적매출/누적평균판가, 분기 차감 [산출]
             p1 = ((cum[lb].get('price') or {}).get(it) or (None,))[0]

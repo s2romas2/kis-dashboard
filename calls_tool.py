@@ -34,7 +34,8 @@ ALIAS = {'삼정전자': '삼성전자', '네이버': 'NAVER', 'KB금융지주':
          '하이닉스': 'SK하이닉스', '엘지에너지솔루션': 'LG에너지솔루션'}
 # 종목이 안 잡히는 콜의 갈림길 — 이 단어가 키워드에 있으면 매크로, 없으면 마켓
 MACRO_HINT = re.compile(r'(FOMC|금리|물가|CPI|PCE|연준|Fed|환율|고용|실업|국채|유가|'
-                        r'관세|지정학|총선|대선|전쟁|이스라엘|이란|매크로|경기|침체)')
+                        r'관세|지정학|총선|대선|선거|전쟁|이스라엘|이란|매크로|경기|침체|'
+                        r'ISM|가격지수|인플레이션|디플레|GDP|테일러준칙|기준금리)')
 
 # 키워드에서 떼어낼 비종목 토큰 — 긴 것부터 지워야 '편출콜'이 '편출'+'콜'로 쪼개지지 않는다
 KW_NOISE = re.compile(
@@ -50,6 +51,10 @@ def stock_of(kind, kw, title):
     k = KW_NOISE.sub(' ', kw or '').strip()
     k = k.split()[0] if k else ''
     if k in NOT_STOCK:
+        k = ''
+    # 매크로·마켓 콜은 종목 콜이 아니다 — 키워드 첫 토큰은 주제어(VVIX·나스닥·소프트뱅크 등)이므로
+    # 종목으로 올리지 않는다. 종목을 다루는 콜은 반드시 왓칭콜·편입·편출·업데이트·잠정실적 표식이 붙는다.
+    if kind in ('매크로', '마켓'):
         k = ''
     k = ALIAS.get(k, k)
     if kind == '잠정실적' and not k:
@@ -74,10 +79,10 @@ def classify(title, kw):
     if '왓칭콜' in t or '왓칭' in kw: return '왓칭'
     if '매크로콜' in t or kw.startswith('매크로'): return '매크로'
     if '마켓콜' in t or kw.startswith('마켓콜'): return '마켓'
-    # 종목이 안 잡히는 콜은 기타로 버리지 말고 매크로/마켓으로 떨어뜨린다
-    if not stock_of('', kw, title):
-        return '매크로' if MACRO_HINT.search(kw or '') else '마켓'
-    return '기타'
+    # 표식이 없는 콜은 전부 주제 콜이다 — '기타'로 버리지 않는다.
+    # (예전에는 키워드 첫 토큰이 종목처럼 보이면 기타로 떨어뜨려, VVIX·나스닥·국안기금 같은
+    #  주제어가 종목으로 저장되고 kind가 기타가 되는 문제가 있었다 — 11/16 수정)
+    return '매크로' if MACRO_HINT.search((kw or '') + ' ' + t) else '마켓'
 
 def norm_rows(rows):
     """[no, title, yymmdd, cate, kw, imgs('|'), gisu] → dict"""

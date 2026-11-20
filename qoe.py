@@ -19,7 +19,7 @@ KEY     = os.environ.get('DART_KEY', '')
 OUT     = 'public/data/qoe.json'
 CMPDIR  = 'public/data/compare'
 MAXRUN  = int(os.environ.get('MAXRUN', '25'))   # 1회 실행에서 원문을 캘 종목 수
-PV      = 1
+PV      = 2
 DEBUG   = []
 
 # ── 꺾임 판정 임계 ────────────────────────────────────────────────────────────
@@ -99,7 +99,7 @@ def parse_note_pairs(h):
     같은 주석 안에 '당반기' 표와 '전반기' 표가 따로 실린다. 둘을 짝지어 두면
     계정명 사전에 기대지 않고 '전년 동기 대비 얼마가 튀었나'로 일회성을 집어낼 수 있다.
     """
-    cur, prev = {}, {}
+    cur, prev, seen = {}, {}, set()
     for m in re.finditer(r'<TABLE[\s\S]*?</TABLE>', h, re.I):
         tb = Q.tables(m.group(0))[0]
         if not tb or len(tb) < 3:
@@ -107,6 +107,7 @@ def parse_note_pairs(h):
         mult = unit_mult(h, m.start())
         seg = h[max(0, m.start() - 1500):m.start()]
         labs = PERIOD.findall(re.sub(r'<[^>]+>', ' ', seg))
+        if labs: seen.add(labs[-1])
         side = prev if (labs and labs[-1] in ('전반기', '전분기', '전기')) else cur
         # 머리글에 '3개월'이 있으면 그 열(분기 단독), 없으면 첫 숫자 열
         col = 0
@@ -127,7 +128,11 @@ def parse_note_pairs(h):
             if not name or name in ('장부금액', '공시금액', '3개월', '누적'):
                 continue
             side.setdefault(name, nums[min(col, len(nums) - 1)] * mult)
-    return {k: {'cur': cur.get(k), 'prev': prev.get(k)} for k in set(cur) | set(prev)}
+    out = {k: {'cur': cur.get(k), 'prev': prev.get(k)} for k in set(cur) | set(prev)}
+    # 기간 기준: 반기·분기 주석은 대개 누계(YTD)다
+    basis = '누계' if ({'당반기', '전반기'} & seen) else ('분기' if ({'당분기', '전분기'} & seen) else '미상')
+    out['__basis__'] = {'cur': None, 'prev': None, 'basis': basis}
+    return out
 
 NOTE_WANT = {
     'other': re.compile(r'기타수익.*기타비용|기타손익'),
@@ -156,30 +161,83 @@ def notes_of(rcp):
         time.sleep(0.3)
     return out
 
-def oneoffs(notes, ni_swing_won=None):
-    """전년 동기 대비 증감이 큰 손익 항목 — 계정명 사전에 의존하지 않는다.
+# 소계·총계 행 — 항목이 아니라 묶음. 이게 섞이면 '판매비와관리비 합계 +491억'처럼
+# 설명이 아닌 것이 설명처럼 보인다.
+SUBTOTAL = re.compile(r'(합\s*계|총\s*계|소\s*계|총액|계$|^순(금융|기타|영업외)|^순손익)')
+SUBTOTAL_EXACT = {'판매비와관리비', '판매비및일반관리비', '판관비', '기타수익', '기타비용',
+                  '금융수익', '금융원가', '금융비용', '기타이익', '기타손실', '영업외수익', '영업외비용'}
+# 성격상 일회성 — 낮은 문턱으로 채택한다
+ONEOFF_ACC = re.compile(
+    r'(손상차손|환입|처분|폐기|제각|대손상각|충당부채|소송|배상|과징금|벌금|추징|'
+    r'평가손|평가이익|파생상품|환산|환차|기부금|구조조정|합병|분할|청산|중단영업|'
+    r'잡손실|잡이익|보상금|위약금|특별|성과급|인센티브|일시|정산|리콜|화재|재해)')
+# 사업 규모에 따라 같이 커지는 일상 비용 — 높은 문턱을 요구한다.
+# 단 '직원 인센티브'처럼 한 분기에 몰아 나오는 경우가 있어 아예 빼지는 않는다.
+ROUTINE_ACC = re.compile(
+    r'(급여|상여|임금|퇴직급여|복리후생|지급수수료|수수료|운반비|광고|판매촉진|'
+    r'감가상각|무형자산상각|임차료|세금과공과|여비|교통비|통신비|수도|전력|'
+    r'접대|소모품|보험료|교육|차량|외주|용역비|연구개발|경상개발|대리점|물류|포장)')
+# 비용 계정 / 수익 계정 — 순익을 끌어내린 방향인지 판정하기 위함
+COST_ACC = re.compile(r'(손실|비용|원가|상각|차손|전입|과징금|벌금|기부금|급여|상여|수수료|임차료|보험료|세금)')
+GAIN_ACC = re.compile(r'(이익|수익|차익|환입|환급)')
 
-    ni_swing_won: 순이익 YoY 변동폭(원). 주어지면 그 10% 이상 움직인 항목만 남긴다.
+def _tax_of(notes):
+    """법인세비용 — 주석 계정명이 보고서마다 달라 부분 일치로 찾는다"""
+    t = notes.get('tax') or {}
+    for k, v in t.items():
+        n = re.sub(r'\s+', '', k)
+        if '법인세비용' in n and ('합계' in n or '총계' in n or n == '법인세비용'):
+            return eok(v.get('cur'))
+    for k, v in t.items():
+        if '법인세' in re.sub(r'\s+', '', k):
+            return eok(v.get('cur'))
+    return None
+
+def oneoffs(notes, ni_swing_won=None):
+    """전년 동기 대비 증감이 큰 손익 항목.
+
+    계정명 사전에 의존하지 않고 당기/전기 짝으로 판정하되,
+    ① 소계·총계 행은 버린다 ② 일상 비용은 높은 문턱을 요구한다
+    ③ 순익을 끌어내린 방향인지(explains) 표시한다.
+    ni_swing_won: 순이익 YoY 변동폭(원).
     """
-    floor = 5e8
-    if ni_swing_won:
-        floor = max(floor, abs(ni_swing_won) * 0.10)
+    swing = abs(ni_swing_won) if ni_swing_won else None
+    lo = max(3e8, (swing * 0.08) if swing else 0)          # 일회성 성격 계정의 문턱
     hits = []
     for sec in ('other', 'fin', 'sga'):
         for name, v in (notes.get(sec) or {}).items():
+            if name == '__basis__':
+                continue
             c, p = v.get('cur'), v.get('prev')
             if c is None:
                 continue
-            n = name.replace(' ', '')
-            if n.startswith(('기타이익', '기타손실', '금융수익', '금융원가', '금융비용', '합계', '소계')):
-                continue                      # 소계 행 제외
-            d = c - (p or 0)
-            if abs(d) < floor:
+            n = re.sub(r'\s+', '', name)
+            n = re.sub(r'\(.*?\)', '', n)                   # '(금융원가)' 같은 꼬리표 제거
+            if SUBTOTAL.search(n) or n in SUBTOTAL_EXACT:
                 continue
+            d = c - (p or 0)
+            if d == 0:
+                continue
+            named = bool(ONEOFF_ACC.search(n))
+            routine = bool(ROUTINE_ACC.search(n)) and not named
+            if routine:
+                # 일상 비용은 ① 순익 변동폭의 35% 이상이고 ② 전년 대비 50% 이상 늘었을 때만
+                if not swing or abs(d) < swing * 0.35:
+                    continue
+                if not p or abs(d) / abs(p) < 0.5:
+                    continue
+            elif abs(d) < lo:
+                continue
+            is_cost = bool(COST_ACC.search(n)) and not GAIN_ACC.search(n)
+            is_gain = bool(GAIN_ACC.search(n)) and not COST_ACC.search(n)
+            kind = '비용' if is_cost else ('수익' if is_gain else '미상')
+            explains = (is_cost and d > 0) or (is_gain and d < 0)
             hits.append({'name': name, 'cur': eok(c), 'prev': eok(p), 'chg': eok(d), 'note': sec,
-                         'cash': 'noncash' if re.search(r'손상차손|평가손실|대손상각|주식보상|감가상각', n) else 'cash',
-                         'named': bool(ONEOFF.search(n))})
-    hits.sort(key=lambda x: abs(x['chg'] or 0), reverse=True)
+                         'kind': kind, 'explains': bool(explains), 'routine': routine,
+                         'cash': 'noncash' if re.search(r'손상차손|평가손|평가이익|대손상각|주식보상|감가상각|상각', n) else 'cash',
+                         'named': named})
+    # 순익 감소를 설명하는 항목을 먼저, 그 안에서 금액 큰 순
+    hits.sort(key=lambda x: (not x['explains'], -abs(x['chg'] or 0)))
     return hits[:8]
 
 
@@ -244,8 +302,10 @@ def run():
                     nt = notes_of(rcp)
                     sw = next((r for r in lad if r['q'] == q), None)
                     swing = ((sw['ni'] - sw['ni'] / (1 + sw['niY'] / 100)) * 1e8) if (sw and sw.get('niY') not in (None, -100)) else None
+                    basis = next((( (nt.get(k) or {}).get('__basis__') or {}).get('basis')
+                                  for k in ('other', 'fin', 'sga') if (nt.get(k) or {}).get('__basis__')), '미상')
                     rec['ev'][q] = {'rcp': rcp, 'items': oneoffs(nt, swing),
-                                    'tax': eok((nt.get('tax') or {}).get('법인세비용(수익) 합계'))}
+                                    'basis': basis, 'tax': _tax_of(nt)}
                 except Exception as e:
                     rec['ev'][q] = {'rcp': rcp, 'items': [], 'why': str(e)[:60]}
                 time.sleep(0.4)

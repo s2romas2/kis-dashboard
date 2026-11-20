@@ -1,0 +1,37 @@
+name: fwdval
+# 반도체 peer 선행(포워드) 배수용 증권사 추정 수집
+#   · 올해(FY1): 네이버 FnGuide 컨센서스 — 커버리지 넓음
+#   · 내년(FY2): KIS 종목추정실적 — 한국투자증권 단일 추정이라 커버 종목만
+on:
+  schedule:
+    - cron: '40 10 * * *'        # 19:40 KST — semipeer(19:10) 뒤
+  workflow_dispatch:
+  push:
+    paths: ['fwdval.py', '.github/workflows/fwdval.yml']
+concurrency:
+  group: semipeer-side
+  cancel-in-progress: false
+permissions:
+  contents: write
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - name: 수집
+        env:
+          KIS_APPKEY: ${{ secrets.KIS_APPKEY }}
+          KIS_APPSECRET: ${{ secrets.KIS_APPSECRET }}
+        run: python3 fwdval.py
+      - name: 커밋
+        if: always()
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/semipeer_fwd.json || true
+          git diff --cached --quiet || git commit -m "선행 추정 갱신(올해 컨센서스 + 내년 KIS 추정)"
+          git pull --rebase --autostash || true
+          git push || true

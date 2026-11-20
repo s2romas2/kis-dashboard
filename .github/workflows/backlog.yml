@@ -1,0 +1,62 @@
+name: backlog
+# 수주잔고 시계열 — 정기보고서(분기·반기·사업) 수주상황 표에서 잔고를 뽑아 QoQ·YoY 계산
+#   첫 실행은 3년치 백필이라 오래 걸린다 → 시간예산 안에서 끊고 다음 실행이 이어받는다.
+on:
+  schedule:
+    - cron: '10 20 * * 6'        # 토 05:10 KST 주 1회
+    - cron: '10 20 15-20 2,5,8,11 *'   # 정기보고서 시즌에는 매일
+  workflow_dispatch:
+  push:
+    paths: ['backlog.py', '.github/workflows/backlog.yml']
+concurrency:
+  group: backlog
+  cancel-in-progress: false
+permissions:
+  contents: write
+jobs:
+  try1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    outputs: { done: '${{ steps.r.outputs.done }}' }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - id: r
+        env:
+          DART_KEY: ${{ secrets.DART_KEY }}
+          BL_BUDGET: '3300'
+        run: |
+          python3 backlog.py && echo "done=1" >> $GITHUB_OUTPUT || echo "done=0" >> $GITHUB_OUTPUT
+      - name: 커밋
+        if: always()
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/semipeer_backlog.json || true
+          git diff --cached --quiet || git commit -m "수주잔고 갱신(분기 시계열)"
+          git pull --rebase --autostash || true
+          git push || true
+  try2:
+    needs: try1
+    if: needs.try1.outputs.done != '1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: main }
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - env:
+          DART_KEY: ${{ secrets.DART_KEY }}
+          BL_BUDGET: '3300'
+        run: python3 backlog.py || true
+      - name: 커밋
+        if: always()
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/semipeer_backlog.json || true
+          git diff --cached --quiet || git commit -m "수주잔고 갱신(이어서)"
+          git pull --rebase --autostash || true
+          git push || true

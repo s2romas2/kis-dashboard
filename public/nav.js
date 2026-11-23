@@ -36,6 +36,7 @@
       ['/valuefilter.html', '🎯 밸류 필터', 'PBR·PER·배당 조건 검색 + 엑셀'],
       ['/peg.html', '📏 소부장 PEG 밸류', '선행 PER ÷ 순이익 성장률 (린치 기준 등급)'],
       ['/semipeer.html', '⚖️ 반도체 peer 상대밸류', 'peer보다 싼데 이익 체력은 같거나 좋은 기업 · peer 선정 근거 · 국면 필터'],
+      ['/cospeer.html', '💄 화장품 peer 상대밸류', '원료·부자재·ODM·브랜드·유통 35개 세부분야 · 기업/제품 특장점 · 해외 인증 · 매출+수주잔고'],
       ['/upgrade.html', '🚀 체급개선', '기존 기술로 새 사업에 들어간 기업 — a 숫자 전 / b 숫자 확인 · 고객의 질 · 밴드·SOTP·증권사 목표가'],
       ['/valws.html', '🧮 밸류 워크시트', 'Q×ASP → EPS → 정상화·Floor·Stress 가치 (근거 태그·가시성 등급)'],
       ['/bands.html', '📉 밴드·V차트', 'PER·PBR·PSR 밴드 + V차트 + 비용구조'],

@@ -169,6 +169,46 @@ h5 { font-size:13px; margin:14px 0 2px; color:#1a2a4a; }
 .ab .res { font-size:13.5px; margin:9px 0 2px; color:#1a2a4a; line-height:1.7; } .ab .res b { font-size:15px; }
 .ab .nt { font-size:12px; color:#7a5b1e; background:#fff7e8; border:1px solid #f5d9a8; border-radius:8px; padding:6px 10px; margin-top:7px; line-height:1.6; }
 .ub { display:block; font-size:10.5px; color:#667085; margin-top:2px; font-weight:600; }
+/* 평가법별 책정값 — 방법마다 이 회사 배수·peer 중앙값·환산 주가, 위치 그림, 공식 풀이 */
+.vcl { background:#f5f8ff; border:1px solid #c7d7fe; border-radius:8px; padding:8px 11px; margin:8px 0 6px; font-size:13px; line-height:1.75; color:#1a2a4a; }
+.vcl b { font-size:14px; }
+.vlad { margin:4px 0 2px; max-width:760px; } .vlad svg { width:100%; height:auto; display:block; }
+.vleg { font-size:11px; color:#667085; display:flex; flex-wrap:wrap; gap:4px 12px; margin:0 0 6px; align-items:center; }
+.vleg i { display:inline-block; vertical-align:middle; margin-right:4px; box-sizing:border-box; }
+.vt { width:100%; min-width:0; font-size:12px; border-radius:8px; margin:4px 0; }
+.vt th, .vt td { padding:5px 8px; cursor:default; vertical-align:top; }
+.vt td.l { white-space:normal; min-width:128px; }
+.vt tr.vr { cursor:pointer; } .vt tr.vr:hover td { background:#f8fafc; }
+.vt tr.vna td { color:#98a2b3; } .vt tr.vna td b { color:#667085; }
+.vt .ve { display:block; font-size:11px; color:#667085; font-weight:400; line-height:1.45; }
+.vt .vn { font-size:11.5px; color:#98a2b3; white-space:normal; display:inline-block; max-width:250px; text-align:left; line-height:1.5; }
+.vt tr.vf td { background:#fbfcfe; white-space:normal; text-align:left; font-size:12px; line-height:1.8; color:#344054; padding:6px 10px 8px; }
+.vt tr.vf td > div { margin:1px 0; }
+.vt .ar { color:#98a2b3; font-size:10px; margin-left:3px; }
+.vg { display:inline-block; font-size:10px; font-weight:800; padding:0 6px; border-radius:7px; margin-right:5px; }
+.vg.m { background:#1a2a4a; color:#fff; } .vg.a { background:#c7d7fe; color:#1a2a4a; } .vg.r { background:#f1f5f9; color:#667085; }
+.vtg { display:inline-block; font-size:10px; font-weight:800; padding:0 5px; border-radius:6px; margin-left:3px; white-space:nowrap; font-style:normal; }
+.vtg.c1 { background:#dcfce7; color:#15803d; } .vtg.c2 { background:#ede9fe; color:#6d28d9; } .vtg.c3 { background:#f1f5f9; color:#475467; } .vtg.c4 { background:#fef3c7; color:#92400e; }
+.vsm { font-size:10.5px; color:#98a2b3; font-weight:500; display:block; white-space:normal; line-height:1.4; }
+.vdn { font-size:12px; color:#7a5b1e; background:#fff7e8; border:1px solid #f5d9a8; border-radius:8px; padding:6px 10px; margin:6px 0; line-height:1.65; }
+.vdc { font-size:12.5px; line-height:1.75; color:#1a2a4a; margin:6px 0 2px; }
+.vso { border:1px solid #e4e7ec; border-radius:8px; margin-top:8px; background:#fff; }
+.vso > button { width:100%; text-align:left; border:0; background:none; font:inherit; font-size:12.5px; font-weight:800; color:#1a2a4a; padding:8px 11px; cursor:pointer; }
+.vso .bd { padding:0 12px 10px; font-size:12.5px; line-height:1.75; color:#344054; }
+.vso ol { margin:4px 0 6px; padding-left:20px; } .vso ol li { margin:3px 0; } .vso .hit li { color:#7a2e0e; }
+.vso .lk a { color:#2f6df6; font-weight:700; text-decoration:none; margin-right:12px; } .vso .lk a:hover { text-decoration:underline; }
+@media (max-width:480px){ .vt th, .vt td { padding:5px 4px; font-size:11px; } .vt .c6 { display:none; } .vt td.l { min-width:92px; } .vt .vn { max-width:150px; } }
+/* 수주잔고 구획 — 잔고(막대)·매출(선) 콤보 그림, 인식 과정 표(행을 누르면 공식 풀이), 소진 추정 막대 */
+.blg h4 { margin:0 0 6px; font-size:13.5px; }
+.blc { margin:6px 0 2px; max-width:760px; } .blc svg { width:100%; height:auto; display:block; }
+.blt td.l { min-width:150px; } .blt tr.br { cursor:pointer; } .blt tr.br:hover td { background:#f8fafc; }
+.blt tr.bf td { background:#fbfcfe; white-space:normal; text-align:left; font-size:12px; line-height:1.8; color:#344054; padding:6px 10px 8px; }
+.blt tr.bf td > div { margin:1px 0; } .blt .vn { max-width:none; }
+.blb { margin:4px 0; max-width:420px; } .blb > div { display:flex; align-items:center; gap:6px; font-size:11.5px; line-height:1.9; }
+.blb span { flex:0 0 38px; color:#667085; } .blb i { flex:1 1 auto; height:9px; background:#eef0f4; border-radius:4px; overflow:hidden; } .blb i b { display:block; height:100%; background:#f59e0b; border-radius:4px; }
+.blb em { flex:0 0 64px; text-align:right; font-style:normal; font-weight:700; }
+.blraw { min-width:0; } .blraw th, .blraw td { white-space:normal; font-size:11px; padding:3px 6px; }
+@media (max-width:480px){ .blt td.l { min-width:104px; } .blt th, .blt td { padding:5px 4px; font-size:11px; } }
 @media (max-width:900px){ .charts{grid-template-columns:1fr} .fin{grid-template-columns:1fr} .why dt{float:none;width:auto} .why dd{margin-left:0} }
 @media (max-width:700px){ th,td{padding:6px 5px;font-size:11.5px} }
 </style>
@@ -193,6 +233,7 @@ h5 { font-size:13px; margin:14px 0 2px; color:#1a2a4a; }
     <b>근거 강도</b> ●●● A등급 peer가 있고 peer가 둘 이상 / ●●○ A가 하나 있거나 B가 둘 이상 / ●○○ B 하나뿐 — 한 쌍만으로 붙은 꼬리표는 약하게 보세요.<br>
     <b>꼬리표 기준</b> — A·B등급 peer와 쌍마다 비교한 값의 중앙값. PER·PBR·PSR은 peer의 90% 이하면 낮음·110% 이상이면 높음, ROE·영업이익률·ROA는 1%p, 성장률은 5%p, 부채비율은 20%p 넘게 차이 나면 높음/낮음.<br>
     <b>기준 peer로 본 상단</b> — 상세 화면의 파란 테두리 칸. peer 가운데 한 곳을 기준으로 정하고(같은 제품 → 같은 성장 위치 → 같은 고객 순), 그 회사의 배수를 받는다면 시총이 어디까지 가능한지(상단)를 계산합니다. 상단 = 현재 시총 × (기준 peer 배수 ÷ 내 배수). 그다음 이 회사 고유의 사정(겹치는 사업의 매출 비중 등)으로 깎습니다. 저PER 종목에는 초안이 들어 있고, "고치기"로 기준 peer·이유·깎을 요소를 바꾸면 이 브라우저에 저장됩니다.<br>
+    <b>평가법별 책정값</b> — 상세 화면 "이 회사에 맞는 평가법" 아래의 표. 방법마다 이 회사의 배수, 비교 대상 중앙값(A·B등급 peer → 같은 묶음 → 같은 단계 순으로 넓힘), 그 배수를 이 회사 숫자에 곱한 <b>환산 주가</b>를 계산합니다. 환산 주가 = 현재가 × (비교 중앙 배수 ÷ 이 회사 배수), EV 계열은 (비교 중앙 배수 × 영업이익·EBITDA·매출 − 순차입금 − 비지배지분) ÷ 주식수. 목표주가가 아니라 "같은 배수를 받는다면 어디인가"를 보는 위치 확인용이고, 현재가의 0.1배 미만·10배 초과로 벌어지는 방법은 같은 잣대가 아니라고 보고 뺍니다. DCF는 할인율 10%·영구성장 2%를 가정합니다.<br>
     <b>성장률</b> — 흑자전환·500% 초과는 +500%, 적자전환·적자확대는 −200%로 표시합니다. 300%가 넘는 성장률은 기저효과라 300%로 놓고 비교하고, PER이 150배를 넘으면(이익이 0에 가까움) PER 비교에서 뺍니다. ROA는 연결 순이익 전체 ÷ 자산총계, 부채비율은 부채총계 ÷ 자본총계입니다.
   </details>
 </div>
@@ -339,7 +380,7 @@ function render(){
   }
   $('tb').innerHTML=h||'<tr><td colspan="18" class="l" style="padding:18px;color:#667085">조건에 맞는 기업이 없습니다. PER·꼬리표·국면 필터를 풀어 보세요.</td></tr>';
   gbox();
-  if(OPEN&&$('dt')){ drawCharts(OPEN); drawQbar(OPEN); }
+  if(OPEN&&$('dt')){ drawCharts(OPEN); drawQbar(OPEN); drawVal(OPEN); drawBlg(OPEN); }
 }
 function gbox(){
   const b=$('gbox'); if(!GRP||!DEF){b.innerHTML='';return;}
@@ -569,6 +610,7 @@ const NOPROC={chip:['여덟 공정 전부',' 칩을 직접 만들기 때문에 �
 
 let EDG=null;   // semipeer_edge.json — peer 대비 특장점(기술·원가·레버리지·락인), 리포트·전문매체 조사
 let BLG=null;   // semipeer_backlog.json — 정기보고서 수주상황 표에서 뽑은 수주잔고 시계열
+let BLGM={};    // 같은 파일의 머리 정보(임시본 여부 등)
 let FWD=null;   // semipeer_fwd.json — 올해(FY1) 증권사 추정(FnGuide 컨센서스)
 // 선행 배수는 그날 시세(cap)와 추정 이익·매출로 그 자리에서 계산한다 — 주가가 움직이면 배수도 같이 움직여야 하므로.
 //  · 선행 PER = 시가총액 ÷ 추정 지배주주 순이익
@@ -602,7 +644,7 @@ function needSDT(){
   SDTL=1;
   fetch('/data/semipeer_about.json').then(r=>r.json()).then(a=>{ ABT=(a&&a.co)||{}; if(OPEN) render(); }).catch(()=>{});
   fetch('/data/semipeer_fwd.json').then(r=>r.json()).then(a=>{ FWD=(a&&a.co)||{}; if(OPEN) render(); }).catch(()=>{ FWD={}; });
-  fetch('/data/semipeer_backlog.json').then(r=>r.json()).then(a=>{ BLG=(a&&a.co)||{}; if(OPEN) render(); }).catch(()=>{ BLG={}; });
+  fetch('/data/semipeer_backlog.json').then(r=>r.json()).then(a=>{ BLG=(a&&a.co)||{}; BLGM=a||{}; if(OPEN) render(); }).catch(()=>{ BLG={}; });
   fetch('/data/semipeer_edge.json').then(r=>r.json()).then(a=>{ EDG=(a&&a.co)||{}; if(OPEN) render(); }).catch(()=>{ EDG={}; });
   fetch('/data/semidetail.json').then(r=>r.json()).then(d=>{ SDT=(d&&d.co)||{}; if(OPEN) render(); }).catch(()=>{ SDT={}; });
 }
@@ -682,6 +724,337 @@ function edgeDeep(x){
   h+=`<div class="q mu">증권사 추정치는 확정이 아닙니다. 숫자는 출처에 적힌 그대로이고 다시 계산하지 않았습니다.</div>`;
   return h+`</div>`;
 }
+// ───── 평가법별 책정값 ──────────────────────────────────────────────────
+// 방법 이름과 이유만 적지 않고, 방법마다 실제로 계산한 값을 싣는다:
+//   이 회사의 배수 → 비교 대상(peer) 중앙값 → 그 배수를 이 회사 숫자에 곱한 주가(환산 주가) → 현재가 대비 %
+// 값은 수집기(semipeer.py)가 co[코드].val에 넣어 준다. val이 아직 없는 JSON에서는 이미 있는 숫자로
+// 구할 수 있는 행(PER·선행 PER·시총÷영업이익·PBR·PSR·PEG)만 이 화면에서 같은 규칙으로 계산한다.
+// 환산 주가는 목표주가가 아니다 — "비교 대상과 같은 배수를 받는다면 어디인가"를 보는 위치 확인용이다.
+const VALK={chip:[['norm_per','ev_ebitda'],['band_pbr','dcf']],design:[['dcf','ev_sales'],['fper','peg']],dist:[['fper','ev_ebit'],['p_fcf']],
+  pre:[['fper','ev_ebit'],['dcf','band_per','band_pbr']],post:[['fper','ev_ebitda'],['ev_ebit','band_per','band_pbr']],both:[['fper','ev_ebit'],['ev_ebitda','dcf']],
+  infra:[['ev_ebitda','p_fcf'],['fper']],etc:[['fper','ev_ebit'],['pbr']]};
+const VORD=['fper','per','norm_per','por','ev_ebit','ev_ebitda','ev_sales','p_fcf','pbr','psr','peg','band_per','band_pbr','dcf'];
+const VPEER=['per','fper','norm_per','por','ev_ebit','ev_ebitda','ev_sales','p_fcf','pbr','psr','peg'];
+const VEVB={ev_ebit:['op','영업이익'],ev_ebitda:['ebitda','EBITDA'],ev_sales:['rev','매출']};
+const VCFG0={coe:10,gt:2,gcap:30,yrs:10,band_yrs:5,peg_gmax:100,wide:2,nci_need:20,far:10,min_n:{ab:1,grp:2,stage:3},
+  lim:{per:150,fper:150,norm_per:150,por:150,ev_ebit:150,ev_ebitda:100,ev_sales:50,p_fcf:150,pbr:30,psr:50,peg:5}};
+const vcfg=()=>((D.val_meta||{}).cfg)||VCFG0;
+const vkeys=s=>{ const m=((D.val_meta||{}).methods||{})[s||'etc']; return m?[m.main,m.aux]:(VALK[s]||VALK.etc); };
+// n 이름 · s 그림에 쓰는 짧은 이름 · e 쉬운 말 한 줄 · t 성격(확인/컨센서스/계산/가정) · d 소수 자리
+const VMD={
+ per:{n:'PER',s:'PER',e:'지금 시가총액이 최근 1년 순이익의 몇 배인가',t:'계산',d:1},
+ fper:{n:'선행 PER <small>Forward PER</small>',s:'선행 PER',e:'앞으로 벌 것으로 보는 순이익의 몇 배인가(증권사 추정)',t:'컨센서스',d:1},
+ norm_per:{n:'정상화 이익 PER',s:'정상화 PER',e:'좋은 해·나쁜 해를 평균한 순이익의 몇 배인가',t:'계산',d:1},
+ por:{n:'시총÷영업이익 <small>P/OP</small>',s:'P/OP',e:'영업으로 번 돈의 몇 배인가(일회성 영업외 손익을 뺀 눈금)',t:'계산',d:1},
+ ev_ebit:{n:'EV/EBIT',s:'EV/EBIT',e:'회사를 통째로 사는 값(시총+빚−현금)이 영업이익의 몇 배인가',t:'계산',d:1},
+ ev_ebitda:{n:'EV/EBITDA',s:'EV/EBITDA',e:'통째로 사는 값이 영업이익+감가상각비의 몇 배인가(설비가 큰 회사끼리 비교)',t:'계산',d:1},
+ ev_sales:{n:'EV/Sales',s:'EV/Sales',e:'통째로 사는 값이 매출의 몇 배인가(이익이 아직 작은 회사용)',t:'계산',d:2},
+ p_fcf:{n:'P/FCF',s:'P/FCF',e:'설비투자까지 하고 실제로 남은 현금(잉여현금흐름)의 몇 배인가',t:'계산',d:1},
+ pbr:{n:'PBR',s:'PBR',e:'자기자본(순자산)의 몇 배인가',t:'계산',d:2},
+ psr:{n:'PSR',s:'PSR',e:'매출의 몇 배인가',t:'계산',d:2},
+ peg:{n:'PEG',s:'PEG',e:'선행 PER ÷ 이익 성장률 — 성장 속도에 견준 값',t:'컨센서스',d:2},
+ band_per:{n:'과거 PER 밴드 <small>Historical Band</small>',s:'과거 PER',e:'이 회사가 지난 5년간 받아 온 PER 범위에서 지금 어디인가',t:'계산',d:1},
+ band_pbr:{n:'과거 PBR 밴드 <small>Historical Band</small>',s:'과거 PBR',e:'이 회사가 지난 5년간 받아 온 PBR 범위에서 지금 어디인가',t:'계산',d:2},
+ dcf:{n:'DCF <small>현금흐름 할인</small>',s:'DCF',e:'앞으로 벌 현금을 오늘 가치로 당겨 더한 값',t:'가정',d:1}};
+const VWHY0={next:'다음 수집부터 표시',loss:'최근 4분기 순손실 — PER이 성립하지 않음',nodata:'자료 없음',nocov:'증권사 추정 없음(미커버)',
+ oploss:'최근 4분기 영업적자 — 영업이익 기준 배수가 성립하지 않음',rev0:'매출 자료 없음',g_neg:'추정 이익 성장률이 0 이하 — PEG가 성립하지 않음',
+ g_base:'추정 성장률 100% 초과(기저효과) — PEG 환산을 하지 않음',thin:'이익이 너무 작아 배수가 상한을 넘음 — 환산하지 않음',no_peer:'비교할 표본이 없음(peer·같은 묶음·같은 단계 모두 값 없음)',
+ far:'곱해 보면 현재가의 0.1배 미만이거나 10배 초과 — 같은 잣대로 보기 어려워 환산 주가로 쓰지 않음'};
+const vwhy=k=>k==null?'':(((D.val_meta||{}).why||{})[k]||VWHY0[k]||String(k));
+const vwon=v=>v==null?'—':Math.round(v).toLocaleString()+'원';
+const vws=v=>{ if(v==null) return '—'; if(v<10000) return Math.round(v).toLocaleString()+'원'; let s=(v/10000).toFixed(v>=1000000?0:v>=100000?1:2); if(s.indexOf('.')>=0) s=s.replace(/\.?0+$/,''); return Number(s).toLocaleString()+'만 원'; };
+const veok=v=>v==null?'—':(Math.abs(v)>=10000?(v/10000).toFixed(2)+'조':(Math.abs(v)>=100?Math.round(v).toLocaleString():(+Number(v).toFixed(1)).toLocaleString())+'억');
+const vx=(k,v)=>v==null?'—':Number(v).toFixed(VMD[k].d)+(k==='peg'?'':'배');
+const vup=v=>v==null?'':`<span class="${v>0?'pos':v<0?'neg':'mu'}">${v>0?'+':''}${Number(v).toFixed(Math.abs(v)>=100?0:1)}%</span>`;
+const vtg=t=>`<span class="vtg ${({'확인':'c1','컨센서스':'c2','계산':'c3','가정':'c4'})[t]||'c3'}">${t}</span>`;
+const vr2=v=>Math.floor(v*100+0.5+1e-9)/100;   // 소수 둘째 자리 반올림 — 수집기(_r2)와 같은 규칙
+const vmed=a=>{ const s=a.slice().sort((p,q)=>p-q), n=s.length; return n%2?s[(n-1)/2]:(s[n/2-1]+s[n/2])/2; };
+// DCF: 앞으로 n년 현금흐름의 현재가치 + 그 뒤(영구성장 gt)의 현재가치
+function dcfPv(cf0,gs,r,gt){ let pv=0, cf=cf0; gs.forEach((g,i)=>{ cf*=(1+g); pv+=cf/Math.pow(1+r,i+1); }); return pv+cf*(1+gt)/(r-gt)/Math.pow(1+r,gs.length); }
+function dcfSolve(cf0,target,r,gt,n){ const f=g=>dcfPv(cf0,Array(n).fill(g),r,gt)-target; let lo=-0.30, hi=0.80;
+  if(f(hi)<0) return {flag:'gt'}; if(f(lo)>0) return {flag:'lt'};
+  for(let i=0;i<60;i++){ const m=(lo+hi)/2; if(f(m)>0) hi=m; else lo=m; } return {g:(lo+hi)/2}; }
+let VLC={}, VGM=null, VXS={};   // 화면 계산 캐시 · 묶음 구성원 · 펼침 상태
+// val이 없는 JSON일 때: 종목 하나의 재료와 자기 배수(이미 있는 숫자만)
+function vOwnLocal(r){
+  const C=vcfg(), L=C.lim, fw=r.fwd||{}, g=fw.cagr2!=null?fw.cagr2:fw.g1;
+  const mat={cap:r.cap,px:r.px,sh:Math.round(r.cap*1e8/r.px),rev:r.rev,op:r.op,ni:r.ni,eq:r.eq,why:{nd:'next',ev:'next',ebitda:'next',fcf:'next',ni_norm:'next'}};
+  if(r.pref) mat.pref=r.pref;
+  if(fw.per_f12) mat.ni_f=+(r.cap/fw.per_f12).toFixed(1);
+  if(g!=null){ mat.g=g; mat.g_src=fw.cagr2!=null?'cagr2':'g1'; }
+  if(r.ctrl!=null) mat.ctrl=r.ctrl;
+  const m={}, put=(k,v,why)=>{ const o={}; if(v!=null){ o.v=v; if(v>L[k]) o.thin=1; } else if(why) o.why=why; m[k]=o; };
+  put('per',r.per,(r.ni!=null&&r.ni<=0)?'loss':'nodata'); put('fper',fw.per_f12||null,'nocov'); put('norm_per',null,'next');
+  put('por',r.por,(r.op!=null&&r.op<=0)?'oploss':'nodata');
+  ['ev_ebit','ev_ebitda','ev_sales','p_fcf'].forEach(k=>put(k,null,'next'));
+  put('pbr',r.pbr,'nodata'); put('psr',r.psr,'rev0');
+  if(!fw.per_f12) put('peg',null,'nocov'); else if(g==null||g<=0||!(fw.peg>0)) put('peg',null,'g_neg'); else if(g>C.peg_gmax) m.peg={x:fw.peg,why:'g_base'}; else put('peg',fw.peg);
+  return {mat,m,local:1};
+}
+function vOwn(c){ const r=D.co[c]; if(!r||!r.cap||!r.px) return null; return r.val||VLC[c]||(VLC[c]=vOwnLocal(r)); }
+function vGrp(gid){
+  if(DEF){ const g=DEF.groups.find(z=>z.id===gid); if(g&&g.members) return g.members; }
+  if(!VGM){ VGM={}; for(const c in D.co) (D.co[c].gids||[]).forEach(g=>{ (VGM[g]=VGM[g]||[]).push(c); }); }
+  return VGM[gid]||[];
+}
+// 비교 표본: ab = A·B등급 peer, grp = 같은 묶음, stage = 같은 단계 전체
+function vScope(c,scope){
+  if(scope==='ab'){ const s=[]; (D.pairsOf[c]||[]).forEach(p=>{ if(p.g==='A'||p.g==='B'){ const o=p.a===c?p.b:p.a; if(!s.includes(o)) s.push(o); } }); return s; }
+  if(scope==='grp'){ const s=[]; (D.co[c].gids||[]).forEach(g=>vGrp(g).forEach(o=>{ if(o!==c&&!s.includes(o)) s.push(o); })); return s; }
+  const st=D.co[c].stage||'etc'; return Object.keys(D.co).filter(o=>o!==c&&(D.co[o].stage||'etc')===st);
+}
+function vSample(c,k,scope){
+  const L=vcfg().lim[k], good=[], list=[]; let ex=0;
+  vScope(c,scope).forEach(o=>{ const W=vOwn(o), mo=W?(W.m[k]||{}):{}, v=mo.v;
+    if(v==null){ if(mo.x!=null){ ex++; list.push({o,v:mo.x,ok:0}); } return; }
+    if(v<=0||v>L){ ex++; list.push({o,v,ok:0}); return; }
+    good.push(v); list.push({o,v,ok:1}); });
+  return {good,ex,list};
+}
+function vRange(m,keys,px,C){
+  const vs=keys.map(k=>[(m[k]||{}).ip,k]).filter(z=>z[0]); if(!vs.length) return {n:0};
+  const ips=vs.map(z=>z[0]).sort((a,b)=>a-b), lo=ips[0], hi=ips[ips.length-1], o={n:ips.length,lo,hi,mid:Math.round(vmed(ips)),ks:vs.map(z=>z[1])};
+  if(ips.length>=2){ o.wide=hi/lo>C.wide; if(hi>lo) o.pos=Math.round((px-lo)/(hi-lo)*100);
+    const p=o.pos==null?50:o.pos; o.zone=px<lo?'below':px>hi?'above':p<33.4?'low':p>66.6?'high':'mid'; }
+  else o.zone=px>lo*1.05?'above':px<lo*0.95?'below':'at';
+  return o;
+}
+// val이 없는 JSON일 때: 수집기와 같은 규칙으로 peer 중앙값·환산 주가·범위·역산 DCF(순이익 기준)를 계산
+function valLocal(x){
+  const base=vOwn(x.c); if(!base) return null;
+  const C=vcfg(), px=x.px, V={mat:base.mat,m:{},local:1};
+  VPEER.forEach(k=>{ const o=Object.assign({},base.m[k]);
+    for(const sc of ['ab','grp','stage']){ const s=vSample(x.c,k,sc); if(s.good.length>=C.min_n[sc]){ o.pm=vr2(vmed(s.good)); o.pn=s.good.length; o.ps=sc; if(s.ex) o.pe=s.ex; break; } }
+    if(o.pm==null) o.pwhy='no_peer';
+    else if(!o.why){ if(o.thin) o.why='thin'; else if(o.v!=null&&o.v>0){ const ip=px*o.pm/o.v; if(ip<px/C.far||ip>px*C.far){ o.why='far'; o.far=+(ip/px).toFixed(2); } else { o.ip=Math.round(ip); o.up=+((ip/px-1)*100).toFixed(1); } } }
+    V.m[k]=o; });
+  V.m.band_per={why:'next'}; V.m.band_pbr={why:'next'}; V.m.dcf={why:'next'};
+  const Dd={r:C.coe,gt:C.gt,yrs:C.yrs,share:1};
+  if(x.ni!=null&&x.ni>0){ const s=dcfSolve(x.ni,x.cap,C.coe/100,C.gt/100,C.yrs); Dd.rev={basis:'ni',cf0:x.ni,note:'next'}; if(s.g==null) Dd.rev.flag=s.flag; else Dd.rev.g=+(s.g*100).toFixed(1); }
+  else Dd.rev={why:(x.ni!=null&&x.ni<=0)?'loss':'nodata'};
+  Dd.fwd={why:'next'}; V.dcf=Dd;
+  const ks=vkeys(x.stage); V.range={main:vRange(V.m,ks[0],px,C),all:vRange(V.m,ks[0].concat(ks[1]),px,C)};
+  const why=[]; let need=false;
+  if(x.ctrl!=null&&x.ctrl<80){ need=true; why.push({k:'nci',s:1,t:`연결 순이익의 ${Math.round(100-x.ctrl)}%가 비지배주주 몫 — 연결 영업이익에 남의 몫이 섞여 있습니다`}); }
+  if(/홀딩스|지주$/.test(x.n||'')){ need=true; why.push({k:'hold',s:1,t:'지주사 성격 — 자회사 지분 가치와 자체 사업을 따로 봐야 합니다'}); }
+  if(x.pure==='low'){ need=true; why.push({k:'pure',s:1,t:'반도체가 전사 매출의 일부 — 반도체 peer 배수를 회사 전체에 곱하면 다른 사업까지 같은 값으로 치게 됩니다'}); }
+  else if(x.pure==='mid') why.push({k:'pure',s:0,t:'반도체 외 사업을 함께 합니다(겸업) — 사업별로 맞는 배수가 다를 수 있습니다'});
+  if(x.ni&&x.op>0&&x.ni/x.op>1.3) why.push({k:'eqm',s:0,t:'순이익이 영업이익보다 30% 넘게 큼 — 지분법 자회사·영업외 이익이 영업이익 기준 배수에는 잡히지 않습니다'});
+  V.sotp={need,why};
+  return V;
+}
+const valOf=x=>(x.cap&&x.px)?(x.val||valLocal(x)):null;
+const VSC=(c,ps)=>({ab:'A·B등급 peer',grp:'같은 묶음',stage:'같은 단계('+(STN[(D.co[c]||{}).stage]||'기타')+') 전체',self:'자기 과거'})[ps]||'';
+// 공식에 숫자를 넣어 푼 줄
+function vPeerLine(c,k,o){
+  if(o.pm==null) return `<div class="mu">비교 표본: ${esc(vwhy(o.pwhy||'no_peer'))}</div>`;
+  const s=vSample(c,k,o.ps), good=s.list.filter(z=>z.ok), bad=s.list.filter(z=>!z.ok), L=vcfg().lim[k];
+  let t=`비교 표본: <b>${VSC(c,o.ps)} ${o.pn}곳</b>의 중앙값 <b>${vx(k,o.pm)}</b>${vtg('계산')}`;
+  if(good.length){
+    if(o.ps==='stage'||good.length>8) t+=` — 최저 ${vx(k,Math.min.apply(null,good.map(z=>z.v)))} ~ 최고 ${vx(k,Math.max.apply(null,good.map(z=>z.v)))}`;
+    else t+=' — '+good.map(z=>`${esc(nm(z.o))} ${vx(k,z.v)}`).join(' · ');
+  }
+  if(bad.length) t+=` <span class="mu">· 뺀 곳 ${bad.length}곳(0 이하이거나 ${L}배 초과${k==='peg'?'·성장률 100% 초과':''}): ${bad.slice(0,5).map(z=>esc(nm(z.o))).join(', ')}${bad.length>5?' 등':''}</span>`;
+  if(o.ps==='grp') t+=` <span class="mu">· A·B등급 peer에서는 이 값을 구할 수 없어 같은 묶음으로 넓혔습니다</span>`;
+  if(o.ps==='stage') t+=` <span class="mu">· 직접 peer·같은 묶음에 값이 없어 같은 단계 전체로 넓힌 비교입니다 — 사업이 꽤 다른 회사가 섞여 있으니 참고만 하세요</span>`;
+  return `<div>${t}</div>`;
+}
+function vFormula(x,V,k){
+  const M=V.mat, o=V.m[k]||{}, cap=M.cap, px=M.px, L=[], w=M.why||{};
+  if(o.why==='next') return `<div class="mu">다음 수집부터 표시 — ${VEVB[k]||k==='p_fcf'||k==='dcf'?'이 행은 순차입금(차입금·사채·리스부채 − 현금)·감가상각비·현금흐름이 있어야 합니다. 수집기가 DART 전체 재무제표에서 받아 오면':k==='norm_per'?'최근 3개 사업연도 순이익 평균을 수집기가 계산해 넣으면':'일별 PER·PBR 시계열에서 수집기가 5년 범위를 계산해 넣으면'} 값과 공식이 함께 채워집니다.</div>`;
+  const A=(lab,val,tag)=>`${lab} <b>${val}</b>${vtg(tag)}`;
+  const capT=A('시가총액',veok(cap),'확인')+(M.pref?` <span class="mu">(우선주 ${veok(M.pref)} 포함)</span>`:'');
+  const shT=`주식수 <b>${Math.round(M.sh/10000).toLocaleString()}만 주</b>${vtg('계산')} <span class="mu">(시가총액 ÷ 현재가)</span>`;
+  const ipP=()=>{ if(o.ip!=null) L.push(`<div>환산 주가 = ${A('현재가',vwon(px),'확인')} × (비교 중앙 ${vx(k,o.pm)} ÷ 이 회사 ${vx(k,o.v)}) = <b>${vwon(o.ip)}</b>${vtg('계산')} <span class="mu">← 비교 대상과 같은 배수를 받는다면</span></div>`); };
+  const ndL=()=>{ if(M.nd==null) return `<div class="mu">순차입금: ${esc(vwhy(w.nd))}</div>`;
+    const plus=[['단기차입금',M.st],['유동성장기부채',M.cl],['장기차입금',M.lt],['사채(전환사채 포함)',M.bond],['리스부채',M.lease]].filter(p=>p[1]);
+    const minus=[['현금및현금성자산',M.cash],['단기금융상품',M.stfi]].filter(p=>p[1]);
+    let t=`순차입금 = ${plus.length?plus.map(p=>`${p[0]} ${veok(p[1])}`).join(' + '):'차입금·사채·리스부채 0억(재무상태표에 해당 계정 없음)'}${minus.map(p=>` − ${p[0]} ${veok(p[1])}`).join('')}${vtg('확인')} = <b>${veok(M.nd)}</b>${vtg('계산')}`;
+    if(M.nd<0) t+=' <span class="mu">(음수 = 빚보다 현금이 많음)</span>';
+    if(M.ofa) t+=`<br><span class="mu">기타 유동 금융자산 ${veok(M.ofa)}은 예금인지 알 수 없어 현금에 넣지 않았습니다(넣으면 순차입금이 그만큼 줄어듭니다).</span>`;
+    return `<div>${t}</div>`; };
+  const evL=()=>M.ev==null?(M.nd!=null?`<div class="mu">비지배지분: ${esc(vwhy(w.nci))}</div>`:''):`<div>EV(회사를 통째로 사는 값) = 시가총액 ${veok(cap)} + 순차입금 ${veok(M.nd)} + 비지배지분 ${veok(M.nci)}${M.nci_src==='calc'?' <span class="mu">(자본총계 − 지배주주 자본)</span>':''} = <b>${veok(M.ev)}</b>${vtg('계산')}</div>`;
+  if(k==='per'){
+    if(M.ni!=null&&o.v!=null) L.push(`<div>PER = ${capT} ÷ ${A('최근 4분기 순이익(지배주주)',veok(M.ni),'확인')} = <b>${vx(k,o.v)}</b>${vtg('계산')}</div>`);
+    else if(o.v!=null) L.push(`<div>PER <b>${vx(k,o.v)}</b> — ${esc(BSL[x.basis]||'')} 기준</div>`);
+    L.push(vPeerLine(x.c,k,o)); ipP();
+  } else if(k==='fper'){
+    if(o.v!=null) L.push(`<div>선행 PER = ${capT} ÷ ${A('추정 순이익',veok(M.ni_f),'컨센서스')} = <b>${vx(k,o.v)}</b>${vtg('계산')} <span class="mu">— ${M.f_b==='fy1'?'내년 추정치가 없어 올해 추정 기준':M.f_b==='12m'?'앞으로 12개월(올해 남은 기간 + 내년 추정을 날짜로 가중)':'앞으로 12개월 추정 순이익 기준'} · ${esc((x.fwd||{}).src||'증권사 추정')}</span></div>`);
+    L.push(vPeerLine(x.c,k,o)); ipP();
+  } else if(k==='norm_per'){
+    const hs=(M.ni_hist||[]).map(h=>`${h[0]}년 ${veok(h[1])}`);
+    if(M.ni_norm!=null){ const n=hs.length+((M.ni!=null&&x.basis==='TTM')?1:0);
+      L.push(`<div>정상화 이익 = (${hs.join(' + ')}${(M.ni!=null&&x.basis==='TTM')?' + 최근 4분기 '+veok(M.ni):''})${vtg('확인')} ÷ ${n} = <b>${veok(M.ni_norm)}</b>${vtg('계산')} <span class="mu">— 적자 연도도 그대로 넣은 단순 평균</span></div>`);
+      if(o.v!=null) L.push(`<div>정상화 PER = 시가총액 ${veok(cap)} ÷ 정상화 이익 ${veok(M.ni_norm)} = <b>${vx(k,o.v)}</b>${vtg('계산')}</div>`); }
+    L.push(vPeerLine(x.c,k,o)); ipP();
+  } else if(k==='por'){
+    if(o.v!=null) L.push(`<div>시총÷영업이익 = ${capT} ÷ ${A('최근 4분기 영업이익',veok(M.op),'확인')} = <b>${vx(k,o.v)}</b>${vtg('계산')}</div>`);
+    L.push(vPeerLine(x.c,k,o)); ipP();
+  } else if(VEVB[k]){
+    const bk=VEVB[k][0], bn=VEVB[k][1], base=M[bk];
+    L.push(ndL()); L.push(evL());
+    if(k==='ev_ebitda') L.push(M.ebitda!=null?`<div>EBITDA = 영업이익 ${veok(M.op)} + 감가상각비 ${veok(M.dep)} + 무형자산상각비 ${veok(M.amo)}${vtg('확인')} = <b>${veok(M.ebitda)}</b>${vtg('계산')}</div>`:`<div class="mu">EBITDA: ${esc(vwhy(w.ebitda||'no_da'))}</div>`);
+    if(o.v!=null) L.push(`<div>${VMD[k].s} = EV ${veok(M.ev)} ÷ ${bn} ${veok(base)} = <b>${vx(k,o.v)}</b>${vtg('계산')}${o.v<=0?' <span class="mu">(EV가 음수 — 순현금이 시가총액보다 큼)</span>':''}</div>`);
+    L.push(vPeerLine(x.c,k,o));
+    if(o.ip!=null) L.push(`<div>환산 주가 = (비교 중앙 ${vx(k,o.pm)} × ${bn} ${veok(base)} − 순차입금 ${veok(M.nd)} − 비지배지분 ${veok(M.nci)}) ÷ ${shT} = <b>${vwon(o.ip)}</b>${vtg('계산')} <span class="mu">← 비교 대상과 같은 배수를 받는다면</span></div>`);
+  } else if(k==='p_fcf'){
+    L.push(M.fcf!=null?`<div>FCF(잉여현금흐름) = 영업활동현금흐름 ${veok(M.cfo)} − 유형자산 취득 ${veok(M.capex)} − 무형자산 취득 ${veok(M.capex_i)}${vtg('확인')} = <b>${veok(M.fcf)}</b>${vtg('계산')} <span class="mu">— 최근 4분기 합</span></div>`:`<div class="mu">FCF: ${esc(vwhy(w.fcf))}</div>`);
+    if(o.v!=null) L.push(`<div>P/FCF = ${capT} ÷ FCF ${veok(M.fcf)} = <b>${vx(k,o.v)}</b>${vtg('계산')}</div>`);
+    L.push(vPeerLine(x.c,k,o)); ipP();
+  } else if(k==='pbr'||k==='psr'){
+    const den=k==='pbr'?A('자기자본(지배주주)',veok(M.eq),'확인'):A('최근 4분기 매출',veok(M.rev),'확인');
+    if(o.v!=null) L.push((k==='pbr'&&M.eq==null)?`<div>PBR <b>${vx(k,o.v)}</b> — ${esc(BSL[x.basis]||'')} 기준</div>`:`<div>${VMD[k].s} = ${capT} ÷ ${den} = <b>${vx(k,o.v)}</b>${vtg('계산')}</div>`);
+    L.push(vPeerLine(x.c,k,o)); ipP();
+  } else if(k==='peg'){
+    const pv=o.v!=null?o.v:o.x, fp=(V.m.fper||{}).v;
+    if(pv!=null&&M.g!=null) L.push(`<div>PEG = 선행 PER ${vx('fper',fp)} ÷ ${A('추정 이익 성장률',(M.g>0?'+':'')+M.g+'%','컨센서스')} <span class="mu">(${M.g_src==='cagr2'?'2년 연평균':'올해 전년 대비'})</span> = <b>${Number(pv).toFixed(2)}</b>${vtg('계산')}</div>`);
+    L.push(`<div class="mu">보는 법 — 1 미만: 성장 속도에 견줘 낮은 값 · 1 안팎: 무난 · 2 이상: 높은 값. 성장률이 기저효과로 부풀면 PEG가 지나치게 낮게 나옵니다.</div>`);
+    L.push(vPeerLine(x.c,k,o)); ipP();
+  } else if(k==='band_per'||k==='band_pbr'){
+    const nmK=k==='band_per'?'PER':'PBR';
+    if(o.v!=null){
+      L.push(`<div>최근 ${vcfg().band_yrs}년(${esc(o.from||'')}~) 일별 ${nmK} ${Number(o.pn).toLocaleString()}일 가운데 최저 <b>${vx(k,o.lo)}</b> · 중앙 <b>${vx(k,o.pm)}</b> · 최고 <b>${vx(k,o.hi)}</b>${vtg('계산')}. 지금 ${vx(k,o.v)}는 아래에서 <b>${Math.round(o.pct)}%</b> 위치입니다(100%에 가까울수록 과거보다 높은 배수).</div>`);
+      if(o.ip!=null) L.push(`<div>환산 주가 = ${A('현재가',vwon(px),'확인')} × (과거 중앙 ${vx(k,o.pm)} ÷ 지금 ${vx(k,o.v)}) = <b>${vwon(o.ip)}</b>${vtg('계산')} <span class="mu">· 과거 최저 배수라면 ${vwon(o.ip_lo)} · 최고 배수라면 ${vwon(o.ip_hi)}</span></div>`);
+      L.push(`<div class="mu">이 줄의 "지금" 값은 밴드 시계열 자체 기준(주식 수·공시 반영 시점)이라 위 ${nmK}과 조금 다를 수 있습니다. 이익 체력(ROE)이 과거와 달라졌다면 과거 범위는 참고만 하세요 — 과거 배수가 정답은 아닙니다.</div>`);
+    }
+  } else if(k==='dcf'){
+    const Dd=V.dcf||{}, F=Dd.fwd||{};
+    if(F.v!=null){
+      L.push(`<div>출발 현금흐름 = FCF ${veok(M.fcf)} × 지배주주 몫 ${Math.round((Dd.share||1)*100)}% = <b>${veok(F.cf0)}</b>${vtg('계산')} <span class="mu">(FCF = 영업활동현금흐름 ${veok(M.cfo)} − 유형자산 취득 ${veok(M.capex)} − 무형자산 취득 ${veok(M.capex_i)})</span></div>`);
+      L.push(`<div>성장률 가정${vtg('가정')}: 1~5년 연 <b>${F.g}%</b> <span class="mu">(증권사 추정 ${F.g_src==='cagr2'?'2년 연평균':'올해'} 성장률 ${F.g_raw>0?'+':''}${F.g_raw}%${vtg('컨센서스')}를 0~${vcfg().gcap}% 사이로 자름)</span> → 6~10년 ${F.path.slice(5).map(v=>v+'%').join(' → ')}로 낮춤 → 그 뒤 영구 ${Dd.gt}%</div>`);
+      L.push(`<div>할인율 <b>${Dd.r}%</b>${vtg('가정')} <span class="mu">— 주주가 요구하는 수익률(자기자본비용)로 흔히 쓰는 값</span> · 영구성장률 <b>${Dd.gt}%</b>${vtg('가정')} <span class="mu">— 장기 물가·경제 성장 수준</span></div>`);
+      L.push(`<div>10년 현금흐름과 그 뒤 가치를 오늘 가치로 당겨 더하면 <b>${veok(F.pv)}</b> ÷ ${shT} = <b>${vwon(F.v)}</b>${vtg('계산')}</div>`);
+      L.push(`<div>할인율을 1%p만 바꿔도: ${Dd.r-1}%면 <b>${vwon(F.v_hi)}</b> · ${Dd.r+1}%면 <b>${vwon(F.v_lo)}</b> <span class="mu">— 가정에 따라 크게 움직이는 값입니다. 이미 쌓아 둔 순현금은 더하지 않았습니다.</span></div>`);
+    } else if(F.why==='fcf_neg'&&M.fcf!=null) L.push(`<div class="mu">FCF = 영업활동현금흐름 ${veok(M.cfo)} − 유형자산 취득 ${veok(M.capex)} − 무형자산 취득 ${veok(M.capex_i)} = ${veok(M.fcf)} — 0 이하라 순방향 DCF를 계산하지 않았습니다(투자기에는 흔한 일입니다).</div>`);
+  }
+  if(o.why==='far') L.push(`<div class="mu">환산하지 않은 이유: 이 배수를 그대로 곱하면 현재가의 <b>${o.far}배</b>가 나옵니다 — 비교 대상과 사업 구조(마진·성장·자산 크기)가 너무 달라 같은 잣대로 보기 어렵다는 뜻이라, 환산 주가와 범위에 넣지 않았습니다.</div>`);
+  else if(o.why&&o.ip==null) L.push(`<div class="mu">환산하지 않은 이유: ${esc(vwhy(o.why))}</div>`);
+  if(M.stale&&(VEVB[k]||k==='p_fcf'||k==='dcf')) L.push(`<div class="mu">순차입금·현금흐름은 ${esc(M.stale)} 기준입니다(이번 분기 수집 실패 — 다음 실행에서 다시 받습니다).</div>`);
+  return L.filter(Boolean).join('');
+}
+// 위치 그림: 한 줄 눈금 위에 현재가와 방법별 환산 주가. 라벨은 위·아래 칸에 겹치지 않게 놓는다.
+function vLadder(V,x,Wd){
+  const ks=vkeys(x.stage), main=ks[0], aux=ks[1], px=x.px, pts=[];
+  const add=(k,kind)=>{ const o=V.m[k]||{}; if(o.ip!=null) pts.push({k,kind,v:o.ip,vlo:k==='dcf'?o.ip_lo:null,vhi:k==='dcf'?o.ip_hi:null}); };
+  main.forEach(k=>add(k,'m')); aux.forEach(k=>add(k,'a')); if(!main.includes('dcf')&&!aux.includes('dcf')) add('dcf','a');
+  const rest=VORD.filter(k=>!main.includes(k)&&!aux.includes(k)&&k!=='dcf').map(k=>(V.m[k]||{}).ip).filter(v=>v!=null);
+  if(!pts.length&&!rest.length) return null;
+  let lo=Math.min.apply(null,[px].concat(pts.map(p=>p.v))), hi=Math.max.apply(null,[px].concat(pts.map(p=>p.v)));
+  lo=Math.max(lo,px/4); hi=Math.min(hi,px*4);
+  if(hi/lo<1.2){ lo=Math.min(lo,px*0.88); hi=Math.max(hi,px*1.12); }
+  const pad=(hi-lo)*0.08; lo=Math.max(0,lo-pad); hi+=pad;
+  const PL=12, PR=12, X=v=>PL+(Math.min(hi,Math.max(lo,v))-lo)/(hi-lo)*(Wd-PL-PR);
+  const fs=Wd<420?10:11, tw=s=>{ let w=0; for(const ch of String(s)) w+=/[ㄱ-힣]/.test(ch)?fs:fs*0.6; return w; };
+  const R=(V.range||{}).main||{};
+  const items=[{k:'_px',kind:'p',v:px,l1:'현재가',l2:vws(px)}].concat(pts.sort((a,b)=>a.v-b.v).map(p=>Object.assign(p,{l1:VMD[p.k].s,l2:(p.v<lo?'◀ ':'')+vws(p.v)+(p.v>hi?' ▶':'')})));
+  const lanes={a:[],b:[]}, LH=2*fs+8;
+  items.forEach(p=>{ p.x=X(p.v); p.w=Math.max(tw(p.l1),tw(p.l2))+8; p.cx=Math.min(Wd-2-p.w/2,Math.max(2+p.w/2,p.x)); const b={x0:p.cx-p.w/2,x1:p.cx+p.w/2};
+    for(let i=0;i<12&&p.side==null;i++){ for(const s of (p.kind==='a'?['b','a']:['a','b'])){ const ln=lanes[s][i]=lanes[s][i]||[]; if(!ln.some(q=>b.x0<q.x1+4&&q.x0<b.x1+4)){ ln.push(b); p.side=s; p.lane=i; break; } } } });
+  const nA=lanes.a.filter(l=>l&&l.length).length, nB=lanes.b.filter(l=>l&&l.length).length;
+  const axisY=6+nA*LH+12, tickY=axisY+12+nB*LH+fs+4, H=tickY+6;
+  let s='', boxes=[];
+  if(R.n>=2) s+=`<rect x="${X(R.lo).toFixed(1)}" y="${axisY-8}" width="${Math.max(2,X(R.hi)-X(R.lo)).toFixed(1)}" height="16" rx="4" fill="#2f6df6" opacity=".16"><title>주력 방법 범위 ${vwon(R.lo)} ~ ${vwon(R.hi)}</title></rect>`;
+  s+=`<line x1="${PL}" x2="${Wd-PR}" y1="${axisY}" y2="${axisY}" stroke="#98a2b3" stroke-width="1.2"/>`;
+  const tk=nice(lo,hi,Wd<420?3:5).filter(v=>v>=lo&&v<=hi); let lastX=-1e9;
+  tk.forEach(v=>{ const tx=X(v), lab=vws(v).replace(' 원','').replace('원',''), w=tw(lab); s+=`<line x1="${tx.toFixed(1)}" x2="${tx.toFixed(1)}" y1="${axisY-3}" y2="${axisY+3}" stroke="#98a2b3"/>`;
+    const cx=Math.min(Wd-2-w/2,Math.max(2+w/2,tx)); if(cx-w/2>lastX+6){ s+=`<text x="${cx.toFixed(1)}" y="${tickY}" text-anchor="middle" font-size="${fs-0.5}" fill="#98a2b3">${lab}</text>`; lastX=cx+w/2; boxes.push({id:'t'+v,x0:cx-w/2,x1:cx+w/2,y0:tickY-fs,y1:tickY+2}); } });
+  rest.forEach(v=>{ if(v>=lo&&v<=hi) s+=`<line x1="${X(v).toFixed(1)}" x2="${X(v).toFixed(1)}" y1="${axisY-5}" y2="${axisY+5}" stroke="#c3c9d4" stroke-width="1.5"/>`; });
+  let lead='', lab='', mark='';
+  items.forEach(p=>{ const up=p.side==='a', y0=up?axisY-12-(p.lane+1)*LH+2:axisY+12+p.lane*LH, y1=y0+LH-2;
+    boxes.push({id:p.k,x0:p.cx-p.w/2,x1:p.cx+p.w/2,y0,y1});
+    const ax=Math.min(p.cx+p.w/2-4,Math.max(p.cx-p.w/2+4,p.x)), col=p.kind==='p'?'#d9480f':p.k==='dcf'?'#7c3aed':p.kind==='m'?'#1a2a4a':'#2f6df6';
+    lead+=`<line x1="${p.x.toFixed(1)}" y1="${up?axisY-6:axisY+6}" x2="${ax.toFixed(1)}" y2="${up?y1:y0}" stroke="${col}" stroke-width="1" opacity=".55"/>`;
+    lab+=`<rect x="${(p.cx-p.w/2).toFixed(1)}" y="${y0}" width="${p.w.toFixed(1)}" height="${LH-2}" rx="4" fill="#fff" opacity=".94" stroke="${p.kind==='p'?'#f5c2a8':'#e4e7ec'}"/>`+
+         `<text x="${p.cx.toFixed(1)}" y="${y0+fs+1}" text-anchor="middle" font-size="${fs}" font-weight="${p.kind==='a'?600:800}" fill="${p.kind==='a'?'#475467':col}">${p.l1}</text>`+
+         `<text x="${p.cx.toFixed(1)}" y="${y0+2*fs+3}" text-anchor="middle" font-size="${fs}" font-weight="${p.kind==='a'?500:700}" fill="${p.kind==='a'?'#667085':'#1a1f2e'}">${p.l2}</text>`;
+    const cx=p.x.toFixed(1);
+    if(p.k==='dcf'&&p.vlo!=null&&p.vhi!=null) mark+=`<line x1="${X(p.vlo).toFixed(1)}" x2="${X(p.vhi).toFixed(1)}" y1="${axisY}" y2="${axisY}" stroke="#7c3aed" stroke-width="4" opacity=".35" stroke-linecap="round"><title>할인율 ±1%p일 때 ${vwon(p.vlo)} ~ ${vwon(p.vhi)}</title></line>`;
+    if(p.kind==='p') mark+=`<line x1="${cx}" x2="${cx}" y1="${axisY-10}" y2="${axisY+10}" stroke="#d9480f" stroke-width="3" stroke-linecap="round"/>`;
+    else if(p.k==='dcf') mark+=`<rect x="${(p.x-4.5).toFixed(1)}" y="${axisY-4.5}" width="9" height="9" transform="rotate(45 ${cx} ${axisY})" fill="${p.kind==='m'?'#7c3aed':'#fff'}" stroke="#7c3aed" stroke-width="2"/>`;
+    else if(p.kind==='m') mark+=`<circle cx="${cx}" cy="${axisY}" r="5.5" fill="#1a2a4a" stroke="#fff" stroke-width="1.5"/>`;
+    else mark+=`<circle cx="${cx}" cy="${axisY}" r="4.5" fill="#fff" stroke="#2f6df6" stroke-width="2"/>`; });
+  return {W:Wd,H,svg:s+lead+mark+lab,boxes,n:items.length};
+}
+function drawVal(c){
+  const el=$('vlad'); if(!el) return; const x=D.co[c], V=x&&valOf(x); if(!V){ el.innerHTML=''; return; }
+  const w=Math.max(280,Math.min(760,el.clientWidth||640)), L=vLadder(V,x,w);
+  el.innerHTML=L?`<svg viewBox="0 0 ${L.W} ${L.H}" role="img" aria-label="현재가와 평가법별 환산 주가의 위치">${L.svg}</svg>`:'';
+}
+function vConclusion(x,V){
+  const ks=vkeys(x.stage), R=V.range.main, A=V.range.all, px=x.px, nmOf=k=>VMD[k].s;
+  const ZT={below:'범위 <b>아래쪽 바깥</b>',low:'범위의 <b>하단 쪽</b>',mid:'범위의 <b>가운데</b>',high:'범위의 <b>상단 쪽</b>',above:'범위 <b>위쪽 바깥</b>'};
+  const miss=ks[0].filter(k=>(V.m[k]||{}).ip==null).map(k=>`${nmOf(k)}(${esc(vwhy((V.m[k]||{}).why||(V.m[k]||{}).pwhy||'nodata'))})`);
+  let h='';
+  if(R.n>=2){
+    h=`주력 방법 ${R.n}개(${R.ks.map(nmOf).join(' · ')})로 본 범위 <b>${vws(R.lo)} ~ ${vws(R.hi)}</b>(중앙 ${vws(R.mid)}) · 현재가 <b>${vws(px)}</b>은 ${ZT[R.zone]}`;
+    if(R.zone==='below') h+=` — 범위 하단보다 ${((1-px/R.lo)*100).toFixed(0)}% 낮음`; else if(R.zone==='above') h+=` — 범위 상단보다 ${((px/R.hi-1)*100).toFixed(0)}% 높음`;
+    if(R.wide) h+=` <span class="wn">방법마다 크게 갈림</span><span class="mu">최고가 최저의 ${(R.hi/R.lo).toFixed(1)}배 — 한 가지 값으로 보지 마세요</span>`;
+  } else if(R.n===1){
+    const d=(px/R.lo-1)*100;
+    h=`주력 방법 가운데 계산된 것은 <b>${nmOf(R.ks[0])}</b> 하나 — 환산 <b>${vws(R.lo)}</b>, 현재가 <b>${vws(px)}</b>은 그보다 ${Math.abs(d)<5?'비슷한 수준':Math.abs(d).toFixed(0)+'% '+(d>0?'높음':'낮음')}`;
+  } else h=`주력 방법으로 계산된 환산 주가가 아직 없습니다`;
+  if(miss.length) h+=`<br><span class="mu">계산하지 못한 주력 방법 — ${miss.join(' · ')}</span>`;
+  if(A.n>R.n&&A.n>=2) h+=`<br><span class="mu">보조 방법까지 넣으면 ${A.n}개 · ${vws(A.lo)} ~ ${vws(A.hi)}(중앙 ${vws(A.mid)})${A.wide?' · 방법마다 크게 갈림':''}</span>`;
+  else if(R.n===0&&A.n===1) h+=`<br><span class="mu">보조 방법 ${nmOf(A.ks[0])} 환산 ${vws(A.lo)}</span>`;
+  return h;
+}
+function vDcfLine(x,V){
+  const Dd=V.dcf||{}, R=Dd.rev||{}; let h='';
+  if(R.g!=null){
+    h=`<b>역산 DCF</b> — 지금 주가는 앞으로 ${Dd.yrs}년간 ${R.basis==='fcf'?'잉여현금흐름(FCF)':'순이익'}이 해마다 <b>${R.g>0?'+':''}${R.g}%</b>씩 ${R.g<0?'줄어든다':'자란다'}는 가정과 맞습니다${vtg('계산')} <span class="mu">(출발 ${veok(R.cf0)} · 할인율 ${Dd.r}%${vtg('가정')} · 그 뒤 영구성장 ${Dd.gt}%${vtg('가정')})</span>`;
+    h+=`<br><span class="mu">쉽게 말하면: 시장이 이 회사에 기대하는 성장 속도를 거꾸로 풀어 본 숫자입니다. 이 속도가 실제로 가능한지를 따져 보는 데 씁니다. 할인율 ${Dd.r}%는 주주가 요구하는 수익률(자기자본비용)로 흔히 쓰는 값, 영구성장 ${Dd.gt}%는 장기 물가·경제 성장 수준 — 둘 다 가정입니다.</span>`;
+    if(R.basis==='ni') h+=`<br><span class="mu">FCF 대신 순이익으로 계산했습니다 — ${esc(vwhy(R.note||'next'))}. 순이익은 설비투자를 빼기 전 숫자라 FCF로 보면 더 높은 성장률이 필요합니다.</span>`;
+  } else if(R.flag) h=`<b>역산 DCF</b> — ${esc(vwhy(R.flag))} <span class="mu">(출발 ${R.basis==='fcf'?'FCF':'순이익'} ${veok(R.cf0)} · 할인율 ${Dd.r}% · 영구성장 ${Dd.gt}% 가정)</span>`;
+  else h=`<b>역산 DCF</b> — <span class="mu">계산하지 않음: ${esc(vwhy(R.why||'nodata'))} (FCF도 순이익도 0 이하이면 "몇 % 자라야 하나"를 풀 수 없습니다)</span>`;
+  return `<div class="vdc">${h}</div>`;
+}
+function vSotp(x,V){
+  const S=V.sotp||{need:false,why:[]}, key=x.c+':sotp', on=VXS[key]!=null?VXS[key]:!!S.need;
+  const hit=(S.why||[]).slice().sort((a,b)=>b.s-a.s);
+  let h=`<div class="vso"><button data-vr="sotp" data-on="${on?1:0}">🧩 여러 사업부·모회사·자회사가 있을 때는 어떻게 값을 매기나 <span class="mu" style="font-weight:600">— 사업별 합산(SOTP)</span>${S.need?' <span class="wn" style="margin-left:6px">이 회사 해당</span>':''} <span class="ar">${on?'▴':'▾'}</span></button><div class="bd" id="vf_sotp"${on?'':' hidden'}>`;
+  h+=`<div class="ez"><b>쉬운 설명</b> — 한 회사 안에 성격이 다른 사업이 섞여 있으면 회사 전체에 배수 하나를 곱하지 않고, <b>사업마다 따로 값을 매겨 더한 뒤 빚을 뺍니다</b>. 위 표의 배수는 회사를 통째로 본 값이라, 아래에 해당하는 회사는 그 값이 실제와 어긋날 수 있습니다.</div>`;
+  if(hit.length) h+=`<div><b>${esc(x.n)}에서 걸리는 점</b>${S.need?'':' <span class="mu">— 참고 수준</span>'}</div><ul class="hit">${hit.map(w=>`<li>${esc(w.t)}${w.s?'':' <span class="mu">(참고)</span>'}</li>`).join('')}</ul>`;
+  else h+=`<div class="mu">${esc(x.n)}은(는) 숫자에서 걸리는 신호가 없습니다(통째 배수로 봐도 왜곡이 작은 편). 방법은 아래와 같습니다.</div>`;
+  h+=`<div style="margin-top:6px"><b>순서</b></div><ol>
+    <li><b>사업부를 나눈다</b> — 사업보고서 "사업의 내용"의 부문별 매출·영업이익을 씁니다. 이익이 부문별로 안 나오면 매출 비중과 회사가 밝힌 마진으로 나누고 <b>가정</b>이라고 적어 둡니다.</li>
+    <li><b>사업부마다 그 사업의 peer 배수를 고른다</b> — 반도체 장비 사업에는 장비 peer, 2차전지 사업에는 2차전지 peer. 가장 잘 버는 사업부의 배수를 회사 전체에 곱하지 않습니다.</li>
+    <li><b>사업부 가치를 더한다</b> — 사업부 영업이익(또는 EBITDA) × 그 사업의 배수를 부문별로 구해 합칩니다.</li>
+    <li><b>자회사·투자지분을 더한다</b> — 상장 자회사는 <b>시가총액 × 지분율</b>, 비상장은 장부가나 순이익 × 낮은 배수. 여기에 <b>지주사 할인</b>(자회사가 따로 상장돼 있고 배당으로만 돈이 올라오므로 깎는 몫 — 할인율은 가정이라 한 숫자가 아니라 범위로)을 적용합니다.</li>
+    <li><b>순차입금을 뺀다</b> — 차입금·사채·리스부채 − 현금. 연결 기준 사업가치에는 남의 몫이 들어 있으니 <b>비지배지분</b>도 뺍니다.</li>
+    <li><b>주식수로 나눈다</b> — 전환사채·신주인수권 같은 희석 주식까지 넣은 주식수로 나눕니다.</li>
+    <li><b>거꾸로도 본다(역산)</b> — 시가총액 − 기존 사업 가치 = 시장이 신사업·자회사에 이미 매겨 둔 값. 이 값이 신사업의 실제 수주·매출에 견줘 큰지 작은지를 봅니다.</li></ol>`;
+  h+=`<div><b>연결 재무제표에서 자주 틀리는 세 가지</b></div><ol>
+    <li>연결 <b>영업이익은 자회사 것이 100% 잡히지만</b> 순이익·자본 가운데 내 몫은 지배주주 몫뿐입니다 → PER·PBR은 지배주주 순이익·자본으로(이 화면 기준), EV/EBIT·EV/EBITDA는 EV에 비지배지분을 더해 위아래를 맞춥니다.</li>
+    <li><b>지분법 자회사</b>(지분 20~50%)의 이익은 영업이익에 안 잡힙니다 → 영업이익 기준 배수로는 빠지므로 지분 가치를 따로 더합니다.</li>
+    <li><b>모회사와 자회사가 둘 다 상장</b>이면 같은 가치를 두 번 세지 않습니다 → 모회사 값에서 자회사 지분은 시가 × 지분율로 한 번만.</li></ol>`;
+  h+=`<div class="mu">사업부별 영업이익은 공시에 없는 회사가 많아 이 화면은 합산값을 자동으로 계산하지 않습니다. 직접 숫자를 넣어 보려면 ↓</div>
+    <div class="lk" style="margin-top:4px"><a data-ws="1" href="/valws.html?c=${x.c}">🧮 밸류 워크시트에서 ${esc(x.n)} 열기 →</a><a data-ws="1" href="/upgrade.html">체급개선 메뉴의 SOTP 예시(코세스) 보기 →</a></div>`;
+  return h+`</div></div>`;
+}
+function valBlock(x){
+  if(!x.cap||!x.px) return `<div class="q" style="margin-top:6px"><span class="none">시세가 없어 책정값을 계산하지 못했습니다.</span></div>`;
+  const V=valOf(x), ks=vkeys(x.stage), main=ks[0], aux=ks[1], rest=VORD.filter(k=>!main.includes(k)&&!aux.includes(k));
+  let h=`<div class="q" style="margin-top:8px"><b style="color:#1a2a4a">📐 그래서 책정한 값</b> <span class="mu">— 방법마다 ① 이 회사의 배수 ② 비교 대상의 중앙값 ③ 그 배수를 이 회사 숫자에 곱한 주가(환산 주가)</span></div>`;
+  if(V.local) h+=`<div class="vdn">⏳ 순차입금·감가상각비·현금흐름·과거 밴드는 <b>다음 수집부터</b> 들어옵니다. 지금은 이미 있는 숫자로 구할 수 있는 행(PER·선행 PER·시총÷영업이익·PBR·PSR·PEG)만 이 화면에서 바로 계산했고, EV·FCF·DCF·밴드·정상화 PER 행에는 "다음 수집부터 표시"라고 적었습니다.</div>`;
+  h+=`<div class="vcl">${vConclusion(x,V)}</div>`;
+  h+=`<div class="vlad" id="vlad"></div><div class="vleg"><span><i style="width:3px;height:14px;background:#d9480f;border-radius:2px"></i>현재가</span><span><i style="width:10px;height:10px;border-radius:50%;background:#1a2a4a"></i>주력 방법</span><span><i style="width:10px;height:10px;border-radius:50%;border:2px solid #2f6df6;background:#fff"></i>보조 방법</span><span><i style="width:9px;height:9px;transform:rotate(45deg);border:2px solid #7c3aed;background:#fff"></i>DCF(굵은 선 = 할인율 ±1%p)</span><span><i style="width:16px;height:10px;background:#2f6df6;opacity:.25;border-radius:3px"></i>주력 범위</span><span><i style="width:2px;height:10px;background:#c3c9d4"></i>그 밖 참고 방법</span></div>`;
+  const row=(k,grp)=>{ const o=V.m[k]||{}, md=VMD[k], key=x.c+':'+k, on=VXS[key]!=null?VXS[key]:(grp==='m'), has=o.ip!=null;
+    const own=o.v!=null?vx(k,o.v):(o.x!=null?`<span class="mu">${Number(o.x).toFixed(md.d)}</span>`:(k==='dcf'?'<span class="mu">—</span>':'<span class="mu">—</span>'));
+    let peer='<span class="mu">—</span>';
+    if(k==='dcf') peer='<span class="vsm">비교 아님 — 가정으로 계산</span>';
+    else if(o.ps==='self') peer=`${vx(k,o.pm)}<span class="vsm">자기 과거 ${vcfg().band_yrs}년 중앙 · ${vx(k,o.lo)}~${vx(k,o.hi)}</span>`;
+    else if(o.pm!=null) peer=`${vx(k,o.pm)}<span class="vsm">${VSC(x.c,o.ps)} ${o.pn}곳${o.pe?' · 제외 '+o.pe:''}</span>`;
+    const ipc=has?`<td><b>${vwon(o.ip)}</b></td><td>${vup(o.up)}</td>`:`<td colspan="2"><span class="vn">${esc(vwhy(o.why||o.pwhy||'nodata'))}</span></td>`;
+    return `<tr class="vr${has?'':' vna'}" data-vr="${k}" data-on="${on?1:0}" title="${esc(md.e)} — 누르면 공식 풀이"><td class="l"><span class="vg ${grp}">${grp==='m'?'주력':grp==='a'?'보조':'참고'}</span><b>${md.n}</b><span class="ar">${on?'▴':'▾'}</span><span class="ve">${esc(md.e)}</span></td><td>${own}</td><td>${peer}</td>${ipc}<td class="c6">${vtg(md.t)}</td></tr>`+
+           `<tr class="vf" id="vf_${k}"${on?'':' hidden'}><td colspan="6">${vFormula(x,V,k)}</td></tr>`; };
+  h+=`<div class="cmpw"><table class="cmp vt"><thead><tr><th class="l">방법 <small>누르면 공식</small></th><th>이 회사</th><th>비교 중앙값<br><small>표본 · 범위</small></th><th>환산 주가<br><small>같은 배수라면</small></th><th>현재가<br><small>대비</small></th><th class="c6">성격</th></tr></thead><tbody>`+
+     main.map(k=>row(k,'m')).join('')+aux.map(k=>row(k,'a')).join('')+rest.map(k=>row(k,'r')).join('')+`</tbody></table></div>`;
+  h+=`<div class="q mu" style="margin:2px 0 4px">성격 표시 — ${vtg('확인')} DART 공시값·KIS 시세 ${vtg('컨센서스')} 증권사 추정 평균 ${vtg('계산')} 확인값으로 계산 ${vtg('가정')} 정해 둔 가정. 현재가 ${vwon(x.px)} · 시가총액 ${veok(x.cap)} · 실적 ${esc(x.asof||'')} 기준.</div>`;
+  h+=vDcfLine(x,V);
+  h+=`<div class="vdn">⚠ <b>목표주가가 아닙니다</b> — 비교 대상과 같은 배수를 받는다고 가정했을 때의 <b>위치</b>입니다. 비교 대상이 통째로 비싸거나 싸면 이 범위도 같이 움직이고, 과거 PER·peer PER이 이 회사의 "맞는 값"이라는 뜻도 아닙니다. 성장 속도·이익의 질·고객 구성이 다르면 배수가 다른 것이 정상입니다.</div>`;
+  h+=vSotp(x,V);
+  return h;
+}
 function valMethod(x){
   const V=VALM[x.stage]||VALM.etc;
   const ex=(x.procs||[]).map(pz=>VALP[pz]).filter(Boolean);
@@ -696,6 +1069,7 @@ function valMethod(x){
   if(x.pbr!=null&&x.pbr<1&&x.roe!=null&&x.roe<5) al.push('PBR이 1배 아래인데 ROE도 낮습니다 — 자산이 이익을 못 내고 있다는 뜻일 수 있어, 싸다고 보기 어렵습니다.');
   if(x.stage==='chip'&&x.per!=null&&x.per>0&&x.per<8) al.push('메모리에서 한 자릿수 PER은 이익 정점의 신호인 경우가 많습니다 — 정상화 이익으로 다시 계산해 보세요.');
   if(al.length) h+=`<ul class="rk" style="margin-top:4px">${al.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`;
+  h+=valBlock(x);
   return h+`</div>`;
 }
 function aboutCard(x){
@@ -799,58 +1173,344 @@ function fwdTiles(x){
   if(my.pbr_f!=null) h+=`<div class="q">선행 PBR은 <b>그해 번 돈이 자본에 쌓인다</b>고 보고 계산했습니다(배당성향 ${my.payout!=null?my.payout+'%':'0%로 가정'}). 유상증자·자사주는 반영하지 않았습니다.</div>`;
   return h;
 }
-// ───── 수주잔고: 분기별 증감과 "언제 매출이 되나"
-// 잔고의 절대액만으로는 뜻이 약하다. 늘고 있나(QoQ·YoY), 지금 매출 속도로 몇 분기치인가,
-// 그리고 그 일감의 납기가 언제인가 — 셋을 같이 놓는다.
+// ───── 수주잔고: 분기 말 잔고(막대)와 그 분기 매출(선), 그리고 잔고가 매출로 바뀌는 과정
+// 잔고는 "앞으로 매출로 바뀔 일감"이다. 한 분기 금액만으로는 뜻이 없어서
+//  ① 분기마다 잔고가 어떻게 늘고 줄었나(막대) ② 그 분기 매출은 어땠나(선) ③ 새 주문은 얼마였나(마름모)를 한 그림에 놓고,
+//  ④ 잔고가 매출로 바뀌는 속도(전환율)·시차·다음 분기 매출 유추를 공식과 함께 보여 준다.
+// 숫자 성격: 확인 = 공시 원문값 · 계산 = 확인값끼리의 사칙연산 · 유추 = 가정이 들어간 추정(가정을 같이 적는다)
+const BLQ=s=>{ const m=/^(\d)Q(\d{2})$/.exec(s||''); return m?'20'+m[2]+'Q'+m[1]:null; };          // '3Q26' → '2026Q3'
+const blPrev=(q,n)=>{ const k=(+q.slice(0,4))*4+(+q.charAt(5)-1)-(n==null?1:n); return Math.floor(k/4)+'Q'+(k%4+1); };   // n분기 앞(음수면 뒤)
+const blShort=q=>q.slice(2,4)+'Q'+q.charAt(5);
+const ble=v=>v==null?'—':(Math.abs(v)>=10000?(v/10000).toFixed(2)+'조':(Math.abs(v)<100?(Math.round(v*10)/10).toLocaleString():Math.round(v).toLocaleString())+'억');
+const bln=v=>v==null?'—':(Math.abs(v)>=100000?(v/10000).toFixed(1)+'조':Math.abs(v)<1000?(Math.round(v*10)/10).toLocaleString():Math.round(v).toLocaleString());   // 식 안에 넣는 숫자(억 생략, 1,000 미만은 소수 한 자리)
+const blr=v=>v==null?'—':bln(v)+(Math.abs(v)>=100000?'':'억');   // 식의 결과
+const blpc=v=>v==null?'—':(Math.abs(v)>=1000?Math.round(v).toLocaleString():v.toFixed(Math.abs(v)<10?1:0))+'%';
+const blsg=v=>v==null?'<span class="mu">—</span>':`<span class="${v>0?'pos':v<0?'neg':''}">${v>0?'+':''}${Math.abs(v)>=1000?Math.round(v).toLocaleString():v.toFixed(0)}%</span>`;
+const blx=v=>v==null?'—':v.toFixed(2)+'배';
+const btg=t=>`<span class="vtg ${({'확인':'c1','계산':'c3','유추':'c4','관찰':'c3'})[t]||'c3'}">${t}</span>`;
+const BLST={usd:'달러 등 외화로 적혀 있어 원화로 환산하지 않았습니다',unit:'표에서 단위(백만원·천원 등)를 읽지 못해 금액으로 바꾸지 않았습니다',blank:'표는 있지만 잔고 칸이 비어 있습니다',
+  flow:'이 회사는 잔고 없이 그 기간의 수주·매출 금액만 싣습니다',notab:'정기보고서의 "수주상황"에 표가 없습니다',nosec:'정기보고서에서 "매출 및 수주상황" 구간을 찾지 못했습니다',nodoc:'보고서 원문을 받지 못했습니다',none:'표는 있지만 원화 금액으로 읽지 못했습니다(달러 표기·잔고 미기재·형식 미인식)'};
+const BLTY={A:'수주총액·기납품액·수주잔고',B:'기초·신규·매출·기말',C:'신규 수주·매출·기말 잔고',D:'잔고만',E:'계약금액·누적 공급액(잔고는 계산)',F:'수주·매출 흐름만'};
+function blgCalc(c){
+  const r=(BLG||{})[c], x=(D.co||{})[c]||{}; if(!r) return null;
+  const rev={}; for(const k in (r.rev||{})) if(r.rev[k]!=null) rev[k]=r.rev[k];
+  (x.ql||[]).forEach((l,i)=>{ const q=BLQ(l); if(q&&x.rq&&x.rq[i]!=null) rev[q]=x.rq[i]; });
+  const bl={}; (r.s||[]).forEach(p=>{ if(p&&p.eok!=null) bl[p.q]=p; });
+  const bq=Object.keys(bl).sort(), rq=Object.keys(rev).sort(); if(!bq.length) return null;
+  const last=bq[bq.length-1], end=(rq.length&&rq[rq.length-1]>last)?rq[rq.length-1]:last, first=(rq.length&&rq[0]<bq[0])?rq[0]:bq[0];
+  const qs=[]; for(let q=end,i=0;i<12&&q>=first;i++,q=blPrev(q)) qs.unshift(q);
+  const rg=r.recog||{}, cq=rg.cq||null, cq0=(cq&&rg.cq_from)?rg.cq_from.slice(0,4)+'Q'+(Math.floor((+rg.cq_from.slice(5,7)-1)/3)+1):null;
+  const sum=a=>a.reduce((s,v)=>s+v,0);
+  const rows=qs.map(q=>{ const p=bl[q], pp=bl[blPrev(q)], py=bl[blPrev(q,4)], rv=rev[q]!=null?rev[q]:null;
+    const o={q,bl:p?p.eok:null,rev:rv,prev:pp?pp.eok:null,qoq:null,yoy:null,nw:null,nsrc:null,conv:null,bb:null,fl:[],cq:(cq&&cq0&&q>=cq0)?(cq[q]||0):null,p:p||null};
+    if(p&&pp&&pp.eok>0) o.qoq=(p.eok/pp.eok-1)*100;
+    if(p&&py&&py.eok>0) o.yoy=(p.eok/py.eok-1)*100;
+    if(p&&p.nq!=null){ o.nw=p.nq; o.nsrc='확인'; }
+    else if(p&&pp&&rv!=null){ o.nw=p.eok-pp.eok+rv; o.nsrc='계산'; }
+    if(pp&&rv!=null&&pp.eok>0) o.conv=rv/pp.eok*100;
+    if(o.nw!=null&&rv!=null&&rv>0) o.bb=o.nw/rv;
+    if(o.nsrc==='계산'&&o.nw<0) o.fl.push('neg');
+    if(pp&&rv!=null&&rv>pp.eok) o.fl.push('over');
+    return o; });
+  const li=qs.indexOf(last), L=rows[li], M={c,r,rows,last,L,rev,bl,bq,rq,rg,nb:bq.length};
+  // 몇 분기치 일감 = 최근 잔고 ÷ 최근 4개 분기 평균 매출(잔고 기준 분기까지의 4개 분기)
+  let r4=[3,2,1,0].map(k=>({q:blPrev(last,k),v:rev[blPrev(last,k)]}));
+  if(!r4.every(o=>o.v!=null)) r4=rq.length>=4?rq.slice(-4).map(q=>({q,v:rev[q]})):null;
+  if(r4){ const a=sum(r4.map(o=>o.v))/4; M.cover={avg:a,q4:r4,v:a>0?L.bl/a:null,off:r4[3].q!==last}; }
+  // 수주÷매출 배율(book-to-bill) — 최근 4개 분기 합
+  const w4=li>=3?rows.slice(li-3,li+1):[];
+  if(w4.length===4&&w4.every(o=>o.nw!=null&&o.rev!=null)){ const a=sum(w4.map(o=>o.nw)), b=sum(w4.map(o=>o.rev)); if(b>0) M.bb4={v:a/b,nw:a,rev:b,w:w4,src:w4.every(o=>o.nsrc==='확인')?'확인':'계산'}; }
+  // 과거 잔고가 없을 때의 대안: 공급계약 공시 합 ÷ 매출 합(최근 4개 분기) — 공시 의무에 걸린 계약만 잡히므로 하한
+  if(cq&&cq0){ const z=[3,2,1,0].map(k=>blPrev(last,k)); if(z[0]>=cq0&&z.every(q=>rev[q]!=null)){ const a=sum(z.map(q=>cq[q]||0)), b=sum(z.map(q=>rev[q])); if(b>0) M.bbc={v:a/b,nw:a,rev:b,z,n:sum(z.map(q=>((rg.cq_n||{})[q]||0)))}; } }
+  // 전환율 = 그 분기 매출 ÷ 직전 분기 말 잔고
+  const cvr=rows.filter(o=>o.conv!=null&&o.q<=last), cv=cvr.map(o=>o.conv);
+  if(cv.length){ const s=cv.slice().sort((a,b)=>a-b); M.conv={n:cv.length,mean:sum(cv)/cv.length,min:s[0],max:s[s.length-1],med:s.length%2?s[(s.length-1)/2]:(s[s.length/2-1]+s[s.length/2])/2,rows:cvr,last:L.conv}; }
+  // 다음 분기 매출 유추 = 최근 잔고 × 과거 전환율(평균·최소~최대)
+  const nq=blPrev(last,-1); M.nq=nq;
+  if(M.conv) M.next={q:nq,est:L.bl*M.conv.mean/100,lo:L.bl*M.conv.min/100,hi:L.bl*M.conv.max/100,act:rev[nq]!=null?rev[nq]:null};
+  // 잔고 소진 추정: 매 분기 (잔고 × 평균 전환율)씩 같은 금액이 매출이 된다고 볼 때(새 주문 0 가정). 전환율이 100%를 넘으면 100%로
+  if(M.conv&&M.conv.mean>0&&L.bl>0){ const cr=Math.min(M.conv.mean,100)/100, per=L.bl*cr, bars=[]; let rem=L.bl, q=nq;
+    for(let i=0;i<8&&rem>0.05;i++){ const a=Math.min(per,rem); bars.push({q,v:a}); rem-=a; q=blPrev(q,-1); }
+    M.burn={rate:cr*100,per,nq:1/cr,bars,rem:rem>0.05?rem:0,cap:M.conv.mean>100}; }
+  // 잔고 표의 품목별 납기(확인) → 다음 분기 말까지 납기인 잔고
+  const items=(r.items||[]).filter(it=>it&&it.eok!=null), endOf=q=>q.slice(0,4)+'-'+({1:'03-31',2:'06-30',3:'09-30',4:'12-31'})[q.charAt(5)];
+  if(items.length&&r.table&&r.table.q===last&&items.some(it=>it.due)){
+    const base=endOf(last), nx=endOf(nq), g={over:0,next:0,later:0,none:0}, byq={};
+    for(const it of items){ const d=it.due||''; if(!d){ g.none+=it.eok; continue; }
+      const full=d.length===4?d+'-12-31':d.length===7?d+'-31':d;
+      if(full<=base) g.over+=it.eok; else if(full<=nx&&d.length>4) g.next+=it.eok; else g.later+=it.eok;
+      const lab=d.length===4?d+'년':d.slice(0,4)+'Q'+(Math.floor((+d.slice(5,7)-1)/3)+1); byq[lab]=(byq[lab]||0)+it.eok; }
+    M.due={g,byq,sum:sum(items.map(it=>it.eok)),n:items.length};
+  }
+  // 잔고가 매출로 바뀌는 시차: 잔고 증감과 k분기 뒤 매출 증감의 방향 일치 횟수(+상관계수). 잔고 분기가 6개 미만이면 계산하지 않는다
+  if(M.nb<6) M.lag={skip:`잔고가 있는 분기가 ${M.nb}개뿐 — 6개 이상 모이면 계산합니다`};
+  else{ const dB={}, dR={};
+    for(const q of bq){ const p=bl[blPrev(q)]; if(p) dB[q]=bl[q].eok-p.eok; }
+    for(const q of rq){ const p=rev[blPrev(q)]; if(p!=null) dR[q]=rev[q]-p; }
+    const pear=(a,b)=>{ const n=a.length, ma=sum(a)/n, mb=sum(b)/n; let sab=0,saa=0,sbb=0; for(let i=0;i<n;i++){ sab+=(a[i]-ma)*(b[i]-mb); saa+=(a[i]-ma)**2; sbb+=(b[i]-mb)**2; } return (saa>0&&sbb>0)?sab/Math.sqrt(saa*sbb):null; };
+    const ks=[]; for(let k=0;k<=4;k++){ let n=0,m=0; const xs=[],ys=[]; for(const q of Object.keys(dB).sort()){ const t=blPrev(q,-k); if(dR[t]==null||dB[q]===0||dR[t]===0) continue; n++; if((dB[q]>0)===(dR[t]>0)) m++; xs.push(dB[q]); ys.push(dR[t]); }
+      ks.push({k,n,m,r:n>=4?pear(xs,ys):null}); }
+    let best=null; for(const o of ks) if(o.k>=1&&o.n>=4&&(!best||o.m/o.n>best.m/best.n+1e-9)) best=o;
+    M.lag={ks,best,k0:ks[0]}; }
+  // 표 형식이 분기 사이에 바뀌었나(값이 튀면 형식 변화일 수 있다)
+  const tys=[...new Set(bq.map(q=>bl[q].ty).filter(Boolean))]; if(tys.length>1) M.tych=tys;
+  M.pend=!!(BLGM&&BLGM.prelim)||Object.values(r.done||{}).some(d=>d&&d.src)||!r.done;     // 과거 분기 수집 전(임시본)
+  M.verdict=blgVerdict(M);
+  return M;
+}
+// 연동 판정 — 판단이 아니라 관찰. 규칙은 위에서 아래로 먼저 맞는 것 하나.
+function blgVerdict(M){
+  const rows=M.rows.filter(o=>o.q<=M.last), n=rows.length, L=rows[n-1], P=n>=2?rows[n-2]:null, out=[];
+  const rdir=(L.rev!=null&&P&&P.rev!=null)?Math.sign(L.rev-P.rev):null;
+  if(M.nb<2){
+    let t=`잔고가 <b>${M.last}</b> 한 분기뿐이라 잔고와 매출이 같이 움직이는지는 아직 판정하지 못합니다.`;
+    if(rdir!=null) t+=` 매출은 직전 분기보다 ${rdir>0?'늘었습니다':rdir<0?'줄었습니다':'같습니다'}(${ble(P.rev)} → ${ble(L.rev)}).`;
+    return {k:'one',t};
+  }
+  const d=[]; for(let i=n-1;i>0;i--){ if(rows[i].bl==null||rows[i-1].bl==null) break; d.push(Math.sign(rows[i].bl-rows[i-1].bl)); }
+  if(!d.length) return {k:'gap',t:`직전 분기(${blPrev(M.last)}) 잔고가 없어 방향을 비교하지 못합니다.`};
+  let st=0; for(const v of d){ if(v===d[0]&&v!==0) st++; else break; }
+  const b=d[0], obs=rows.filter(o=>o.conv!=null), off=obs.filter(o=>o.fl.length).length, seq=st>=2?`${st}개 분기 연속 `:'직전 분기보다 ';
+  let k, t;
+  if(obs.length>=2&&off>=Math.max(2,Math.ceil(obs.length/2))){ k='apart';
+    t=`<b>잔고와 매출이 따로 움직입니다</b> — 비교한 ${obs.length}개 분기 중 ${off}개 분기에서 그 분기 매출이 직전 분기 말 잔고보다 크거나 계산한 신규 수주가 음수였습니다. 잔고에 잡히지 않는 매출(주문 후 바로 나가는 단납기 제품·소모품·용역) 비중이 큰 회사라는 뜻이어서, 잔고만으로 매출을 가늠하기 어렵습니다.`; }
+  else if(b>0&&rdir>0){ k='upup'; t=`잔고가 ${seq}늘었고 매출도 늘었습니다 — <b>주문과 매출이 함께 커지는 구간</b>입니다.`; }
+  else if(b>0){ k='upflat'; t=`잔고는 ${seq}늘었는데 매출은 ${rdir==null?'비교할 값이 없습니다':rdir<0?'줄었습니다':'그대로입니다'} — <b>일감이 쌓이는 중</b>입니다(납기가 오면 매출로 바뀝니다).`; }
+  else if(b<0&&rdir>0){ k='downup'; t=`잔고는 ${seq}줄었는데 매출이 늘었습니다 — <b>쌓아 둔 일감을 매출로 바꾸는 중</b>입니다. 새 주문이 뒤따르는지(신규 수주·수주÷매출 배율)를 확인해야 합니다.`; }
+  else if(b<0&&rdir<0){ k='downdown'; t=`잔고와 매출이 함께 줄었습니다 — <b>일감이 줄어드는 구간일 수 있습니다</b>. 다만 한 분기 매출이 줄었다고 사이클이 끝났다고 보지는 않습니다(납품·검수 시점이 밀린 것일 수 있음). 신규 수주가 다시 붙는지 확인하세요.`; }
+  else if(b<0){ k='down'; t=`잔고가 ${seq}줄었습니다 — 매출은 ${rdir==null?'비교할 값이 없습니다':'직전 분기와 같습니다'}.`; }
+  else { k='flat'; t=`잔고가 직전 분기와 같습니다.`; }
+  if(M.lag&&M.lag.best){ const o=M.lag.best; t+=` 과거 ${M.nb}개 분기에서는 잔고가 움직인 뒤 <b>${o.k}분기 뒤</b> 매출이 같은 방향으로 움직인 적이 ${o.n}번 중 ${o.m}번이었습니다${o.m/o.n<0.6?'(절반 안팎이라 뚜렷한 시차는 아닙니다)':''}.`; }
+  if(L.bb!=null) t+=` 최근 분기 수주÷매출 배율 ${L.bb.toFixed(2)}배 — ${L.bb>1.05?'들어온 주문이 나간 매출보다 많아 일감이 쌓였습니다':L.bb<0.95?'나간 매출이 들어온 주문보다 많아 일감이 줄었습니다':'들어온 주문과 나간 매출이 비슷합니다'}.`;
+  return {k,t,st,b,rdir,off,obs:obs.length};
+}
+// 콤보 그림(SVG). 시험에서 좌표를 검사할 수 있게 라벨 상자(boxes)·표식 상자(marks)를 같이 돌려준다.
+function blgChart(M,w){
+  const Wd=w, nar=Wd<430, rows=M.rows.slice(nar?-8:-12), n=rows.length; if(!n) return null;
+  const fs=nar?9:10, tw=s=>{ let t=0; for(const ch of String(s)) t+=(ch===','||ch==='.')?fs*0.3:(ch>='0'&&ch<='9')?fs*0.58:fs*0.98; return t+2; };
+  const fm=v=>Math.abs(v)>=10000?(v/10000).toFixed(v>=100000?0:1)+'조':Math.abs(v)<10?(Math.round(v*10)/10).toString():Math.round(v).toLocaleString();
+  const mk=o=>o.nw!=null?{v:o.nw,s:o.nsrc}:(o.cq!=null&&o.cq>0?{v:o.cq,s:'공시'}:null);
+  const bmax=Math.max(0,...rows.map(o=>o.bl||0)), rmax=Math.max(0,...rows.map(o=>o.rev||0)), nmax=Math.max(0,...rows.map(o=>{ const m=mk(o); return m&&m.v>0?m.v:0; }));
+  const dual=bmax>0&&rmax>0&&(rmax<bmax*0.15||bmax<rmax*0.15);
+  const L=nar?32:42, R=dual?(nar?32:42):8, T=26, B=22, H=nar?216:250;
+  const ytL=nice(0,(dual?bmax:Math.max(bmax,rmax,nmax))||1,4), ytR=dual?nice(0,Math.max(rmax,nmax)||1,4):ytL;
+  const YL=v=>H-B-v/ytL[ytL.length-1]*(H-T-B), YR=v=>H-B-v/ytR[ytR.length-1]*(H-T-B);
+  const gw=(Wd-L-R)/n, bw=Math.min(34,gw*0.58), cxOf=i=>L+gw*i+gw/2;
+  const boxes=[], marks=[], hit=(b,arr)=>arr.some(q=>b.x0<q.x1&&q.x0<b.x1&&b.y0<q.y1&&q.y0<b.y1);
+  let s='', lab='';
+  for(const v of ytL) s+=`<line x1="${L}" x2="${Wd-R}" y1="${YL(v).toFixed(1)}" y2="${YL(v).toFixed(1)}" stroke="${v===0?'#c3c9d4':'#eef0f4'}"/><text x="${L-5}" y="${(YL(v)+3.5).toFixed(1)}" text-anchor="end" font-size="${fs}" fill="${dual?'#2563eb':'#667085'}">${fm(v)}</text>`;
+  if(dual) for(const v of ytR) s+=`<text x="${Wd-R+5}" y="${(YR(v)+3.5).toFixed(1)}" font-size="${fs}" fill="#c2410c">${fm(v)}</text>`;
+  s+=`<text x="2" y="11" font-size="${fs}" fill="${dual?'#2563eb':'#667085'}">${dual?'수주잔고(억 원) ← 왼쪽 축':'단위: 억 원'}</text>`;
+  if(dual) s+=`<text x="${Wd-2}" y="11" text-anchor="end" font-size="${fs}" fill="#c2410c">오른쪽 축 → 매출·신규 수주(억 원)</text>`;
+  rows.forEach((o,i)=>{ if(o.rev!=null){ const cx=cxOf(i), y=YR(o.rev); marks.push({id:'r'+i,i,x0:cx-4,x1:cx+4,y0:y-4,y1:y+4}); }
+    const m=mk(o); if(m&&m.v>0){ const cx=cxOf(i), y=(dual?YR:YL)(m.v), d=4.5; marks.push({id:'n'+i,i,x0:cx-d,x1:cx+d,y0:y-d,y1:y+d}); } });
+  // 잔고가 없는 분기 묶음(수집 전 / 잔고 공시 전) — 빈 막대 자리에 옅은 띠와 설명(매출 점·마름모를 피해 놓는다)
+  for(let i=0;i<n;){ if(rows[i].bl!=null){ i++; continue; } let j=i; while(j+1<n&&rows[j+1].bl==null) j++;
+    const x0=L+gw*i+2, wd=gw*(j-i+1)-4, after=rows[i].q>M.last, full=after?'잔고 공시 전':(M.pend?'과거 분기 잔고 — 다음 수집에서 채워집니다':'이 분기 보고서에는 잔고가 없습니다'), short=after?'공시 전':(M.pend?'수집 전':'잔고 없음');
+    s+=`<rect x="${x0.toFixed(1)}" y="${T}" width="${wd.toFixed(1)}" height="${H-T-B}" fill="#f8fafc" stroke="#d7dce6" stroke-dasharray="3 3" rx="4"/>`;
+    for(const txt of [full,short]){ const tww=tw(txt), cx=x0+wd/2; if(tww>wd-4) continue; let done=false;
+      for(let y=T+fs+4;y<=H-B-4;y+=fs+3){ const b={id:'band'+i,x0:cx-tww/2,x1:cx+tww/2,y0:y-fs,y1:y+2}; if(hit(b,marks)||hit(b,boxes)) continue;
+        boxes.push(b); lab+=`<text x="${cx.toFixed(1)}" y="${y}" text-anchor="middle" font-size="${fs}" fill="#98a2b3" stroke="#f8fafc" stroke-width="3" paint-order="stroke">${txt}</text>`; done=true; break; }
+      if(done) break; }
+    i=j+1; }
+  // 막대(잔고)
+  rows.forEach((o,i)=>{ if(o.bl==null) return; const cx=cxOf(i), y=YL(o.bl), hh=Math.max(1,H-B-y), r=Math.min(3,hh/2,bw/2), x0=cx-bw/2;
+    s+=`<path d="M${x0.toFixed(1)},${(y+hh).toFixed(1)} v${(-(hh-r)).toFixed(1)} q0,${-r} ${r},${-r} h${(bw-2*r).toFixed(1)} q${r},0 ${r},${r} v${(hh-r).toFixed(1)} z" fill="#2563eb" opacity="${o.p&&o.p.prelim?0.8:1}"/>`; });
+  // 선(매출) — 값이 빈 분기에서는 선을 끊는다
+  let seg=[]; const flush=()=>{ if(seg.length>1) s+=`<polyline points="${seg.join(' ')}" fill="none" stroke="#ea580c" stroke-width="2" stroke-linejoin="round"/>`; seg=[]; };
+  rows.forEach((o,i)=>{ if(o.rev==null){ flush(); return; } seg.push(cxOf(i).toFixed(1)+','+YR(o.rev).toFixed(1)); }); flush();
+  rows.forEach((o,i)=>{ if(o.rev==null) return; const cx=cxOf(i), y=YR(o.rev); s+=`<circle cx="${cx.toFixed(1)}" cy="${y.toFixed(1)}" r="3.2" fill="#fff" stroke="#ea580c" stroke-width="2"/>`; });
+  // 마름모(신규 수주): 채움 = 확인, 빈 것 = 계산, 점선 = 공급계약 공시 합(하한). 음수(계산)는 그리지 않고 표에서 알린다
+  rows.forEach((o,i)=>{ const m=mk(o); if(!m||m.v<=0) return; const cx=cxOf(i), y=(dual?YR:YL)(m.v), d=4.5;
+    s+=`<path d="M${cx.toFixed(1)},${(y-d).toFixed(1)} l${d},${d} l${-d},${d} l${-d},${-d} z" fill="${m.s==='확인'?'#7c3aed':'#fff'}" stroke="#7c3aed" stroke-width="1.6"${m.s==='공시'?' stroke-dasharray="2 1.5"':''}/>`; });
+  // 값 라벨 — 막대 위(안 되면 막대 안), 점 위(겹치면 아래·더 위로 엇갈림). 끝내 자리가 없으면 생략(마우스를 올리면 값이 나온다)
+  const put=(id,cx,text,ys,fill,i)=>{ const wdt=tw(text); for(const c of ys){ const b={id,x0:cx-wdt/2,x1:cx+wdt/2,y0:c.y-fs,y1:c.y+2};
+      if(b.x0<1||b.x1>Wd-1||b.y0<13||b.y1>H-B+1) continue; if(hit(b,boxes)||hit(b,marks.filter(m=>!(c.own&&m.id===c.own)))) continue;
+      boxes.push(b); lab+=`<text x="${cx.toFixed(1)}" y="${c.y.toFixed(1)}" text-anchor="middle" font-size="${fs}" font-weight="700" fill="${c.fill||fill}" stroke="${c.halo||'#fff'}" stroke-width="2.6" paint-order="stroke">${text}</text>`; return true; } return false; };
+  rows.forEach((o,i)=>{ if(o.bl==null) return; const cx=cxOf(i), y=YL(o.bl), hh=H-B-y, t=fm(o.bl), ys=[{y:y-3}];
+    if(hh>=fs+7&&tw(t)<=bw+6) ys.push({y:y+fs+2,fill:'#fff',halo:'#2563eb'}); put('b'+i,cx,t,ys,'#1d4ed8',i); });
+  rows.forEach((o,i)=>{ if(o.rev==null) return; const cx=cxOf(i), y=YR(o.rev); put('v'+i,cx,fm(o.rev),[{y:y-7},{y:y+fs+6},{y:y-fs-9},{y:y+2*fs+8}],'#c2410c',i); });
+  // 가로축(분기) + 마우스 올림
+  const every=tw(blShort(rows[0].q))>gw-1?2:1;
+  rows.forEach((o,i)=>{ const cx=cxOf(i), m=mk(o);
+    const tip=o.q+'|'+'잔고 '+(o.bl==null?'—':ble(o.bl))+(o.qoq!=null?' · 전 분기 대비 '+(o.qoq>0?'+':'')+o.qoq.toFixed(0)+'%':'')+'|매출 '+(o.rev==null?'—':ble(o.rev))+(m?' · 신규 수주 '+ble(m.v)+'('+(m.s==='공시'?'공시 합':m.s)+')':'');
+    s+=`<g data-tip="${esc(tip)}"><rect x="${(L+gw*i).toFixed(1)}" y="${T}" width="${gw.toFixed(1)}" height="${H-T-B}" fill="transparent"/></g>`;
+    if((n-1-i)%every===0){ const t=blShort(o.q), tww=tw(t); boxes.push({id:'x'+i,x0:cx-tww/2,x1:cx+tww/2,y0:H-B+4,y1:H-B+4+fs+2}); lab+=`<text x="${cx.toFixed(1)}" y="${H-B+4+fs}" text-anchor="middle" font-size="${fs}" fill="${o.q===M.last?'#1a2a4a':'#667085'}" font-weight="${o.q===M.last?800:500}">${t}</text>`; } });
+  return {W:Wd,H,svg:s+lab,boxes,marks,dual,n,rows};
+}
+function drawBlg(c){
+  const el=$('blc'); if(!el) return; const M=blgCalc(c); if(!M){ el.innerHTML=''; return; }
+  const G=blgChart(M,Math.max(280,Math.min(760,el.clientWidth||640)));
+  el.innerHTML=G?`<svg viewBox="0 0 ${G.W} ${G.H}" role="img" aria-label="분기별 수주잔고(막대)와 매출(선)">${G.svg}</svg>`:'';
+}
+let BRZ=0; window.addEventListener('resize',()=>{ clearTimeout(BRZ); BRZ=setTimeout(()=>{ if(OPEN&&$('blc')) drawBlg(OPEN); },150); });
+// 언제 매출이 되나 — ① 잔고 표의 품목별 납기(확인) ② 공급계약 공시의 납기(확인)
+function blgDue(r,M){
+  const rg=r.recog||{}; let h='';
+  if(!(rg.by_year||rg.due||(M&&M.due))) return '';
+  h+=`<div class="sec" style="margin-top:8px"><b class="t">🗓 언제 매출이 되나</b> <span class="mu">— 납기 기준</span>`;
+  if(M&&M.due){ const g=M.due.g, ks=Object.keys(M.due.byq).sort();
+    h+=`<div class="q"><b>잔고 표의 품목별 납기</b>${btg('확인')} ${ks.map(k=>`${esc(k.length>5&&k.indexOf('Q')>0?blShort(k):k)} <b>${ble(M.due.byq[k])}</b>`).join(' · ')}${g.none>0?` · 납기 미기재 <b>${ble(g.none)}</b>`:''}</div>`;
+    if(g.over>0) h+=`<div class="q mu">이 가운데 ${ble(g.over)}은 납기가 기준일(${esc(M.last)} 말) 이전입니다 — 납품·검수가 밀렸거나, 회사가 납기 칸에 "기간"을 적은 경우입니다.</div>`; }
+  if(rg.open_eok!=null) h+=`<div class="q"><b>공급계약 공시</b>${btg('확인')} 납기가 아직 남은 계약 <b>${ble(rg.open_eok)}</b> <span class="mu">(계약 총액 기준 — 이미 납품한 몫이 섞여 있어 잔고보다 클 수 있습니다)</span></div>`;
+  if(rg.by_year){ const ys=Object.keys(rg.by_year).sort(); h+=`<div class="q">납기 연도별 — ${ys.map(y=>`${esc(y)}년 <b>${ble(rg.by_year[y])}</b>`).join(' · ')}</div>`; }
+  if(rg.due&&rg.due.length) h+=`<div class="cmpw"><table class="cmp ft" style="width:100%;min-width:0"><thead><tr><th class="l">품목</th><th class="l">상대방</th><th>금액</th><th>납기</th></tr></thead><tbody>`+
+      rg.due.map(d=>`<tr><td class="l">${esc(d.t||'—')}</td><td class="l">${esc(d.cp||'—')}</td><td>${ble(d.eok)}</td><td>${esc(d.end)}</td></tr>`).join('')+`</tbody></table></div>`;
+  return h+`</div>`;
+}
+function blgRaw(r){
+  const t=r.table; if(!t||!t.r||!t.r.length) return '';
+  const key=OPEN+':bl_raw', on=!!VXS[key];
+  const cell=(c,th)=>{ const a=Array.isArray(c), tx=a?c[0]:c, cs=a?c[1]:1, rs=a?c[2]:1; return `<${th?'th':'td'}${cs>1?` colspan="${cs}"`:''}${rs>1?` rowspan="${rs}"`:''}>${esc(tx)}</${th?'th':'td'}>`; };
+  return `<div class="vso"><button data-vr="bl_raw" data-on="${on?1:0}">📄 보고서의 수주 표 원문 보기 <span class="mu" style="font-weight:600">— ${esc(t.q||'')} · ${esc((t.u||'').trim()||'단위 표기 없음')}</span> <span class="ar">${on?'▴':'▾'}</span></button>`+
+    `<div class="bd" id="vf_bl_raw"${on?'':' hidden'}><div class="cmpw"><table class="cmp ft blraw"><tbody>${t.r.map((row,i)=>`<tr>${row.map(c=>cell(c,i===0)).join('')}</tr>`).join('')}</tbody></table></div>`+
+    `<div class="mu">표 형식: ${esc(BLTY[r.ty]||'—')}. 이 화면의 잔고는 이 표의 합계(또는 품목 합)에서 읽었습니다.</div></div></div>`;
+}
 function blgBlock(x){
   if(BLG===null) return '';
-  const r=BLG[x.c];
-  if(!r||!(r.s&&r.s.length)){
-    if(!r) return '';
-    return `<h5 style="margin-top:10px">📦 수주잔고</h5><div class="q"><span class="none">이 회사는 정기보고서 수주상황 표에 잔고 금액을 싣지 않습니다.</span>`+
-           (r.note?`<br>회사 설명: ${esc(r.note)}<span class="tagn">확인</span>`:'')+`</div>`;
+  const r=BLG[x.c]; if(!r) return '';
+  const hasS=!!(r.s&&r.s.some(p=>p&&p.eok!=null));
+  let h=`<div class="ab blg"><h4>📦 수주잔고 <span class="mu" style="font-weight:500">— 분기별 잔고와 매출, 그리고 잔고가 매출로 바뀌는 과정</span></h4>`;
+  if(!hasS){
+    // 잔고 금액이 없는 회사 — 이유를 적는다
+    const st=r.st||(r.table?'none':'notab'), sx=(r.sx||[]).slice(-8), lastx=sx[sx.length-1];
+    if(!r.st&&!r.note&&!r.table&&!r.recog) return '';
+    h+=`<div class="q"><span class="none">수주잔고 금액을 싣지 못했습니다 — ${esc(BLST[st]||BLST.none)}.</span></div>`;
+    if(lastx&&(st==='usd'||st==='unit')&&lastx.raw!=null) h+=`<div class="q">보고서에 적힌 잔고(환산하지 않은 원문 숫자)${btg('확인')} — ${sx.filter(p=>p.raw!=null).map(p=>`${esc(blShort(p.q))} <b>${Number(p.raw).toLocaleString()}</b>`).join(' · ')} <span class="mu">${esc(lastx.ul||(lastx.u||'').trim()||'단위 표기 없음')}</span></div>`;
+    if(lastx&&st==='blank'&&lastx.tot!=null) h+=`<div class="q">표에 적힌 수주총액 <b>${ble(lastx.tot)}</b>${btg('확인')} <span class="mu">— 기납품액·잔고 칸은 '-'</span></div>`;
+    if(lastx&&st==='flow'&&lastx.new!=null) h+=`<div class="q">보고서 누적(${esc(lastx.q)}까지) 수주 <b>${ble(lastx.new)}</b> · 매출 <b>${ble(lastx.rec)}</b>${btg('확인')}${lastx.rec>0?` → 수주÷매출 <b>${(lastx.new/lastx.rec).toFixed(2)}배</b>${btg('계산')} <span class="mu">(${bln(lastx.new)} ÷ ${bln(lastx.rec)} · 1보다 크면 일감이 쌓이는 중)</span>`:''}</div>`;
+    if(r.note) h+=`<div class="q"><b>회사 설명</b> ${esc(r.note)}${btg('확인')}</div>`;
+    const cq=(r.recog||{}).cq;
+    if(cq){ const ks=Object.keys(cq).sort().slice(-8); h+=`<div class="q"><b>공급계약 공시로 본 분기별 신규 계약</b>${btg('계산')} ${ks.map(k=>`${esc(blShort(k))} <b>${ble(cq[k])}</b>`).join(' · ')} <span class="mu">— 공시 의무에 걸린 계약만의 합(하한)</span></div>`; }
+    return h+blgDue(r,null)+blgRaw(r)+`</div>`;
   }
-  const s=r.s.slice(-9), last=s[s.length-1], rg=r.recog||{};
-  const mx=Math.max.apply(null,s.map(p=>p.eok))||1;
-  const fe=v=>v==null?'—':(v>=10000?(v/10000).toFixed(2)+'조':Math.round(v).toLocaleString()+'억');
-
-  let h=`<h5 style="margin-top:10px">📦 수주잔고 <span class="mu" style="font-weight:500">— 분기별 증감과 언제 매출이 되나</span><span class="tagn">확인</span></h5>`;
-  h+=`<div class="q" style="margin:2px 0 4px">정기보고서 <b>수주상황 표</b>의 잔고입니다. 앞으로 매출로 바뀔 일감이라, `+
-     `<b>늘고 있는지</b>와 <b>지금 매출 속도로 몇 분기치인지</b>를 같이 봐야 뜻이 생깁니다.</div>`;
-
-  // 요약 타일
-  const tiles=[];
-  tiles.push(`<div class="tile"><div class="k">최근 수주잔고</div><div class="v">${fe(last.eok)}</div><div class="p">${esc(last.q)} 기준</div></div>`);
-  if(last.qoq!=null) tiles.push(`<div class="tile"><div class="k">전분기 대비</div><div class="v">${fg(last.qoq)}</div><div class="p">QoQ</div></div>`);
-  if(last.yoy!=null) tiles.push(`<div class="tile"><div class="k">1년 전 대비</div><div class="v">${fg(last.yoy)}</div><div class="p">YoY</div></div>`);
-  if(rg.cover_q!=null) tiles.push(`<div class="tile"><div class="k">몇 분기치 일감</div><div class="v">${rg.cover_q.toFixed(1)}분기</div><div class="p">최근 1년 매출의 ${rg.cover_pct}%</div></div>`);
-  h+=`<div class="tiles">${tiles.join('')}</div>`;
-
-  // 분기 막대
-  h+=`<table class="cmp ft" style="width:100%;min-width:0"><thead><tr><th class="l">분기</th><th>수주잔고</th><th>QoQ</th><th>YoY</th><th class="l" style="width:38%">추이</th></tr></thead><tbody>`+
-     s.slice().reverse().map(p=>`<tr><td class="l"><b>${esc(p.q)}</b></td><td>${fe(p.eok)}</td>`+
-       `<td>${p.qoq==null?'—':fgh(p.qoq)}</td><td>${p.yoy==null?'—':fgh(p.yoy)}</td>`+
-       `<td class="l"><div style="height:8px;background:#e8ecf3;border-radius:4px;overflow:hidden"><div style="height:100%;width:${(p.eok/mx*100).toFixed(1)}%;background:#2563eb;border-radius:4px"></div></div></td></tr>`).join('')+
-     `</tbody></table>`;
-
-  // 인식 — 언제 매출이 되나
-  if(rg.by_year||rg.due){
-    h+=`<div class="sec" style="margin-top:6px"><b class="t">언제 매출이 되나</b> <span class="mu">— 공급계약 공시의 납기 기준</span>`;
-    if(rg.open_eok!=null) h+=`<div class="q">납기가 아직 남은 계약 <b>${fe(rg.open_eok)}</b></div>`;
-    if(rg.by_year){
-      const ys=Object.keys(rg.by_year).sort();
-      h+=`<div class="q">납기 연도별 — ${ys.map(y=>`${esc(y)}년 <b>${fe(rg.by_year[y])}</b>`).join(' · ')}</div>`;
-    }
-    if(rg.due&&rg.due.length){
-      h+=`<table class="cmp ft" style="width:100%;min-width:0"><thead><tr><th class="l">품목</th><th class="l">상대방</th><th>금액</th><th>납기</th></tr></thead><tbody>`+
-         rg.due.map(d=>`<tr><td class="l">${esc(d.t||'—')}</td><td class="l">${esc(d.cp||'—')}</td><td>${fe(d.eok)}</td><td>${esc(d.end)}</td></tr>`).join('')+
-         `</tbody></table>`;
-    }
-    h+=`</div>`;
-  }
-  if(r.note) h+=`<div class="q"><b>회사가 밝힌 수주 인식 기준</b> ${esc(r.note)}<span class="tagn">확인</span></div>`;
-  h+=`<div class="q mu">잔고가 늘어도 납기가 길면 매출 인식은 뒤로 밀립니다. 반대로 잔고가 줄어드는 건 매출로 바뀌고 있다는 뜻일 수도, 신규 수주가 끊겼다는 뜻일 수도 있어 둘을 같이 봐야 합니다.</div>`;
-  return h;
+  const M=blgCalc(x.c), L=M.L, P=L.p||{}, last=M.last, nq=M.nq, rg=M.rg, pq=blPrev(last);
+  h+=`<div class="ez"><b>쉬운 설명</b> — 수주잔고는 <b>주문은 받았지만 아직 매출로 잡히지 않은 일감</b>입니다. 파란 막대(분기 말 잔고)가 커지는데 주황 선(그 분기 매출)이 뒤따라 오르면 "받은 주문이 매출로 바뀌고 있다"는 뜻입니다. 보라 마름모는 그 분기에 <b>새로 들어온 주문</b>입니다.</div>`;
+  if(M.pend&&M.nb<4) h+=`<div class="vdn">⏳ <b>과거 분기 잔고는 다음 수집에서 채워집니다.</b> 지금은 최신 보고서(${esc(last)}) 한 시점의 잔고와, 이미 있는 ${M.rq.length}개 분기 매출·공급계약 공시로 구할 수 있는 값만 보여 줍니다. 수집이 끝나면 최근 12개 분기 잔고 막대와 전환율·시차가 자동으로 채워집니다.</div>`;
+  // 타일
+  const tl=[];
+  tl.push(`<div class="tile"><div class="k">최근 수주잔고${btg(P.cb?'계산':'확인')}</div><div class="v">${ble(L.bl)}</div><div class="p">${esc(last)} 말 기준${P.prelim?' · 임시':''}</div></div>`);
+  tl.push(`<div class="tile"><div class="k">전 분기 대비 · 전년 동기 대비${btg('계산')}</div><div class="v">${L.qoq==null?'<span class="mu">—</span>':blsg(L.qoq)} <span class="mu" style="font-weight:500">·</span> ${L.yoy==null?'<span class="mu">—</span>':blsg(L.yoy)}</div><div class="p">${L.qoq==null&&L.yoy==null?(M.pend?'과거 분기 수집 후 표시':'비교할 분기의 잔고 없음'):`${L.prev!=null?esc(blShort(pq))+' '+ble(L.prev):'직전 분기 없음'} → ${ble(L.bl)}`}</div></div>`);
+  if(M.cover&&M.cover.v!=null) tl.push(`<div class="tile"><div class="k">몇 분기치 일감${btg('계산')}</div><div class="v">${M.cover.v.toFixed(1)}분기</div><div class="p">잔고 ÷ 최근 4개 분기 평균 매출 ${ble(M.cover.avg)}</div></div>`);
+  else tl.push(`<div class="tile"><div class="k">몇 분기치 일감</div><div class="v"><span class="mu">—</span></div><div class="p">분기 매출 4개가 없어 계산하지 못함</div></div>`);
+  if(M.bb4) tl.push(`<div class="tile"><div class="k">수주÷매출 배율${btg(M.bb4.src)}</div><div class="v">${M.bb4.v.toFixed(2)}배</div><div class="p">최근 4개 분기 · 들어온 주문 ÷ 나간 매출 — 1보다 크면 일감이 쌓이는 중</div></div>`);
+  else if(L.bb!=null) tl.push(`<div class="tile"><div class="k">수주÷매출 배율${btg(L.nsrc)}</div><div class="v">${L.bb.toFixed(2)}배</div><div class="p">${esc(last)} 한 분기 · 들어온 주문 ÷ 나간 매출 — 1보다 크면 일감이 쌓이는 중</div></div>`);
+  else if(M.bbc) tl.push(`<div class="tile"><div class="k">수주÷매출 배율${btg('계산')}</div><div class="v">${M.bbc.v.toFixed(2)}배 <small class="mu" style="font-weight:600">이상</small></div><div class="p">공급계약 공시 합 ÷ 매출(최근 4개 분기) — 공시된 계약만 센 하한. 1보다 크면 일감이 쌓이는 중</div></div>`);
+  else tl.push(`<div class="tile"><div class="k">수주÷매출 배율</div><div class="v"><span class="mu">—</span></div><div class="p">신규 수주를 구할 직전 분기 잔고가 없음${M.pend?' — 과거 분기 수집 후 표시':''}</div></div>`);
+  h+=`<div class="tiles">${tl.join('')}</div>`;
+  // 콤보 그림
+  h+=`<div class="blc" id="blc"></div><div class="vleg"><span><i style="width:10px;height:11px;background:#2563eb;border-radius:2px 2px 0 0"></i>분기 말 수주잔고</span><span><i style="width:16px;height:0;border-top:2px solid #ea580c"></i><i style="width:8px;height:8px;border:2px solid #ea580c;border-radius:50%;background:#fff;margin-left:-14px"></i>그 분기 매출</span>`+
+     `<span><i style="width:8px;height:8px;transform:rotate(45deg);background:#7c3aed"></i>신규 수주(확인)</span><span><i style="width:8px;height:8px;transform:rotate(45deg);border:1.6px solid #7c3aed;background:#fff"></i>신규 수주(계산)</span>${rg.cq?`<span><i style="width:8px;height:8px;transform:rotate(45deg);border:1.6px dashed #7c3aed;background:#fff"></i>공급계약 공시 합(하한)</span>`:''}<span class="mu">막대·점에 마우스를 올리면 그 분기 숫자</span></div>`;
+  // 연동 판정 한 줄(관찰)
+  h+=`<div class="vcl"><b>잔고 ↔ 매출</b>${btg('관찰')} ${M.verdict.t}</div>`;
+  // 인식되는 세부 내용 — 계산·유추 표(행을 누르면 공식에 숫자를 넣은 풀이)
+  const rw=(k,name,easy,val,tag,body)=>{ const key=x.c+':bl_'+k, on=!!VXS[key];
+    return `<tr class="br" data-vr="bl_${k}" data-on="${on?1:0}" title="누르면 공식 풀이"><td class="l"><b>${name}</b><span class="ar">${on?'▴':'▾'}</span><span class="ve">${easy}</span></td><td>${tag?(val.indexOf('<span class="vsm">')>=0?val.replace('<span class="vsm">',btg(tag)+'<span class="vsm">'):val+' '+btg(tag)):val}</td></tr>`+
+           `<tr class="bf" id="vf_bl_${k}"${on?'':' hidden'}><td colspan="2">${body}</td></tr>`; };
+  const na=t=>`<span class="vn">${t}</span>`, why1=M.pend?'과거 분기 잔고 수집 후 표시':'직전 분기 잔고가 보고서에 없음';
+  let tb='';
+  // ① 몇 분기치
+  if(M.cover&&M.cover.v!=null){ const c=M.cover;
+    tb+=rw('cov','몇 분기치 일감','지금 속도로 매출을 내면 몇 분기 동안 할 일이 있나',`<b>${c.v.toFixed(1)}분기</b>`,'계산',
+      `<div>최근 4개 분기 평균 매출 = (${c.q4.map(o=>bln(o.v)).join(' + ')}) ÷ 4 = <b>${blr(c.avg)}</b> <span class="mu">(${c.q4.map(o=>blShort(o.q)).join(' · ')} 매출은 DART 확인값)</span>${btg('계산')}</div>`+
+      `<div>몇 분기치 = 잔고 ${bln(L.bl)} ÷ 평균 매출 ${bln(c.avg)} = <b>${c.v.toFixed(2)}분기</b>${btg('계산')}</div>`+
+      `<div class="mu">새 주문이 하나도 안 들어온다고 칠 때의 길이입니다. 매출 가운데 잔고에 안 잡히는 몫(단납기·소모품)이 크면 실제보다 짧게 나옵니다.${c.off?' 잔고 기준 분기까지의 매출이 다 없어 가장 최근 4개 분기 매출을 썼습니다.':''}</div>`); }
+  // ② 신규 수주
+  { let val, tag=null, body;
+    if(L.nw!=null&&L.nsrc==='확인'){ const pv=M.bl[pq]; tag='확인'; val=`<b>${ble(L.nw)}</b>`;
+      body=(P.fb==='ytd'&&(P.fq||0)>1&&pv&&pv.new!=null)?`<div>보고서 표에 신규 수주가 <b>연초부터 누적</b>으로 적혀 있어 분기 값은 차이로 구합니다: ${esc(blShort(last))} 누적 ${bln(P.new)} − ${esc(blShort(pq))} 누적 ${bln(pv.new)} = <b>${blr(L.nw)}</b>${btg('확인')}</div>`
+                                                         :`<div>보고서 수주상황 표의 "신규 수주" 칸 값 그대로입니다: <b>${blr(L.nw)}</b>${btg('확인')}</div>`;
+      if(L.rev!=null&&L.prev!=null) body+=`<div class="mu">검산: 기말 ${bln(L.bl)} − 기초 ${bln(L.prev)} + 매출 ${bln(L.rev)} = ${blr(L.bl-L.prev+L.rev)} (표의 값과 다르면 잔고 밖 매출·환율·계약 변경이 섞인 것)</div>`; }
+    else if(L.nw!=null){ tag='계산'; val=`<b>${ble(L.nw)}</b>`;
+      body=`<div>신규 수주 = 기말 잔고 − 기초 잔고 + 그 분기 매출 = ${bln(L.bl)} − ${bln(L.prev)} + ${bln(L.rev)} = <b>${blr(L.nw)}</b>${btg('계산')}</div>`+
+           `<div class="mu">전제: 그 분기 매출이 <b>모두</b> 수주잔고에서 나왔다. 회사 표(${esc(BLTY[P.ty]||'잔고만')})에 신규 수주 칸이 없어 거꾸로 계산했습니다.</div>`+
+           (L.fl.includes('neg')?`<div style="color:#b42318">⚠ 계산한 신규 수주가 음수 — 전제가 깨졌습니다. 잔고에 안 잡히는 매출(단납기·소모품·용역)이 있거나 계약이 취소·감액됐다는 뜻입니다.</div>`:'')+
+           (L.fl.includes('over')?`<div style="color:#b42318">⚠ 그 분기 매출(${ble(L.rev)})이 직전 분기 말 잔고(${ble(L.prev)})보다 큽니다 — 잔고에 없던 매출이 섞여 있어 이 값은 실제 신규 수주보다 크게 나옵니다.</div>`:''); }
+    else { val=na(L.prev==null?why1:'그 분기 매출이 없음'); body=`<div class="mu">신규 수주 = 기말 잔고 − 기초 잔고 + 그 분기 매출. 기초(직전 분기 말) 잔고가 있어야 계산합니다.</div>`; }
+    if(L.cq!=null) body+=`<div>참고 — 공급계약 공시로 본 ${esc(blShort(last))} 신규 계약 합 <b>${ble(L.cq)}</b>${btg('계산')} <span class="mu">(${((rg.cq_n||{})[last])||0}건 · 계약일 기준 · 공시 의무에 걸린 큰 계약만의 합이라 실제 신규 수주의 하한${rg.cq_cancel?' · 해지 공시 '+rg.cq_cancel+'건은 빼지 않음':''})</span></div>`;
+    tb+=rw('new',`신규 수주 <small>${esc(blShort(last))}</small>`,'그 분기에 새로 들어온 주문',val,tag,body); }
+  // ③ 수주÷매출 배율
+  { let val, tag=null, body='';
+    if(L.bb!=null){ tag=L.nsrc; val=`<b>${blx(L.bb)}</b>${M.bb4?` <span class="vsm">최근 4개 분기 ${blx(M.bb4.v)}</span>`:''}`;
+      body=`<div>${esc(blShort(last))}: 신규 수주 ${bln(L.nw)} ÷ 매출 ${bln(L.rev)} = <b>${blx(L.bb)}</b>${btg(L.nsrc)}</div>`;
+      if(M.bb4) body+=`<div>최근 4개 분기: 신규 수주 합 (${M.bb4.w.map(o=>bln(o.nw)).join(' + ')}) = ${bln(M.bb4.nw)} ÷ 매출 합 (${M.bb4.w.map(o=>bln(o.rev)).join(' + ')}) = ${bln(M.bb4.rev)} → <b>${blx(M.bb4.v)}</b>${btg(M.bb4.src)}</div>`; }
+    else if(M.bbc){ tag='계산'; val=`<b>${blx(M.bbc.v)}</b> <span class="vsm">공시 기준(하한)</span>`; }
+    else val=na(L.prev==null?why1:'신규 수주를 구하지 못함');
+    if(M.bbc) body+=`<div>공급계약 공시 기준: 최근 4개 분기 공시 계약 합 (${M.bbc.z.map(q=>bln((rg.cq||{})[q]||0)).join(' + ')}) = ${bln(M.bbc.nw)} ÷ 매출 합 ${bln(M.bbc.rev)} = <b>${blx(M.bbc.v)}</b>${btg('계산')} <span class="mu">(${M.bbc.z.map(blShort).join(' · ')} · ${M.bbc.n}건 · 공시되지 않은 작은 주문은 빠져 있어 실제 배율은 이보다 큽니다)</span></div>`;
+    body+=`<div class="mu">쉬운 말: 들어온 주문 ÷ 나간 매출. 1보다 크면 일감이 쌓이는 중, 1보다 작으면 쌓아 둔 일감을 까먹는 중입니다.</div>`;
+    tb+=rw('bb','수주÷매출 배율 <small>book-to-bill</small>','들어온 주문 ÷ 나간 매출 — 1보다 크면 일감이 쌓이는 중',val,tag,body); }
+  // ④ 전환율
+  { const c=M.conv; let val, tag=null, body;
+    if(c){ tag='계산'; val=`<b>${L.conv!=null?blpc(L.conv):'—'}</b> <span class="vsm">평균 ${blpc(c.mean)} · ${blpc(c.min)}~${blpc(c.max)} (${c.n}개 분기)</span>`;
+      body=(L.conv!=null?`<div>${esc(blShort(last))}: 매출 ${bln(L.rev)} ÷ 직전 분기 말(${esc(blShort(pq))}) 잔고 ${bln(L.prev)} = <b>${blpc(L.conv)}</b>${btg('계산')}</div>`:'')+
+        `<div>분기별 — ${c.rows.map(o=>`${esc(blShort(o.q))} ${blpc(o.conv)}`).join(' · ')}</div>`+
+        `<div>평균 = (${c.rows.map(o=>blpc(o.conv).replace('%','')).join(' + ')}) ÷ ${c.n} = <b>${blpc(c.mean)}</b> · 가운데값 ${blpc(c.med)} · 범위 ${blpc(c.min)} ~ ${blpc(c.max)}${btg('계산')}</div>`+
+        `<div class="mu">쉬운 말: 직전 분기 말에 쌓여 있던 일감 가운데 몇 %가 한 분기 만에 매출이 됐나. 100%를 넘는 분기는 잔고에 없던 매출이 섞였다는 뜻입니다.</div>`; }
+    else { val=na(why1); body=`<div class="mu">전환율 = 그 분기 매출 ÷ 직전 분기 말 잔고. 잔고가 두 분기 이상 이어져 있어야 계산합니다.</div>`; }
+    tb+=rw('conv','전환율','직전 분기 말 잔고의 몇 %가 한 분기 만에 매출이 됐나',val,tag,body); }
+  // ⑤ 다음 분기 매출 유추
+  { const nx=M.next, dg=M.due&&M.due.g; let val, tag=null, body;
+    if(nx){ tag='유추'; val=`<b>${ble(nx.est)}</b> <span class="vsm">${ble(nx.lo)} ~ ${ble(nx.hi)}</span>`;
+      body=`<div>${esc(nq)} 매출 유추 = 최근 잔고 ${bln(L.bl)} × 평균 전환율 ${blpc(M.conv.mean)} = <b>${blr(nx.est)}</b>${btg('유추')}</div>`+
+           `<div>범위 = 잔고 × 최소 ${blpc(M.conv.min)} ~ 최대 ${blpc(M.conv.max)} = ${blr(nx.lo)} ~ ${blr(nx.hi)}${btg('유추')}</div>`+
+           `<div class="mu">가정: 다음 분기에도 과거 평균과 같은 비율로 잔고가 매출이 된다(과거 ${M.conv.n}개 분기 기준${M.conv.n<4?' — 표본이 적어 참고만':''}). 한계: 납기가 한 분기에 몰린 큰 계약이 있으면 크게 빗나가고, 다음 분기에 새로 받아 바로 나가는 주문(단납기)은 들어 있지 않습니다.</div>`;
+      if(nx.act!=null) body+=`<div>이미 발표된 ${esc(nq)} 실제 매출 <b>${ble(nx.act)}</b>${btg('확인')}</div>`; }
+    else { val=na('과거 전환율이 없어 유추하지 못함'+(M.pend?' — 과거 분기 수집 후 표시':'')); body=`<div class="mu">다음 분기 매출 유추 = 최근 잔고 × 과거 전환율(평균과 최소~최대). 전환율이 한 분기라도 있어야 계산합니다.</div>`; }
+    if(dg) body+=`<div>나란히 보기 — <b>잔고 표의 납기</b>로는 ${esc(nq)} 말까지 납기인 잔고가 <b>${ble(dg.next+dg.over)}</b>${btg('확인')}${dg.over>0?` <span class="mu">(납기가 이미 지난 ${ble(dg.over)} 포함)</span>`:''} · 그 뒤 ${ble(dg.later)}${dg.none>0?' · 납기 미기재 '+ble(dg.none):''}${nx?` → 전환율로 본 값(${ble(nx.est)})과 ${Math.abs(nx.est-(dg.next+dg.over))<=Math.max(nx.est,dg.next+dg.over)*0.3?'비슷합니다':'차이가 큽니다 — 납기가 몰려 있으면 납기 쪽을, 납기가 자주 밀리는 회사면 전환율 쪽을 더 믿을 만합니다'}`:''}</div>`;
+    if(rg.due&&rg.due.length){ const nxe=nq.slice(0,4)+'-'+({1:'03-31',2:'06-30',3:'09-30',4:'12-31'})[nq.charAt(5)], a=rg.due.filter(d=>d.end<=nxe).reduce((s,d)=>s+(d.eok||0),0);
+      body+=`<div>공급계약 공시의 납기로는 ${esc(nq)} 말까지 <b>${ble(a)}</b>${btg('확인')} <span class="mu">(계약 총액 — 이미 납품한 몫 포함)</span></div>`; }
+    tb+=rw('next',`다음 분기 매출 유추 <small>${esc(blShort(nq))}</small>`,'지금 잔고가 과거와 같은 속도로 매출이 된다면',val,tag,body); }
+  // ⑥ 시차
+  { const lg=M.lag; let val, tag=null, body;
+    if(lg.skip){ val=na('분기 수 부족 — '+lg.skip); body=`<div class="mu">잔고가 늘어난(줄어든) 분기 뒤 1~4분기 뒤에 매출도 늘었는지(줄었는지)를 세어 봅니다. 분기 수가 적으면 우연과 구분되지 않아 계산하지 않습니다.</div>`; }
+    else { const b=lg.best; tag=b?'계산':null; val=b?`<b>${b.k}분기 뒤</b> <span class="vsm">${b.n}번 중 ${b.m}번 같은 방향${b.r!=null?' · 상관 '+b.r.toFixed(2):''}</span>`:na('방향을 비교할 쌍이 4개 미만');
+      body=`<div class="cmpw"><table class="cmp ft" style="min-width:0"><thead><tr><th class="l">잔고 증감 뒤</th><th>비교한 분기 쌍</th><th>같은 방향</th><th>상관계수</th></tr></thead><tbody>${lg.ks.map(o=>`<tr${b&&o.k===b.k?' style="font-weight:800"':''}><td class="l">${o.k===0?'같은 분기':o.k+'분기 뒤'}</td><td>${o.n}</td><td>${o.n?o.m+'번 ('+Math.round(o.m/o.n*100)+'%)':'—'}</td><td>${o.r==null?'<span class="mu">쌍 4개 미만</span>':o.r.toFixed(2)}</td></tr>`).join('')}</tbody></table></div>`+
+           `<div class="mu">읽는 법: "잔고가 전 분기보다 늘어난(줄어든) 분기"와 "그 k분기 뒤 매출이 전 분기보다 늘어난(줄어든) 분기"가 겹친 횟수입니다. 같은 방향이 가장 많은 k를 시차로 봅니다(같으면 짧은 쪽). 60% 아래면 뚜렷한 시차가 없다는 뜻이고, 매출에 계절성이 있으면 흐려집니다.</div>`; }
+    tb+=rw('lag','잔고 → 매출 시차','잔고가 늘고 나서 몇 분기 뒤에 매출이 따라 늘었나',val,tag,body); }
+  // ⑦ 잔고 소진 추정
+  { const bn=M.burn; let val, tag=null, body;
+    if(bn){ tag='유추'; const mx=Math.max(...bn.bars.map(o=>o.v))||1;
+      val=`<b>약 ${bn.nq.toFixed(1)}분기</b> <span class="vsm">분기당 ${ble(bn.per)}씩</span>`;
+      body=`<div>분기당 인식액 = 잔고 ${bln(L.bl)} × 평균 전환율 ${blpc(bn.rate)}${bn.cap?'(100% 초과라 100%로)':''} = <b>${blr(bn.per)}</b> → 잔고 ${bln(L.bl)} ÷ ${bln(bn.per)} = <b>${bn.nq.toFixed(1)}분기</b>${btg('유추')}</div>`+
+           `<div class="blb">${bn.bars.map(o=>`<div><span>${esc(blShort(o.q))}</span><i><b style="width:${(o.v/mx*100).toFixed(1)}%"></b></i><em>${ble(o.v)}</em></div>`).join('')}${bn.rem>0?`<div><span>그 뒤</span><i></i><em>${ble(bn.rem)}</em></div>`:''}</div>`+
+           `<div class="mu">가정: 새 주문이 없고, 매 분기 같은 금액이 매출이 된다. 실제로는 납기에 따라 몰리거나 밀립니다 — 아래 "언제 매출이 되나"의 납기와 같이 보세요.</div>`; }
+    else { val=na('과거 전환율이 없어 추정하지 못함'+(M.pend?' — 과거 분기 수집 후 표시':'')); body=`<div class="mu">지금 잔고 ÷ (잔고 × 평균 전환율) = 몇 분기에 걸쳐 매출이 되나. 전환율이 있어야 계산합니다.</div>`; }
+    tb+=rw('burn','잔고 소진 추정','지금 잔고가 과거 평균 속도로 매출이 되면 몇 분기 걸리나',val,tag,body); }
+  // ⑧ 진행 중 계약의 진행률(A형 표)
+  if(P.tot!=null&&P.dlv!=null&&P.tot>0) tb+=rw('prog','진행 중 계약의 납품 진행','받은 주문 가운데 얼마나 납품했나',`<b>${blpc(P.dlv/P.tot*100)}</b> <span class="vsm">${ble(P.dlv)} / ${ble(P.tot)}</span>`,'계산',
+      `<div>수주총액 ${bln(P.tot)}${btg('확인')} − 기납품액 ${bln(P.dlv)}${btg('확인')} = ${blr(P.tot-P.dlv)} <span class="mu">(표의 잔고 ${blr(L.bl)})</span> · 진행률 = ${bln(P.dlv)} ÷ ${bln(P.tot)} = <b>${blpc(P.dlv/P.tot*100)}</b>${btg('계산')}</div>`+
+      `<div class="mu">수주총액·기납품액은 "아직 끝나지 않은 계약"의 누계입니다. 끝난 계약은 표에서 빠지므로 분기 사이의 차이를 신규 수주로 쓰지 않습니다.</div>`);
+  // ⑨ 보고서 표에 적힌 수주·매출 흐름(B·C형 표) — 회계연도 초부터의 누적인 경우가 많다
+  if(P.new!=null&&P.rec!=null&&P.rec>0){ const cum=P.fb!=='q'&&(P.fq||0)>1;
+    tb+=rw('ytd',`보고서 표의 수주·매출${cum?' <small>누적</small>':''}`,cum?'회사가 표에 적은 연초부터의 신규 수주와 매출 인식':'회사가 표에 적은 그 기간의 신규 수주와 매출 인식',`<b>${blx(P.new/P.rec)}</b> <span class="vsm">수주 ${ble(P.new)} ÷ 매출 ${ble(P.rec)}</span>`,'계산',
+      `<div>표의 신규 수주 ${bln(P.new)}${btg('확인')} ÷ 표의 매출 인식 ${bln(P.rec)}${btg('확인')} = <b>${blx(P.new/P.rec)}</b>${btg('계산')}</div>`+
+      (P.beg!=null?`<div class="mu">검산: 기초 ${bln(P.beg)} + 신규 ${bln(P.new)} − 매출 ${bln(P.rec)}${P.adj?' + 기타 증감 '+bln(P.adj):''} = ${blr(P.beg+P.new-P.rec+(P.adj||0))} (표의 기말 잔고 ${blr(L.bl)})</div>`:'')+
+      `<div class="mu">${cum?(P.fb==='ytd'?'기초 잔고가 전기 말 잔고와 맞아 연초부터의 누적으로 확인했습니다 — 분기 값은 직전 분기 누적과의 차이로 구합니다.':'분기보고서의 "당기"는 보통 연초부터의 누적입니다. 과거 분기가 채워지면 전기 말 잔고와 맞춰 본 뒤 분기 값으로 나눕니다.'):'한 분기(또는 1분기 보고서) 값입니다.'}</div>`); }
+  h+=`<div class="q" style="margin-top:8px"><b style="color:#1a2a4a">🔎 잔고가 매출로 인식되는 과정 — 계산·유추한 값</b> <span class="mu">행을 누르면 공식에 숫자를 넣은 풀이</span></div>`+
+     `<div class="cmpw"><table class="cmp vt blt"><thead><tr><th class="l">항목 <small>누르면 공식</small></th><th>값 · 성격</th></tr></thead><tbody>${tb}</tbody></table></div>`+
+     `<div class="q mu" style="margin:2px 0 4px">성격 표시 — ${btg('확인')} 보고서·공시 원문값 ${btg('계산')} 확인값끼리 계산 ${btg('유추')} 가정이 들어간 추정(가정은 풀이에 적음) ${btg('관찰')} 규칙으로 읽은 방향</div>`;
+  // 분기 표(접이식)
+  { const key=x.c+':bl_tbl', on=!!VXS[key], rs=M.rows.slice().reverse();
+    h+=`<div class="vso"><button data-vr="bl_tbl" data-on="${on?1:0}">📋 분기별 숫자 표 <span class="mu" style="font-weight:600">— 잔고 · 증감 · 매출 · 신규 수주 · 배율 · 전환율</span> <span class="ar">${on?'▴':'▾'}</span></button><div class="bd" id="vf_bl_tbl"${on?'':' hidden'}>`+
+       `<div class="cmpw"><table class="cmp ft" style="width:100%;min-width:560px"><thead><tr><th class="l">분기</th><th>수주잔고</th><th>전 분기<br>대비</th><th>전년 동기<br>대비</th><th>매출</th><th>신규 수주</th><th>수주÷매출</th><th>전환율</th></tr></thead><tbody>`+
+       rs.map(o=>`<tr><td class="l"><b>${esc(o.q)}</b>${o.p&&o.p.prelim?' <small>임시</small>':''}</td><td>${o.bl==null?'<span class="mu">'+(o.q>last?'공시 전':M.pend?'수집 전':'—')+'</span>':ble(o.bl)}</td><td>${blsg(o.qoq)}</td><td>${blsg(o.yoy)}</td><td>${o.rev==null?'<span class="mu">—</span>':ble(o.rev)}</td>`+
+         `<td>${o.nw!=null?`<span${o.nw<0?' class="neg"':''}>${ble(o.nw)}</span>${btg(o.nsrc)}`:(o.cq!=null?`<span class="mu">공시 ${ble(o.cq)}</span>`:'<span class="mu">—</span>')}${o.fl.length?' <span title="'+(o.fl.includes('neg')?'계산한 신규 수주가 음수 · ':'')+(o.fl.includes('over')?'매출이 직전 분기 말 잔고보다 큼 · ':'')+'잔고에 안 잡히는 매출이 있다는 신호" style="color:#b42318">⚠</span>':''}</td>`+
+         `<td>${o.bb==null?'<span class="mu">—</span>':o.bb.toFixed(2)}</td><td>${o.conv==null?'<span class="mu">—</span>':blpc(o.conv)}</td></tr>`).join('')+`</tbody></table></div>`+
+       `<div class="mu">수주잔고·매출 = 확인(보고서·DART) · 증감·배율·전환율 = 계산 · ⚠ = 매출이 직전 분기 말 잔고보다 크거나 계산한 신규 수주가 음수(잔고에 안 잡히는 매출이 있다는 신호) · "공시 ○억" = 그 분기 공급계약 공시 합(하한)</div></div></div>`; }
+  h+=blgDue(r,M);
+  // 덧붙임: 읽을 때 조심할 점
+  const nt=[];
+  if(P.sep||(r.s||[]).some(p=>p.sep)) nt.push(`이 회사의 수주 표는 <b>별도(개별) 기준</b>이고 매출은 ${x.fs==='OFS'?'별도':'연결'} 기준입니다 — 범위가 달라 전환율·배율이 실제와 어긋날 수 있습니다.`);
+  if(P.sm) nt.push('표에 합계 행이 없어 품목 행을 더한 값입니다.');
+  if(P.cb) nt.push('표에 잔고 칸이 없어 계약금액 − 누적 공급액으로 계산한 잔고입니다.');
+  if(M.tych) nt.push(`분기에 따라 표 형식이 달랐습니다(${M.tych.map(t=>BLTY[t]||t).join(' / ')}) — 값이 갑자기 튄 분기는 형식 변화 때문일 수 있습니다.`);
+  if(r.sus) nt.push('⚠ 잔고가 연 매출의 20배를 넘습니다 — 표의 단위 표기가 잘못됐을 수 있으니 원문을 확인하세요.');
+  if((r.sx||[]).length) nt.push(`환산하지 못한 분기가 있습니다 — ${r.sx.slice(-6).map(p=>esc(blShort(p.q))+'('+esc((BLST[p.st]||'').split(' ')[0]||p.st)+')').join(' · ')}.`);
+  if(nt.length) h+=`<div class="nt">${nt.join('<br>')}</div>`;
+  if(r.note) h+=`<div class="q" style="margin-top:6px"><b>회사가 밝힌 수주 관련 설명</b> ${esc(r.note)}${btg('확인')}</div>`;
+  h+=blgRaw(r);
+  h+=`<div class="q mu" style="margin-top:6px">자료: 정기보고서(사업·반기·분기) "수주상황" 표의 분기 말 잔고, DART 분기 매출(${(r.rev_fs||x.fs)==='OFS'?'별도':'연결'}), 공급계약 공시. 사업보고서(4분기)의 잔고는 연말 잔고입니다. 잔고가 줄어드는 것은 매출로 바뀌고 있다는 뜻일 수도, 새 주문이 끊겼다는 뜻일 수도 있어 신규 수주와 같이 봐야 합니다.</div>`;
+  return h+`</div>`;
 }
 function finBlock(x){
   if(x.rev==null&&x.op==null&&x.ni==null) return '';
@@ -948,6 +1608,7 @@ document.addEventListener('click',e=>{
   const go=e.target.closest('[data-go]'); if(go){ e.preventDefault(); openCo(go.dataset.go,true); return; }
   const tg=e.target.closest('[data-tg]'); if(tg){ const w=tg.nextElementSibling; w.classList.toggle('on'); tg.textContent=tg.textContent.replace(/[▾▴]/,w.classList.contains('on')?'▴':'▾'); return; }
   const ab=e.target.closest('[data-ab]'); if(ab){ abClick(ab); return; }
+  const vr=e.target.closest('[data-vr]'); if(vr&&OPEN){ if(e.target.closest('a')) return; const k=vr.dataset.vr, on=vr.dataset.on!=='1', f=$('vf_'+k); VXS[OPEN+':'+k]=on; vr.dataset.on=on?'1':'0'; if(f) f.hidden=!on; const ar=vr.querySelector('.ar'); if(ar) ar.textContent=on?'▴':'▾'; return; }
   const bt=e.target.closest('button[data-t]'); if(bt){ const t=bt.dataset.t; if(TAGF.has(t)) TAGF.delete(t); else TAGF.add(t); bt.classList.toggle('on',TAGF.has(t)); OPEN=null; render(); return; }
   const bc=e.target.closest('button[data-c]'); if(bc){ CAT=bc.dataset.c; OPEN=null; syncBtns(); render(); return; }
   const bp=e.target.closest('button[data-p]'); if(bp){ PH=bp.dataset.p; OPEN=null; syncBtns(); render(); return; }
@@ -963,6 +1624,7 @@ $('grp').addEventListener('change',e=>{GRP=e.target.value; render();});
 $('cap').addEventListener('change',e=>{CAP=+e.target.value; render();});
 $('stg').addEventListener('change',e=>{STG=e.target.value; render();});
 $('cf').addEventListener('change',e=>{CF=+e.target.value; render();});
+let VRZ=0; window.addEventListener('resize',()=>{ clearTimeout(VRZ); VRZ=setTimeout(()=>{ if(OPEN&&$('vlad')) drawVal(OPEN); },150); });
 window.addEventListener('hashchange',()=>{const c=location.hash.slice(1); if(D&&D.co[c]&&OPEN!==c) openCo(c,true);});
 fetch('/data/semipeer.json').then(r=>r.json()).then(d=>{
   D=d; prep(); render();

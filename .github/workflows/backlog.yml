@@ -1,10 +1,14 @@
 name: backlog
-# 수주잔고 시계열 — 정기보고서(분기·반기·사업) 수주상황 표에서 잔고를 뽑아 QoQ·YoY 계산
-#   첫 실행은 3년치 백필이라 오래 걸린다 → 시간예산 안에서 끊고 다음 실행이 이어받는다.
+# 수주잔고 분기 시계열 — 정기보고서(사업·반기·분기)의 수주상황 표를 최근 12개 분기까지 거슬러 읽고, 같은 분기의 매출(DART 주요계정)을 붙인다.
+#   · 첫 실행(backlog.py 를 올린 직후)이 과거분을 채운다: 목록 약 190콜 + 원문 약 760건 + 매출 60콜 ≈ 1,000콜(일일 한도 2만의 5%), 40~55분.
+#   · 한 번에 못 끝내면(시간 예산·DART 무응답) 새 러너에서 최대 3번 이어 돈다. 이미 채운 분기는 다시 받지 않는다.
+#   · 그 뒤로는 새 보고서·정정본만 받는다(평소 약 250콜, 수 분).
 on:
   schedule:
-    - cron: '10 20 * * 6'        # 토 05:10 KST 주 1회
-    - cron: '10 20 15-20 2,5,8,11 *'   # 정기보고서 시즌에는 매일
+    - cron: '10 20 * * 6'            # 토 05:10 KST 주 1회
+    - cron: '10 20 14-21 5,8,11 *'   # 분기·반기보고서 마감(5/15·8/14·11/14) 주간에는 매일
+    - cron: '10 20 20-31 3 *'        # 사업보고서 마감(3/31) 앞뒤
+    - cron: '10 20 1-5 4 *'
   workflow_dispatch:
   push:
     paths: ['backlog.py', '.github/workflows/backlog.yml']
@@ -17,46 +21,102 @@ jobs:
   try1:
     runs-on: ubuntu-latest
     timeout-minutes: 75
-    outputs: { done: '${{ steps.r.outputs.done }}' }
+    outputs:
+      done: ${{ steps.run.outputs.done }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main        # 항상 최신 main — 앞선 시도·다른 수집기가 올린 파일을 이어받는다
       - uses: actions/setup-python@v5
-        with: { python-version: '3.11' }
-      - id: r
+        with:
+          python-version: '3.11'
+      - name: 수집
+        id: run
         env:
-          DART_KEY: ${{ secrets.DART_KEY }}
+          DART_API_KEY: ${{ secrets.DART_KEY }}
           BL_BUDGET: '3300'
         run: |
-          python3 backlog.py && echo "done=1" >> $GITHUB_OUTPUT || echo "done=0" >> $GITHUB_OUTPUT
-      - name: 커밋
+          grep -q '^PV = ' backlog.py || { echo "구버전 backlog.py — 새 수집기가 올라온 뒤의 실행에 맡기고 건너뜀"; echo "done=1" >> $GITHUB_OUTPUT; exit 0; }
+          python3 backlog.py || echo "done=0" >> $GITHUB_OUTPUT
+      - name: 결과 커밋
         if: always()
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/data/semipeer_backlog.json || true
-          git diff --cached --quiet || git commit -m "수주잔고 갱신(분기 시계열)"
-          git pull --rebase --autostash || true
-          git push || true
+          cp public/data/semipeer_backlog.json /tmp/bl.json || exit 0
+          python3 -c "import json;d=json.load(open('/tmp/bl.json'));print('분기점',d.get('n_points'),'· 시계열',d.get('n_series'),'· 분포',d.get('hist'),'· 남은 종목',d.get('pending'),'· 호출',d.get('stat'))" || exit 0
+          push() {
+            git fetch origin main && git reset --hard origin/main
+            cp /tmp/bl.json public/data/semipeer_backlog.json
+            git add public/data/semipeer_backlog.json
+            git diff --cached --quiet && { echo "변경 없음"; return 0; }
+            git commit -m "수주잔고 갱신(분기 시계열)" && git push
+          }
+          push || push || push
   try2:
     needs: try1
-    if: needs.try1.outputs.done != '1'
+    if: ${{ always() && needs.try1.outputs.done != '1' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    outputs:
+      done: ${{ steps.run.outputs.done }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 수집(이어서)
+        id: run
+        env:
+          DART_API_KEY: ${{ secrets.DART_KEY }}
+          BL_BUDGET: '3300'
+        run: python3 backlog.py || echo "done=0" >> $GITHUB_OUTPUT
+      - name: 결과 커밋
+        if: always()
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          cp public/data/semipeer_backlog.json /tmp/bl.json || exit 0
+          python3 -c "import json;d=json.load(open('/tmp/bl.json'));print('분기점',d.get('n_points'),'· 시계열',d.get('n_series'),'· 분포',d.get('hist'),'· 남은 종목',d.get('pending'),'· 호출',d.get('stat'))" || exit 0
+          push() {
+            git fetch origin main && git reset --hard origin/main
+            cp /tmp/bl.json public/data/semipeer_backlog.json
+            git add public/data/semipeer_backlog.json
+            git diff --cached --quiet && { echo "변경 없음"; return 0; }
+            git commit -m "수주잔고 갱신(분기 시계열)" && git push
+          }
+          push || push || push
+  try3:
+    needs: try2
+    if: ${{ always() && needs.try2.result != 'skipped' && needs.try2.outputs.done != '1' }}
     runs-on: ubuntu-latest
     timeout-minutes: 75
     steps:
       - uses: actions/checkout@v4
-        with: { ref: main }
+        with:
+          ref: main
       - uses: actions/setup-python@v5
-        with: { python-version: '3.11' }
-      - env:
-          DART_KEY: ${{ secrets.DART_KEY }}
+        with:
+          python-version: '3.11'
+      - name: 수집(이어서)
+        env:
+          DART_API_KEY: ${{ secrets.DART_KEY }}
           BL_BUDGET: '3300'
         run: python3 backlog.py || true
-      - name: 커밋
+      - name: 결과 커밋
         if: always()
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/data/semipeer_backlog.json || true
-          git diff --cached --quiet || git commit -m "수주잔고 갱신(이어서)"
-          git pull --rebase --autostash || true
-          git push || true
+          cp public/data/semipeer_backlog.json /tmp/bl.json || exit 0
+          python3 -c "import json;d=json.load(open('/tmp/bl.json'));print('분기점',d.get('n_points'),'· 시계열',d.get('n_series'),'· 분포',d.get('hist'),'· 남은 종목',d.get('pending'),'· 호출',d.get('stat'))" || exit 0
+          push() {
+            git fetch origin main && git reset --hard origin/main
+            cp /tmp/bl.json public/data/semipeer_backlog.json
+            git add public/data/semipeer_backlog.json
+            git diff --cached --quiet && { echo "변경 없음"; return 0; }
+            git commit -m "수주잔고 갱신(분기 시계열)" && git push
+          }
+          push || push || push

@@ -22,18 +22,34 @@ h1 { font-size:22px; margin:10px 0 4px; }
 @media(max-width:820px){ #searchbar input { width:100%; max-width:none; } }
 .bar button.on { background:#1a2a4a; border-color:#1a2a4a; color:#fff; }
 .cnt { font-size:12px; color:#667085; margin-left:auto; }
-.grp { background:#fff; border:1px solid #e4e7ec; border-radius:12px; margin-bottom:14px; overflow:hidden; }
-.grp > header { padding:12px 14px; border-bottom:1px solid #eef0f4; background:#fbfcfe; }
-.grp h2 { font-size:15.5px; margin:0 0 3px; }
-.grp .tp { font-size:11px; font-weight:800; color:#2563eb; letter-spacing:.04em; }
-.grp .bs { font-size:12.5px; color:#475467; line-height:1.72; margin-top:6px; }
-.grp .ca { font-size:12.5px; color:#8a4b00; background:#fff8e8; border:1px solid #f6e3b8; border-radius:8px; padding:8px 10px; margin-top:8px; line-height:1.7; }
-.grp .vl { font-size:12px; color:#1a2a4a; background:#eef4ff; border:1px solid #d6e3ff; border-radius:8px; padding:8px 10px; margin-top:8px; line-height:1.7; }
+.grp { background:#fff; border:1px solid #dfe3ea; border-radius:14px; margin-bottom:28px; overflow:hidden;
+        box-shadow:0 1px 2px rgba(16,24,40,.04), 0 4px 14px rgba(16,24,40,.05); border-left:4px solid #cbd5e1; }
+.grp.t0 { border-left-color:#0f7b3f } .grp.t1 { border-left-color:#2563eb } .grp.t2 { border-left-color:#f0b429 }
+.grp.t3 { border-left-color:#d92d20 } .grp.t4 { border-left-color:#7c3aed } .grp.t5 { border-left-color:#98a2b3 }
+.grp.t6 { border-left-color:#0ea5a5 }
+.grp > header { padding:15px 18px 13px; background:linear-gradient(#fcfdff,#fff); }
+.grp .hdtop { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
+.grp h2 { font-size:17px; margin:2px 0 0; letter-spacing:-.01em; }
+.grp .tp { font-size:11px; font-weight:800; color:#667085; letter-spacing:.06em; }
+.grp .n { margin-left:auto; font-size:11.5px; font-weight:800; color:#475467; background:#f1f4f9; border-radius:999px; padding:3px 10px; }
+.grp .blk { border-top:1px dashed #e4e7ec; margin-top:12px; padding-top:11px; font-size:12.8px; line-height:1.78; color:#475467; }
+.grp .blk:first-of-type { border-top:0; margin-top:10px; padding-top:0; }
+.grp .blk .k { display:block; font-size:11.5px; font-weight:800; color:#1a2a4a; margin-bottom:3px; letter-spacing:.02em; }
+.grp .blk.ca { color:#8a4b00; } .grp .blk.ca .k { color:#8a4b00; }
+.grp details.vl { border-top:1px dashed #e4e7ec; margin-top:11px; }
+.grp details.vl > summary { padding:9px 0 0; font-size:11.5px; font-weight:800; color:#2563eb; cursor:pointer; list-style:none; }
+.grp details.vl > summary::-webkit-details-marker { display:none }
+.grp details.vl > summary::before { content:'▸ '; }
+.grp details.vl[open] > summary::before { content:'▾ '; }
+.grp details.vl .vb { font-size:12.5px; color:#1a2a4a; line-height:1.75; padding:7px 0 2px; }
+.grp .tw { overflow-x:auto; }
 table { width:100%; border-collapse:collapse; background:#fff; font-size:12.5px; }
 th, td { padding:7px 8px; border-bottom:1px solid #eef0f4; text-align:right; white-space:nowrap; }
 th { background:#f8fafc; color:#475467; font-size:11.5px; font-weight:700; }
 td.l, th.l { text-align:left; white-space:normal; }
-th.cc, td.cc { min-width:132px; max-width:190px; white-space:normal; text-align:left; }
+th.cc, td.cc { min-width:150px; max-width:230px; white-space:normal; text-align:left; }
+td.nm .cd { display:block; font-weight:400; font-size:11px; color:#98a2b3; margin-top:1px; letter-spacing:.02em; }
+.grp table { min-width:760px; }
 tr.r:hover { background:#f8fafc; }
 td.nm { font-weight:800; color:#1a2a4a; cursor:pointer; }
 td.nm:hover { text-decoration:underline; }
@@ -127,6 +143,7 @@ mark { background:#fff3b0; color:#1a1f2e; padding:0 2px; border-radius:3px; }
 <div class="bar" id="charbar"><span class="lab">성격</span></div>
 <div class="bar" id="agebar"><span class="lab">노화축</span></div>
 <!-- 검색칸은 재렌더 영역 밖에 둔다 — 안에 두면 한글 조합(IME)이 끊긴다 -->
+<div class="bar" id="valbar"><span class="lab">저밸류</span></div>
 <div class="bar" id="searchbar">
   <span class="lab">검색</span>
   <input id="q" type="search" placeholder="종목명 또는 코드 (예: 아로마티카, 0015N0)" autocomplete="off" spellcheck="false">
@@ -137,6 +154,7 @@ mark { background:#fff3b0; color:#1a1f2e; padding:0 2px; border-radius:3px; }
 <div id="groups"></div>
 
 <div class="lg" style="margin-top:18px" id="bench"></div>
+<div class="lg" id="cost"></div>
 
 <div class="lg" style="margin-top:18px">
   <b>🛂 해외 채널에 들어가려면 — 인증이 곧 관문</b>
@@ -174,7 +192,39 @@ mark { background:#fff3b0; color:#1a1f2e; padding:0 2px; border-radius:3px; }
 
 </div>
 <script>
-var DEF=null, CO={}, BLG={}, TOP='전체', SEG='전체', CHAR='전체', AGE='전체', Q='', OPEN={};
+var DEF=null, CO={}, BLG={}, TOP='전체', SEG='전체', CHAR='전체', AGE='전체', Q='', VAL='전체', OPEN={}, NC=8;
+/* 저밸류 조건 — peer 대비는 그 묶음 중앙값과 견준다 */
+var VALF={
+ '전체':   [null, ''],
+ 'per10': [function(x){ return x.kper!=null && x.kper>0 && x.kper<10; }, 'PER 10배 미만 (적자 제외)'],
+ 'per15': [function(x){ return x.kper!=null && x.kper>0 && x.kper<15; }, 'PER 15배 미만 (적자 제외)'],
+ 'pbr1':  [function(x){ return x.kpbr!=null && x.kpbr>0 && x.kpbr<1; }, 'PBR 1배 미만 — 자산가치 아래'],
+ 'pbr07': [function(x){ return x.kpbr!=null && x.kpbr>0 && x.kpbr<0.7; }, 'PBR 0.7배 미만'],
+ 'roe10': [function(x){ var r=x.roe!=null?x.roe:((x.kpbr&&x.kper)?x.kpbr/x.kper*100:null);
+                        return x.kper!=null && x.kper>0 && x.kper<15 && r!=null && r>=10; },
+           'PER 15배 미만 + ROE 10% 이상 — 싼데 이익 체력도 있는 구간'],
+ 'below': ['peer', 'peer 중앙값 대비 PER·PBR 둘 다 아래']
+};
+/* 그 묶음에서 전부 비어 있는 열은 그리지 않는다 — 헤더와 본문이 같은 판정을 쓰도록 미리 계산한다 */
+function membersOf(g){
+  var ms=g.members.filter(function(c){return DEF.co[c] && passFilter(c);});
+  if(VAL==='below'){
+    function col2(k){ return ms.map(function(c){return (CO[c]||{})[k];}).filter(function(v){return v!=null&&isFinite(v);}); }
+    function md(a){ var v=a.slice().sort(function(p,q){return p-q;}); if(!v.length) return null;
+      var m=Math.floor(v.length/2); return v.length%2?v[m]:(v[m-1]+v[m])/2; }
+    var pa=col2('kper'), pb=col2('kpbr');
+    var M={per:pa.length>=2?md(pa):null, pbr:pb.length>=2?md(pb):null};
+    ms=ms.filter(function(c){return belowPeer(c,M);});
+  }
+  return ms;
+}
+function colFlags(g){
+  var ms=membersOf(g);
+  function col(k){ return ms.map(function(c){return (CO[c]||{})[k];}).filter(function(v){return v!=null&&isFinite(v);}); }
+  var sh={psr:col('psr').length>0, opm:col('opm').length>0, g:(col('g_rev').length+col('g_ni').length)>0};
+  NC = 5 + (sh.psr?1:0) + (sh.opm?1:0) + (sh.g?2:0) + 1;
+  return sh;
+}
 var MW={tech:['기술독점','tech'],cost:['원가','cost'],lock:['고객락인','lock'],chan:['채널','chan'],
         vert:['수직계열화','vert'],niche:['니치','niche'],scale:['규모','scale'],none:['—','none']};
 var TG={'확인':'cfm','보도':'med','추정':'est','미확인':'unk','참고':'ref','확인(수치는 구기사)':'cfm'};
@@ -244,6 +294,16 @@ function drawer(c){
   var d=(DEF.co[c])||{}, x=CO[c]||{}, bl=BLG[c]||null, s='';
   s+='<h4>🏢 기업 특장점</h4>'+(d.main?esc(d.main)+' <span class="tag '+(TG[d.conf]||'unk')+'">'+esc(d.conf||'미확인')+'</span>':'<span class="none2">공개 자료에서 확인하지 못했습니다</span>');
   s+='<h4>📦 제품 특장점</h4>'+(d.prod?esc(d.prod):'<span class="none2">제품 단위 차별점을 확인하지 못했습니다 — 사업보고서·IR 자료가 필요합니다</span>');
+  if(d.ad!=null||d.rnd!=null||d.mktwhy){
+    s+='<h4>💰 비용구조 — 광고선전비와 R&D</h4>';
+    if(d.ad!=null||d.rnd!=null){
+      s+='<div style="margin:3px 0 5px">'+
+        (d.ad!=null?'<span class="cert" style="background:#fff4e0;color:#8a4b00;border-color:#f6e3b8">광고선전비 판관비의 '+d.ad+'%</span>':'')+
+        (d.rnd!=null?'<span class="cert" style="background:#eef4ff;color:#2563eb;border-color:#c7dbff">R&amp;D 매출의 '+d.rnd+'%</span>':'')+'</div>';
+    }
+    if(d.mktwhy) s+='<div>'+esc(d.mktwhy)+'</div>';
+    s+='<p class="lgd" style="margin-top:5px">'+esc(((DEF.cost_def||{}).note)||'')+'</p>';
+  }
   s+='<h4>🧬 성격</h4>';
   if((d.chars||[]).length){
     s+=(d.chars||[]).map(function(t){ var cd=(DEF.char_def||{})[t];
@@ -252,6 +312,15 @@ function drawer(c){
       s+='<div style="margin:5px 0"><span class="ag '+d.aging+'">'+esc(ad[0]||d.aging)+'</span> <span style="color:#667085">'+esc(ad[1]||'')+'</span></div>'; }
     if(d.charwhy) s+='<div style="margin-top:5px"><b>이 회사에서는</b> — '+esc(d.charwhy)+'</div>';
   } else s+='<span class="none2">성격을 분류하지 못했습니다</span>';
+  if((d.prodline||[]).length){
+    s+='<h4>🛍️ 메인 제품과 가격</h4><table style="margin:4px 0 2px"><thead><tr>'+
+      '<th class="l">제품</th><th style="width:92px">가격</th><th class="l" style="width:46%">근거</th></tr></thead><tbody>'+
+      d.prodline.map(function(r){
+        return '<tr><td class="l"><b>'+esc(r[0])+'</b></td><td style="text-align:right;white-space:nowrap">'+
+          (r[1]==='—'?'<span class="none2">—</span>':'₩'+esc(r[1]))+'</td><td class="l">'+esc(r[2])+'</td></tr>';
+      }).join('')+'</tbody></table>'+
+      '<p class="lgd">'+esc(DEF.prod_src||'')+'</p>';
+  }
   s+='<h4>🛂 보유 인증·등록</h4>'+((d.cert&&d.cert.length)?d.cert.map(function(t){return '<span class="cert">'+esc(t)+'</span>';}).join(''):'<span class="none2">공개 자료에서 확인하지 못했습니다</span>');
   if((x.flags||[]).indexOf('시세 없음')>=0)
     s+='<div class="warn" style="margin:8px 0">이 종목은 대시보드 시세·재무 마스터(<code>stockvals.json</code>·<code>finall.json</code>)에 아직 없어 <b>PER·PBR·시총이 비어 있습니다.</b> 2025년 11월 상장처럼 코드에 영문이 섞인 신규 상장은 기존 수집기가 잡지 못합니다 — 시세 수집기의 종목 마스터를 손봐야 채워집니다.</div>';
@@ -259,7 +328,7 @@ function drawer(c){
   var pbs=(d.gids||[]).map(function(gid){ return pairBlock(gid, c); }).filter(Boolean).join('');
   if(pbs) s+='<h4>⚖️ peer 비교 가능성</h4>'+pbs;
   if(bl&&bl.note) s+='<p class="lgd">'+esc(bl.note)+'</p>';
-  return '<tr class="dr"><td colspan="12" class="dw">'+s+'</td></tr>';
+  return '<tr class="dr"><td colspan="'+NC+'" class="dw">'+s+'</td></tr>';
 }
 
 function passFilter(c){
@@ -267,7 +336,18 @@ function passFilter(c){
   if(Q){ if((d.n||'').toLowerCase().indexOf(Q)<0 && c.toLowerCase().indexOf(Q)<0) return false; }
   if(CHAR!=='전체' && (d.chars||[]).indexOf(CHAR)<0) return false;
   if(AGE!=='전체' && d.aging!==AGE) return false;
+  if(VAL!=='전체'){
+    var f=(VALF[VAL]||[])[0];
+    if(typeof f==='function' && !f(CO[c]||{})) return false;
+    if(f==='peer') return true;   /* peer 비교는 묶음 중앙값이 필요해 rowsFor 에서 거른다 */
+  }
   return true;
+}
+/* peer 대비 저평가 — 묶음 중앙값을 알아야 하므로 따로 판정한다 */
+function belowPeer(c, M){
+  var x=CO[c]||{};
+  if(M.per==null||M.pbr==null||x.kper==null||x.kpbr==null) return false;
+  return x.kper < M.per && x.kpbr < M.pbr;
 }
 function rowsFor(g){
   var ms=g.members.filter(function(c){return DEF.co[c] && passFilter(c);});
@@ -275,6 +355,8 @@ function rowsFor(g){
   /* 비교 대상이 2곳 미만이면 peer 꼬리표를 달지 않는다 — 자기 자신과 비교해 '비슷'이 뜨는 것을 막는다 */
   function mm(k){ var a=col(k); return a.length>=2?med(a):null; }
   var M={per:mm('kper'), pbr:mm('kpbr'), psr:mm('psr'), opm:mm('opm')};
+  if(VAL==='below') ms=ms.filter(function(c){return belowPeer(c,M);});
+  var sh=colFlags(g);
   var out='';
   ms.forEach(function(c){
     var d=DEF.co[c], x=CO[c]||{}, mw=MW[d.moat]||MW.none;
@@ -282,20 +364,18 @@ function rowsFor(g){
     if(Q){ var i=(d.n||'').toLowerCase().indexOf(Q);
       if(i>=0) nmHtml=esc(d.n.slice(0,i))+'<mark>'+esc(d.n.slice(i,i+Q.length))+'</mark>'+esc(d.n.slice(i+Q.length)); }
     out+='<tr class="r" data-c="'+c+'">'+
-      '<td class="l nm" onclick="tog(\''+c+'\')">'+nmHtml+' <span class="pu '+d.pure+'">'+(d.pure==='high'?'순수':d.pure==='low'?'부수':'일부')+'</span></td>'+
-      '<td class="l">'+c+'</td>'+
+      '<td class="l nm" onclick="tog(\''+c+'\')">'+nmHtml+' <span class="pu '+d.pure+'">'+(d.pure==='high'?'순수':d.pure==='low'?'부수':'일부')+'</span><span class="cd">'+c+'</span></td>'+
       '<td>'+eok(x.cap)+'</td>'+
       '<td>'+num(x.kper)+vs(x.kper,M.per,-1)+'</td>'+
       '<td>'+num(x.kpbr)+vs(x.kpbr,M.pbr,-1)+'</td>'+
-      '<td>'+num(x.psr)+vs(x.psr,M.psr,-1)+'</td>'+
       '<td>'+num(x.roe!=null?x.roe:(x.kpbr&&x.kper?x.kpbr/x.kper*100:null),1)+'</td>'+
-      '<td>'+num(x.opm,1)+vs(x.opm,M.opm,1)+'</td>'+
-      '<td>'+pct(x.g_rev)+'</td>'+
-      '<td>'+pct(x.g_ni)+'</td>'+
+      (sh.psr?'<td>'+num(x.psr)+vs(x.psr,M.psr,-1)+'</td>':'')+
+      (sh.opm?'<td>'+num(x.opm,1)+vs(x.opm,M.opm,1)+'</td>':'')+
+      (sh.g?'<td>'+pct(x.g_rev)+'</td><td>'+pct(x.g_ni)+'</td>':'')+
       '<td class="cc">'+((d.chars||[]).map(function(t){
           var cd=(DEF.char_def||{})[t]; return '<span class="ch" title="'+esc(cd?cd[1]:t)+'">'+esc(cd?cd[0]:t)+'</span>';}).join('')||'<span class="none2">—</span>')+
-        (d.aging?'<br><span class="ag '+d.aging+'">'+esc(((DEF.aging_def||{})[d.aging]||[d.aging])[0])+'</span>':'')+'</td>'+
-      '<td><span class="mw '+mw[1]+'">'+mw[0]+'</span></td></tr>';
+        (d.aging?'<br><span class="ag '+d.aging+'">'+esc(((DEF.aging_def||{})[d.aging]||[d.aging])[0])+'</span>':'')+
+        (d.moat&&d.moat!=='none'?'<br><span class="mw '+mw[1]+'">'+mw[0]+'</span>':'')+'</td></tr>';
     if(OPEN[c]) out+=drawer(c);
   });
   return out;
@@ -345,32 +425,46 @@ function render(){
   document.getElementById('charbar').innerHTML='<span class="lab">성격</span>'+
     ['전체'].concat(usedC).map(function(t){
       return '<button class="'+(CHAR===t?'on':'')+'" title="'+esc(t==='전체'?'':CD[t][1])+'" onclick="setChar(\''+t+'\')">'+esc(t==='전체'?'전체':CD[t][0])+'</button>';}).join('');
+  var VL=[['전체','전체'],['per10','PER<10'],['per15','PER<15'],['pbr1','PBR<1'],['pbr07','PBR<0.7'],
+           ['roe10','PER<15 & ROE≥10%'],['below','peer 대비 저평가']];
+  document.getElementById('valbar').innerHTML='<span class="lab">저밸류</span>'+
+    VL.map(function(r){ return '<button class="'+(VAL===r[0]?'on':'')+'" title="'+esc((VALF[r[0]]||['',''])[1])+'" onclick="setVal(\''+r[0]+'\')">'+esc(r[1])+'</button>';}).join('')+
+    (VAL!=='전체'?'<span class="cnt" style="margin-left:8px">'+esc((VALF[VAL]||['',''])[1])+'</span>':'');
   document.getElementById('agebar').innerHTML='<span class="lab">노화축</span>'+
     ['전체','anti','slow','longevity'].map(function(t){
       return '<button class="'+(AGE===t?'on':'')+'" title="'+esc(t==='전체'?'':AD[t][1])+'" onclick="setAge(\''+t+'\')">'+esc(t==='전체'?'전체':AD[t][0])+'</button>';}).join('');
   bindSearch();
   renderBench();
+  renderCost();
   var gs=pool.filter(function(g){return Q?true:(SEG==='전체'||g.seg===SEG);})
-             .filter(function(g){return g.members.some(function(c){return DEF.co[c]&&passFilter(c);});});
-  var nco=gs.reduce(function(a,g){return a+g.members.filter(function(c){return DEF.co[c]&&passFilter(c);}).length;},0);
+             .filter(function(g){return membersOf(g).length>0;});
+  var nco=gs.reduce(function(a,g){return a+membersOf(g).length;},0);
   var tags=[]; if(Q) tags.push('검색 "'+Q+'"'); if(CHAR!=='전체') tags.push('성격'); if(AGE!=='전체') tags.push('노화축');
+  if(VAL!=='전체') tags.push('저밸류');
   document.getElementById('cnt').textContent='묶음 '+gs.length+' · 종목 '+nco+'곳'+(tags.length?' · '+tags.join(' + ')+' 적용':'');
   if(!gs.length){
     document.getElementById('groups').innerHTML='<div class="warn">'+
-      (Q?'<b>"'+esc(Q)+'" 와(과) 맞는 종목이 없습니다.</b> 종목명 일부나 6자리 코드로 다시 찾아보세요. 비상장·상장폐지(연우·코스온·올리브영·구다이글로벌 등)는 이 표에 없습니다.'
+      (VAL!=='전체'?'<b>'+esc((VALF[VAL]||['',''])[1])+' 조건에 맞는 종목이 없습니다.</b> 조건을 풀거나 다른 구간을 눌러 보세요. 시세·실적이 비어 있는 종목(아로마티카 등)은 조건 판정에서 빠집니다.'
+        :Q?'<b>"'+esc(Q)+'" 와(과) 맞는 종목이 없습니다.</b> 종목명 일부나 6자리 코드로 다시 찾아보세요. 비상장·상장폐지(연우·코스온·올리브영·구다이글로벌 등)는 이 표에 없습니다.'
         :'조건에 맞는 종목이 없습니다. 필터를 풀어 보세요.')+'</div>';
     return;
   }
+  var TOPS=['원료·소재','부자재·용기','OEM/ODM 제조','브랜드','유통·채널','지주·간접','인접(미용의료)'];
   document.getElementById('groups').innerHTML=gs.map(function(g){
     var v=(DEF.val||{})[g.top]||[];
-    return '<section class="grp"><header><div class="tp">'+esc(g.top)+' › '+esc(g.seg)+'</div>'+
+    var sh=colFlags(g);
+    var ti=TOPS.indexOf(g.top); if(ti<0) ti=5;
+    var nco=membersOf(g).length;
+    return '<section class="grp t'+ti+'"><header>'+
+      '<div class="hdtop"><span class="tp">'+esc(g.top)+' › '+esc(g.seg)+'</span>'+
+        '<span class="n">'+nco+'곳</span></div>'+
       '<h2>'+esc(g.name)+'</h2>'+
-      '<div class="bs"><b>묶은 근거</b> — '+esc(g.basis)+'</div>'+
-      (g.caution?'<div class="ca"><b>⚠️ 주의</b> — '+esc(g.caution)+'</div>':'')+
-      (v.length?'<div class="vl"><b>📐 이 분야 평가법</b> — '+v.map(esc).join(' · ')+'</div>':'')+
-      '</header><table><thead><tr>'+
-      '<th class="l">기업</th><th class="l">코드</th><th>시총(억)</th><th>PER</th><th>PBR</th><th>PSR</th><th>ROE%</th><th>OPM%</th><th>매출YoY</th><th>순익YoY</th><th class="cc">성격</th><th>해자</th>'+
-      '</tr></thead><tbody>'+rowsFor(g)+'</tbody></table>'+pairBlock(g.id,null)+'</section>';
+      '<div class="blk"><span class="k">📌 묶은 근거</span>'+esc(g.basis)+'</div>'+
+      (g.caution?'<div class="blk ca"><span class="k">⚠️ 주의 — 이 묶음에서 조심할 것</span>'+esc(g.caution)+'</div>':'')+
+      (v.length?'<details class="vl"><summary>📐 이 분야 평가법 ('+esc(g.top)+' 공통)</summary><div class="vb">'+v.map(function(t,i){return (i+1)+'. '+esc(t);}).join('<br>')+'</div></details>':'')+
+      '</header><div class="tw"><table><thead><tr>'+
+      '<th class="l">기업</th><th>시총(억)</th><th>PER</th><th>PBR</th><th>ROE%</th>'+(sh.psr?'<th>PSR</th>':'')+(sh.opm?'<th>OPM%</th>':'')+(sh.g?'<th>매출YoY</th><th>순익YoY</th>':'')+'<th class="cc">성격 · 해자</th>'+
+      '</tr></thead><tbody>'+rowsFor(g)+'</tbody></table></div>'+pairBlock(g.id,null)+'</section>';
   }).join('');
 }
 function setTop(t){ TOP=t; SEG='전체'; render(); }
@@ -400,6 +494,21 @@ function bindSearch(){
   q.addEventListener('keydown', function(e){ if(e.key==='Escape'){ q.value=''; Q=''; render(); } });
   document.getElementById('qclear').addEventListener('click', function(){ q.value=''; Q=''; q.focus(); render(); });
 }
+function renderCost(){
+  var B=DEF.cost_def, el=document.getElementById('cost');
+  if(!B||!el){ if(el) el.style.display='none'; return; }
+  var rows=B.rows.map(function(r){
+    return '<tr><td class="l"><b>'+esc(r[0])+'</b></td><td>'+r[1].toFixed(1)+'%</td><td>'+r[2].toFixed(2)+'%</td>'+
+      '<td class="l">'+esc(r[3])+'</td></tr>';}).join('');
+  var ad=B.ad1h.map(function(r){ return '<span class="chip">'+esc(r[0])+' <b>'+esc(r[1])+'</b> '+esc(r[2])+'</span>'; }).join(' ');
+  el.innerHTML='<b>💰 마케팅을 내재화하면 뭐가 달라지나</b> <span class="tag med">보도</span>'+
+    '<p style="margin:6px 0 2px;color:#475467">내재화는 <b>비용이 줄어든다는 뜻이 아니다.</b> 대행 수수료가 없고 트렌드 대응이 빨라진다는 뜻이다 — 실제로 에이피알은 마케팅 인력을 300명(전체의 약 40%)까지 늘렸는데도 광고선전비 비중이 가장 높은 축에 속한다. 봐야 할 것은 비중의 높낮이가 아니라 <b>R&amp;D와의 균형</b>이다.</p>'+
+    '<table style="margin-top:8px"><thead><tr><th class="l">기업</th><th>광고선전비<br>(판관비 대비)</th><th>R&amp;D<br>(매출 대비)</th><th class="l">구조</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+    '<p style="margin-top:8px;color:#475467">'+esc(B.note)+'</p>'+
+    '<p style="margin-top:6px"><b>2025년 상반기 광고비 절대액</b> &nbsp;'+ad+'</p>'+
+    '<p style="margin-top:8px;color:#98a2b3;font-size:12px">출처 '+esc(B.src)+'. 네 곳만 수치를 확인했습니다 — 나머지는 사업보고서 판관비 주석을 봐야 합니다.</p>';
+}
+function setVal(t){ VAL=t; render(); }
 function setChar(t){ CHAR=t; render(); }
 function setAge(t){ AGE=t; render(); }
 

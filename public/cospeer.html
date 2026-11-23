@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>화장품 peer 상대밸류 — 밸류체인 세부분야별 경쟁사 비교</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; background:#f4f6fa; color:#1a1f2e; }
+.wrap { max-width:1480px; margin:0 auto; padding:18px 14px 60px; }
+h1 { font-size:22px; margin:10px 0 4px; }
+.sub { color:#667085; font-size:13px; margin-bottom:12px; line-height:1.6; }
+.lg { background:#fff; border:1px solid #e4e7ec; border-radius:12px; padding:12px 14px; margin-bottom:12px; font-size:12.5px; line-height:1.8; }
+.lg b { color:#1a2a4a; }
+.lg details { margin-top:6px; } .lg summary { cursor:pointer; font-weight:800; color:#1a2a4a; }
+.bar { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; align-items:center; }
+.bar .lab { font-size:12px; font-weight:800; color:#475467; margin-right:2px; }
+.bar button { border:1.5px solid #d7dce6; background:#fff; border-radius:20px; padding:6px 12px; font:inherit; font-size:12.5px; font-weight:700; color:#475467; cursor:pointer; }
+.bar button.on { background:#1a2a4a; border-color:#1a2a4a; color:#fff; }
+.cnt { font-size:12px; color:#667085; margin-left:auto; }
+.grp { background:#fff; border:1px solid #e4e7ec; border-radius:12px; margin-bottom:14px; overflow:hidden; }
+.grp > header { padding:12px 14px; border-bottom:1px solid #eef0f4; background:#fbfcfe; }
+.grp h2 { font-size:15.5px; margin:0 0 3px; }
+.grp .tp { font-size:11px; font-weight:800; color:#2563eb; letter-spacing:.04em; }
+.grp .bs { font-size:12.5px; color:#475467; line-height:1.72; margin-top:6px; }
+.grp .ca { font-size:12.5px; color:#8a4b00; background:#fff8e8; border:1px solid #f6e3b8; border-radius:8px; padding:8px 10px; margin-top:8px; line-height:1.7; }
+.grp .vl { font-size:12px; color:#1a2a4a; background:#eef4ff; border:1px solid #d6e3ff; border-radius:8px; padding:8px 10px; margin-top:8px; line-height:1.7; }
+table { width:100%; border-collapse:collapse; background:#fff; font-size:12.5px; }
+th, td { padding:7px 8px; border-bottom:1px solid #eef0f4; text-align:right; white-space:nowrap; }
+th { background:#f8fafc; color:#475467; font-size:11.5px; font-weight:700; }
+td.l, th.l { text-align:left; white-space:normal; }
+tr.r:hover { background:#f8fafc; }
+td.nm { font-weight:800; color:#1a2a4a; cursor:pointer; }
+td.nm:hover { text-decoration:underline; }
+.pz { display:inline-block; font-size:10.5px; font-weight:800; padding:1px 6px; border-radius:7px; margin-left:4px; }
+.pz.lo { background:#e7f6ec; color:#0f7b3f; } .pz.hi { background:#fdecea; color:#d92d20; } .pz.mid { background:#eef0f4; color:#667085; }
+.pu { display:inline-block; font-size:10px; font-weight:800; padding:1px 5px; border-radius:6px; }
+.pu.high { background:#1a2a4a; color:#fff; } .pu.mid { background:#e4e7ec; color:#475467; } .pu.low { background:#fdecea; color:#d92d20; }
+.mw { display:inline-block; font-size:10.5px; font-weight:800; padding:2px 7px; border-radius:7px; }
+.mw.tech{background:#e7f6ec;color:#0f7b3f} .mw.cost{background:#fff4e0;color:#8a4b00}
+.mw.lock{background:#eef4ff;color:#2563eb} .mw.chan{background:#fdecea;color:#d92d20}
+.mw.vert{background:#f3eaff;color:#6b21a8} .mw.niche{background:#eef0f4;color:#475467}
+.mw.scale{background:#fff4e0;color:#8a4b00} .mw.none{background:#f4f6fa;color:#98a2b3}
+.dw { background:#fbfcfe; border-top:1px solid #eef0f4; padding:12px 14px; font-size:12.5px; line-height:1.75; }
+.dw h4 { font-size:12.5px; margin:10px 0 4px; color:#1a2a4a; }
+.dw h4:first-child { margin-top:0; }
+.cert { display:inline-block; background:#e7f6ec; color:#0f7b3f; border:1px solid #bfe6cd; border-radius:7px; padding:2px 8px; font-size:11.5px; font-weight:700; margin:2px 4px 2px 0; }
+.none2 { color:#98a2b3; font-size:12px; }
+.chartbox { background:#fff; border:1px solid #e4e7ec; border-radius:10px; padding:10px; margin-top:8px; }
+.chartbox .ct { font-size:12px; font-weight:800; color:#1a2a4a; margin-bottom:2px; }
+.chartbox .cs { font-size:11.5px; color:#98a2b3; margin-bottom:6px; }
+.lgd { font-size:11px; color:#667085; margin-top:4px; }
+.lgd i { display:inline-block; width:10px; height:10px; border-radius:2px; vertical-align:-1px; margin-right:3px; }
+.warn { background:#fff8e8; border:1px solid #f6e3b8; color:#8a4b00; border-radius:10px; padding:10px 12px; font-size:12.5px; line-height:1.7; margin-bottom:12px; }
+.tag { display:inline-block; font-size:10px; font-weight:800; padding:1px 6px; border-radius:6px; margin-left:4px; }
+.tag.cfm{background:#e7f6ec;color:#0f7b3f} .tag.med{background:#eef4ff;color:#2563eb}
+.tag.unk{background:#eef0f4;color:#98a2b3} .tag.ref{background:#f4f6fa;color:#98a2b3;border:1px solid #e4e7ec}
+.tag.est{background:#f3eaff;color:#6b21a8} .tag.추정{background:#f3eaff;color:#6b21a8}
+@media(max-width:820px){ .wrap{padding:12px 10px 50px} h1{font-size:18px} table{font-size:11.5px} th,td{padding:6px 5px} }
+</style>
+</head>
+<body>
+<script src="/nav.js" defer></script>
+<div class="wrap">
+<h1>💄 화장품 peer 상대밸류 — 밸류체인 세부분야별 경쟁사 비교</h1>
+<p class="sub">화장품을 <b>원료·소재 / 부자재·용기 / OEM·ODM / 브랜드 / 유통 / 인접(미용의료)</b> 6개 대분류, <b>35개 세부분야</b>로 쪼개고 같은 칸의 상장사끼리 PER·PBR·PSR·ROE를 비교합니다. 반도체 peer와 같은 수집기(<code>semipeer.py</code>)를 쓰되 정의 파일만 <code>cospeer_def.json</code>으로 바꿨습니다.</p>
+
+<div class="lg">
+  <b>이 화면을 읽는 순서</b> — ① 위 칩에서 세부분야를 고릅니다 ② 각 묶음의 「묶은 근거」와 「주의」를 먼저 읽습니다. 같은 칸이라도 제형·규제·고객이 다르면 멀티플을 그대로 비교하면 안 됩니다 ③ 「이 분야 평가법」이 그 칸에 맞는 밸류 지표를 알려줍니다 ④ 종목명을 누르면 <b>기업 특장점·제품 특장점·보유 인증</b>과 <b>분기 매출 + 수주잔고 그래프</b>가 열립니다.
+  <details><summary>peer 등급 기준</summary>
+    쌍별로 제품 동일성·고객 중복·매출 비중·사업모델·실적 드라이버 5개를 0~2점으로 매겨 합산합니다. A(8점↑·제품 2점) 직접 비교 / B(6점↑) 조건부 / C 참고용. <b>현재 쌍 점수는 비어 있어 모든 쌍이 C입니다</b> — 사업보고서 확인 후 채웁니다. 그동안은 저밸류 판정에 쓰지 마세요.
+  </details>
+</div>
+
+<div id="nodata" class="warn" style="display:none"></div>
+
+<div class="bar" id="topbar"><span class="lab">대분류</span></div>
+<div class="bar" id="segbar"><span class="lab">세부분야</span><span class="cnt" id="cnt"></span></div>
+
+<div id="groups"></div>
+
+<div class="lg" style="margin-top:18px">
+  <b>🛂 해외 채널에 들어가려면 — 인증이 곧 관문</b>
+  <table style="margin-top:8px">
+    <thead><tr><th class="l">시장</th><th class="l">필수 등록·인증</th><th class="l">누가 하나</th><th class="l">핵심</th></tr></thead>
+    <tbody>
+      <tr><td class="l"><b>미국 — 일반 화장품</b></td><td class="l">MoCRA 시설등록 + 제품 리스팅</td><td class="l">라벨에 적힌 제조·포장·유통사</td><td class="l">2024년 7월부터 강제. 리스팅은 연 1회 갱신. 미국 매출 100만달러 미만은 면제이나 유예 성격. 안전성 입증(미생물·중금속·방부력) 서류를 리스팅 때 낸다</td></tr>
+      <tr><td class="l"><b>미국 — 선크림</b></td><td class="l">OTC 의약품 규제 (MoCRA와 별개)</td><td class="l">제조사</td><td class="l">선크림은 화장품이 아니라 <b>OTC 의약품</b>. 한국에서 쓰는 일부 UV필터는 미국에서 허용되지 않아 제품을 그대로 수출할 수 없다. FDA가 약 20년 만에 승인한 신규 성분이 BEMT</td></tr>
+      <tr><td class="l"><b>미국 — GMP</b></td><td class="l">cGMP · ISO 22716</td><td class="l">제조 시설</td><td class="l">MoCRA의 GMP 최종 규정은 아직 발효 전. 'Clinically Tested' 같은 표현은 공인 시험기관 자료가 있어야 쓸 수 있다</td></tr>
+      <tr><td class="l"><b>EU</b></td><td class="l">CPNP 사전 신고 + CPSR(안전성 보고서)</td><td class="l">역내 책임자(RP) 지정 필수</td><td class="l">출시 전 신고가 의무. 제품정보파일(PIF)은 유통 종료 후 10년 보관</td></tr>
+      <tr><td class="l"><b>중국</b></td><td class="l">NMPA 비안(일반) / 등록(특수)</td><td class="l">중국 내 수입업자</td><td class="l">일반 3~6개월, 특수(자외선차단·미백·염모 등) 최대 10개월. 조건 충족 시 일반 수입품은 동물실험 면제</td></tr>
+      <tr><td class="l"><b>인도네시아</b></td><td class="l">BPOM 등록 + BPJPH 할랄</td><td class="l">현지 법인·수입업자</td><td class="l">할랄이 2026년 10월 17일부터 <b>의무</b>. 화장품 세부 지침은 확정 전</td></tr>
+      <tr><td class="l"><b>말레이시아 · GCC</b></td><td class="l">NPRA 신고(2년) / SFDA eCosma</td><td class="l">현지 신고자·수권 대리인</td><td class="l">할랄은 의무가 아니라 자발적. GCC는 아랍어·영어 병기 라벨 필수</td></tr>
+      <tr><td class="l"><b>아세안 · 유라시아</b></td><td class="l">ACD 기준 + 국가별 신고 / TR CU 009 EAC</td><td class="l">현지 법인·역내 인증기관</td><td class="l">아세안은 공통 신고창구가 없다(태국은 3년 갱신). EAEU 5개국은 러시아어 라벨 필수</td></tr>
+      <tr><td class="l"><b>유기·천연 (선택)</b></td><td class="l">COSMOS · ECOCERT · 비건</td><td class="l">브랜드</td><td class="l">법적 의무는 아니지만 얼타·세포라 등 프리미엄 매대와 유럽 소비자 설득에 쓰인다</td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:8px;color:#667085;font-size:12px">※ 규제는 자주 바뀝니다. 금지·제한 성분 목록은 출시 직전에 각국 공식 고시로 다시 확인해야 합니다. 위 표는 공개 가이드 기준이며 법률 자문이 아닙니다. <span class="tag med">보도</span></p>
+</div>
+
+<div class="lg">
+  <b>🧾 왜 선케어만 따로 보는가</b> — 미국에서 선크림이 OTC 의약품이라, <b>FDA OTC 대응 이력이 곧 공급자 명단</b>이 됩니다. 그래서 선케어 ODM은 가격 경쟁이 아니라 인증 경쟁입니다. 국내 관련사 중에서는 잉글우드랩(2011)·한국콜마(2013)·코스맥스(2016) 순으로 이력이 깁니다. 「국내 최초」 주장은 한국콜마(2013)와 잉글우드랩(2011)이 서로 충돌해 확인이 필요합니다. <span class="tag unk">미확인</span>
+</div>
+
+<div class="lg">
+  <b>⚠️ 이 화면의 한계</b>
+  <ul style="margin:6px 0 0 18px">
+    <li>쌍별 peer 점수(pairs)가 아직 비어 있어 <b>모든 쌍이 C등급</b>입니다. 저밸류 판정 용도로 쓰지 마세요</li>
+    <li>종목 106곳 중 제품 특장점을 확인한 곳은 <b>40곳</b>, 보유 인증을 확인한 곳은 <b>16곳</b>입니다. 나머지는 사업보고서를 봐야 채워집니다</li>
+    <li><b>수주잔고는 화장품 업계에서 공시가 드뭅니다.</b> 반도체 장비사와 달리 대부분 수주잔고 표가 없어, 그래프에 잔고 선이 안 그려지는 종목이 많습니다. 그 경우 분기 매출만 표시됩니다</li>
+    <li>아로마티카(0015N0)는 2025년 11월 상장으로 대시보드 재무 마스터에 아직 없어 수치가 비어 있을 수 있습니다</li>
+    <li>비상장(올리브영·구다이글로벌·코스알엑스·티르티르·삼화·부국티엔씨 등)은 <b>제외</b>했습니다. 상장폐지·비상장으로 확인된 연우·코스온·제이준코스메틱도 뺐습니다</li>
+  </ul>
+</div>
+
+</div>
+<script>
+var DEF=null, CO={}, BLG={}, TOP='전체', SEG='전체', OPEN={};
+var MW={tech:['기술독점','tech'],cost:['원가','cost'],lock:['고객락인','lock'],chan:['채널','chan'],
+        vert:['수직계열화','vert'],niche:['니치','niche'],scale:['규모','scale'],none:['—','none']};
+var TG={'확인':'cfm','보도':'med','추정':'est','미확인':'unk','참고':'ref','확인(수치는 구기사)':'cfm'};
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+function num(v,d){ return v==null?'—':Number(v).toFixed(d==null?2:d); }
+function eok(v){ if(v==null) return '—'; var a=Math.abs(v);
+  if(a>=10000) return (v/10000).toFixed(1)+'조'; return Math.round(v).toLocaleString(); }
+function pct(v){ return v==null?'—':(v>0?'+':'')+Number(v).toFixed(1)+'%'; }
+
+/* peer 중앙값 대비 꼬리표 — 방향을 고려한다(낮을수록 좋은 지표 dir=-1) */
+function med(a){ var v=a.filter(function(x){return x!=null&&isFinite(x);}).sort(function(p,q){return p-q;});
+  if(!v.length) return null; var m=Math.floor(v.length/2);
+  return v.length%2?v[m]:(v[m-1]+v[m])/2; }
+function vs(v,m,dir){
+  if(v==null||m==null||m===0) return '';
+  var r=v/m, up=r>=1.1, dn=r<=0.9;
+  if(!up&&!dn) return '<span class="pz mid">비슷</span>';
+  var txt=up?'peer 위':'peer 아래', good=(dir>0)===up;
+  return '<span class="pz '+(good?'lo':'hi')+'">'+txt+'</span>';
+}
+
+/* ── 분기 매출 + 수주잔고 복합 그래프 (막대 = 매출, 선 = 잔고) ── */
+function chart(x, bl){
+  var ql=(x&&x.ql)||[], rq=(x&&x.rq)||[];
+  if(!ql.length) return '<p class="none2">분기 매출 자료가 아직 없습니다 — 수집기(semipeer.py)를 화장품 정의로 한 번 돌려야 채워집니다.</p>';
+  var S=(bl&&bl.s)||[];                       /* [[분기,잔고]] */
+  var bmap={}; S.forEach(function(p){ bmap[p[0]]=p[1]; });
+  var bq=ql.map(function(q){ var k=q.replace(/^(\d)Q(\d\d)$/,'20$2Q$1'); return bmap[k]!=null?bmap[k]:(bmap[q]!=null?bmap[q]:null); });
+  var hasB=bq.some(function(v){return v!=null;});
+  var W=Math.max(360, ql.length*62), H=170, PT=14, PB=26, PL=52, PR=hasB?52:10;
+  var rmax=Math.max.apply(null,rq.filter(function(v){return v!=null;}).concat([1]));
+  var bmax=hasB?Math.max.apply(null,bq.filter(function(v){return v!=null;}).concat([1])):1;
+  var bw=(W-PL-PR)/ql.length, iw=Math.min(30,bw*0.56);
+  var s='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block" role="img" aria-label="분기 매출과 수주잔고 추이">';
+  s+='<style>.ax{stroke:#e4e7ec;stroke-width:1}.tx{fill:#98a2b3;font:10px sans-serif}.tb{fill:#475467;font:bold 10px sans-serif}</style>';
+  [0,0.5,1].forEach(function(f){ var y=PT+(H-PT-PB)*(1-f);
+    s+='<line class="ax" x1="'+PL+'" x2="'+(W-PR)+'" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'"/>';
+    s+='<text class="tx" x="'+(PL-5)+'" y="'+(y+3).toFixed(1)+'" text-anchor="end">'+eok(rmax*f)+'</text>'; });
+  ql.forEach(function(q,i){
+    var v=rq[i], xc=PL+bw*i+bw/2;
+    if(v!=null){ var h=(H-PT-PB)*(v/rmax);
+      s+='<rect x="'+(xc-iw/2).toFixed(1)+'" y="'+(H-PB-h).toFixed(1)+'" width="'+iw.toFixed(1)+'" height="'+Math.max(1,h).toFixed(1)+'" rx="3" fill="#2563eb" opacity=".82"><title>'+q+' 매출 '+eok(v)+'억</title></rect>'; }
+    s+='<text class="tx" x="'+xc.toFixed(1)+'" y="'+(H-8)+'" text-anchor="middle">'+esc(q)+'</text>';
+  });
+  if(hasB){
+    var pts=[], seg=[];
+    ql.forEach(function(q,i){ var v=bq[i];
+      if(v==null){ if(seg.length>1)pts.push(seg); seg=[]; return; }
+      var xc=PL+bw*i+bw/2, y=PT+(H-PT-PB)*(1-v/bmax);
+      seg.push([xc,y,q,v]); });
+    if(seg.length>1) pts.push(seg);
+    pts.forEach(function(sg){
+      s+='<polyline fill="none" stroke="#d92d20" stroke-width="2" stroke-linejoin="round" points="'+sg.map(function(p){return p[0].toFixed(1)+','+p[1].toFixed(1);}).join(' ')+'"/>'; });
+    ql.forEach(function(q,i){ var v=bq[i]; if(v==null) return;
+      var xc=PL+bw*i+bw/2, y=PT+(H-PT-PB)*(1-v/bmax);
+      s+='<circle cx="'+xc.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="3.2" fill="#d92d20" stroke="#fff" stroke-width="1.4"><title>'+q+' 수주잔고 '+eok(v)+'억</title></circle>'; });
+    [0,1].forEach(function(f){ var y=PT+(H-PT-PB)*(1-f);
+      s+='<text class="tx" x="'+(W-PR+5)+'" y="'+(y+3).toFixed(1)+'">'+eok(bmax*f)+'</text>'; });
+  }
+  s+='</svg>';
+  var lg='<div class="lgd"><i style="background:#2563eb"></i>분기 매출(좌, 억원)';
+  lg += hasB ? ' &nbsp; <i style="background:#d92d20"></i>수주잔고(우, 억원)' : ' &nbsp; <span style="color:#d92d20">수주잔고 미공시 — 화장품 업계는 수주잔고 표를 내지 않는 곳이 대부분입니다</span>';
+  return '<div class="chartbox"><div class="ct">분기 매출 + 수주잔고</div><div class="cs">같은 그래프에 둡니다 — 잔고가 매출로 바뀌는 흐름을 보려면 둘을 겹쳐 봐야 합니다</div>'+s+lg+'</div>';
+}
+
+function drawer(c){
+  var d=(DEF.co[c])||{}, x=CO[c]||{}, bl=BLG[c]||null, s='';
+  s+='<h4>🏢 기업 특장점</h4>'+(d.main?esc(d.main)+' <span class="tag '+(TG[d.conf]||'unk')+'">'+esc(d.conf||'미확인')+'</span>':'<span class="none2">공개 자료에서 확인하지 못했습니다</span>');
+  s+='<h4>📦 제품 특장점</h4>'+(d.prod?esc(d.prod):'<span class="none2">제품 단위 차별점을 확인하지 못했습니다 — 사업보고서·IR 자료가 필요합니다</span>');
+  s+='<h4>🛂 보유 인증·등록</h4>'+((d.cert&&d.cert.length)?d.cert.map(function(t){return '<span class="cert">'+esc(t)+'</span>';}).join(''):'<span class="none2">공개 자료에서 확인하지 못했습니다</span>');
+  s+='<h4>📈 매출 · 수주잔고</h4>'+chart(x,bl);
+  if(bl&&bl.note) s+='<p class="lgd">'+esc(bl.note)+'</p>';
+  return '<tr class="dr"><td colspan="11" class="dw">'+s+'</td></tr>';
+}
+
+function rowsFor(g){
+  var ms=g.members.filter(function(c){return DEF.co[c];});
+  function col(k){ return ms.map(function(c){return (CO[c]||{})[k];}).filter(function(v){return v!=null&&isFinite(v);}); }
+  /* 비교 대상이 2곳 미만이면 peer 꼬리표를 달지 않는다 — 자기 자신과 비교해 '비슷'이 뜨는 것을 막는다 */
+  function mm(k){ var a=col(k); return a.length>=2?med(a):null; }
+  var M={per:mm('kper'), pbr:mm('kpbr'), psr:mm('psr'), opm:mm('opm')};
+  var out='';
+  ms.forEach(function(c){
+    var d=DEF.co[c], x=CO[c]||{}, mw=MW[d.moat]||MW.none;
+    out+='<tr class="r" data-c="'+c+'">'+
+      '<td class="l nm" onclick="tog(\''+c+'\')">'+esc(d.n)+' <span class="pu '+d.pure+'">'+(d.pure==='high'?'순수':d.pure==='low'?'부수':'일부')+'</span></td>'+
+      '<td class="l">'+c+'</td>'+
+      '<td>'+eok(x.cap)+'</td>'+
+      '<td>'+num(x.kper)+vs(x.kper,M.per,-1)+'</td>'+
+      '<td>'+num(x.kpbr)+vs(x.kpbr,M.pbr,-1)+'</td>'+
+      '<td>'+num(x.psr)+vs(x.psr,M.psr,-1)+'</td>'+
+      '<td>'+num(x.roe!=null?x.roe:(x.kpbr&&x.kper?x.kpbr/x.kper*100:null),1)+'</td>'+
+      '<td>'+num(x.opm,1)+vs(x.opm,M.opm,1)+'</td>'+
+      '<td>'+pct(x.g_rev)+'</td>'+
+      '<td>'+pct(x.g_ni)+'</td>'+
+      '<td><span class="mw '+mw[1]+'">'+mw[0]+'</span></td></tr>';
+    if(OPEN[c]) out+=drawer(c);
+  });
+  return out;
+}
+function tog(c){ OPEN[c]=!OPEN[c]; render(); }
+
+function render(){
+  if(!DEF) return;
+  var tops=['전체'].concat(DEF.groups.map(function(g){return g.top;}).filter(function(v,i,a){return a.indexOf(v)===i;}));
+  document.getElementById('topbar').innerHTML='<span class="lab">대분류</span>'+tops.map(function(t){
+    return '<button class="'+(TOP===t?'on':'')+'" onclick="setTop(\''+t+'\')">'+esc(t)+'</button>';}).join('');
+  var pool=DEF.groups.filter(function(g){return TOP==='전체'||g.top===TOP;});
+  var segs=['전체'].concat(pool.map(function(g){return g.seg;}).filter(function(v,i,a){return a.indexOf(v)===i;}));
+  document.getElementById('segbar').innerHTML='<span class="lab">세부분야</span>'+segs.map(function(t){
+    return '<button class="'+(SEG===t?'on':'')+'" onclick="setSeg(\''+t+'\')">'+esc(t)+'</button>';}).join('')+'<span class="cnt" id="cnt"></span>';
+  var gs=pool.filter(function(g){return SEG==='전체'||g.seg===SEG;});
+  var nco=gs.reduce(function(a,g){return a+g.members.length;},0);
+  document.getElementById('cnt').textContent='묶음 '+gs.length+' · 종목 '+nco+'곳';
+  document.getElementById('groups').innerHTML=gs.map(function(g){
+    var v=(DEF.val||{})[g.top]||[];
+    return '<section class="grp"><header><div class="tp">'+esc(g.top)+' › '+esc(g.seg)+'</div>'+
+      '<h2>'+esc(g.name)+'</h2>'+
+      '<div class="bs"><b>묶은 근거</b> — '+esc(g.basis)+'</div>'+
+      (g.caution?'<div class="ca"><b>⚠️ 주의</b> — '+esc(g.caution)+'</div>':'')+
+      (v.length?'<div class="vl"><b>📐 이 분야 평가법</b> — '+v.map(esc).join(' · ')+'</div>':'')+
+      '</header><table><thead><tr>'+
+      '<th class="l">기업</th><th class="l">코드</th><th>시총(억)</th><th>PER</th><th>PBR</th><th>PSR</th><th>ROE%</th><th>OPM%</th><th>매출YoY</th><th>순익YoY</th><th>해자</th>'+
+      '</tr></thead><tbody>'+rowsFor(g)+'</tbody></table></section>';
+  }).join('');
+}
+function setTop(t){ TOP=t; SEG='전체'; render(); }
+function setSeg(t){ SEG=t; render(); }
+
+fetch('/data/cospeer_def.json').then(function(r){return r.json();}).then(function(d){
+  DEF=d;
+  var n=document.getElementById('nodata');
+  return fetch('/data/cospeer.json').then(function(r){return r.json();}).then(function(p){
+    CO=(p&&p.co)||{};
+    document.querySelector('.sub').insertAdjacentHTML('beforeend',
+      ' <b>· 수치 기준 '+esc(p.updated||'')+'</b>');
+    return fetch('/data/cospeer_backlog.json').then(function(b){return b.json();})
+      .then(function(b){ BLG=(b&&b.co)||{}; }).catch(function(){ BLG={}; });
+  }).catch(function(){
+    n.style.display='';
+    n.innerHTML='<b>아직 밸류 수치가 없습니다.</b> 세부분야·묶은 근거·특장점·인증은 지금도 보이지만, PER·PBR·PSR·매출 그래프는 수집기를 한 번 돌려야 채워집니다 — <code>DEF=cospeer_def.json OUT=public/data/cospeer.json python semipeer.py</code>';
+  });
+}).then(render).catch(function(e){
+  document.getElementById('groups').innerHTML='<div class="warn">정의 파일을 불러오지 못했습니다: '+esc(e&&e.message)+'</div>';
+});
+</script>
+</body>
+</html>

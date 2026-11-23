@@ -15,8 +15,10 @@
 #   기준(basis) 우선순위: TTM = DART 최근 4분기(확인값) > TTMN = 네이버(FnGuide) 최근 4분기 주당순이익·주당순자산(DART 수집 전 임시·교차확인용)
 #                        > FY0 = KIS 전년 확정 실적. 쌍 비교는 두 기업이 함께 가진 가장 좋은 기준으로 맞춘다.
 #   DART 고유번호 파일(corpCode.xml)이 점검 중일 때를 대비해 tools/semipeer/dartcorp.json(종목코드→고유번호)을 시드로 쓴다.
+#   책정값(val)  : 평가법마다 실제로 계산한 값 — 이 회사 배수·peer 중앙값·환산 주가·범위·DCF(11/20 추가). 재료(순차입금·감가상각비·영업현금흐름·설비투자)는
+#                 ②에서 이미 받는 전체재무제표 응답에서 함께 뽑는다(finx 캐시). 별도 재무제표만 있는 종목은 fs_div=OFS로 같은 보고서를 받는다.
 # 필요 시크릿: DART_API_KEY(권장)   결과: public/data/semipeer.json
-import os, sys, json, time, re, io, zipfile, datetime, urllib.request, ssl, statistics
+import os, sys, json, time, re, io, zipfile, datetime, urllib.request, ssl, statistics, math
 import xml.etree.ElementTree as ET
 
 KEY = os.environ.get('DART_API_KEY', '')
@@ -30,7 +32,7 @@ UA = {'User-Agent': 'Mozilla/5.0'}
 CTX = ssl.create_default_context(); CTX.check_hostname = False; CTX.verify_mode = ssl.CERT_NONE
 KST = datetime.timezone(datetime.timedelta(hours=9)); NOW = datetime.datetime.now(KST); TODAY = NOW.date()
 EOK = 1e8
-FIN_VER = 2      # 재무 캐시 형식 버전(2: 자산총계·부채총계 추가) — 바뀌면 다음 실행에서 DART를 다시 받는다
+FIN_VER = 3      # 재무 캐시 형식 버전(2: 자산총계·부채총계 추가, 3: 밸류 재료 finx 추가) — 바뀌면 다음 실행에서 DART를 다시 받는다
 SEED_CORP = os.environ.get('SEED_CORP', 'tools/semipeer/dartcorp.json')
 DEBUG = []
 # 우선주가 따로 상장된 기업: 보통주 시총만 쓰면 PER·PBR이 낮게 나오므로 우선주 시총을 더한다
@@ -198,8 +200,269 @@ def dart_full(corp, year, q):
     if st != '000': return None
     return parse_full(j.get('list'), q)
 
-def collect_fin(codes, prev_fin, prev_corp=None):
-    """DART에서 재무를 모아 {code: fin} 반환. 실패한 종목은 이전 캐시 유지."""
+# ───────── 밸류 재료(순차입금·EBITDA·FCF) — 전체 재무제표(fnlttSinglAcntAll) 확장 파서
+#   이미 받는 응답(올해 누적·전년 연간·전년 동기 3개 보고서)에서 뽑으므로 연결 종목은 추가 호출이 없다.
+#   별도 재무제표만 내는 종목은 fs_div=OFS로 같은 3개 보고서를 새로 받는다(종목당 3콜, 사업보고서 분기는 1콜).
+#   못 뽑은 항목은 None + 이유 코드(why). 0으로 덮어쓰지 않는다. '계정이 아예 없음 = 0'으로 본 항목은 src에 none0으로 남긴다.
+XV = 1           # 확장 항목 파서 버전 — 바뀌면 다음 실행에서 다시 받는다
+def tonum2(s):
+    """금액 문자열 → float. '-'·빈칸 → None, '(1,234)'·'△1,234' → 음수"""
+    if s is None: return None
+    s = str(s).replace(',', '').replace(' ', '').replace('　', '').strip()
+    if s in ('', '-', '－', '–', '—', 'None', 'null', 'N/A'): return None
+    neg = False
+    if s.startswith('(') and s.endswith(')'): neg = True; s = s[1:-1]
+    if s[:1] in ('△', '▲', '▵', '−'): neg = True; s = s[1:]
+    try: v = float(s)
+    except Exception: return None
+    return -v if neg else v
+def _nmz(nm):
+    """계정 이름 정리: 공백·머리 번호(Ⅰ. / 1. / (1))·꼬리 주석 표시 제거"""
+    nm = re.sub(r'\s+', '', nm or '')
+    nm = re.sub(r'^(?:[ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ]+|[IVX]+|\d+)[\.\)]', '', nm)
+    nm = re.sub(r'^\([0-9가-힣]\)', '', nm)
+    nm = re.sub(r'\((?:주석?|註)[^)]*\)$', '', nm)
+    return nm
+SEC_ID = {'ifrs-full_CurrentAssets': 'ca', 'ifrs-full_NoncurrentAssets': 'nca', 'ifrs-full_Assets': 'A', 'ifrs-full_CurrentLiabilities': 'cl',
+          'ifrs-full_NoncurrentLiabilities': 'ncl', 'ifrs-full_Liabilities': 'L', 'ifrs-full_Equity': 'E', 'ifrs-full_EquityAndLiabilities': 'E'}
+SEC_NM = {'유동자산': 'ca', '비유동자산': 'nca', '자산총계': 'A', '유동부채': 'cl', '비유동부채': 'ncl', '부채총계': 'L', '자본총계': 'E',
+          '부채와자본총계': 'E', '자본과부채총계': 'E', '부채및자본총계': 'E', '자본및부채총계': 'E'}
+CASH_ID = {'ifrs-full_CashAndCashEquivalents'}
+CASH_PAT = re.compile(r'^(현금및현금성자산|현금및현금등가물|현금및예치금)$')
+STFI_ID = {'dart_ShortTermDepositsNotClassifiedAsCashEquivalents', 'ifrs-full_ShorttermDepositsNotClassifiedAsCashEquivalents'}
+STFI_PAT = re.compile(r'^(단기금융상품|단기예금|정기예금|단기금융기관예치금|유동금융기관예치금|금융기관예치금|단기예치금|유동성?예치금)$')
+OFA_ID = {'ifrs-full_OtherCurrentFinancialAssets', 'ifrs-full_CurrentFinancialAssets', 'ifrs-full_CurrentFinancialAssetsAtFairValueThroughProfitOrLoss',
+          'ifrs-full_CurrentFinancialAssetsAtAmortisedCost', 'dart_ShortTermInvestmentAssets'}
+OFA_PAT = re.compile(r'^(기타유동금융자산|유동금융자산|기타단기금융자산|단기금융자산|단기투자자산|단기투자증권|단기매매증권|단기매매금융자산'
+                     r'|(유동성?|단기)(당기손익|상각후원가|기타포괄손익)-?(공정가치)?(측정)?(인식)?금융자산|당기손익-?공정가치(측정)?금융자산|상각후원가(측정)?금융자산)$')
+DEBT_ID = {'ifrs-full_ShorttermBorrowings': 'st', 'dart_ShortTermBorrowings': 'st', 'ifrs-full_CurrentBorrowings': 'st',
+           'ifrs-full_CurrentBorrowingsAndCurrentPortionOfNoncurrentBorrowings': 'st',
+           'ifrs-full_CurrentPortionOfLongtermBorrowings': 'cl', 'dart_CurrentPortionOfLongTermBorrowings': 'cl', 'dart_CurrentPortionOfLongTermDebt': 'cl',
+           'ifrs-full_LongtermBorrowings': 'lt', 'dart_LongTermBorrowingsGross': 'lt', 'dart_LongTermBorrowings': 'lt',
+           'ifrs-full_NoncurrentPortionOfNoncurrentBorrowings': 'lt', 'ifrs-full_NoncurrentBorrowings': 'lt',
+           'dart_BondsIssued': 'bond', 'ifrs-full_BondsIssued': 'bond', 'dart_CurrentPortionOfBonds': 'bond', 'dart_ConvertibleBonds': 'bond',
+           'dart_CurrentPortionOfConvertibleBonds': 'bond', 'dart_BondsWithWarrants': 'bond', 'dart_ExchangeableBonds': 'bond',
+           'ifrs-full_CurrentBondsIssuedAndCurrentPortionOfNoncurrentBondsIssued': 'bond', 'ifrs-full_NoncurrentPortionOfNoncurrentBondsIssued': 'bond',
+           'ifrs-full_CurrentLeaseLiabilities': 'lease', 'ifrs-full_NoncurrentLeaseLiabilities': 'lease', 'ifrs-full_LeaseLiabilities': 'lease'}
+DEBT_PAT = re.compile(r'차입금|차입부채|유동성장기부채|사채|리스부채|우선주부채|전환권조정|신주인수권조정')
+DEBT_NOT = re.compile(r'이자|파생|보증|충당|관련|평가|상환이익|상환손실')       # 미지급 사채이자·전환사채 파생상품부채 등은 빚의 원금이 아니다
+NCI_ID = {'ifrs-full_NoncontrollingInterests'}
+NCI_PAT = re.compile(r'^비지배(주주)?지분$')
+CFO_ID = {'ifrs-full_CashFlowsFromUsedInOperatingActivities'}
+CFO_PAT = re.compile(r'^영업활동(으로인한|으로부터의|에서의|에의한|으로인한순|순)?(순)?현금(흐름|유입|유출)')
+CAPEX_ID = {'ifrs-full_PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities'}
+CAPEX_PAT = re.compile(r'^유형자산의?(취득|증가)$')
+CAPEX_PART = re.compile(r'^(건설중인자산|토지|건물|구축물|기계장치|차량운반구|공구와기구|공기구비품|공기구|비품|집기비품|시설장치|금형|기타유형자산|기타의유형자산|임차자산개량권?)의?(취득|증가)$')
+CAPEXI_ID = {'ifrs-full_PurchaseOfIntangibleAssetsClassifiedAsInvestingActivities'}
+CAPEXI_PAT = re.compile(r'^(무형자산|개발비|소프트웨어|산업재산권|기타무형자산|기타의무형자산)의?(취득|증가)$')
+DEP_ID = {'ifrs-full_AdjustmentsForDepreciationExpense', 'ifrs-full_AdjustmentsForDepreciationAndAmortisationExpense', 'ifrs-full_DepreciationExpense',
+          'ifrs-full_DepreciationAndAmortisationExpense', 'ifrs-full_DepreciationRightofuseAssets', 'dart_DepreciationExpense',
+          'ifrs-full_DepreciationPropertyPlantAndEquipment', 'ifrs-full_DepreciationInvestmentProperty'}
+AMO_ID = {'ifrs-full_AdjustmentsForAmortisationExpense', 'ifrs-full_AmortisationExpense', 'dart_AmortisationExpense', 'ifrs-full_AmortisationIntangibleAssetsOtherThanGoodwill'}
+DEP_PAT = re.compile(r'감가상각')
+AMO_PAT = re.compile(r'(무형자산|사용권자산|개발비|리스자산|투자부동산)상각')
+DA_NOT = re.compile(r'대손|차금|할인|사채|채권|이연|현재가치|누계|손상|환입|처분')   # 대손상각비·사채할인발행차금상각 등은 감가상각이 아니다
+
+def _flow(r, q, cf):
+    """손익·현금흐름 행 → (당기 누적, 전년 동기 누적). 분기·반기 손익은 누적(add) 우선, 현금흐름표는 원래 누적만 싣는다."""
+    amt = tonum2(r.get('thstrm_amount')); add = tonum2(r.get('thstrm_add_amount'))
+    cur = amt if q == 4 else (add if add is not None else amt)
+    if q == 4: prv = tonum2(r.get('frmtrm_amount'))
+    elif cf:
+        prv = next((v for v in (tonum2(r.get('frmtrm_q_amount')), tonum2(r.get('frmtrm_add_amount')), tonum2(r.get('frmtrm_amount'))) if v is not None), None)
+    else:
+        prv = tonum2(r.get('frmtrm_add_amount'))
+        if prv is None and q == 1: prv = tonum2(r.get('frmtrm_q_amount'))
+    return cur, prv
+def _ord(rows):
+    """sj_div 안에서 ord(표시 순서)가 모두 숫자면 그 순서로, 아니면 응답 순서 그대로"""
+    try: return sorted(rows, key=lambda r: int(r['ord']))
+    except Exception: return rows
+def _drop_parent(items):
+    """합계 계정과 그 내역이 함께 실린 경우(예: 차입금 = 단기차입금 + 유동성장기부채) 합계 쪽을 뺀다 — 두 번 세지 않기"""
+    out = []; n = len(items)
+    for i, it in enumerate(items):
+        dup = False
+        for j in range(2, 5):
+            seg = items[i + 1:i + 1 + j]
+            if len(seg) == j and abs(sum(s[1] for s in seg) - it[1]) <= max(1.0, abs(it[1]) * 1e-9) and it[1] != 0: dup = True; break
+        if not dup: out.append(it)
+    return out
+def parse_ext(rows, q):
+    """fnlttSinglAcntAll rows → 밸류 재료(원).
+       반환 {'has_bs', 'has_cf', 'bs': {cash, stfi, ofa, st, cl, lt, bond, lease, nci}, 'fl': {cfo, capex, capex_i, dep, amo: (당기 누적, 전년 동기 누적)}, 'src': {키: id|nm|parts|is|none0}}"""
+    rows = rows or []
+    bsr = _ord([r for r in rows if (r.get('sj_div') or '') == 'BS'])
+    cfr = [r for r in rows if (r.get('sj_div') or '') == 'CF']
+    isr = [r for r in rows if (r.get('sj_div') or '') in ('IS', 'CIS')]
+    out = {'has_bs': bool(bsr), 'has_cf': bool(cfr), 'bs': {}, 'fl': {}, 'src': {}}
+    bs, src = out['bs'], out['src']
+    # ── 재무상태표: 구획(유동자산 → 비유동자산 → 자산총계 → 유동부채 → 비유동부채 → 부채총계 → 자본)을 따라가며 읽는다
+    def sec_of(r):
+        nm = _nmz(r.get('account_nm')); nm = re.sub(r'^(유동자산|비유동자산|유동부채|비유동부채)(합계|총계|계)$', r'\1', nm); nm = re.sub(r'^(자산|부채|자본)(합계)$', r'\1총계', nm)
+        return SEC_ID.get(_aid(r.get('account_id'))) or SEC_NM.get(nm)
+    has_sec = any(sec_of(r) == 'A' for r in bsr)
+    sec = None; debts = []; stfi = []; ofa = []; dby = set()
+    for r in bsr:
+        aid = _aid(r.get('account_id')); nm = _nmz(r.get('account_nm')); s = sec_of(r)
+        if s:
+            sec = {'ca': 'ca', 'nca': 'nca', 'A': 'l?', 'cl': 'cl', 'ncl': 'ncl', 'L': 'eq', 'E': 'eq'}[s]; continue
+        v = tonum2(r.get('thstrm_amount'))
+        if v is None: continue
+        asset = (sec in (None, 'ca', 'nca')) if has_sec else True
+        liab = (sec in ('l?', 'cl', 'ncl')) if has_sec else True
+        if aid in NCI_ID or NCI_PAT.match(nm):
+            if 'nci' not in bs: bs['nci'] = v; src['nci'] = 'id' if aid in NCI_ID else 'nm'
+            continue
+        if asset:
+            if aid in CASH_ID or CASH_PAT.match(nm):
+                if 'cash' not in bs: bs['cash'] = v; src['cash'] = 'id' if aid in CASH_ID else 'nm'
+                continue
+            if sec != 'nca' and (aid in STFI_ID or STFI_PAT.match(nm)): stfi.append((nm, v)); src['stfi'] = 'id' if aid in STFI_ID else src.get('stfi', 'nm'); continue
+            if (sec == 'ca' or (sec is None and re.match(r'^(유동|단기|기타유동|기타단기)', nm))) and (aid in OFA_ID or OFA_PAT.match(nm)): ofa.append((nm, v)); continue
+        if liab and '자산' not in nm and '채권' not in nm:
+            k = DEBT_ID.get(aid); by = 'id' if k else None
+            if k is None and DEBT_PAT.search(nm) and not DEBT_NOT.search(nm):
+                by = 'nm'
+                if '리스부채' in nm: k = 'lease'
+                elif re.search(r'우선주부채|전환권조정|신주인수권조정', nm) or ('사채' in nm and '차입' not in nm): k = 'bond'
+                elif '유동성' in nm: k = 'cl'
+                elif '단기' in nm: k = 'st'
+                elif '장기' in nm: k = 'lt'
+                else: k = 'st' if sec == 'cl' else 'lt'
+            if k: dby.add(by)
+            if k: debts.append((k, v, nm))
+    if bsr:
+        if stfi: bs['stfi'] = sum(v for _, v in stfi)
+        else: bs['stfi'] = 0.0; src['stfi'] = 'none0'
+        if ofa: bs['ofa'] = sum(v for _, v in ofa)
+        debts = _drop_parent(debts)
+        for k in ('st', 'cl', 'lt', 'bond', 'lease'): bs[k] = sum(v for kk, v, _ in debts if kk == k)
+        bs['n_debt'] = len(debts)
+        src['debt'] = 'none0' if not debts else 'id' if dby == {'id'} else 'nm' if dby == {'nm'} else 'id+nm'
+        if 'nci' not in bs: bs['nci'] = 0.0; src['nci'] = 'none0'
+    # ── 현금흐름표
+    fl = out['fl']
+    def add(k, r, cf=True):
+        c, p = _flow(r, q, cf)
+        if c is None and p is None: return False
+        a = fl.get(k) or (None, None)
+        fl[k] = ((a[0] or 0.0) + c if c is not None else a[0], (a[1] or 0.0) + p if p is not None else a[1]); return True
+    parts = []
+    for r in cfr:
+        aid = _aid(r.get('account_id')); nm = _nmz(r.get('account_nm'))
+        if aid in CFO_ID or (CFO_PAT.match(nm) and '조정' not in nm and '창출' not in nm):
+            if 'cfo' not in fl and add('cfo', r): src['cfo'] = 'id' if aid in CFO_ID else 'nm'
+        elif aid in CAPEX_ID or CAPEX_PAT.match(nm):
+            if add('capex', r): src['capex'] = 'id' if aid in CAPEX_ID else 'nm'
+        elif CAPEX_PART.match(nm): parts.append(r)
+        elif aid in CAPEXI_ID or CAPEXI_PAT.match(nm):
+            if add('capex_i', r): src['capex_i'] = 'id' if aid in CAPEXI_ID else 'nm'
+        elif (aid in DEP_ID or DEP_PAT.search(nm)) and not DA_NOT.search(nm):
+            if add('dep', r): src['dep'] = 'id' if aid in DEP_ID else src.get('dep', 'nm')
+        elif (aid in AMO_ID or AMO_PAT.search(nm)) and not DA_NOT.search(nm):
+            if add('amo', r): src['amo'] = 'id' if aid in AMO_ID else src.get('amo', 'nm')
+    if parts:                                             # 자산 종류별 취득(건설중인자산·기계장치 등)이 따로 적힌 회사
+        main = fl.pop('capex', None)
+        for r in parts: add('capex', r)
+        pt = fl.pop('capex', None)
+        if main is None:
+            if pt is not None: fl['capex'] = pt; src['capex'] = 'parts'
+        elif pt is None or (pt[0] is not None and main[0] is not None and abs(abs(pt[0]) - abs(main[0])) <= max(1.0, abs(main[0]) * 1e-9)):
+            fl['capex'] = main                              # '유형자산의 취득'이 종류별 줄의 합계 — 합계만 쓴다(두 번 세지 않기)
+        else:                                               # 합계가 아니라 나란히 적힌 별개 줄 — 더한다
+            sm = lambda a, b: None if (a is None and b is None) else abs(a or 0.0) + abs(b or 0.0)
+            fl['capex'] = (sm(main[0], pt[0]), sm(main[1], pt[1])); src['capex'] = 'nm+parts'
+    by_nature = any(re.search(r'재고자산의?변동|원재료.*사용|종업원급여', _nmz(r.get('account_nm'))) for r in isr)
+    if 'dep' not in fl and by_nature:                     # 현금흐름표 본문에 없으면 손익계산서가 '성격별 분류'일 때만 거기서(기능별의 판관비 내역은 일부라 쓰지 않는다)
+        for r in isr:
+            aid = _aid(r.get('account_id')); nm = _nmz(r.get('account_nm'))
+            if (aid in DEP_ID or DEP_PAT.search(nm)) and not DA_NOT.search(nm):
+                if add('dep', r, False): src['dep'] = 'is'
+            elif (aid in AMO_ID or AMO_PAT.search(nm)) and not DA_NOT.search(nm):
+                if add('amo', r, False): src['amo'] = 'is'
+    for k in ('capex', 'capex_i', 'dep', 'amo'):          # 나가는 돈·비용은 부호를 떼고 크기로 둔다(회사마다 음수·양수 표기가 다르다)
+        if k in fl: fl[k] = tuple(None if v is None else abs(v) for v in fl[k])
+    if cfr and 'cfo' in fl:
+        if 'capex' in fl and 'capex_i' not in fl: fl['capex_i'] = (0.0, 0.0); src['capex_i'] = 'none0'
+    if 'dep' in fl and 'amo' not in fl: fl['amo'] = (0.0, 0.0); src['amo'] = 'none0'
+    return out
+
+XWHY = {'next': '다음 수집부터 표시(전체 재무제표 확장 항목 수집 전)', 'nodata': 'DART에 이 분기 전체 재무제표가 없음', 'err': 'DART 수집 실패 — 다음 실행에서 다시 시도',
+        'no_bs': '재무상태표 행이 없음', 'no_cf': '현금흐름표 행이 없음', 'no_acct': '재무제표 본문에서 계정을 찾지 못함',
+        'da_notes': '감가상각비가 현금흐름표·손익계산서 본문에 없음(주석에만 기재 — 사업보고서 주석 "비용의 성격별 분류"에서 확인)', 'no_prev': '전년 보고서에서 같은 항목을 찾지 못해 최근 4분기 합을 만들지 못함',
+        'chk': '검산 실패(다른 계정과 크기가 맞지 않음) — 값을 버림', 'stale': '이전 분기 값(이번 분기 수집 실패)'}
+def ext_build(raw, y, q, fs, asof, prevx, f):
+    """raw {(연, 분기): (상태, rows)} → 확장 재무 캐시 한 종목분(억원). f = 주요계정 TTM(검산용)"""
+    st0 = (raw.get((y, q)) or ('err', None))[0]
+    if st0 != 'ok':
+        if st0 == 'nodata': return {'v': XV, 'asof': asof, 'fs': fs, 'none': 'nodata'}
+        if prevx and prevx.get('cash') is not None: return dict(prevx, fail=1)          # 이번 수집 실패 → 기존 값 유지(다음 실행에서 재시도)
+        return {'v': XV, 'asof': asof, 'fs': fs, 'none': 'err', 'fail': 1}
+    P = {k: (parse_ext(v[1], k[1]) if v[0] == 'ok' else None) for k, v in raw.items()}
+    p0 = P[(y, q)]; x = {'v': XV, 'asof': asof, 'fs': fs}; why = {}; src = dict(p0['src'])
+    E = lambda v: None if v is None else round(v / EOK, 2)
+    b = p0['bs']
+    if not p0['has_bs']:
+        for k in ('cash', 'debt', 'nci'): why[k] = 'no_bs'
+    else:
+        if b.get('cash') is None: why['cash'] = 'no_acct'
+        else: x['cash'] = E(b['cash']); x['stfi'] = E(b.get('stfi'))
+        if b.get('ofa'): x['ofa'] = E(b['ofa'])
+        for k in ('st', 'cl', 'lt', 'bond', 'lease'): x[k] = E(b.get(k) or 0.0)
+        x['debt'] = round(sum(x[k] for k in ('st', 'cl', 'lt', 'bond', 'lease')), 2)
+        x['nci'] = E(b.get('nci')) if fs == 'CFS' else 0.0
+        if fs != 'CFS': src['nci'] = 'ofs'
+        # 검산: 차입금 합계 ≤ 부채총계, 현금 ≤ 자산총계, 비지배지분 ≤ 자본총계
+        if f.get('li') is not None and x['debt'] > f['li'] * 1.02 + 1:
+            for k in ('st', 'cl', 'lt', 'bond', 'lease', 'debt'): x.pop(k, None)
+            why['debt'] = 'chk'
+        if x.get('cash') is not None and f.get('as') is not None and x['cash'] + (x.get('stfi') or 0) > f['as'] * 1.02 + 1:
+            x.pop('cash', None); x.pop('stfi', None); why['cash'] = 'chk'
+        if x.get('nci') and f.get('eq') is not None and (x['nci'] > f['eq'] * 1.02 + 1): x.pop('nci', None); why['nci'] = 'chk'
+    # 손익·현금흐름: 최근 4분기 합 = 올해 누적 + 전년 연간 − 전년 동기 누적
+    reps = [(y, 4)] if q == 4 else [(y, q), (y - 1, 4), (y - 1, q)]
+    bad = [k for k in reps[1:] if (raw.get(k) or ('err',))[0] == 'err']
+    for k in ('cfo', 'capex', 'capex_i', 'dep', 'amo'):
+        a = p0['fl'].get(k)
+        if a is None or a[0] is None:
+            why[k] = ('no_cf' if not p0['has_cf'] else 'da_notes' if k in ('dep', 'amo') else 'no_acct'); continue
+        if q == 4: x[k] = E(a[0]); continue
+        pa, pc = P.get((y - 1, 4)), P.get((y - 1, q))
+        zero = (src.get(k) == 'none0')
+        bv = ((pa['fl'].get(k) or (None,))[0] if pa else None)
+        cv = ((pc['fl'].get(k) or (None,))[0] if pc else None)
+        if cv is None and a[1] is not None and not zero: cv = a[1]; src[k + '_c'] = 'prvcol'       # 전년 동기 보고서에 없으면 올해 보고서의 전년 동기 열
+        if zero or (k in ('capex_i', 'amo') and pa and pc):                                         # 무형자산 취득·상각은 줄이 없으면 그 기간 0
+            bv = 0.0 if bv is None else bv; cv = 0.0 if cv is None else cv
+        if bv is None or cv is None:
+            if bad: why[k] = 'err'
+            else: why[k] = 'no_prev'
+            continue
+        x[k] = E(a[0] + bv - cv)
+        if k in ('capex', 'capex_i', 'dep', 'amo') and x[k] < 0: x.pop(k); why[k] = 'chk'
+    if x.get('dep') is not None and f.get('rev') and x['dep'] + (x.get('amo') or 0) > f['rev']: x.pop('dep'); x.pop('amo', None); why['dep'] = 'chk'
+    if bad:
+        x['fail'] = 1
+        if prevx and prevx.get('asof') == asof:                                                     # 같은 분기의 기존 값이 있으면 못 만든 항목만 기존 값으로
+            for k in ('cfo', 'capex', 'capex_i', 'dep', 'amo'):
+                if k not in x and prevx.get(k) is not None: x[k] = prevx[k]; why.pop(k, None)
+    if why: x['why'] = why
+    x['src'] = {k: v for k, v in src.items() if v not in ('id',)}                                   # 표준 계정 ID로 잡은 것은 적지 않는다(나머지만 추적)
+    return x
+def dart_full_rows(corp, year, q, fs='CFS'):
+    """전체 재무제표 원본 행. 반환 (상태, rows) — ok / nodata(자료 없음 013) / quota(한도 020) / err(그 밖의 실패)"""
+    j = jget('https://opendart.fss.or.kr/api/fnlttSinglAcntAll.json?crtfc_key=%s&corp_code=%s&bsns_year=%d&reprt_code=%s&fs_div=%s'
+             % (KEY, corp, year, REPRT[q], fs))
+    st = j.get('status')
+    if st == '020': return 'quota', None
+    if st == '000': return 'ok', j.get('list') or []
+    if st == '013': return 'nodata', None
+    return 'err', None
+
+def collect_fin(codes, prev_fin, prev_corp=None, prev_finx=None):
+    """DART에서 재무를 모아 (fin, meta, corpmap, finx) 반환. 실패한 종목은 이전 캐시 유지."""
+    prev_finx = prev_finx or {}
     y, q = latest_quarter()
     corpmap = {}
     try: corpmap.update(json.load(open(SEED_CORP, encoding='utf-8')))
@@ -208,7 +471,7 @@ def collect_fin(codes, prev_fin, prev_corp=None):
     fresh = dart_corpcodes()
     if fresh: corpmap.update({c: fresh[c] for c in codes if c in fresh})
     else: log('corpCode.xml 실패(점검 등) — 시드·캐시 고유번호 %d개로 진행' % len(corpmap))
-    if not corpmap: log('DART 고유번호 없음 — 재무 캐시 유지'); return prev_fin, None, {}
+    if not corpmap: log('DART 고유번호 없음 — 재무 캐시 유지'); return prev_fin, None, {}, prev_finx
     todo = [c for c in codes if c in corpmap]
     log('DART 대상 %d/%d종목, 기준 분기 %d년 %dQ' % (len(todo), len(codes), y, q))
     store = {}; calls = 0; quota = False; T0 = time.time()
@@ -232,23 +495,36 @@ def collect_fin(codes, prev_fin, prev_corp=None):
             t['b'] = 1
         fin[c] = t; n_ok += 1
     log('① 주요계정 TTM 산출 %d종목 (호출 %d, %ds)' % (n_ok, calls, time.time() - T0))
-    # ② 지배주주 몫 — 연결 재무제표를 쓰는 종목만
+    # ② 전체 재무제표 — 지배주주 몫(연결 종목) + 밸류 재료(순차입금·감가상각비·현금흐름, 연결·별도 모두). 같은 응답에서 함께 뽑는다
+    finx = dict(prev_finx); n_x = 0; n_xf = 0
     if not quota:
+        reps = [(y, 4)] if q == 4 else [(y, q), (y - 1, 4), (y - 1, q)]
         for c in todo:
             t = fin.get(c)
-            if not t or t.get('asof') != asof or t.get('fs') != 'CFS': continue
-            if t.get('b'):
+            if not t or t.get('asof') != asof: continue
+            fs = t.get('fs') or 'CFS'; px_ = finx.get(c) or {}
+            need_b = (fs == 'CFS' and not t.get('b'))                       # 지배주주 몫: 같은 분기에 이미 받았으면 다시 받지 않는다
+            need_x = not (px_.get('v') == XV and px_.get('asof') == asof and px_.get('fs') == fs and not px_.get('fail'))
+            if not need_b and not need_x:
+                if 'ni_p' in t: n_p += 1
+                n_x += 1; continue
+            corp = corpmap[c]; raw = {}
+            for (yy, qq) in reps:
+                st, rows = dart_full_rows(corp, yy, qq, fs); calls += 1; time.sleep(0.2)
+                if st == 'quota': quota = True; break
+                raw[(yy, qq)] = (st, rows)
+            if quota: log('DART 한도 초과 — 전체 재무제표 수집 중단'); break
+            if need_x:
+                try: finx[c] = ext_build(raw, y, q, fs, asof, px_, t)
+                except Exception as e: log('확장 항목 파싱 실패 %s %r' % (c, e)); finx[c] = dict(px_, fail=1) if px_ else {'v': XV, 'asof': asof, 'fs': fs, 'none': 'err', 'fail': 1}
+                if finx[c].get('fail'): n_xf += 1
+                else: n_x += 1
+            if not need_b:
                 if 'ni_p' in t: n_p += 1
                 continue
-            corp = corpmap[c]; got = {}
-            for (yy, qq) in ([(y, 4)] if q == 4 else [(y, q), (y - 1, 4), (y - 1, q)]):
-                r = dart_full(corp, yy, qq); calls += 1; time.sleep(0.2)
-                if r == 'quota': quota = True; break
-                if r is None: got = None; break
-                got[(yy, qq)] = r
-            if quota: log('DART 한도 초과 — 지배주주 몫 수집 중단'); break
             t['b'] = 1
-            if not got: continue
+            if not all(v[0] == 'ok' for v in raw.values()): continue
+            got = {k: parse_full(v[1], k[1]) for k, v in raw.items()}
             if q == 4: nip = got[(y, 4)].get('ni_p')
             else:
                 a, b, d = got[(y, q)].get('ni_p'), got[(y - 1, 4)].get('ni_p'), got[(y - 1, q)].get('ni_p')
@@ -262,10 +538,11 @@ def collect_fin(codes, prev_fin, prev_corp=None):
                 ratio = (eqp / EOK) / t['eq']
                 if 0.2 <= ratio <= 1.02: t['eq_p'] = eqp / EOK
             if 'ni_p' in t: n_p += 1
-        log('② 지배주주 순이익 산출 %d종목 (누적 호출 %d, %ds)' % (n_p, calls, time.time() - T0))
+        log('② 지배주주 순이익 산출 %d종목 · 밸류 재료 %d종목(실패 %d) (누적 호출 %d, %ds)' % (n_p, n_x, n_xf, calls, time.time() - T0))
     if n_ok < max(10, len(todo) // 3):
-        log('DART 산출 종목이 너무 적음(%d) — 이전 재무 캐시 유지' % n_ok); return prev_fin, None, corpmap
-    return fin, {'asof': asof, 'calls': calls, 'ok': n_ok, 'ctrl': n_p, 'quota': quota, 'date': TODAY.isoformat(), 'ver': FIN_VER}, {c: corpmap[c] for c in codes if c in corpmap}
+        log('DART 산출 종목이 너무 적음(%d) — 이전 재무 캐시 유지' % n_ok); return prev_fin, None, corpmap, prev_finx
+    return (fin, {'asof': asof, 'calls': calls, 'ok': n_ok, 'ctrl': n_p, 'quota': quota, 'date': TODAY.isoformat(), 'ver': FIN_VER, 'x': n_x, 'xfail': n_xf},
+            {c: corpmap[c] for c in codes if c in corpmap}, finx)
 
 # ───────── 네이버(증권사 추정·우선주 시총) — 선행 지표는 "증권사 추정" 태그로만 표시
 def naver_consensus(code):
@@ -468,6 +745,331 @@ def pbr_roe(co, defpairs):
     return {'th': PR, 'lines': lines, 'count': cnt,
             'rule': '평균 ROE = 최근 3개 연도 ROE(네이버·FnGuide 연간, 지배주주 기준)와 최근 4분기 ROE(DART)의 평균. 관계선 = 같은 분야 기업들의 (평균 ROE, 현재 PBR)을 강건 직선(Theil–Sen)으로 맞춘 것, 분야 표본이 10개 미만이거나 기울기가 음수면 반도체 전체 선. 괴리율 = 현재 PBR ÷ 관계선이 주는 PBR − 1. A·B등급 peer가 있으면 peer와의 비교(PBR 비율 × 평균 ROE 차이)를 대표 판정으로 쓰고 관계선 판정을 함께 표시'}
 
+# ───────── 평가법별 책정값(val) — "이 회사에 맞는 평가법"에 방법 이름만 적지 않고 실제로 계산한 값을 싣는다
+#   방법마다: 이 회사의 배수 · 비교 대상(peer) 중앙값 · 그 배수를 받는다면의 환산 주가 · 현재가 대비 %
+#   환산 주가는 목표주가가 아니다 — "peer와 같은 배수를 받는다면 어디인가"를 보는 위치 확인용.
+#   peer 범위: ① A·B등급 peer(표본 1곳 이상) → ② 같은 묶음(2곳 이상) → ③ 같은 단계(3곳 이상) 순으로 넓히고, 어느 범위·몇 곳인지 남긴다.
+#   배수가 0 이하이거나 상한(lim)을 넘는 peer는 중앙값에서 빼고 그 수를 남긴다(pe).
+#   곱한 결과가 현재가의 0.1배 미만·10배 초과면(far) 비교 대상과 사업 구조가 너무 다른 것이라 환산 주가로 쓰지 않고 이유만 남긴다.
+VALCFG = {'coe': PR['coe'], 'gt': 2.0, 'gcap': 30.0, 'yrs': 10, 'band_yrs': 5, 'peg_gmax': 100.0, 'wide': 2.0, 'nci_need': 20.0, 'far': 10.0,
+          'lim': {'per': PER_MAX, 'fper': PER_MAX, 'norm_per': PER_MAX, 'por': 150, 'ev_ebit': 150, 'ev_ebitda': 100, 'ev_sales': 50, 'p_fcf': 150, 'pbr': 30, 'psr': 50, 'peg': 5},
+          'min_n': {'ab': 1, 'grp': 2, 'stage': 3}}
+# 단계별 주력·보조 방법 — 화면(semipeer.html)의 VALM 문구와 같은 순서. band = 자기 과거 밴드(Historical Band)
+VALM = {'chip':   (['norm_per', 'ev_ebitda'], ['band_pbr', 'dcf']),
+        'design': (['dcf', 'ev_sales'], ['fper', 'peg']),
+        'dist':   (['fper', 'ev_ebit'], ['p_fcf']),
+        'pre':    (['fper', 'ev_ebit'], ['dcf', 'band_per', 'band_pbr']),
+        'post':   (['fper', 'ev_ebitda'], ['ev_ebit', 'band_per', 'band_pbr']),
+        'both':   (['fper', 'ev_ebit'], ['ev_ebitda', 'dcf']),
+        'infra':  (['ev_ebitda', 'p_fcf'], ['fper']),
+        'etc':    (['fper', 'ev_ebit'], ['pbr'])}
+PEERK = ['per', 'fper', 'norm_per', 'por', 'ev_ebit', 'ev_ebitda', 'ev_sales', 'p_fcf', 'pbr', 'psr', 'peg']
+EVBASE = {'ev_ebit': 'op', 'ev_ebitda': 'ebitda', 'ev_sales': 'rev'}
+VWHY = {'loss': '최근 4분기 순손실 — PER이 성립하지 않음', 'nodata': '순이익 자료 없음', 'nocov': '증권사 추정 없음(미커버)',
+        'norm_loss': '몇 해 평균 순이익이 적자 — 정상화 PER이 성립하지 않음', 'norm_short': '연간 실적이 3개 연도 미만 — 평균을 내지 않음',
+        'oploss': '최근 4분기 영업적자 — 영업이익 기준 배수가 성립하지 않음', 'ebitda_neg': 'EBITDA가 0 이하', 'rev0': '매출 자료 없음',
+        'fcf_neg': '잉여현금흐름(FCF)이 0 이하 — 번 현금보다 설비투자가 큼', 'g_neg': '추정 이익 성장률이 0 이하 — PEG가 성립하지 않음',
+        'g_base': '추정 성장률 100% 초과(기저효과) — PEG 환산을 하지 않음', 'thin': '이익이 너무 작아 배수가 상한을 넘음 — 환산하지 않음',
+        'no_peer': '비교할 표본이 없음(peer·같은 묶음·같은 단계 모두 값 없음)',
+        'far': '곱해 보면 현재가의 0.1배 미만이거나 10배 초과 — 같은 잣대로 보기 어려워 환산 주가로 쓰지 않음', 'neg_eq': 'peer 배수를 곱한 사업가치보다 순차입금이 큼',
+        'no_file': '밴드 자료 없음(일별 PER·PBR 시계열이 수집되지 않은 종목)', 'short': '밴드 자료가 1년 미만', 'no_cur': '현재 값이 없음(적자 등) — 밴드 위치를 잡지 못함',
+        'no_g': '증권사 추정 성장률이 없음(미커버) — 성장률 가정을 만들지 않음', 'no_cf': '현금흐름 자료 없음', 'no_nd': '순차입금을 구하지 못함',
+        'no_da': '감가상각비를 구하지 못함', 'gt': '연 80%를 넘는 성장이 필요 — 계산 범위 밖', 'lt': '이익이 해마다 30% 넘게 줄어도 되는 수준 — 계산 범위 밖'}
+VWHY.update(XWHY)
+def _r2(v):
+    """소수 둘째 자리 반올림(5는 올림) — 화면(JS)의 계산과 끝자리까지 같게 하려고 파이썬 기본 반올림(짝수 쪽) 대신 쓴다"""
+    return math.floor(v * 100 + 0.5 + 1e-9) / 100
+def _vf(code):
+    try: return json.load(open(os.path.join(DD, 'vf', '%s.json' % code), encoding='utf-8'))
+    except Exception: return {}
+def _annual_ni(vf):
+    """vf 수집본(네이버·FnGuide 연간)의 확정 연도 순이익(지배주주 우선, 없으면 당기순이익) — 최근 3개 [[연도, 억]]"""
+    an = vf.get('annual') or {}; rows = an.get('rows') or {}
+    a, b = rows.get('지배주주순이익') or {}, rows.get('당기순이익') or {}
+    out = []
+    for col in an.get('cols') or []:
+        if col[1]: continue
+        v = a.get(col[0]); v = v if v is not None else b.get(col[0])
+        if v is not None: out.append([col[0][:4], v])
+    return sorted(out)[-3:]
+SEG_SKIP = re.compile(r'합\s*계|소\s*계|총\s*계|^계$|전\s*사|연결\s*조정|내부\s*거래|기\s*타|공통|조정|단순\s*합|^[-–—]+$')
+def _segs(vf):
+    """사업보고서 '주요 제품 등의 현황' 표의 첫 열이 사업부문이면 부문 이름 목록(합계·전사·조정 제외)"""
+    try:
+        rows = ((vf.get('biz') or {}).get('prod') or {}).get('r') or []
+        cell = lambda v: (v[0], int(v[2]) if len(v) > 2 else 1) if isinstance(v, list) else (v, 1)
+        h, hs = cell(rows[0][0])
+        if '부문' not in re.sub(r'\s+', '', str(h)): return []
+        out = []; skip = hs - 1
+        for r in rows[1:]:
+            if skip > 0: skip -= 1; continue
+            if not r: continue
+            t, span = cell(r[0]); skip = span - 1
+            t = re.sub(r'^\d+[\.\)]\s*', '', re.sub(r'\s+', ' ', str(t)).strip())
+            if t and not SEG_SKIP.search(t) and t not in out and len(t) <= 30: out.append(t)
+        return out
+    except Exception:
+        return []
+def _band(code, px):
+    """자기 과거 밴드 — compare/<코드>.json(일별 PER·PBR)에서 최근 5년 최저·중앙·최고와 현재 위치.
+       현재 값도 같은 시계열의 마지막 값을 쓴다(주식 수·반영 시점 기준이 달라 이 파일의 다른 PER과 섞지 않는다)."""
+    try: j = json.load(open(os.path.join(DD, 'compare', '%s.json' % code), encoding='utf-8'))
+    except Exception: return {'per': {'why': 'no_file'}, 'pbr': {'why': 'no_file'}}
+    d0 = (TODAY - datetime.timedelta(days=365 * VALCFG['band_yrs'])).isoformat(); recent = (TODAY - datetime.timedelta(days=14)).isoformat()
+    out = {}
+    for k in ('per', 'pbr'):
+        lim = VALCFG['lim'][k]
+        s = [(d, v) for d, v in (j.get(k) or []) if d >= d0 and v is not None and 0 < v <= lim]
+        if len(s) < 240: out[k] = {'why': 'short' if (j.get(k) or []) else 'no_file'}; continue
+        if s[-1][0] < recent: out[k] = {'why': 'no_cur'}; continue
+        vs = sorted(v for _, v in s); cur = s[-1][1]; md = statistics.median(vs)
+        o = {'cur': rnd(cur), 'lo': rnd(vs[0]), 'md': rnd(md), 'hi': rnd(vs[-1]), 'pct': rnd(sum(1 for v in vs if v <= cur) / len(vs) * 100, 0),
+             'n': len(vs), 'from': s[0][0], 'to': s[-1][0]}
+        if px: o['ip'] = round(px * md / cur); o['ip_lo'] = round(px * vs[0] / cur); o['ip_hi'] = round(px * vs[-1] / cur)
+        out[k] = o
+    return out
+def _dcf_path(g1, gt, n=10):
+    """성장률 길: 앞 5년 g1, 뒤 5년은 g1에서 영구성장률 gt까지 고르게 낮춘다"""
+    h = n // 2
+    return [g1] * h + [g1 + (gt - g1) * (i + 1) / (n - h) for i in range(n - h)]
+def _dcf_pv(cf0, gs, r, gt):
+    """앞으로 len(gs)년 현금흐름의 현재가치 + 그 뒤(영구성장 gt)의 현재가치. r·g는 소수(0.10)"""
+    pv = 0.0; cf = cf0
+    for t, g in enumerate(gs, 1):
+        cf *= (1 + g); pv += cf / (1 + r) ** t
+    return pv + cf * (1 + gt) / (r - gt) / (1 + r) ** len(gs)
+def _dcf_solve(cf0, target, r, gt, n=10, lo=-0.30, hi=0.80):
+    """현재가치가 target이 되는 10년 연 성장률(이분법). 범위 밖이면 ('gt'|'lt', None)"""
+    f = lambda g: _dcf_pv(cf0, [g] * n, r, gt) - target
+    if f(hi) < 0: return 'gt', None
+    if f(lo) > 0: return 'lt', None
+    for _ in range(60):
+        m = (lo + hi) / 2
+        if f(m) > 0: hi = m
+        else: lo = m
+    return None, (lo + hi) / 2
+def build_val(co, fin, finx, DEF, fwdc, peg):
+    C = VALCFG; LIM = C['lim']; r_ = C['coe'] / 100.0; gt = C['gt'] / 100.0; vfs = {}
+    # 1) 재료와 자기 배수
+    for c, r in co.items():
+        if 'cap' not in r or not r.get('px'): continue
+        cap, px = r['cap'], r['px']; f = fin.get(c) or {}; x = finx.get(c) or {}
+        rev, op, ni, eq = r.get('rev'), r.get('op'), r.get('ni'), r.get('eq')
+        mat = {'cap': cap, 'px': px, 'sh': round(cap * EOK / px), 'rev': rev, 'op': op, 'ni': ni, 'eq': eq}
+        if r.get('pref'): mat['pref'] = r['pref']
+        w = {}                                          # 재료를 못 구한 이유
+        xw = x.get('why') or {}; xnone = x.get('none') or (None if x else 'next')
+        if x and x.get('asof') and r.get('asof') and x['asof'] != r['asof']: mat['stale'] = x['asof']
+        # 순차입금 = 차입금·사채·리스부채 − 현금·단기금융상품
+        if x.get('cash') is not None and x.get('debt') is not None:
+            for k in ('cash', 'stfi', 'st', 'cl', 'lt', 'bond', 'lease', 'debt', 'ofa'):
+                if x.get(k) is not None: mat[k] = rnd(x[k], 1)
+            mat['nd'] = rnd(x['debt'] - x['cash'] - (x.get('stfi') or 0), 1)
+        else: w['nd'] = xnone or xw.get('cash') or xw.get('debt') or 'no_acct'
+        # 비지배지분: 재무상태표 값 우선, 없으면 자본총계 − 지배주주 자본(이미 가진 값으로 계산)
+        if x.get('nci') is not None: mat['nci'] = rnd(x['nci'], 1)
+        elif f.get('fs') == 'OFS': mat['nci'] = 0.0
+        elif f.get('eq') is not None and f.get('eq_p') is not None: mat['nci'] = rnd(max(0.0, f['eq'] - f['eq_p']), 1); mat['nci_src'] = 'calc'
+        else: w['nci'] = xnone or xw.get('nci') or 'no_acct'
+        if mat.get('nd') is not None and mat.get('nci') is not None: mat['ev'] = rnd(cap + mat['nd'] + mat['nci'], 1)
+        else: w['ev'] = w.get('nd') or w.get('nci')
+        # EBITDA = 영업이익 + 감가상각비 + 무형자산상각비
+        if x.get('dep') is not None:
+            mat['dep'] = rnd(x['dep'], 1); mat['amo'] = rnd(x.get('amo') or 0, 1)
+            if op is not None: mat['ebitda'] = rnd(op + mat['dep'] + mat['amo'], 1)
+        else: w['ebitda'] = xnone or xw.get('dep') or 'no_da'
+        # FCF = 영업활동현금흐름 − 유형자산 취득 − 무형자산 취득
+        if x.get('cfo') is not None and x.get('capex') is not None:
+            mat['cfo'] = rnd(x['cfo'], 1); mat['capex'] = rnd(x['capex'], 1); mat['capex_i'] = rnd(x.get('capex_i') or 0, 1)
+            mat['fcf'] = rnd(mat['cfo'] - mat['capex'] - mat['capex_i'], 1)
+        else: w['fcf'] = xnone or xw.get('cfo') or xw.get('capex') or 'no_cf'
+        # 정상화 이익 = 최근 3개 사업연도 + 최근 4분기 순이익의 단순 평균(적자 연도 포함 — 사이클의 일부이므로 빼지 않는다)
+        vf = _vf(c); hist = _annual_ni(vf)
+        ys = [v for _, v in hist] + ([ni] if (ni is not None and r.get('basis') == 'TTM') else [])
+        mat['ni_hist'] = hist
+        if len(hist) >= 2 and len(ys) >= 3: mat['ni_norm'] = rnd(sum(ys) / len(ys), 1)
+        else: w['ni_norm'] = 'norm_short'
+        fw = r.get('fwd') or {}
+        g = fw.get('cagr2') if fw.get('cagr2') is not None else fw.get('g1')
+        if fw.get('per_f12'):
+            mat['ni_f'] = rnd(cap / fw['per_f12'], 1)
+            pg = peg.get(c) or {}
+            if pg.get('status') == 'ok': mat['f_b'] = '12m' if pg.get('ni2') is not None else 'fy1'
+            else:
+                a2 = ((fwdc.get(c) or {}).get('fy') or {}).get(str(TODAY.year + 1)) or {}
+                mat['f_b'] = '12m' if (a2.get('est') and a2.get('ni') is not None) else 'fy1'
+        if g is not None: mat['g'] = g; mat['g_src'] = 'cagr2' if fw.get('cagr2') is not None else 'g1'
+        if r.get('ctrl') is not None: mat['ctrl'] = r['ctrl']
+        if w: mat['why'] = w
+        # 자기 배수
+        m = {}
+        def put(k, v, why=None, **kw):
+            o = dict(kw)
+            if v is not None:
+                o['v'] = rnd(v)
+                if v > LIM.get(k, 1e18): o['thin'] = 1
+            elif why: o['why'] = why
+            m[k] = o
+        put('per', r.get('per'), 'loss' if (ni is not None and ni <= 0) else 'nodata')
+        put('fper', fw.get('per_f12'), 'nocov')
+        nn = mat.get('ni_norm')
+        put('norm_per', cap / nn if (nn and nn > 0) else None, w.get('ni_norm') or 'norm_loss')
+        put('por', r.get('por'), 'oploss' if (op is not None and op <= 0) else 'nodata')
+        ev = mat.get('ev')
+        put('ev_ebit', ev / op if (ev is not None and op and op > 0) else None, w.get('ev') if ev is None else 'oploss')
+        eb = mat.get('ebitda')
+        put('ev_ebitda', ev / eb if (ev is not None and eb and eb > 0) else None, w.get('ev') if ev is None else (w.get('ebitda') if eb is None else 'ebitda_neg'))
+        put('ev_sales', ev / rev if (ev is not None and rev and rev > 0) else None, w.get('ev') if ev is None else 'rev0')
+        fc = mat.get('fcf')
+        put('p_fcf', cap / fc if (fc and fc > 0) else None, w.get('fcf') if fc is None else 'fcf_neg')
+        put('pbr', r.get('pbr'), 'nodata'); put('psr', r.get('psr'), 'rev0')
+        pv = fw.get('peg')
+        if not fw.get('per_f12'): put('peg', None, 'nocov')
+        elif g is None or g <= 0 or not pv or pv <= 0: put('peg', None, 'g_neg')
+        elif g > C['peg_gmax']: m['peg'] = {'x': pv, 'why': 'g_base'}
+        else: put('peg', pv)
+        r['val'] = {'mat': mat, 'm': m}; vfs[c] = vf
+    # 2) peer 범위별 표본
+    ab = {}; grp = {}; stg = {}
+    for p in DEF['pairs']:
+        if p['grade'] in ('A', 'B'):
+            for a, b in ((p['a'], p['b']), (p['b'], p['a'])):
+                if b not in ab.setdefault(a, []): ab[a].append(b)
+    gm = {g['id']: g['members'] for g in DEF['groups']}
+    for c, r in co.items():
+        s = []
+        for gid in r.get('gids') or []:
+            for o in gm.get(gid) or []:
+                if o != c and o not in s: s.append(o)
+        grp[c] = s
+        stg.setdefault(r.get('stage') or 'etc', []).append(c)
+    def sample(c, k, scope):
+        ps = ab.get(c, []) if scope == 'ab' else grp.get(c, []) if scope == 'grp' else [o for o in stg.get(co[c].get('stage') or 'etc', []) if o != c]
+        good = []; ex = 0
+        for o in ps:
+            mo = ((co.get(o) or {}).get('val') or {}).get('m', {}).get(k) or {}
+            v = mo.get('v')
+            if v is None:
+                if 'x' in mo: ex += 1
+                continue
+            if v <= 0 or v > LIM[k]: ex += 1; continue
+            good.append(v)
+        return good, ex
+    cnt = {'n': 0, 'nd': 0, 'ebitda': 0, 'fcf': 0, 'band': 0, 'dcf': 0, 'rdcf': 0, 'range': 0, 'sotp': 0}
+    for c, r in co.items():
+        V = r.get('val')
+        if not V: continue
+        mat, m = V['mat'], V['m']; cap, px = mat['cap'], mat['px']; cnt['n'] += 1
+        for kk in ('nd', 'ebitda', 'fcf'):
+            if mat.get(kk) is not None: cnt[kk] += 1
+        # 3) peer 중앙값과 환산 주가
+        for k in PEERK:
+            o = m[k]
+            for scope in ('ab', 'grp', 'stage'):
+                good, ex = sample(c, k, scope)
+                if len(good) >= C['min_n'][scope]:
+                    o['pm'] = _r2(statistics.median(good)); o['pn'] = len(good); o['ps'] = scope
+                    if ex: o['pe'] = ex
+                    break
+            else: o['pwhy'] = 'no_peer'
+            if o.get('pm') is None or 'why' in o: continue
+            if o.get('thin'): o['why'] = 'thin'; continue
+            if k in EVBASE:
+                base = mat.get(EVBASE[k])
+                if o.get('v') is None or not base or base <= 0: continue
+                ip = (o['pm'] * base - mat['nd'] - mat['nci']) * px / cap
+            else:
+                if o.get('v') is None or o['v'] <= 0: continue
+                ip = px * o['pm'] / o['v']
+            if ip <= 0: o['why'] = 'neg_eq'; continue
+            if ip < px / C['far'] or ip > px * C['far']: o['why'] = 'far'; o['far'] = rnd(ip / px, 2); continue      # 10배 넘게 벌어지면 같은 잣대가 아니다 — 환산하지 않는다
+            o['ip'] = round(ip); o['up'] = rnd((ip / px - 1) * 100, 1)
+        # 4) 자기 과거 밴드
+        bd = _band(c, px)
+        for k in ('per', 'pbr'):
+            b = bd[k]; o = {}
+            if 'why' in b: o['why'] = b['why']
+            elif b['ip'] < px / C['far'] or b['ip'] > px * C['far']:
+                o = {'v': b['cur'], 'pm': b['md'], 'lo': b['lo'], 'hi': b['hi'], 'pct': b['pct'], 'pn': b['n'], 'from': b['from'], 'ps': 'self', 'why': 'far', 'far': rnd(b['ip'] / px, 2)}
+            else:
+                o = {'v': b['cur'], 'pm': b['md'], 'lo': b['lo'], 'hi': b['hi'], 'pct': b['pct'], 'pn': b['n'], 'from': b['from'], 'ps': 'self',
+                     'ip': b['ip'], 'ip_lo': b['ip_lo'], 'ip_hi': b['ip_hi'], 'up': rnd((b['ip'] / px - 1) * 100, 1)}
+            m['band_' + k] = o
+        if any('ip' in m['band_' + k] for k in ('per', 'pbr')): cnt['band'] += 1
+        # 5) DCF — ① 역산: 지금 시총이 맞으려면 10년간 연 몇 % 성장이 필요한가  ② 순방향: 증권사 추정 성장률(상한 30%)로 5년, 이후 5년 감속
+        share = min(1.0, max(0.2, (mat.get('ctrl') if mat.get('ctrl') is not None else 100.0) / 100.0))
+        D = {'r': C['coe'], 'gt': C['gt'], 'yrs': C['yrs'], 'share': rnd(share, 2)}
+        fcf, ni = mat.get('fcf'), mat.get('ni')
+        if fcf is not None and fcf > 0: basis, cf0 = 'fcf', fcf * share
+        elif ni is not None and ni > 0: basis, cf0 = 'ni', ni
+        else: basis, cf0 = None, None
+        if cf0:
+            flag, gv = _dcf_solve(cf0, cap, r_, gt, C['yrs'])
+            D['rev'] = {'basis': basis, 'cf0': rnd(cf0, 1)}
+            if basis == 'ni': D['rev']['note'] = ((mat.get('why') or {}).get('fcf')) or 'fcf_neg'
+            if gv is None: D['rev']['flag'] = flag
+            else: D['rev']['g'] = rnd(gv * 100, 1); cnt['rdcf'] += 1
+        else: D['rev'] = {'why': 'loss' if (ni is not None and ni <= 0) else 'nodata'}
+        g = mat.get('g')
+        if fcf is None: D['fwd'] = {'why': (mat.get('why') or {}).get('fcf') or 'no_cf'}
+        elif fcf <= 0: D['fwd'] = {'why': 'fcf_neg'}
+        elif g is None: D['fwd'] = {'why': 'no_g'}
+        else:
+            g1 = min(C['gcap'], max(0.0, g)); gs = _dcf_path(g1 / 100.0, gt, C['yrs']); cf0 = fcf * share
+            val = lambda rr: _dcf_pv(cf0, gs, rr, gt)
+            pv = val(r_); ip = pv * px / cap
+            D['fwd'] = {'cf0': rnd(cf0, 1), 'g_raw': g, 'g_src': mat.get('g_src'), 'g': rnd(g1, 1), 'path': [rnd(v * 100, 1) for v in gs], 'pv': rnd(pv, 0),
+                        'v': round(ip), 'up': rnd((ip / px - 1) * 100, 1), 'v_lo': round(val(r_ + 0.01) * px / cap), 'v_hi': round(val(r_ - 0.01) * px / cap)}
+            cnt['dcf'] += 1
+        V['dcf'] = D
+        if 'v' not in D['fwd']: m['dcf'] = {'why': D['fwd']['why']}
+        elif D['fwd']['v'] < px / C['far'] or D['fwd']['v'] > px * C['far']: m['dcf'] = {'why': 'far', 'far': rnd(D['fwd']['v'] / px, 2)}
+        else: m['dcf'] = {'ip': D['fwd']['v'], 'up': D['fwd']['up'], 'ip_lo': D['fwd']['v_lo'], 'ip_hi': D['fwd']['v_hi']}
+        # 6) 범위 — 주력 방법의 환산 주가 최저~최고·중앙, 보조까지 넣은 범위, 현재가의 위치
+        main, aux = VALM.get(r.get('stage') or 'etc', VALM['etc'])
+        def rng(keys):
+            vs = [(m[k]['ip'], k) for k in keys if (m.get(k) or {}).get('ip')]
+            if not vs: return {'n': 0}
+            ips = sorted(v for v, _ in vs); lo, hi = ips[0], ips[-1]
+            o = {'n': len(ips), 'lo': lo, 'hi': hi, 'mid': round(statistics.median(ips)), 'ks': [k for _, k in vs]}
+            if len(ips) >= 2:
+                o['wide'] = bool(hi / lo > C['wide'])
+                if hi > lo: o['pos'] = rnd((px - lo) / (hi - lo) * 100, 0)
+                o['zone'] = 'below' if px < lo else 'above' if px > hi else ('low' if o.get('pos', 50) < 33.4 else 'high' if o.get('pos', 50) > 66.6 else 'mid')
+            else: o['zone'] = 'above' if px > lo * 1.05 else 'below' if px < lo * 0.95 else 'at'
+            return o
+        V['range'] = {'main': rng(main), 'all': rng(main + aux)}
+        if V['range']['main']['n']: cnt['range'] += 1
+        # 7) 통째 배수로 보면 왜곡되는 회사인가(SOTP 필요 신호) — 자동 SOTP 계산은 하지 않는다(사업부별 이익이 공시에 없는 경우가 많다)
+        why = []; need = False
+        nci, eqt = mat.get('nci'), (fin.get(c) or {}).get('eq')
+        if nci is not None and eqt and eqt > 0 and nci / eqt * 100 >= 5:
+            pct = nci / eqt * 100; strong = pct >= C['nci_need']; need = need or strong
+            why.append({'k': 'nci', 's': int(strong), 't': '비지배지분이 자본총계의 %d%%(%s억) — 연결 영업이익·자산에 남의 몫이 섞여 있습니다' % (round(pct), format(round(nci), ','))})
+        elif nci is None and mat.get('ctrl') is not None and mat['ctrl'] < 80:
+            need = True; why.append({'k': 'nci', 's': 1, 't': '연결 순이익의 %d%%가 비지배주주 몫 — 연결 영업이익에 남의 몫이 섞여 있습니다' % round(100 - mat['ctrl'])})
+        nm = r.get('n') or ''
+        if '홀딩스' in nm or nm.endswith('지주') or '지주회사' in ((DEF['co'].get(c) or {}).get('main') or ''):
+            need = True; why.append({'k': 'hold', 's': 1, 't': '지주사 성격 — 자회사 지분 가치와 자체 사업을 따로 봐야 합니다'})
+        if r.get('pure') == 'low': need = True; why.append({'k': 'pure', 's': 1, 't': '반도체가 전사 매출의 일부 — 반도체 peer 배수를 회사 전체에 곱하면 다른 사업까지 같은 값으로 치게 됩니다'})
+        elif r.get('pure') == 'mid': why.append({'k': 'pure', 's': 0, 't': '반도체 외 사업을 함께 합니다(겸업) — 사업별로 맞는 배수가 다를 수 있습니다'})
+        sg = _segs(vfs.get(c) or {})
+        if len(sg) >= 2:
+            strong = len(sg) >= 3 and r.get('pure') != 'high'; need = need or strong
+            why.append({'k': 'seg', 's': int(strong), 't': '사업보고서 제품 표에 사업부문이 %d개 — %s' % (len(sg), ' · '.join(sg[:5]))})
+        op_ = mat.get('op')
+        if ni and op_ and op_ > 0 and ni / op_ > 1.3: why.append({'k': 'eqm', 's': 0, 't': '순이익이 영업이익보다 30% 넘게 큼 — 지분법 자회사·영업외 이익이 영업이익 기준 배수에는 잡히지 않습니다'})
+        V['sotp'] = {'need': need, 'why': why}
+        if need: cnt['sotp'] += 1
+    return {'ver': 1, 'cfg': C, 'methods': {k: {'main': v[0], 'aux': v[1]} for k, v in VALM.items()}, 'why': VWHY, 'count': cnt,
+            'rule': {'peer': 'peer 중앙값은 ① A·B등급 peer(표본 1곳 이상) → ② 같은 묶음(2곳 이상) → ③ 같은 단계(3곳 이상) 순으로 넓혀 처음 표본이 채워지는 범위를 쓴다. 배수가 0 이하이거나 상한을 넘는 peer는 빼고 그 수를 남긴다.',
+                     'ip': '환산 주가 = 현재가 × (peer 중앙 배수 ÷ 이 회사 배수). EV 계열은 (peer 중앙 배수 × 영업이익·EBITDA·매출 − 순차입금 − 비지배지분) ÷ 주식수. 주식수 = 시가총액 ÷ 현재가(우선주 시총 포함 종목은 우선주도 같은 비율로 움직인다고 본다).',
+                     'ev': '순차입금 = 단기차입금 + 유동성장기부채 + 장기차입금 + 사채(전환사채 포함) + 리스부채 − 현금및현금성자산 − 단기금융상품. EV = 시가총액(우선주 포함) + 순차입금 + 비지배지분. 기타 유동 금융자산은 성격을 알 수 없어 현금에 넣지 않는다(ofa에 따로 표시).',
+                     'norm': '정상화 이익 = 최근 3개 사업연도 순이익(지배주주)과 최근 4분기 순이익의 단순 평균. 적자 연도도 넣는다.',
+                     'band': '자기 과거 밴드 = 최근 5년 일별 PER·PBR의 최저·중앙·최고. 환산 주가 = 현재가 × (과거 중앙 ÷ 현재), 현재 값도 같은 시계열의 마지막 값.',
+                     'dcf': '할인율 = 자기자본비용 관행값 10%(가정), 영구성장률 = 장기 명목 성장률 2%(가정). 현금흐름 = FCF × 지배주주 순이익 비율. 역산은 10년 같은 성장률, 순방향은 증권사 추정 성장률(0~30%로 자름)로 5년 뒤 5년에 걸쳐 2%까지 낮춘다. 쌓아 둔 순현금은 더하지 않는다.',
+                     'range': '범위 = 단계별 주력 방법의 환산 주가 최저~최고(중앙값 함께). 최고 ÷ 최저가 2배를 넘으면 "방법마다 크게 갈림". 환산 주가가 현재가의 0.1배 미만·10배 초과인 방법은 범위에 넣지 않는다.'}}
+
 def main():
     DEF = load('semipeer_def.json')
     if not DEF: log('semipeer_def.json 없음'); sys.exit(1)
@@ -481,13 +1083,14 @@ def main():
 
     # 1) 재무 캐시
     fin = prev.get('fin') or {}; fin_meta = prev.get('fin_meta') or {}; corpcache = prev.get('corpmap') or {}
-    need = REFRESH or not fin_meta.get('date') or fin_meta.get('ver') != FIN_VER
+    finx = prev.get('finx') or {}                            # 밸류 재료 캐시(순차입금·감가상각비·현금흐름)
+    need = REFRESH or not fin_meta.get('date') or fin_meta.get('ver') != FIN_VER or bool(fin_meta.get('xfail')) or bool(fin_meta.get('quota'))
     if not need:
         try: need = (TODAY - datetime.date.fromisoformat(fin_meta['date'])).days >= FIN_TTL_DAYS
         except Exception: need = True
         if fin_meta.get('asof') != '%dQ%02d' % (latest_quarter()[1], latest_quarter()[0] % 100): need = True
     if need and KEY and not OFFLINE:
-        fin, meta, cm = collect_fin(codes, fin, corpcache)
+        fin, meta, cm, finx = collect_fin(codes, fin, corpcache, finx)
         if meta: fin_meta = meta
         if cm: corpcache = cm
     elif need: log('DART 키 없음/오프라인 — 재무는 기존 캐시(%s) 또는 KIS·hege 대체값 사용' % (fin_meta.get('date') or '없음'))
@@ -666,6 +1269,12 @@ def main():
     try: prmeta = pbr_roe(co, DEF['pairs'])
     except Exception as e: prmeta = None; log('PBR–ROE 판정 실패 %r' % e)
 
+    # 5-3) 평가법별 책정값(이 회사 배수·peer 중앙값·환산 주가·범위·DCF)
+    try: valmeta = build_val(co, fin, finx, DEF, fwd, peg); log('책정값 %s' % valmeta['count'])
+    except Exception as e:
+        valmeta = None; log('책정값 계산 실패 %r' % e)
+        for r in co.values(): r.pop('val', None)
+
     # 6) 그룹 중앙값(참고 — 등급과 무관하게 같은 묶음 전체)
     groups = []
     for g in DEF['groups']:
@@ -684,7 +1293,7 @@ def main():
            'rule': {'tag': 'A·B등급 peer와 쌍마다 비교해 (내 값 ÷ peer 값)의 중앙값이 0.9 이하면 낮음, 1.1 이상이면 높음(PER·PBR·PSR). ROE·영업이익률·ROA는 1%p, 성장률은 5%p, 부채비율은 20%p 넘게 차이 나면 높음/낮음',
                     'per': '대표 표시는 PER 꼬리표 하나(저PER·비슷·고PER). 최근 4분기 영업적자·순손실이거나 PER 150배 초과면 붙이지 않음. 성장률은 300% 상한으로 비교',
                     'basis': 'TTM = DART 최근 4분기 합산(확인값). TTMN = 네이버(FnGuide) 최근 4분기 주당순이익·주당순자산(DART 수집 전 임시). FY0 = KIS 전년 확정 실적'},
-           'pr': prmeta, 'co': co, 'pairs': pairs, 'groups': groups, 'fin': fin, 'fwd': fwd, 'prefcap': prefcap, 'nv': nv, 'corpmap': corpcache, 'debug': DEBUG[-40:]}
+           'pr': prmeta, 'val_meta': valmeta, 'co': co, 'pairs': pairs, 'groups': groups, 'fin': fin, 'finx': finx, 'fwd': fwd, 'prefcap': prefcap, 'nv': nv, 'corpmap': corpcache, 'debug': DEBUG[-40:]}
     # 빈 결과 가드: 시세가 붙은 종목이 기존의 1/3 미만이면 덮어쓰지 않는다
     n_new = sum(1 for r in co.values() if 'cap' in r); n_old = sum(1 for r in (prev.get('co') or {}).values() if 'cap' in r)
     if n_old and n_new < n_old / 3:

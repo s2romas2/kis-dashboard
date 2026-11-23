@@ -45,6 +45,8 @@ import valfacts as V                      # api · ddoc · _table · _txt · HEA
 PV = 2                                    # 파서 버전 — 올리면 다음 실행에서 원문을 다시 받는다
 BASE = os.environ.get('BASE', 'public/data')
 OUT = os.environ.get('BL_OUT', os.path.join(BASE, 'semipeer_backlog.json'))
+# 종목 모집단을 담은 peer 결과 파일 — 바꾸면 다른 산업(화장품 등) 잔고를 같은 로직으로 만든다
+SRC = os.environ.get('BL_SRC', os.path.join(BASE, 'semipeer.json'))
 NQ = int(os.environ.get('BL_NQ', '12'))
 BUDGET = float(os.environ.get('BL_BUDGET', '3300'))
 OFFLINE = os.environ.get('OFFLINE', '') == '1'
@@ -680,7 +682,7 @@ def load_vf(code):
     except Exception: return None
 
 def main():
-    sp = json.load(open(os.path.join(BASE, 'semipeer.json'), encoding='utf-8'))
+    sp = json.load(open(SRC, encoding='utf-8'))
     co_sp = sp.get('co') or {}
     corpmap = dict(sp.get('corpmap') or {})
     if not corpmap:

@@ -24,6 +24,8 @@ import xml.etree.ElementTree as ET
 KEY = os.environ.get('DART_API_KEY', '')
 DD = os.environ.get('DATA_DIR', 'public/data')
 OUT = os.environ.get('OUT', os.path.join(DD, 'semipeer.json'))
+# peer 정의 파일을 바꾸면 같은 로직으로 다른 산업(화장품 등) peer를 만들 수 있다
+DEFN = os.environ.get('DEF', 'semipeer_def.json')
 OFFLINE = os.environ.get('OFFLINE', '') == '1'          # 네트워크 호출 없이 기존 파일만으로 계산(로컬 검증용)
 REFRESH = os.environ.get('REFRESH', '') == '1'          # 재무 캐시 강제 갱신
 FIN_TTL_DAYS = int(os.environ.get('FIN_TTL_DAYS', '6'))
@@ -1071,14 +1073,14 @@ def build_val(co, fin, finx, DEF, fwdc, peg):
                      'range': '범위 = 단계별 주력 방법의 환산 주가 최저~최고(중앙값 함께). 최고 ÷ 최저가 2배를 넘으면 "방법마다 크게 갈림". 환산 주가가 현재가의 0.1배 미만·10배 초과인 방법은 범위에 넣지 않는다.'}}
 
 def main():
-    DEF = load('semipeer_def.json')
-    if not DEF: log('semipeer_def.json 없음'); sys.exit(1)
+    DEF = load(DEFN)
+    if not DEF: log('%s 없음' % DEFN); sys.exit(1)
     sv = (load('stockvals.json', {}) or {}).get('map') or {}
     pegj = load('peg.json', {}) or {}
     peg = {r['c']: r for r in pegj.get('rows') or []}
     hegj = load('hege.json', {}) or {}
     hege = {r['c']: r for r in hegj.get('rows') or []}
-    prev = load('semipeer.json', {}) or {}
+    prev = load(os.path.basename(OUT), {}) or {}
     codes = sorted(DEF['co'].keys())
 
     # 1) 재무 캐시

@@ -16,6 +16,10 @@ h1 { font-size:22px; margin:10px 0 4px; }
 .bar { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; align-items:center; }
 .bar .lab { font-size:12px; font-weight:800; color:#475467; margin-right:2px; }
 .bar button { border:1.5px solid #d7dce6; background:#fff; border-radius:20px; padding:6px 12px; font:inherit; font-size:12.5px; font-weight:700; color:#475467; cursor:pointer; }
+#searchbar input { border:1.5px solid #d7dce6; border-radius:8px; padding:6px 11px; font:inherit; font-size:13px; background:#fff; width:300px; max-width:60vw; }
+#searchbar input:focus { outline:none; border-color:#2563eb; }
+#searchbar button { padding:6px 11px; }
+@media(max-width:820px){ #searchbar input { width:100%; max-width:none; } }
 .bar button.on { background:#1a2a4a; border-color:#1a2a4a; color:#fff; }
 .cnt { font-size:12px; color:#667085; margin-left:auto; }
 .grp { background:#fff; border:1px solid #e4e7ec; border-radius:12px; margin-bottom:14px; overflow:hidden; }
@@ -42,11 +46,15 @@ td.nm:hover { text-decoration:underline; }
 .mw.lock{background:#eef4ff;color:#2563eb} .mw.chan{background:#fdecea;color:#d92d20}
 .mw.vert{background:#f3eaff;color:#6b21a8} .mw.niche{background:#eef0f4;color:#475467}
 .mw.scale{background:#fff4e0;color:#8a4b00} .mw.none{background:#f4f6fa;color:#98a2b3}
-.dw { background:#fbfcfe; border-top:1px solid #eef0f4; padding:12px 14px; font-size:12.5px; line-height:1.75; }
+.dw { background:#fbfcfe; border-top:1px solid #eef0f4; padding:12px 14px; font-size:12.5px; line-height:1.75; text-align:left; white-space:normal; }
+.dw * { text-align:left; }
+.dw table td, .dw table th { text-align:left; }
+.dw .pcard table td:nth-child(2) { text-align:center; }
 .dw h4 { font-size:12.5px; margin:10px 0 4px; color:#1a2a4a; }
 .dw h4:first-child { margin-top:0; }
 .cert { display:inline-block; background:#e7f6ec; color:#0f7b3f; border:1px solid #bfe6cd; border-radius:7px; padding:2px 8px; font-size:11.5px; font-weight:700; margin:2px 4px 2px 0; }
 .none2 { color:#98a2b3; font-size:12px; }
+mark { background:#fff3b0; color:#1a1f2e; padding:0 2px; border-radius:3px; }
 .pr { border-top:1px solid #eef0f4; }
 .pr summary { padding:9px 14px; font-size:12.5px; font-weight:700; color:#1a2a4a; cursor:pointer; background:#fbfcfe; }
 .pb { padding:10px 14px 4px; }
@@ -117,7 +125,14 @@ td.nm:hover { text-decoration:underline; }
 <div class="bar" id="topbar"><span class="lab">대분류</span></div>
 <div class="bar" id="segbar"><span class="lab">세부분야</span></div>
 <div class="bar" id="charbar"><span class="lab">성격</span></div>
-<div class="bar" id="agebar"><span class="lab">노화축</span><span class="cnt" id="cnt"></span></div>
+<div class="bar" id="agebar"><span class="lab">노화축</span></div>
+<!-- 검색칸은 재렌더 영역 밖에 둔다 — 안에 두면 한글 조합(IME)이 끊긴다 -->
+<div class="bar" id="searchbar">
+  <span class="lab">검색</span>
+  <input id="q" type="search" placeholder="종목명 또는 코드 (예: 아로마티카, 0015N0)" autocomplete="off" spellcheck="false">
+  <button type="button" id="qclear">지우기</button>
+  <span class="cnt" id="cnt"></span>
+</div>
 
 <div id="groups"></div>
 
@@ -159,7 +174,7 @@ td.nm:hover { text-decoration:underline; }
 
 </div>
 <script>
-var DEF=null, CO={}, BLG={}, TOP='전체', SEG='전체', CHAR='전체', AGE='전체', OPEN={};
+var DEF=null, CO={}, BLG={}, TOP='전체', SEG='전체', CHAR='전체', AGE='전체', Q='', OPEN={};
 var MW={tech:['기술독점','tech'],cost:['원가','cost'],lock:['고객락인','lock'],chan:['채널','chan'],
         vert:['수직계열화','vert'],niche:['니치','niche'],scale:['규모','scale'],none:['—','none']};
 var TG={'확인':'cfm','보도':'med','추정':'est','미확인':'unk','참고':'ref','확인(수치는 구기사)':'cfm'};
@@ -238,6 +253,8 @@ function drawer(c){
     if(d.charwhy) s+='<div style="margin-top:5px"><b>이 회사에서는</b> — '+esc(d.charwhy)+'</div>';
   } else s+='<span class="none2">성격을 분류하지 못했습니다</span>';
   s+='<h4>🛂 보유 인증·등록</h4>'+((d.cert&&d.cert.length)?d.cert.map(function(t){return '<span class="cert">'+esc(t)+'</span>';}).join(''):'<span class="none2">공개 자료에서 확인하지 못했습니다</span>');
+  if((x.flags||[]).indexOf('시세 없음')>=0)
+    s+='<div class="warn" style="margin:8px 0">이 종목은 대시보드 시세·재무 마스터(<code>stockvals.json</code>·<code>finall.json</code>)에 아직 없어 <b>PER·PBR·시총이 비어 있습니다.</b> 2025년 11월 상장처럼 코드에 영문이 섞인 신규 상장은 기존 수집기가 잡지 못합니다 — 시세 수집기의 종목 마스터를 손봐야 채워집니다.</div>';
   s+='<h4>📈 매출 · 수주잔고</h4>'+chart(x,bl);
   var pbs=(d.gids||[]).map(function(gid){ return pairBlock(gid, c); }).filter(Boolean).join('');
   if(pbs) s+='<h4>⚖️ peer 비교 가능성</h4>'+pbs;
@@ -247,6 +264,7 @@ function drawer(c){
 
 function passFilter(c){
   var d=DEF.co[c]||{};
+  if(Q){ if((d.n||'').toLowerCase().indexOf(Q)<0 && c.toLowerCase().indexOf(Q)<0) return false; }
   if(CHAR!=='전체' && (d.chars||[]).indexOf(CHAR)<0) return false;
   if(AGE!=='전체' && d.aging!==AGE) return false;
   return true;
@@ -260,8 +278,11 @@ function rowsFor(g){
   var out='';
   ms.forEach(function(c){
     var d=DEF.co[c], x=CO[c]||{}, mw=MW[d.moat]||MW.none;
+    var nmHtml=esc(d.n);
+    if(Q){ var i=(d.n||'').toLowerCase().indexOf(Q);
+      if(i>=0) nmHtml=esc(d.n.slice(0,i))+'<mark>'+esc(d.n.slice(i,i+Q.length))+'</mark>'+esc(d.n.slice(i+Q.length)); }
     out+='<tr class="r" data-c="'+c+'">'+
-      '<td class="l nm" onclick="tog(\''+c+'\')">'+esc(d.n)+' <span class="pu '+d.pure+'">'+(d.pure==='high'?'순수':d.pure==='low'?'부수':'일부')+'</span></td>'+
+      '<td class="l nm" onclick="tog(\''+c+'\')">'+nmHtml+' <span class="pu '+d.pure+'">'+(d.pure==='high'?'순수':d.pure==='low'?'부수':'일부')+'</span></td>'+
       '<td class="l">'+c+'</td>'+
       '<td>'+eok(x.cap)+'</td>'+
       '<td>'+num(x.kper)+vs(x.kper,M.per,-1)+'</td>'+
@@ -314,7 +335,7 @@ function render(){
   var tops=['전체'].concat(DEF.groups.map(function(g){return g.top;}).filter(function(v,i,a){return a.indexOf(v)===i;}));
   document.getElementById('topbar').innerHTML='<span class="lab">대분류</span>'+tops.map(function(t){
     return '<button class="'+(TOP===t?'on':'')+'" onclick="setTop(\''+t+'\')">'+esc(t)+'</button>';}).join('');
-  var pool=DEF.groups.filter(function(g){return TOP==='전체'||g.top===TOP;});
+  var pool=DEF.groups.filter(function(g){return Q?true:(TOP==='전체'||g.top===TOP);});
   var segs=['전체'].concat(pool.map(function(g){return g.seg;}).filter(function(v,i,a){return a.indexOf(v)===i;}));
   document.getElementById('segbar').innerHTML='<span class="lab">세부분야</span>'+segs.map(function(t){
     return '<button class="'+(SEG===t?'on':'')+'" onclick="setSeg(\''+t+'\')">'+esc(t)+'</button>';}).join('')+'<span class="cnt" id="cnt"></span>';
@@ -326,13 +347,20 @@ function render(){
       return '<button class="'+(CHAR===t?'on':'')+'" title="'+esc(t==='전체'?'':CD[t][1])+'" onclick="setChar(\''+t+'\')">'+esc(t==='전체'?'전체':CD[t][0])+'</button>';}).join('');
   document.getElementById('agebar').innerHTML='<span class="lab">노화축</span>'+
     ['전체','anti','slow','longevity'].map(function(t){
-      return '<button class="'+(AGE===t?'on':'')+'" title="'+esc(t==='전체'?'':AD[t][1])+'" onclick="setAge(\''+t+'\')">'+esc(t==='전체'?'전체':AD[t][0])+'</button>';}).join('')+'<span class="cnt" id="cnt"></span>';
+      return '<button class="'+(AGE===t?'on':'')+'" title="'+esc(t==='전체'?'':AD[t][1])+'" onclick="setAge(\''+t+'\')">'+esc(t==='전체'?'전체':AD[t][0])+'</button>';}).join('');
+  bindSearch();
   renderBench();
-  var gs=pool.filter(function(g){return SEG==='전체'||g.seg===SEG;})
+  var gs=pool.filter(function(g){return Q?true:(SEG==='전체'||g.seg===SEG);})
              .filter(function(g){return g.members.some(function(c){return DEF.co[c]&&passFilter(c);});});
   var nco=gs.reduce(function(a,g){return a+g.members.filter(function(c){return DEF.co[c]&&passFilter(c);}).length;},0);
-  document.getElementById('cnt').textContent='묶음 '+gs.length+' · 종목 '+nco+'곳'+
-    ((CHAR!=='전체'||AGE!=='전체')?' (성격 필터 적용)':'');
+  var tags=[]; if(Q) tags.push('검색 "'+Q+'"'); if(CHAR!=='전체') tags.push('성격'); if(AGE!=='전체') tags.push('노화축');
+  document.getElementById('cnt').textContent='묶음 '+gs.length+' · 종목 '+nco+'곳'+(tags.length?' · '+tags.join(' + ')+' 적용':'');
+  if(!gs.length){
+    document.getElementById('groups').innerHTML='<div class="warn">'+
+      (Q?'<b>"'+esc(Q)+'" 와(과) 맞는 종목이 없습니다.</b> 종목명 일부나 6자리 코드로 다시 찾아보세요. 비상장·상장폐지(연우·코스온·올리브영·구다이글로벌 등)는 이 표에 없습니다.'
+        :'조건에 맞는 종목이 없습니다. 필터를 풀어 보세요.')+'</div>';
+    return;
+  }
   document.getElementById('groups').innerHTML=gs.map(function(g){
     var v=(DEF.val||{})[g.top]||[];
     return '<section class="grp"><header><div class="tp">'+esc(g.top)+' › '+esc(g.seg)+'</div>'+
@@ -362,6 +390,15 @@ function renderBench(){
     '<p style="margin-top:8px;color:#475467"><b>왜 갈렸나</b> — '+esc(B.why)+'</p>'+
     '<p style="margin-top:6px"><b>연초 대비 주가</b> &nbsp;'+ytd+'</p>'+
     '<p style="margin-top:8px;color:#98a2b3;font-size:12px">'+esc(B.asof)+' 기준 · 출처 '+esc(B.src)+'. 위 표의 PER은 증권사 추정 기반 선행 PER이고, 아래 종목표의 PER은 직전 실적 기준이라 <b>숫자를 직접 비교하면 안 된다</b> — 단계 간 상대 위치를 보는 용도다.</p>';
+}
+function bindSearch(){
+  var q=document.getElementById('q');
+  if(!q || q.dataset.bound) return;
+  q.dataset.bound='1';
+  /* 한글 조합 중에도 input 이 뜨지만 이 칸 자체는 다시 그리지 않으므로 조합이 끊기지 않는다 */
+  q.addEventListener('input', function(){ Q=(q.value||'').trim().toLowerCase(); render(); });
+  q.addEventListener('keydown', function(e){ if(e.key==='Escape'){ q.value=''; Q=''; render(); } });
+  document.getElementById('qclear').addEventListener('click', function(){ q.value=''; Q=''; q.focus(); render(); });
 }
 function setChar(t){ CHAR=t; render(); }
 function setAge(t){ AGE=t; render(); }

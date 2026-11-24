@@ -104,6 +104,20 @@ mark { background:#fff3b0; color:#1a1f2e; padding:0 2px; border-radius:3px; }
 .tag.unk{background:#eef0f4;color:#98a2b3} .tag.ref{background:#f4f6fa;color:#98a2b3;border:1px solid #e4e7ec}
 .tag.est{background:#f3eaff;color:#6b21a8} .tag.추정{background:#f3eaff;color:#6b21a8}
 @media(max-width:820px){ .wrap{padding:12px 10px 50px} h1{font-size:18px} table{font-size:11.5px} th,td{padding:6px 5px} }
+
+.revbox{border:1px solid #e4e7ec;border-radius:10px;padding:10px 12px;margin:6px 0 12px;background:#fcfdff}
+.revh{font-size:12.5px;font-weight:800;color:#0f2847;margin-bottom:6px}
+.rsvg{display:block;width:100%;height:auto;margin:2px 0 6px}
+.rsvg .rlb{font-family:inherit;font-size:11px;fill:#475467}
+.rsvg .rvl{font-family:inherit;font-size:11.5px;font-weight:700;fill:#1a2a4a}
+.rsvg .rgr{font-family:inherit;font-size:11px;font-weight:700}
+.rsvg .rax{font-family:inherit;font-size:10.5px;fill:#98a2b3}
+.tlrow{display:grid;grid-template-columns:110px 1fr 54px;gap:8px;padding:7px 0;border-bottom:1px dashed #eef1f5;font-size:12.5px;line-height:1.75}
+.tlrow:last-child{border-bottom:0}
+.tlrow b{color:#0f2847}
+
+.tag.ok{background:#eaf7f1;color:#146b4b;border:1px solid #bfe6d4}
+.tag.rep{background:#e6eefc;color:#1b3f87;border:1px solid #cfdcf7}
 </style>
 </head>
 <body>
@@ -153,6 +167,8 @@ mark { background:#fff3b0; color:#1a1f2e; padding:0 2px; border-radius:3px; }
 
 <div id="groups"></div>
 
+<div class="lg" style="margin-top:18px" id="tariff"></div>
+<div class="lg" id="mktts"></div>
 <div class="lg" style="margin-top:18px" id="bench"></div>
 <div class="lg" id="cost"></div>
 
@@ -290,6 +306,79 @@ function chart(x, bl){
   return '<div class="chartbox"><div class="ct">분기 매출 + 수주잔고</div><div class="cs">같은 그래프에 둡니다 — 잔고가 매출로 바뀌는 흐름을 보려면 둘을 겹쳐 봐야 합니다</div>'+s+lg+'</div>';
 }
 
+
+/* ── 제품군별·지역별 매출 분해 ──────────────────────────────
+   총액만 보면 비슷해 보여도 쪼개면 방향이 갈린다. 축이 여럿이면 축마다 그린다. */
+function revAxis(ax, yr, unit){
+  var rows=ax.rows, n=yr.length;
+  var tot=[]; for(var j=0;j<n;j++){ var t=0; for(var i=0;i<rows.length;i++) t+=rows[i][j+1]||0; tot.push(t); }
+  var mx=0; rows.forEach(function(r){ for(var j=1;j<=n;j++) if(r[j]>mx) mx=r[j]; });
+  /* 행 높이는 막대 개수에서 역산한다 — 고정값을 쓰면 막대가 아랫줄로 번진다 */
+  var W=560, LB=132, RB=96, BW=9, GAP=2, PAD=12;
+  var ROWH = n*(BW+GAP) + PAD;
+  var H = rows.length*ROWH + 26;
+  var sv='<svg viewBox="-4 0 '+(W+8)+' '+H+'" class="rsvg" role="img" aria-label="'+esc(ax.label)+' 매출">';
+  rows.forEach(function(r,i){
+    var y0=i*ROWH+6, mid=y0+(n*(BW+GAP))/2;
+    sv+='<text class="rlb" x="'+(LB-6)+'" y="'+(mid+4)+'" text-anchor="end">'+esc(r[0])+'</text>';
+    for(var j=0;j<n;j++){
+      var v=r[j+1]||0, w=mx?Math.round(v/mx*(W-LB-RB)):0;
+      var op=(0.34+0.66*(j+1)/n).toFixed(2);
+      sv+='<rect x="'+LB+'" y="'+(y0+j*(BW+GAP))+'" width="'+Math.max(w,1)+'" height="'+BW+'" fill="#2a78d6" fill-opacity="'+op+'" rx="2"/>';
+    }
+    var last=r[n]||0, first=r[1]||0, gr=(first>0)?((last/first-1)*100):null;
+    sv+='<text class="rvl" x="'+(W-RB+4)+'" y="'+(mid+4)+'">'+fmtEok(last)+'</text>';
+    sv+='<text class="rgr" x="'+(W-4)+'" y="'+(mid+4)+'" text-anchor="end" fill="'+(gr==null?'#98a2b3':(gr>=0?'#146b4b':'#9c2b2b'))+'">'
+      +(gr==null?'—':(gr>=0?'+':'')+gr.toFixed(0)+'%')+'</text>';
+  });
+  sv+='<text class="rax" x="0" y="'+(H-7)+'">'+esc(yr.join(' → '))+' · 막대가 진할수록 뒤 연도 · 오른쪽 값은 '+esc(yr[n-1])+'과 '+esc(yr[0])+'→'+esc(yr[n-1])+' 증감</text>';
+  sv+='</svg>';
+  var sh='<table style="margin:2px 0 0"><thead><tr><th class="l">'+esc(ax.label)+' 비중</th>';
+  for(var j=0;j<n;j++) sh+='<th>'+esc(yr[j])+'</th>';
+  sh+='<th>이동</th></tr></thead><tbody>';
+  rows.forEach(function(r){
+    sh+='<tr><td class="l">'+esc(r[0])+'</td>';
+    var p0=tot[0]?r[1]/tot[0]*100:0, p1=tot[n-1]?r[n]/tot[n-1]*100:0;
+    for(var j=0;j<n;j++) sh+='<td>'+(tot[j]?(r[j+1]/tot[j]*100).toFixed(1):'—')+'%</td>';
+    var dp=p1-p0;
+    sh+='<td style="color:'+(Math.abs(dp)<0.5?'#98a2b3':(dp>0?'#146b4b':'#9c2b2b'))+';font-weight:700">'
+      +(dp>=0?'+':'')+dp.toFixed(1)+'%p</td></tr>';
+  });
+  sh+='</tbody></table>';
+  return sv+sh;
+}
+function fmtEok(v){
+  if(v==null) return '—';
+  return (v>=10000)? (v/10000).toFixed(2)+'조' : Math.round(v).toLocaleString()+'억';
+}
+function revOne(R, title){
+  var s='<div class="revbox"><div class="revh">'+esc(title)+'</div>';
+  (R.axes||[]).forEach(function(ax){ s+=revAxis(ax, R.yr, R.unit); });
+  s+='<p class="lgd">단위 '+esc(R.unit||'억원')+' · 총액 '+R.tot.map(fmtEok).join(' → ')
+    +(R.op?' · 영업이익 '+R.op.map(fmtEok).join(' → '):'')+'</p>';
+  if(R.gapnote) s+='<p class="lgd" style="color:#95620a">⚠️ '+esc(R.gapnote)+'</p>';
+  s+='<p class="lgd">출처 '+esc(R.src||'')+'</p></div>';
+  return s;
+}
+function revBlock(c){
+  var d=DEF.co[c]||{};
+  if(!d.rev) return '<h4>🧱 제품군별 · 지역별 매출</h4>'
+    + '<span class="none2">이 기업은 아직 분해를 채우지 못했습니다. 증권사 커버리지가 있는 7곳(에이피알·아모레퍼시픽·LG생활건강·달바글로벌·코스맥스·한국콜마·코스메카코리아)만 채워져 있습니다 — 나머지는 DART 사업보고서 「매출 및 수주상황」을 파싱해야 합니다.</span>';
+  var s='<h4>🧱 제품군별 · 지역별 매출</h4>'+revOne(d.rev,'미래에셋증권 추정');
+  if(d.rev2) s+=revOne(d.rev2,'유안타증권 추정 — 같은 기업을 다르게 본다');
+  if(d.rev2 && DEF.rev_cmp && DEF.rev_cmp.co===c){
+    var C=DEF.rev_cmp;
+    s+='<div class="revbox"><div class="revh">⚖️ '+esc(C.head)+'</div><table><thead><tr>'
+      + C.cols.map(function(h,i){return '<th class="'+(i===0||i===3?'l':'')+'">'+esc(h)+'</th>';}).join('')
+      + '</tr></thead><tbody>'
+      + C.rows.map(function(r){
+          return '<tr><td class="l">'+esc(r[0])+'</td><td>'+fmtEok(r[1])+'</td><td>'+fmtEok(r[2])+'</td><td class="l">'+esc(r[3])+'</td></tr>';
+        }).join('')
+      + '</tbody></table><p class="lgd">'+esc(C.note)+'</p></div>';
+  }
+  return s;
+}
+
 function drawer(c){
   var d=(DEF.co[c])||{}, x=CO[c]||{}, bl=BLG[c]||null, s='';
   s+='<h4>🏢 기업 특장점</h4>'+(d.main?esc(d.main)+' <span class="tag '+(TG[d.conf]||'unk')+'">'+esc(d.conf||'미확인')+'</span>':'<span class="none2">공개 자료에서 확인하지 못했습니다</span>');
@@ -324,6 +413,7 @@ function drawer(c){
   s+='<h4>🛂 보유 인증·등록</h4>'+((d.cert&&d.cert.length)?d.cert.map(function(t){return '<span class="cert">'+esc(t)+'</span>';}).join(''):'<span class="none2">공개 자료에서 확인하지 못했습니다</span>');
   if((x.flags||[]).indexOf('시세 없음')>=0)
     s+='<div class="warn" style="margin:8px 0">이 종목은 대시보드 시세·재무 마스터(<code>stockvals.json</code>·<code>finall.json</code>)에 아직 없어 <b>PER·PBR·시총이 비어 있습니다.</b> 2025년 11월 상장처럼 코드에 영문이 섞인 신규 상장은 기존 수집기가 잡지 못합니다 — 시세 수집기의 종목 마스터를 손봐야 채워집니다.</div>';
+  s+=revBlock(c);
   s+='<h4>📈 매출 · 수주잔고</h4>'+chart(x,bl);
   var pbs=(d.gids||[]).map(function(gid){ return pairBlock(gid, c); }).filter(Boolean).join('');
   if(pbs) s+='<h4>⚖️ peer 비교 가능성</h4>'+pbs;
@@ -434,6 +524,8 @@ function render(){
     ['전체','anti','slow','longevity'].map(function(t){
       return '<button class="'+(AGE===t?'on':'')+'" title="'+esc(t==='전체'?'':AD[t][1])+'" onclick="setAge(\''+t+'\')">'+esc(t==='전체'?'전체':AD[t][0])+'</button>';}).join('');
   bindSearch();
+  renderTariff();
+  renderMkt();
   renderBench();
   renderCost();
   var gs=pool.filter(function(g){return Q?true:(SEG==='전체'||g.seg===SEG);})
@@ -469,6 +561,45 @@ function render(){
 }
 function setTop(t){ TOP=t; SEG='전체'; render(); }
 function setSeg(t){ SEG=t; render(); }
+
+/* ── 관세 — 환급권이 누구에게 있느냐가 기업마다 다르다 ───────────── */
+function renderTariff(){
+  var T=DEF.tariff, el=document.getElementById('tariff');
+  if(!T||!el){ if(el) el.style.display='none'; return; }
+  var tg=function(t){ return '<span class="tag '+(t==='확인'?'ok':t==='보도'?'rep':'unk')+'">'+esc(t)+'</span>'; };
+  var h='<b>🛃 '+esc(T.head)+'</b>';
+  h+='<div style="margin:8px 0 4px">'+T.tl.map(function(r){
+      return '<div class="tlrow"><b>'+esc(r[0])+'</b><span>'+esc(r[1])+'</span><span>'+tg(r[2])+'</span></div>';
+    }).join('')+'</div>';
+  var R=T.refund;
+  h+='<div class="revbox" style="margin-top:10px"><div class="revh">💸 '+esc(R.head)+'</div>'
+    +'<table><thead><tr><th class="l" style="width:92px">항목</th><th class="l">내용</th><th style="width:54px">태그</th></tr></thead><tbody>'
+    + R.pts.map(function(r){
+        var hi = r[0].indexOf('핵심')>=0;
+        return '<tr'+(hi?' style="background:#fff8e7"':'')+'><td class="l"><b>'+esc(r[0])+'</b></td><td class="l">'+esc(r[1])+'</td><td>'+tg(r[2])+'</td></tr>';
+      }).join('')
+    +'</tbody></table></div>';
+  var V=T.val;
+  h+='<div class="revbox"><div class="revh">📐 '+esc(V.head)+'</div>'
+    + V.pts.map(function(r){ return '<p style="margin:5px 0;font-size:12.8px;line-height:1.85"><b>'+esc(r[0])+'</b> — '+esc(r[1])+'</p>'; }).join('')
+    +'</div>';
+  h+='<p class="lgd">⚠️ '+esc(T.todo)+'</p><p class="lgd">출처 '+esc(T.src)+'</p>';
+  el.innerHTML=h;
+}
+
+/* ── 마케팅비 시계열 — 아직 비어 있다는 것을 숨기지 않는다 ────────── */
+function renderMkt(){
+  var M=DEF.mkt_ts, el=document.getElementById('mktts');
+  if(!M||!el){ if(el) el.style.display='none'; return; }
+  var h='<b>📣 '+esc(M.head)+'</b><p style="margin:6px 0;font-size:12.8px;line-height:1.85">'+esc(M.why)+'</p>';
+  h+='<table style="margin:6px 0"><thead><tr><th class="l" style="width:34%">걸림돌</th><th class="l">무슨 일이 생기나</th></tr></thead><tbody>'
+    + M.caution.map(function(r){ return '<tr><td class="l"><b>'+esc(r[0])+'</b></td><td class="l">'+esc(r[1])+'</td></tr>'; }).join('')
+    +'</tbody></table>';
+  h+='<p class="lgd">지금 있는 것 — '+esc(M.have)+'</p>';
+  h+='<p class="lgd" style="color:#1b5fae"><b>다음 단계</b> — '+esc(M.next)+'</p>';
+  el.innerHTML=h;
+}
+
 function renderBench(){
   var B=DEF.bench; if(!B){ document.getElementById('bench').style.display='none'; return; }
   var rows=B.rows.map(function(r){

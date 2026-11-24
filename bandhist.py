@@ -131,13 +131,25 @@ def monthly(code, hdr, d1, d2):
 # 3. 분기 재무 — DART 다중회사 주요계정(50종목/콜)
 #    매출액·당기순이익은 3개월 값(없으면 누적 차), 자본총계는 잔액이라 그대로
 # ─────────────────────────────────────────────────────────────────
-ACC = {'매출액': 'rev', '당기순이익': 'ni', '자본총계': 'eq'}
+# DART 주요계정의 계정명은 보고서 기간에 따라 바뀐다 — 1·3분기는 "분기순이익", 2분기는 "반기순이익".
+# "당기순이익" 한 가지만 찾으면 흑자 기업도 전 구간 결측이 된다(v1 에서 실제로 그랬다).
+def acc_key(nm, sj):
+    nm = (nm or '').replace(' ', '')
+    if sj == 'BS':
+        return ('eq', 0) if nm == '자본총계' else (None, 9)
+    if nm in ('매출액', '수익(매출액)'): return ('rev', 0)
+    if nm in ('당기순이익', '당기순이익(손실)'): return ('ni', 0)
+    if nm in ('분기순이익', '분기순이익(손실)', '반기순이익', '반기순이익(손실)'): return ('ni', 1)
+    if re.fullmatch(r'(연결)?(당기|분기|반기)순(이익|손익)(\(손실\))?', nm): return ('ni', 2)
+    return (None, 9)
 
 def dnum(s):
     try: return float(re.sub(r'[^\d\.\-]', '', str(s)))
     except Exception: return None
 
 def dart_quarter(corps, y, q, store):
+    """주요계정 1콜(50종목). 손익은 **누적액(thstrm_add_amount)** 을 우선 쓴다 —
+       thstrm_amount 는 분기 3개월치일 수도, 누적일 수도 있어 섞이면 TTM 이 틀어진다."""
     url = '%s/fnlttMultiAcnt.json?%s' % (DBASE, urllib.parse.urlencode(
         dict(crtfc_key=DKEY, corp_code=','.join(corps), bsns_year=y, reprt_code=REPRT[q])))
     try:
@@ -146,23 +158,33 @@ def dart_quarter(corps, y, q, store):
         log('DART %d/%dQ 실패 %s' % (y, q, str(e)[:50])); return False
     if j.get('status') == '020': log('DART 사용한도 초과'); return None
     for r in (j.get('list') or []):
-        nm = (r.get('account_nm') or '').strip()
-        k = ACC.get(nm)
-        if not k: continue
+        key, pri = acc_key(r.get('account_nm'), r.get('sj_div') or '')
         cp = r.get('corp_code')
-        fs = r.get('fs_div') or 'OFS'          # CFS(연결) 우선
-        cur = dnum(r.get('thstrm_amount'))
-        if cur is None: continue
-        store.setdefault(cp, {}).setdefault(fs, {}).setdefault((y, q), {})[k] = cur
+        if key is None or not cp: continue
+        fs = r.get('fs_div') or 'OFS'                 # CFS(연결) 우선
+        amt, add = dnum(r.get('thstrm_amount')), dnum(r.get('thstrm_add_amount'))
+        if key == 'eq' or q == 4:                     # 재무상태표는 잔액, 사업보고서 손익은 연간
+            cum = amt
+        elif add is not None:                          # 분기·반기 손익은 누적액을 쓴다
+            cum = add
+        else:
+            cum = amt if q == 1 else None              # 누적이 없으면 1분기만 인정
+        if cum is None: continue
+        d = store.setdefault(cp, {}).setdefault(fs, {}).setdefault((y, q), {})
+        if key in d and d[key][1] <= pri: continue
+        d[key] = (cum, pri)
     return True
 
 def ttm(series, y, q, key):
     """최근 4분기 합. 주요계정은 누적이므로 분기값으로 바꾼 뒤 더한다"""
+    def val(yy, qq):
+        t = (series.get((yy, qq)) or {}).get(key)
+        return None if t is None else t[0]
     def one(yy, qq):
-        cum = (series.get((yy, qq)) or {}).get(key)
+        cum = val(yy, qq)
         if cum is None: return None
         if qq == 1: return cum
-        pv = (series.get((yy, qq - 1)) or {}).get(key)
+        pv = val(yy, qq - 1)
         return None if pv is None else cum - pv
     vals, yy, qq = [], y, q
     for _ in range(4):
@@ -254,7 +276,7 @@ def build_one(code, meta, px, fin, cap_now, px_now):
         y, q = q_of(m)
         # 그 달에 '이미 공시된' 가장 최근 분기 — 분기말 + 45일 지연을 가정한다
         yy, qq = qshift(y, q, 1)
-        eq = (fin.get((yy, qq)) or {}).get('eq')
+        _e = (fin.get((yy, qq)) or {}).get('eq'); eq = _e[0] if _e else None
         ni = ttm(fin, yy, qq, 'ni')
         rv = ttm(fin, yy, qq, 'rev')
         mcap = cap_now * (px[m] / px_now) if (cap_now and px_now) else None

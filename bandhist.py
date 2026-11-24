@@ -308,6 +308,16 @@ def build_one(code, meta, px, fin, cap_now, px_now):
                     'why': ('관측 %d개월(약 %.1f년). 36개월 미만이라 이 밴드는 "역사적 분포"가 아니라 '
                             '"최근 구간의 변동폭"이다 — 상장이 짧은 종목이 여기 걸린다.' % (n_obs, n_obs / 12))
                            if lvl == '낮음' else '관측 %d개월(약 %.1f년)' % (n_obs, n_obs / 12)}
+    # ⚠️ 이익 고점 함정 — 시험 실행에서 드러난 것
+    #   삼성전자 PER 4.86배(0분위)인데 PBR 은 83분위, ROE 는 97분위였다.
+    #   이익이 역사적 고점이면 PER 은 자동으로 역사적 최저가 된다. "싸다"가 아니라
+    #   "이익이 꼭대기"라는 뜻일 수 있다. 반도체·소재처럼 사이클이 큰 업종에서 특히 그렇다.
+    #   → PER 이 하위 20분위인데 ROE 가 상위 80분위면 깃발을 세운다.
+    rec['flag'] = []
+    pp = (rec['now'].get('per') or {}).get('pct')
+    rp = (rec.get('roeband') or {}).get('pct') if False else None
+    # roeband 는 아래에서 만들어지므로 여기서는 자리만 잡고 뒤에서 채운다
+
     # ROE 는 배수가 아니다 — 분포만 따로 낸다
     rv = [v for v in ser['roe'] if v is not None]
     if len(rv) >= 12:
@@ -315,6 +325,20 @@ def build_one(code, meta, px, fin, cap_now, px_now):
         rec['roeband'] = {'q': [round(quantile(s, p), 2) for p in (0.10, 0.25, 0.50, 0.75, 0.90)],
                           'now': rv[-1], 'pct': pct(s, rv[-1]),
                           'note': 'ROE 는 배수가 아니라 수익성 비율이라 주가 밴드가 아니다. 분포만 본다.'}
+    # 깃발 — roeband 가 만들어진 뒤에 판정한다
+    pp = (rec['now'].get('per') or {}).get('pct')
+    rp = (rec.get('roeband') or {}).get('pct')
+    bp = (rec['now'].get('pbr') or {}).get('pct')
+    if pp is not None and rp is not None and pp <= 20 and rp >= 80:
+        rec['flag'].append({'k': 'peak',
+            'm': 'PER %d분위(싸 보임)인데 ROE 가 %d분위(역사적 고점)다. 이익이 꼭대기라 PER 이 눌린 것일 수 있다 — '
+                 '사이클이 큰 업종에서 가장 흔한 함정이다.' % (pp, rp)})
+    if pp is not None and bp is not None and abs(pp - bp) >= 50:
+        rec['flag'].append({'k': 'split',
+            'm': '같은 주가인데 PER 은 %d분위, PBR 은 %d분위다. 어느 분모를 쓰느냐로 결론이 갈린다 — '
+                 '한쪽만 보고 "역사적 저평가"라고 하면 안 된다.' % (pp, bp)})
+    if rec['trust']['level'] == '낮음':
+        rec['flag'].append({'k': 'short', 'm': rec['trust']['why']})
     return rec
 
 # ─────────────────────────────────────────────────────────────────
@@ -328,7 +352,7 @@ def sector_bands(recs):
             grp.setdefault(key, []).append(r)
     out = {}
     for key, rs in grp.items():
-        if len(rs) < 3: continue
+        if len(rs) < int(os.environ.get('SEC_MIN', '3')): continue
         ms = sorted({m for r in rs for m in r['m']})
         rec = {'n': len(rs), 'm': ms, 'bands': {}, 'now': {}}
         for k in ('per', 'pbr', 'psr'):

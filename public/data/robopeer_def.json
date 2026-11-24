@@ -1,2963 +1,3206 @@
 {
-"updated": "2026-11-20",
-"domain": "robot",
-"label": "로봇 peer 상대밸류",
-"criteria": [
-{
-"id": "prod",
-"name": "제품 동일성",
-"d": "2 같은 제품을 같은 용도로 팔아 서로 대체 / 1 같은 제품군이나 방식·용도가 다름 / 0 다른 제품"
-},
-{
-"id": "cust",
-"name": "고객 중복",
-"d": "2 주요 고객이 실명으로 겹침 / 1 같은 전방 산업 / 0 다름"
-},
-{
-"id": "mix",
-"name": "매출 비중",
-"d": "2 양쪽 모두 이 제품이 과반 / 1 한쪽만 과반 / 0 둘 다 소수"
-},
-{
-"id": "model",
-"name": "사업모델",
-"d": "2 같은 방식으로 판매 / 1 유사 / 0 다름"
-},
-{
-"id": "driver",
-"name": "실적 드라이버",
-"d": "2 같은 변수에 실적이 움직임 / 1 일부 겹침 / 0 다름"
-}
-],
-"grade_rule": {
-"A": "합계 8점 이상이고 제품 동일성 2점 — 멀티플 직접 비교 가능",
-"B": "합계 6점 이상이고 제품 동일성 1점 이상 — 참고 비교",
-"C": "그 외 — 숫자만 나란히 보고 판정에는 쓰지 않음",
-"note": "자료에 없는 항목은 null(0점으로 계산)"
-},
-"stage_name": {
-"구동부": "구동부(액츄에이터)",
-"센서": "센서",
-"제어": "제어·통신",
-"완제품": "완제품·SI",
-"소재": "소재"
-},
-"note": "로봇 밸류체인 1차 분류표. 종목코드는 종목 마스터(2,762종목)와 대조해 확인했고, 묶음 설명은 공시 사업내용과 증권사 리포트를 근거로 썼다. 쌍 채점(고객 중복·매출 비중·사업모델·실적 드라이버)은 사업보고서 조사가 필요해 아직 비어 있으며, 그동안 모든 쌍은 등급 C(참고)로 두어 판정에 쓰지 않는다.",
-"src": [
-{
-"t": "휴머노이드 투자, 이제 시작이다",
-"b": "IBK투자증권",
-"d": "2026-08-25"
-},
-{
-"t": "종목 사업내용·종목코드",
-"b": "종목 마스터",
-"d": "2026-11-02"
-}
-],
-"stats": {
-"groups": 14,
-"co": 58,
-"pairs": 128
-},
-"groups": [
-{
-"id": "motor_servo",
-"name": "서보·정밀 모터",
-"seg": "구동부",
-"top": "액츄에이터",
-"basis": "로봇 관절을 직접 돌리는 모터를 만들어 판다. 휴머노이드는 관절 수가 늘수록 모터 수가 그대로 늘어난다.",
-"caution": "자화전자·계양전기처럼 로봇이 아닌 전방(스마트폰 카메라·전동공구·자동차)이 매출의 대부분인 회사가 섞여 있다. 전사 배수를 로봇 전업과 그대로 견주면 안 된다.",
-"n": 5
-},
-{
-"id": "act_module",
-"name": "액추에이터 모듈(모터+감속기+제어 일체)",
-"seg": "구동부",
-"top": "액츄에이터",
-"basis": "모터·감속기·엔코더·드라이버를 한 덩어리로 묶어 관절 모듈로 판다. 단품보다 단가가 높고 설계 종속이 생긴다.",
-"caution": "삼현은 자동차·건설기계용 스마트 액추에이터가 주력이고, 로보티즈는 로봇 액추에이터 모듈이 본업이다. 전방이 달라 사이클이 다르게 움직인다.",
-"n": 2
-},
-{
-"id": "gear_reducer",
-"name": "정밀 감속기·기어",
-"seg": "구동부",
-"top": "액츄에이터",
-"basis": "모터의 빠른 회전을 느리고 힘센 회전으로 바꾸는 부품. 중희토 규제로 고감속 전환이 거론되며 수요 축이 바뀌는 구간이다.",
-"caution": "하모닉·유성·사이클로이드는 구조와 경쟁 상대가 다르다. 같은 \"감속기\"로 묶여도 제품 방식이 다르면 직접 비교가 아니다.",
-"n": 7
-},
-{
-"id": "bearing_linear",
-"name": "베어링·직선운동(LM·볼스크류)",
-"seg": "구동부",
-"top": "액츄에이터",
-"basis": "관절의 회전과 직선 움직임을 받치는 기계 부품. 정밀도와 수명이 로봇 신뢰성을 좌우한다.",
-"caution": "씨에스베어링은 풍력용 선회베어링이 주력이라 로봇 노출이 작다.",
-"n": 2
-},
-{
-"id": "motion_ctrl",
-"name": "모션제어기·드라이브·엔코더",
-"seg": "제어",
-"top": "제어·통신",
-"basis": "모터를 몇 도, 얼마의 힘으로 돌릴지 계산해 명령하는 장치와 칩. 관절 수가 늘수록 축(axis) 수요가 늘어난다.",
-"caution": "아진엑스텍은 모션제어칩(반도체), 알에스오토메이션은 제어기·드라이브 완제품으로 사업모델이 다르다.",
-"n": 3
-},
-{
-"id": "vision",
-"name": "머신비전·3D·라이다",
-"seg": "센서",
-"top": "센서",
-"basis": "로봇이 공간과 물체를 보는 눈. 카메라 모듈, 3D 비전, 라이다가 여기에 들어간다.",
-"caution": "엠씨넥스 같은 광학 업체는 스마트폰·차량용이 매출의 대부분이라 로봇 노출이 작다. 고영은 반도체 검사와 의료로봇이 섞여 있다.",
-"n": 7
-},
-{
-"id": "optic_part",
-"name": "광학 부품(카메라 렌즈·모듈)",
-"seg": "센서",
-"top": "센서",
-"basis": "비전 센서의 앞단 부품. 로봇 고유 수요라기보다 전방 산업(스마트폰·차량)에 붙어 움직인다.",
-"caution": "로봇 테마로 묶이지만 실제 매출 동인은 스마트폰·차량 카메라다. 로봇 밸류로 보면 안 된다.",
-"n": 3
-},
-{
-"id": "cobot",
-"name": "협동로봇",
-"seg": "완제품",
-"top": "완제품·SI",
-"basis": "사람 옆에서 같이 일하는 팔 형태 로봇. 휴머노이드 이전 단계의 상용 시장이다.",
-"caution": "세 회사 모두 적자이거나 이익이 미미해 PER이 성립하지 않는 구간이 많다. PSR·EV/Sales와 수주로 봐야 한다.",
-"n": 3
-},
-{
-"id": "ind_robot",
-"name": "산업용·제조용 로봇·자동화",
-"seg": "완제품",
-"top": "완제품·SI",
-"basis": "공장 안에서 쓰는 직교·다관절 로봇과 자동화 시스템. 전방 설비 투자에 연동된다.",
-"caution": "전방이 반도체·디스플레이·2차전지·사출 등으로 제각각이라, 같은 \"산업용 로봇\"이어도 실적 드라이버가 다르다.",
-"n": 10
-},
-{
-"id": "service_robot",
-"name": "서비스·소비자 로봇",
-"seg": "완제품",
-"top": "완제품·SI",
-"basis": "청소·교육·배송처럼 소비자와 서비스 현장에서 쓰는 로봇.",
-"caution": "B2C 비중이 커서 경기와 유통 채널에 민감하다. 휴머노이드 밸류체인과는 수요 동인이 다르다.",
-"n": 4
-},
-{
-"id": "med_wear",
-"name": "의료·재활·웨어러블 로봇",
-"seg": "완제품",
-"top": "완제품·SI",
-"basis": "사람의 몸에 붙거나 수술·재활에 쓰는 로봇. 인허가와 보험 수가가 매출 속도를 정한다.",
-"caution": "인허가 일정이 실적을 좌우해 산업용 로봇과 사이클이 다르다.",
-"n": 4
-},
-{
-"id": "robot_sw",
-"name": "로봇 소프트웨어·컴퓨팅",
-"seg": "제어",
-"top": "제어·통신",
-"basis": "로봇을 움직이는 소프트웨어와 그걸 돌리는 컴퓨팅 보드.",
-"caution": "매출 규모가 작아 분기 변동이 크다.",
-"n": 2
-},
-{
-"id": "magnet_mat",
-"name": "자석·소재",
-"seg": "소재",
-"top": "소재",
-"basis": "모터의 힘을 만드는 영구자석과 관련 소재. 중국의 중희토 수출 통제가 직접 걸리는 구간이다.",
-"caution": "유니온머티리얼은 페라이트(비희토) 자석이 중심이라 네오디뮴 규제와는 노출이 다르다.",
-"n": 2
-},
-{
-"id": "oem_link",
-"name": "완성차·대형 부품사(휴머노이드 연결)",
-"seg": "완제품",
-"top": "완제품·SI",
-"basis": "휴머노이드 완성품 또는 그룹 내 발주로 연결되는 대형 기업.",
-"caution": "로봇은 전사 매출의 일부에 불과하다. 전사 배수로 로봇 테마를 평가하면 왜곡된다.",
-"n": 4
-}
-],
-"pairs": [
-{
-"a": "012200",
-"b": "024840",
-"gid": "motor_servo",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "012200",
-"b": "033200",
-"gid": "motor_servo",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "012200",
-"b": "160190",
-"gid": "motor_servo",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "012200",
-"b": "193250",
-"gid": "motor_servo",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "024840",
-"b": "033200",
-"gid": "motor_servo",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "024840",
-"b": "160190",
-"gid": "motor_servo",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "024840",
-"b": "193250",
-"gid": "motor_servo",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "033200",
-"b": "160190",
-"gid": "motor_servo",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "033200",
-"b": "193250",
-"gid": "motor_servo",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "160190",
-"b": "193250",
-"gid": "motor_servo",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "108490",
-"b": "437730",
-"gid": "act_module",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "008830",
-"b": "058610",
-"gid": "gear_reducer",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "008830",
-"b": "101170",
-"gid": "gear_reducer",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "008830",
-"b": "212560",
-"gid": "gear_reducer",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "008830",
-"b": "264850",
-"gid": "gear_reducer",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "008830",
-"b": "389500",
-"gid": "gear_reducer",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "008830",
-"b": "496320",
-"gid": "gear_reducer",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "058610",
-"b": "101170",
-"gid": "gear_reducer",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "058610",
-"b": "212560",
-"gid": "gear_reducer",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "058610",
-"b": "264850",
-"gid": "gear_reducer",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "058610",
-"b": "389500",
-"gid": "gear_reducer",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "058610",
-"b": "496320",
-"gid": "gear_reducer",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "101170",
-"b": "212560",
-"gid": "gear_reducer",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "101170",
-"b": "264850",
-"gid": "gear_reducer",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "101170",
-"b": "389500",
-"gid": "gear_reducer",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "101170",
-"b": "496320",
-"gid": "gear_reducer",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "212560",
-"b": "264850",
-"gid": "gear_reducer",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "212560",
-"b": "389500",
-"gid": "gear_reducer",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "212560",
-"b": "496320",
-"gid": "gear_reducer",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "264850",
-"b": "389500",
-"gid": "gear_reducer",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "264850",
-"b": "496320",
-"gid": "gear_reducer",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "389500",
-"b": "496320",
-"gid": "gear_reducer",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "004380",
-"b": "297090",
-"gid": "bearing_linear",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "048770",
-"b": "059120",
-"gid": "motion_ctrl",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "048770",
-"b": "140670",
-"gid": "motion_ctrl",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "059120",
-"b": "140670",
-"gid": "motion_ctrl",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "097520",
-"b": "098460",
-"gid": "vision",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "097520",
-"b": "126700",
-"gid": "vision",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "097520",
-"b": "300120",
-"gid": "vision",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "097520",
-"b": "370090",
-"gid": "vision",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "097520",
-"b": "464080",
-"gid": "vision",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "097520",
-"b": "475400",
-"gid": "vision",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "098460",
-"b": "126700",
-"gid": "vision",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "098460",
-"b": "300120",
-"gid": "vision",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "098460",
-"b": "370090",
-"gid": "vision",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "098460",
-"b": "464080",
-"gid": "vision",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "098460",
-"b": "475400",
-"gid": "vision",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "126700",
-"b": "300120",
-"gid": "vision",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "126700",
-"b": "370090",
-"gid": "vision",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "126700",
-"b": "464080",
-"gid": "vision",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "126700",
-"b": "475400",
-"gid": "vision",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "300120",
-"b": "370090",
-"gid": "vision",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "300120",
-"b": "464080",
-"gid": "vision",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "300120",
-"b": "475400",
-"gid": "vision",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "370090",
-"b": "464080",
-"gid": "vision",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "370090",
-"b": "475400",
-"gid": "vision",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "464080",
-"b": "475400",
-"gid": "vision",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "053450",
-"b": "082210",
-"gid": "optic_part",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "053450",
-"b": "190510",
-"gid": "optic_part",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "082210",
-"b": "190510",
-"gid": "optic_part",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "277810",
-"b": "348340",
-"gid": "cobot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "277810",
-"b": "454910",
-"gid": "cobot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "348340",
-"b": "454910",
-"gid": "cobot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "090360",
-"b": "090710",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "090360",
-"b": "099440",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "090360",
-"b": "117730",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "090360",
-"b": "232680",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "090360",
-"b": "317830",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "090360",
-"b": "388720",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "090360",
-"b": "459510",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "090360",
-"b": "468670",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "090360",
-"b": "484810",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "090710",
-"b": "099440",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "090710",
-"b": "117730",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "090710",
-"b": "232680",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "090710",
-"b": "317830",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "090710",
-"b": "388720",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "090710",
-"b": "459510",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "090710",
-"b": "468670",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "090710",
-"b": "484810",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "099440",
-"b": "117730",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "099440",
-"b": "232680",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "099440",
-"b": "317830",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "099440",
-"b": "388720",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "099440",
-"b": "459510",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "099440",
-"b": "468670",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "099440",
-"b": "484810",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "117730",
-"b": "232680",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "117730",
-"b": "317830",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "117730",
-"b": "388720",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "117730",
-"b": "459510",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "117730",
-"b": "468670",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "117730",
-"b": "484810",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "232680",
-"b": "317830",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "232680",
-"b": "388720",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "232680",
-"b": "459510",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "232680",
-"b": "468670",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "232680",
-"b": "484810",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "317830",
-"b": "388720",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "317830",
-"b": "459510",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "317830",
-"b": "468670",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "317830",
-"b": "484810",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "388720",
-"b": "459510",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "388720",
-"b": "468670",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "388720",
-"b": "484810",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "459510",
-"b": "468670",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "459510",
-"b": "484810",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "468670",
-"b": "484810",
-"gid": "ind_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "056080",
-"b": "215100",
-"gid": "service_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "056080",
-"b": "270660",
-"gid": "service_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "056080",
-"b": "475580",
-"gid": "service_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "215100",
-"b": "270660",
-"gid": "service_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "215100",
-"b": "475580",
-"gid": "service_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "270660",
-"b": "475580",
-"gid": "service_robot",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "060280",
-"b": "439960",
-"gid": "med_wear",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "060280",
-"b": "455900",
-"gid": "med_wear",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "060280",
-"b": "460940",
-"gid": "med_wear",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "439960",
-"b": "455900",
-"gid": "med_wear",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "439960",
-"b": "460940",
-"gid": "med_wear",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "455900",
-"b": "460940",
-"gid": "med_wear",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "448710",
-"b": "466100",
-"gid": "robot_sw",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "047400",
-"b": "285490",
-"gid": "magnet_mat",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "012330",
-"b": "204320",
-"gid": "oem_link",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "012330",
-"b": "307950",
-"gid": "oem_link",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "012330",
-"b": "489790",
-"gid": "oem_link",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "204320",
-"b": "307950",
-"gid": "oem_link",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "204320",
-"b": "489790",
-"gid": "oem_link",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-},
-{
-"a": "307950",
-"b": "489790",
-"gid": "oem_link",
-"score": {
-"prod": 1,
-"cust": null,
-"mix": null,
-"model": null,
-"driver": null
-},
-"sum": 1,
-"grade": "C",
-"nul": 4,
-"why": {
-"prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
-}
-}
-],
-"co": {
-"160190": {
-"n": "하이젠알앤엠",
-"gids": [
-"motor_servo"
-],
-"main": "전동기 및 발전기 (범용모터, 서보모터)",
-"sec": "산업재"
-},
-"033200": {
-"n": "모아텍",
-"gids": [
-"motor_servo"
-],
-"main": "위치제어용초정및소형모터",
-"sec": "정보기술"
-},
-"012200": {
-"n": "계양전기",
-"gids": [
-"motor_servo"
-],
-"main": "전동공구(그라인더,드릴,커팅머신 등), 엔진, 자동차용 모터 제조",
-"sec": "임의소비재"
-},
-"024840": {
-"n": "KBI메탈",
-"gids": [
-"motor_servo"
-],
-"main": "동ROD, 모터코어",
-"sec": "기타"
-},
-"193250": {
-"n": "링크드",
-"gids": [
-"motor_servo"
-],
-"main": "휴대폰용 진동모터",
-"sec": "정보기술"
-},
-"437730": {
-"n": "삼현",
-"gids": [
-"act_module"
-],
-"main": "스마트 액추에이터, 스마트 파워유닛",
-"sec": "임의소비재"
-},
-"108490": {
-"n": "로보티즈",
-"gids": [
-"act_module"
-],
-"main": "솔루션(로봇 엑츄에이터 모듈과 구동 소프트웨어), 에듀테인먼트 로봇, 로봇 플랫폼",
-"sec": "정보기술"
-},
-"058610": {
-"n": "에스피지",
-"gids": [
-"gear_reducer"
-],
-"main": "소형 Geared Motor",
-"sec": "산업재"
-},
-"389500": {
-"n": "에스비비테크",
-"gids": [
-"gear_reducer"
-],
-"main": "베어링, 감속기",
-"sec": "산업재"
-},
-"496320": {
-"n": "본시스템즈",
-"gids": [
-"gear_reducer"
-],
-"main": "감속기 등 로봇부품",
-"sec": "산업재"
-},
-"101170": {
-"n": "우림피티에스",
-"gids": [
-"gear_reducer"
-],
-"main": "트랜스미션,감속기,기어전동축 제조",
-"sec": "산업재"
-},
-"008830": {
-"n": "대동기어",
-"gids": [
-"gear_reducer"
-],
-"main": "기어, 베벨기어, 축, 엑셀, T/M, 유성감속기, 기타조립품",
-"sec": "산업재"
-},
-"212560": {
-"n": "네오오토",
-"gids": [
-"gear_reducer"
-],
-"main": "자동차부품(피니언기어, 디프어셈블리, 대형기어), 로봇 및 로봇부품, 모빌리티 부품 제조",
-"sec": "임의소비재"
-},
-"264850": {
-"n": "이랜시스",
-"gids": [
-"gear_reducer"
-],
-"main": "비데도어락부품",
-"sec": "정보기술"
-},
-"004380": {
-"n": "삼익THK",
-"gids": [
-"bearing_linear"
-],
-"main": "직선운동시스템,메카트로시스템,기타정밀 자동화기기 제조,판매/전자상거래,인터넷 관련 s/w,h/w 개발,판매,유지보수",
-"sec": "산업재"
-},
-"297090": {
-"n": "씨에스베어링",
-"gids": [
-"bearing_linear"
-],
-"main": "풍력용 선회베어링, 산업용 선회베어링",
-"sec": "산업재"
-},
-"140670": {
-"n": "알에스오토메이션",
-"gids": [
-"motion_ctrl"
-],
-"main": "모션제어기, 드라이브, 에너지제어장치",
-"sec": "정보기술"
-},
-"059120": {
-"n": "아진엑스텍",
-"gids": [
-"motion_ctrl"
-],
-"main": "전자집적회로, 모션제어칩",
-"sec": "정보기술"
-},
-"048770": {
-"n": "TPC로보틱스",
-"gids": [
-"motion_ctrl"
-],
-"main": "구동기기(실린더), 방향제어기(밸브)",
-"sec": "산업재"
-},
-"475400": {
-"n": "씨메스로보틱스",
-"gids": [
-"vision"
-],
-"main": "AI 기반 로봇 솔루션 및 3D 비전 솔루션",
-"sec": "산업재"
-},
-"464080": {
-"n": "에스오에스랩",
-"gids": [
-"vision"
-],
-"main": "산업용 및 차량용 라이다(LiDAR)",
-"sec": "정보기술"
-},
-"300120": {
-"n": "라온피플",
-"gids": [
-"vision"
-],
-"main": "카메라 모듈 검사기, AI 머신비전, 골프센서",
-"sec": "정보기술"
-},
-"098460": {
-"n": "고영",
-"gids": [
-"vision"
-],
-"main": "전자제품및반도체생산용 3차원 납도포검사장비",
-"sec": "정보기술"
-},
-"126700": {
-"n": "하이비젼시스템",
-"gids": [
-"vision"
-],
-"main": "카메라모듈 제조검사용 장비",
-"sec": "정보기술"
-},
-"097520": {
-"n": "엠씨넥스",
-"gids": [
-"vision"
-],
-"main": "모바일 카메라모듈,전장 카메라모듈,블랙박스,IP 카메라",
-"sec": "정보기술"
-},
-"370090": {
-"n": "퓨런티어",
-"gids": [
-"vision"
-],
-"main": "전장카메라모듈장비, 모바일카메라모듈장비, PC및 광원",
-"sec": "정보기술"
-},
-"053450": {
-"n": "세코닉스",
-"gids": [
-"optic_part"
-],
-"main": "모바일용 카메라렌즈, 차량용 카메라 및 광학부품",
-"sec": "정보기술"
-},
-"082210": {
-"n": "옵트론텍",
-"gids": [
-"optic_part"
-],
-"main": "IRFilter,Grating",
-"sec": "정보기술"
-},
-"190510": {
-"n": "나무가",
-"gids": [
-"optic_part"
-],
-"main": "스마트폰 카메라모듈, 노트북 카메라모듈",
-"sec": "정보기술"
-},
-"454910": {
-"n": "두산로보틱스",
-"gids": [
-"cobot"
-],
-"main": "협동로봇",
-"sec": "산업재"
-},
-"348340": {
-"n": "뉴로메카",
-"gids": [
-"cobot"
-],
-"main": "협동로봇, 협동로봇 자동화 플랫폼, 로봇제어기 등",
-"sec": "산업재"
-},
-"277810": {
-"n": "레인보우로보틱스",
-"gids": [
-"cobot"
-],
-"main": "협동로봇, 모바일휴머노이드, 4족보행로봇, 천문마운트시스템 등",
-"sec": "산업재"
-},
-"090360": {
-"n": "로보스타",
-"gids": [
-"ind_robot"
-],
-"main": "제조용 로봇, FPD 장비, IT부품 제조장비",
-"sec": "산업재"
-},
-"099440": {
-"n": "스맥",
-"gids": [
-"ind_robot"
-],
-"main": "공작기계 및 산업용로봇제조",
-"sec": "산업재"
-},
-"388720": {
-"n": "유일로보틱스",
-"gids": [
-"ind_robot"
-],
-"main": "취출로봇, 사출장비 및 자동화시스템",
-"sec": "산업재"
-},
-"317830": {
-"n": "에스피시스템스",
-"gids": [
-"ind_robot"
-],
-"main": "산업용 갠트리 로봇",
-"sec": "산업재"
-},
-"459510": {
-"n": "나우로보틱스",
-"gids": [
-"ind_robot"
-],
-"main": "산업용로봇 및 로봇자동화시스템",
-"sec": "산업재"
-},
-"232680": {
-"n": "라온로보틱스",
-"gids": [
-"ind_robot"
-],
-"main": "반도체 및 FPD용 로봇시스템",
-"sec": "정보기술"
-},
-"117730": {
-"n": "티로보틱스",
-"gids": [
-"ind_robot"
-],
-"main": "중대형 시스템, 중대형 로봇",
-"sec": "산업재"
-},
-"090710": {
-"n": "휴림로봇",
-"gids": [
-"ind_robot"
-],
-"main": "제조업용로봇및서비스로봇",
-"sec": "산업재"
-},
-"468670": {
-"n": "브릴스",
-"gids": [
-"ind_robot"
-],
-"main": "로봇 모듈화 플랫폼 솔루션",
-"sec": "산업재"
-},
-"484810": {
-"n": "티엑스알로보틱스",
-"gids": [
-"ind_robot"
-],
-"main": "물류자동화, 로봇자동화, AMR/AGV",
-"sec": "산업재"
-},
-"270660": {
-"n": "에브리봇",
-"gids": [
-"service_robot"
-],
-"main": "물걸레 로봇청소기, 흡입형 로봇청소기",
-"sec": "기타"
-},
-"056080": {
-"n": "유진로봇",
-"gids": [
-"service_robot"
-],
-"main": "청소로봇, 완구류외",
-"sec": "임의소비재"
-},
-"215100": {
-"n": "로보로보",
-"gids": [
-"service_robot"
-],
-"main": "교육용로봇",
-"sec": "임의소비재"
-},
-"475580": {
-"n": "에이럭스",
-"gids": [
-"service_robot"
-],
-"main": "교육용 드론/로봇 및 코딩 콘텐츠",
-"sec": "커뮤니케이션"
-},
-"455900": {
-"n": "엔젤로보틱스",
-"gids": [
-"med_wear"
-],
-"main": "재활 전문 웨어러블 로봇, 근력 보조 무동력 웨어러블 슈트, 일상생활 보조 웨어러블 로봇 등",
-"sec": "산업재"
-},
-"060280": {
-"n": "큐렉소",
-"gids": [
-"med_wear"
-],
-"main": "만화단행본, 정기간행물",
-"sec": "커뮤니케이션"
-},
-"439960": {
-"n": "코스모로보틱스",
-"gids": [
-"med_wear"
-],
-"main": "웨어러블 로봇",
-"sec": "헬스케어"
-},
-"460940": {
-"n": "피앤에스로보틱스",
-"gids": [
-"med_wear"
-],
-"main": "보행재활로봇 시스템",
-"sec": "헬스케어"
-},
-"466100": {
-"n": "클로봇",
-"gids": [
-"robot_sw"
-],
-"main": "로봇 소프트웨어(카멜레온, 크롬스)",
-"sec": "정보기술"
-},
-"448710": {
-"n": "코츠테크놀로지",
-"gids": [
-"robot_sw"
-],
-"main": "싱글보드컴퓨터(SBC), 군용 전시기 등",
-"sec": "정보기술"
-},
-"047400": {
-"n": "유니온머티리얼",
-"gids": [
-"magnet_mat"
-],
-"main": "페라이트,세라믹 제조,도매",
-"sec": "기타"
-},
-"285490": {
-"n": "노바텍",
-"gids": [
-"magnet_mat"
-],
-"main": "Magnet, Shield Magnet, 심재",
-"sec": "기타"
-},
-"012330": {
-"n": "현대모비스",
-"gids": [
-"oem_link"
-],
-"main": "자동차A/S용 부품,컨테이너,특수중기,산업기계제품 생산,판매,부품모듈화,부품수출사업,환경/플랜트사업,특수중기부문(컨테이너)",
-"sec": "임의소비재"
-},
-"204320": {
-"n": "HL만도",
-"gids": [
-"oem_link"
-],
-"main": "제동장치, 조향장치, 현가장치",
-"sec": "임의소비재"
-},
-"307950": {
-"n": "현대오토에버",
-"gids": [
-"oem_link"
-],
-"main": "차량SW, 내비게이션, 스마트팩토리, AI·클라우드 기반 솔루션, 디지털 전환 컨설팅 및 IT서비스",
-"sec": "정보기술"
-},
-"489790": {
-"n": "한화비전",
-"gids": [
-"oem_link"
-],
-"main": "비금융지주회사",
-"sec": "금융"
-}
-}
+ "updated": "2026-11-24",
+ "domain": "robot",
+ "label": "로봇 peer 상대밸류",
+ "criteria": [
+  {
+   "id": "prod",
+   "name": "제품 동일성",
+   "d": "2 같은 제품을 같은 용도로 팔아 서로 대체 / 1 같은 제품군이나 방식·용도가 다름 / 0 다른 제품"
+  },
+  {
+   "id": "cust",
+   "name": "고객 중복",
+   "d": "2 주요 고객이 실명으로 겹침 / 1 같은 전방 산업 / 0 다름"
+  },
+  {
+   "id": "mix",
+   "name": "매출 비중",
+   "d": "2 양쪽 모두 이 제품이 과반 / 1 한쪽만 과반 / 0 둘 다 소수"
+  },
+  {
+   "id": "model",
+   "name": "사업모델",
+   "d": "2 같은 방식으로 판매 / 1 유사 / 0 다름"
+  },
+  {
+   "id": "driver",
+   "name": "실적 드라이버",
+   "d": "2 같은 변수에 실적이 움직임 / 1 일부 겹침 / 0 다름"
+  }
+ ],
+ "grade_rule": {
+  "A": "합계 8점 이상이고 제품 동일성 2점 — 멀티플 직접 비교 가능",
+  "B": "합계 6점 이상이고 제품 동일성 1점 이상 — 참고 비교",
+  "C": "그 외 — 숫자만 나란히 보고 판정에는 쓰지 않음",
+  "note": "자료에 없는 항목은 null(0점으로 계산)"
+ },
+ "stage_name": {
+  "구동부": "구동부(액츄에이터)",
+  "센서": "센서",
+  "제어": "제어·통신",
+  "완제품": "완제품·SI",
+  "소재": "소재"
+ },
+ "note": "로봇 밸류체인 분류표. 종목코드는 종목 마스터와 대조해 확인했고, 묶음 설명은 공시 사업내용과 증권사 리포트를 근거로 썼다. 쌍 채점은 39/128쌍을 끝냈고 근거를 쌍마다 적었다. 나머지 89쌍은 사업보고서 조사가 남아 등급 C(참고)로 두어 판정에 쓰지 않는다. 확인하지 못한 항목은 null로 두고 0점으로 계산한다 — 추측으로 채우지 않는다.",
+ "src": [
+  {
+   "t": "휴머노이드 투자, 이제 시작이다",
+   "b": "IBK투자증권",
+   "d": "2026-08-25"
+  },
+  {
+   "t": "종목 사업내용·종목코드",
+   "b": "종목 마스터",
+   "d": "2026-11-02"
+  }
+ ],
+ "stats": {
+  "groups": 14,
+  "co": 58,
+  "pairs": 128,
+  "scored": 39
+ },
+ "groups": [
+  {
+   "id": "motor_servo",
+   "name": "서보·정밀 모터",
+   "seg": "구동부",
+   "top": "액츄에이터",
+   "basis": "로봇 관절을 직접 돌리는 모터를 만들어 판다. 휴머노이드는 관절 수가 늘수록 모터 수가 그대로 늘어난다.",
+   "caution": "자화전자·계양전기처럼 로봇이 아닌 전방(스마트폰 카메라·전동공구·자동차)이 매출의 대부분인 회사가 섞여 있다. 전사 배수를 로봇 전업과 그대로 견주면 안 된다.",
+   "n": 5,
+   "members": [
+    "012200",
+    "024840",
+    "033200",
+    "160190",
+    "193250"
+   ]
+  },
+  {
+   "id": "act_module",
+   "name": "액추에이터 모듈(모터+감속기+제어 일체)",
+   "seg": "구동부",
+   "top": "액츄에이터",
+   "basis": "모터·감속기·엔코더·드라이버를 한 덩어리로 묶어 관절 모듈로 판다. 단품보다 단가가 높고 설계 종속이 생긴다.",
+   "caution": "삼현은 자동차·건설기계용 스마트 액추에이터가 주력이고, 로보티즈는 로봇 액추에이터 모듈이 본업이다. 전방이 달라 사이클이 다르게 움직인다.",
+   "n": 2,
+   "members": [
+    "108490",
+    "437730"
+   ]
+  },
+  {
+   "id": "gear_reducer",
+   "name": "정밀 감속기·기어",
+   "seg": "구동부",
+   "top": "액츄에이터",
+   "basis": "모터의 빠른 회전을 느리고 힘센 회전으로 바꾸는 부품. 중희토 규제로 고감속 전환이 거론되며 수요 축이 바뀌는 구간이다.",
+   "caution": "하모닉·유성·사이클로이드는 구조와 경쟁 상대가 다르다. 같은 \"감속기\"로 묶여도 제품 방식이 다르면 직접 비교가 아니다.",
+   "n": 7,
+   "members": [
+    "008830",
+    "058610",
+    "101170",
+    "212560",
+    "264850",
+    "389500",
+    "496320"
+   ]
+  },
+  {
+   "id": "bearing_linear",
+   "name": "베어링·직선운동(LM·볼스크류)",
+   "seg": "구동부",
+   "top": "액츄에이터",
+   "basis": "관절의 회전과 직선 움직임을 받치는 기계 부품. 정밀도와 수명이 로봇 신뢰성을 좌우한다.",
+   "caution": "씨에스베어링은 풍력용 선회베어링이 주력이라 로봇 노출이 작다.",
+   "n": 2,
+   "members": [
+    "004380",
+    "297090"
+   ]
+  },
+  {
+   "id": "motion_ctrl",
+   "name": "모션제어기·드라이브·엔코더",
+   "seg": "제어",
+   "top": "제어·통신",
+   "basis": "모터를 몇 도, 얼마의 힘으로 돌릴지 계산해 명령하는 장치와 칩. 관절 수가 늘수록 축(axis) 수요가 늘어난다.",
+   "caution": "아진엑스텍은 모션제어칩(반도체), 알에스오토메이션은 제어기·드라이브 완제품으로 사업모델이 다르다.",
+   "n": 3,
+   "members": [
+    "048770",
+    "059120",
+    "140670"
+   ]
+  },
+  {
+   "id": "vision",
+   "name": "머신비전·3D·라이다",
+   "seg": "센서",
+   "top": "센서",
+   "basis": "로봇이 공간과 물체를 보는 눈. 카메라 모듈, 3D 비전, 라이다가 여기에 들어간다.",
+   "caution": "엠씨넥스 같은 광학 업체는 스마트폰·차량용이 매출의 대부분이라 로봇 노출이 작다. 고영은 반도체 검사와 의료로봇이 섞여 있다.",
+   "n": 7,
+   "members": [
+    "097520",
+    "098460",
+    "126700",
+    "300120",
+    "370090",
+    "464080",
+    "475400"
+   ]
+  },
+  {
+   "id": "optic_part",
+   "name": "광학 부품(카메라 렌즈·모듈)",
+   "seg": "센서",
+   "top": "센서",
+   "basis": "비전 센서의 앞단 부품. 로봇 고유 수요라기보다 전방 산업(스마트폰·차량)에 붙어 움직인다.",
+   "caution": "로봇 테마로 묶이지만 실제 매출 동인은 스마트폰·차량 카메라다. 로봇 밸류로 보면 안 된다.",
+   "n": 3,
+   "members": [
+    "053450",
+    "082210",
+    "190510"
+   ]
+  },
+  {
+   "id": "cobot",
+   "name": "협동로봇",
+   "seg": "완제품",
+   "top": "완제품·SI",
+   "basis": "사람 옆에서 같이 일하는 팔 형태 로봇. 휴머노이드 이전 단계의 상용 시장이다.",
+   "caution": "세 회사 모두 적자이거나 이익이 미미해 PER이 성립하지 않는 구간이 많다. PSR·EV/Sales와 수주로 봐야 한다.",
+   "n": 3,
+   "members": [
+    "277810",
+    "348340",
+    "454910"
+   ]
+  },
+  {
+   "id": "ind_robot",
+   "name": "산업용·제조용 로봇·자동화",
+   "seg": "완제품",
+   "top": "완제품·SI",
+   "basis": "공장 안에서 쓰는 직교·다관절 로봇과 자동화 시스템. 전방 설비 투자에 연동된다.",
+   "caution": "전방이 반도체·디스플레이·2차전지·사출 등으로 제각각이라, 같은 \"산업용 로봇\"이어도 실적 드라이버가 다르다.",
+   "n": 10,
+   "members": [
+    "090360",
+    "090710",
+    "099440",
+    "117730",
+    "232680",
+    "317830",
+    "388720",
+    "459510",
+    "468670",
+    "484810"
+   ]
+  },
+  {
+   "id": "service_robot",
+   "name": "서비스·소비자 로봇",
+   "seg": "완제품",
+   "top": "완제품·SI",
+   "basis": "청소·교육·배송처럼 소비자와 서비스 현장에서 쓰는 로봇.",
+   "caution": "B2C 비중이 커서 경기와 유통 채널에 민감하다. 휴머노이드 밸류체인과는 수요 동인이 다르다.",
+   "n": 4,
+   "members": [
+    "056080",
+    "215100",
+    "270660",
+    "475580"
+   ]
+  },
+  {
+   "id": "med_wear",
+   "name": "의료·재활·웨어러블 로봇",
+   "seg": "완제품",
+   "top": "완제품·SI",
+   "basis": "사람의 몸에 붙거나 수술·재활에 쓰는 로봇. 인허가와 보험 수가가 매출 속도를 정한다.",
+   "caution": "인허가 일정이 실적을 좌우해 산업용 로봇과 사이클이 다르다.",
+   "n": 4,
+   "members": [
+    "060280",
+    "439960",
+    "455900",
+    "460940"
+   ]
+  },
+  {
+   "id": "robot_sw",
+   "name": "로봇 소프트웨어·컴퓨팅",
+   "seg": "제어",
+   "top": "제어·통신",
+   "basis": "로봇을 움직이는 소프트웨어와 그걸 돌리는 컴퓨팅 보드.",
+   "caution": "매출 규모가 작아 분기 변동이 크다.",
+   "n": 2,
+   "members": [
+    "448710",
+    "466100"
+   ]
+  },
+  {
+   "id": "magnet_mat",
+   "name": "자석·소재",
+   "seg": "소재",
+   "top": "소재",
+   "basis": "모터의 힘을 만드는 영구자석과 관련 소재. 중국의 중희토 수출 통제가 직접 걸리는 구간이다.",
+   "caution": "유니온머티리얼은 페라이트(비희토) 자석이 중심이라 네오디뮴 규제와는 노출이 다르다.",
+   "n": 2,
+   "members": [
+    "047400",
+    "285490"
+   ]
+  },
+  {
+   "id": "oem_link",
+   "name": "완성차·대형 부품사(휴머노이드 연결)",
+   "seg": "완제품",
+   "top": "완제품·SI",
+   "basis": "휴머노이드 완성품 또는 그룹 내 발주로 연결되는 대형 기업.",
+   "caution": "로봇은 전사 매출의 일부에 불과하다. 전사 배수로 로봇 테마를 평가하면 왜곡된다.",
+   "n": 4,
+   "members": [
+    "012330",
+    "204320",
+    "307950",
+    "489790"
+   ]
+  }
+ ],
+ "pairs": [
+  {
+   "a": "012200",
+   "b": "024840",
+   "gid": "motor_servo",
+   "score": {
+    "prod": 0,
+    "cust": 0,
+    "mix": 1,
+    "model": 1,
+    "driver": 0
+   },
+   "sum": 2,
+   "grade": "C",
+   "nul": 0,
+   "why": {
+    "prod": "계양전기는 전동공구 완제품, KBI메탈은 동ROD·모터코어 소재 — 단계가 다르다",
+    "cust": "다르다",
+    "mix": "KBI메탈만 해당 제품이 과반",
+    "model": "다르다",
+    "driver": "다르다"
+   }
+  },
+  {
+   "a": "012200",
+   "b": "033200",
+   "gid": "motor_servo",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "012200",
+   "b": "160190",
+   "gid": "motor_servo",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "012200",
+   "b": "193250",
+   "gid": "motor_servo",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "024840",
+   "b": "033200",
+   "gid": "motor_servo",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "024840",
+   "b": "160190",
+   "gid": "motor_servo",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "024840",
+   "b": "193250",
+   "gid": "motor_servo",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "033200",
+   "b": "160190",
+   "gid": "motor_servo",
+   "score": {
+    "prod": 1,
+    "cust": 0,
+    "mix": 2,
+    "model": 2,
+    "driver": 0
+   },
+   "sum": 5,
+   "grade": "C",
+   "nul": 0,
+   "why": {
+    "prod": "하이젠알앤엠은 산업용 서보·범용 모터, 모아텍은 소형 위치제어 모터로 크기와 용도가 다르다",
+    "cust": "고객이 다르다",
+    "mix": "양쪽 모두 모터가 과반",
+    "model": "부품 납품",
+    "driver": "전방이 달라 따로 움직인다"
+   }
+  },
+  {
+   "a": "033200",
+   "b": "193250",
+   "gid": "motor_servo",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "160190",
+   "b": "193250",
+   "gid": "motor_servo",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "108490",
+   "b": "437730",
+   "gid": "act_module",
+   "score": {
+    "prod": 1,
+    "cust": 0,
+    "mix": 2,
+    "model": 1,
+    "driver": 0
+   },
+   "sum": 4,
+   "grade": "C",
+   "nul": 0,
+   "why": {
+    "prod": "로보티즈는 로봇 액추에이터 모듈, 삼현은 자동차·건설기계용 스마트 액추에이터",
+    "cust": "전방이 다르다",
+    "mix": "양쪽 모두 액추에이터가 과반",
+    "model": "유사하나 로보티즈는 개발자 대상 판매가 섞인다",
+    "driver": "전방 사이클이 다르다"
+   }
+  },
+  {
+   "a": "008830",
+   "b": "058610",
+   "gid": "gear_reducer",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "008830",
+   "b": "101170",
+   "gid": "gear_reducer",
+   "score": {
+    "prod": 1,
+    "cust": 1,
+    "mix": 1,
+    "model": 2,
+    "driver": 1
+   },
+   "sum": 6,
+   "grade": "B",
+   "nul": 0,
+   "why": {
+    "prod": "기어·감속기이나 우림피티에스는 건설기계 트랜스미션이 중심",
+    "cust": "전방이 자동차 vs 건설기계로 갈린다",
+    "mix": "대동기어만 기어가 과반",
+    "model": "OEM 납품으로 같다",
+    "driver": "전방 사이클이 달라 일부만 겹친다"
+   }
+  },
+  {
+   "a": "008830",
+   "b": "212560",
+   "gid": "gear_reducer",
+   "score": {
+    "prod": 2,
+    "cust": 1,
+    "mix": 2,
+    "model": 2,
+    "driver": 2
+   },
+   "sum": 9,
+   "grade": "A",
+   "nul": 0,
+   "why": {
+    "prod": "둘 다 자동차용 정밀기어를 같은 용도로 공급",
+    "cust": "같은 전방(완성차·변속기)",
+    "mix": "양쪽 모두 기어가 매출의 과반",
+    "model": "완성차·Tier1 납품으로 같다",
+    "driver": "자동차 생산대수가 같이 움직인다"
+   }
+  },
+  {
+   "a": "008830",
+   "b": "264850",
+   "gid": "gear_reducer",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "008830",
+   "b": "389500",
+   "gid": "gear_reducer",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "008830",
+   "b": "496320",
+   "gid": "gear_reducer",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "058610",
+   "b": "101170",
+   "gid": "gear_reducer",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "058610",
+   "b": "212560",
+   "gid": "gear_reducer",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "058610",
+   "b": "264850",
+   "gid": "gear_reducer",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "058610",
+   "b": "389500",
+   "gid": "gear_reducer",
+   "score": {
+    "prod": 1,
+    "cust": 1,
+    "mix": 1,
+    "model": 2,
+    "driver": 1
+   },
+   "sum": 6,
+   "grade": "B",
+   "nul": 0,
+   "why": {
+    "prod": "둘 다 감속기이나 에스비비테크는 하모닉, 에스피지는 기어드모터·유성 계열로 방식이 다르다",
+    "cust": "같은 전방(로봇·자동화)",
+    "mix": "에스피지는 소형 기어드모터가 주력이라 감속기 단일 비중이 다르다",
+    "model": "부품 단품 판매로 같다",
+    "driver": "일부만 겹침"
+   }
+  },
+  {
+   "a": "058610",
+   "b": "496320",
+   "gid": "gear_reducer",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": 2,
+    "driver": 2
+   },
+   "sum": 5,
+   "grade": "C",
+   "nul": 2,
+   "why": {
+    "prod": "감속기이나 에스피지는 기어드모터 일체형이 주력",
+    "model": "부품 판매로 같다",
+    "driver": "로봇 수요",
+    "cust": "미확인",
+    "mix": "미확인"
+   }
+  },
+  {
+   "a": "101170",
+   "b": "212560",
+   "gid": "gear_reducer",
+   "score": {
+    "prod": 1,
+    "cust": 0,
+    "mix": 2,
+    "model": 2,
+    "driver": 1
+   },
+   "sum": 6,
+   "grade": "B",
+   "nul": 0,
+   "why": {
+    "prod": "같은 기어 제품군이나 적용처가 자동차 vs 건설기계로 다르다",
+    "cust": "고객군이 다르다",
+    "mix": "양쪽 모두 기어·동력전달이 과반",
+    "model": "OEM 납품",
+    "driver": "사이클이 다르다"
+   }
+  },
+  {
+   "a": "101170",
+   "b": "264850",
+   "gid": "gear_reducer",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "101170",
+   "b": "389500",
+   "gid": "gear_reducer",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "101170",
+   "b": "496320",
+   "gid": "gear_reducer",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "212560",
+   "b": "264850",
+   "gid": "gear_reducer",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "212560",
+   "b": "389500",
+   "gid": "gear_reducer",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "212560",
+   "b": "496320",
+   "gid": "gear_reducer",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "264850",
+   "b": "389500",
+   "gid": "gear_reducer",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "264850",
+   "b": "496320",
+   "gid": "gear_reducer",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "389500",
+   "b": "496320",
+   "gid": "gear_reducer",
+   "score": {
+    "prod": 2,
+    "cust": null,
+    "mix": null,
+    "model": 2,
+    "driver": 2
+   },
+   "sum": 6,
+   "grade": "B",
+   "nul": 2,
+   "why": {
+    "prod": "둘 다 로봇용 감속기를 만든다",
+    "model": "로봇사·자동화사 대상 부품 판매",
+    "driver": "로봇 관절 수요라는 같은 변수",
+    "cust": "고객 실명 미확인",
+    "mix": "본시스템즈는 상장 이력이 짧아 제품별 매출 비중을 확인하지 못했다"
+   }
+  },
+  {
+   "a": "004380",
+   "b": "297090",
+   "gid": "bearing_linear",
+   "score": {
+    "prod": 0,
+    "cust": 0,
+    "mix": 2,
+    "model": 1,
+    "driver": 0
+   },
+   "sum": 3,
+   "grade": "C",
+   "nul": 0,
+   "why": {
+    "prod": "삼익THK는 LM가이드·볼스크류, 씨에스베어링은 풍력 선회베어링 — 용도가 전혀 다르다",
+    "cust": "고객이 다르다",
+    "mix": "양쪽 모두 해당 제품이 과반",
+    "model": "유사",
+    "driver": "풍력 사이클과 자동화 사이클은 따로 움직인다"
+   }
+  },
+  {
+   "a": "048770",
+   "b": "059120",
+   "gid": "motion_ctrl",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "048770",
+   "b": "140670",
+   "gid": "motion_ctrl",
+   "score": {
+    "prod": 0,
+    "cust": 1,
+    "mix": 2,
+    "model": 1,
+    "driver": 1
+   },
+   "sum": 5,
+   "grade": "C",
+   "nul": 0,
+   "why": {
+    "prod": "TPC로보틱스는 공압 실린더·밸브로 제어 계층이 아니다",
+    "cust": "같은 자동화 전방",
+    "mix": "양쪽 모두 해당 제품이 과반",
+    "model": "유사",
+    "driver": "일부만 겹침"
+   }
+  },
+  {
+   "a": "059120",
+   "b": "140670",
+   "gid": "motion_ctrl",
+   "score": {
+    "prod": 1,
+    "cust": 1,
+    "mix": 2,
+    "model": 2,
+    "driver": 2
+   },
+   "sum": 8,
+   "grade": "B",
+   "nul": 0,
+   "why": {
+    "prod": "아진엑스텍은 모션제어칩, 알에스오토메이션은 제어기·드라이브 — 같은 계층의 다른 단계",
+    "cust": "같은 자동화 전방",
+    "mix": "양쪽 모두 모션제어가 과반",
+    "model": "부품·모듈 납품",
+    "driver": "자동화 설비 수요"
+   }
+  },
+  {
+   "a": "097520",
+   "b": "098460",
+   "gid": "vision",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "097520",
+   "b": "126700",
+   "gid": "vision",
+   "score": {
+    "prod": 0,
+    "cust": 1,
+    "mix": 2,
+    "model": 1,
+    "driver": 1
+   },
+   "sum": 5,
+   "grade": "C",
+   "nul": 0,
+   "why": {
+    "prod": "엠씨넥스는 카메라모듈 제조사, 하이비젼은 그 장비사 — 수요-공급 관계지 대체재가 아니다",
+    "cust": "전방이 이어져 있다",
+    "mix": "양쪽 모두 해당 제품이 과반",
+    "model": "다르다",
+    "driver": "일부만 겹침"
+   }
+  },
+  {
+   "a": "097520",
+   "b": "300120",
+   "gid": "vision",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "097520",
+   "b": "370090",
+   "gid": "vision",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "097520",
+   "b": "464080",
+   "gid": "vision",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "097520",
+   "b": "475400",
+   "gid": "vision",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "098460",
+   "b": "126700",
+   "gid": "vision",
+   "score": {
+    "prod": 1,
+    "cust": 1,
+    "mix": 2,
+    "model": 2,
+    "driver": 1
+   },
+   "sum": 7,
+   "grade": "B",
+   "nul": 0,
+   "why": {
+    "prod": "고영은 납도포·AOI 검사, 하이비젼은 카메라모듈 검사로 대상이 다르다",
+    "cust": "같은 전자 제조 전방",
+    "mix": "양쪽 모두 검사장비가 과반",
+    "model": "장비 수주",
+    "driver": "일부만 겹침"
+   }
+  },
+  {
+   "a": "098460",
+   "b": "300120",
+   "gid": "vision",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "098460",
+   "b": "370090",
+   "gid": "vision",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "098460",
+   "b": "464080",
+   "gid": "vision",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "098460",
+   "b": "475400",
+   "gid": "vision",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "126700",
+   "b": "300120",
+   "gid": "vision",
+   "score": {
+    "prod": 1,
+    "cust": 1,
+    "mix": 1,
+    "model": 2,
+    "driver": 1
+   },
+   "sum": 6,
+   "grade": "B",
+   "nul": 0,
+   "why": {
+    "prod": "라온피플은 AI 머신비전 SW·검사기, 하이비젼은 모듈 검사장비",
+    "cust": "같은 전자 제조 전방",
+    "mix": "라온피플은 골프센서 등이 섞여 있다",
+    "model": "장비·솔루션 수주",
+    "driver": "일부만 겹침"
+   }
+  },
+  {
+   "a": "126700",
+   "b": "370090",
+   "gid": "vision",
+   "score": {
+    "prod": 2,
+    "cust": 2,
+    "mix": 2,
+    "model": 2,
+    "driver": 2
+   },
+   "sum": 10,
+   "grade": "A",
+   "nul": 0,
+   "why": {
+    "prod": "둘 다 카메라모듈 제조·검사 장비",
+    "cust": "카메라모듈 제조사로 고객이 겹친다",
+    "mix": "양쪽 모두 해당 장비가 과반",
+    "model": "장비 수주",
+    "driver": "카메라모듈 증설 투자"
+   }
+  },
+  {
+   "a": "126700",
+   "b": "464080",
+   "gid": "vision",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "126700",
+   "b": "475400",
+   "gid": "vision",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "300120",
+   "b": "370090",
+   "gid": "vision",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "300120",
+   "b": "464080",
+   "gid": "vision",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "300120",
+   "b": "475400",
+   "gid": "vision",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "370090",
+   "b": "464080",
+   "gid": "vision",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "370090",
+   "b": "475400",
+   "gid": "vision",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "464080",
+   "b": "475400",
+   "gid": "vision",
+   "score": {
+    "prod": 1,
+    "cust": 1,
+    "mix": 2,
+    "model": 1,
+    "driver": 1
+   },
+   "sum": 6,
+   "grade": "B",
+   "nul": 0,
+   "why": {
+    "prod": "씨메스는 3D 비전+로봇 솔루션, 에스오에스랩은 라이다 센서 — 같은 인지 계층이나 제품이 다르다",
+    "cust": "같은 전방",
+    "mix": "양쪽 모두 해당 제품이 과반",
+    "model": "솔루션 vs 부품으로 다르다",
+    "driver": "일부만 겹침"
+   }
+  },
+  {
+   "a": "053450",
+   "b": "082210",
+   "gid": "optic_part",
+   "score": {
+    "prod": 1,
+    "cust": 2,
+    "mix": 2,
+    "model": 2,
+    "driver": 2
+   },
+   "sum": 9,
+   "grade": "B",
+   "nul": 0,
+   "why": {
+    "prod": "세코닉스는 렌즈, 옵트론텍은 필터·광학소자 — 같은 모듈 안의 다른 부품",
+    "cust": "카메라모듈사·완성차로 고객이 겹친다",
+    "mix": "양쪽 모두 광학부품이 과반",
+    "model": "부품 납품",
+    "driver": "카메라 탑재 수량이 같이 움직인다"
+   }
+  },
+  {
+   "a": "053450",
+   "b": "190510",
+   "gid": "optic_part",
+   "score": {
+    "prod": 1,
+    "cust": 2,
+    "mix": 2,
+    "model": 2,
+    "driver": 2
+   },
+   "sum": 9,
+   "grade": "B",
+   "nul": 0,
+   "why": {
+    "prod": "나무가는 모듈, 세코닉스는 렌즈 — 같은 밸류체인의 다른 단계",
+    "cust": "세트업체가 겹친다",
+    "mix": "양쪽 모두 과반",
+    "model": "부품 납품",
+    "driver": "같은 탑재 수량"
+   }
+  },
+  {
+   "a": "082210",
+   "b": "190510",
+   "gid": "optic_part",
+   "score": {
+    "prod": 1,
+    "cust": 2,
+    "mix": 2,
+    "model": 2,
+    "driver": 2
+   },
+   "sum": 9,
+   "grade": "B",
+   "nul": 0,
+   "why": {
+    "prod": "모듈과 광학소자로 단계가 다르다",
+    "cust": "고객이 겹친다",
+    "mix": "양쪽 모두 과반",
+    "model": "부품 납품",
+    "driver": "같은 탑재 수량"
+   }
+  },
+  {
+   "a": "277810",
+   "b": "348340",
+   "gid": "cobot",
+   "score": {
+    "prod": 2,
+    "cust": 1,
+    "mix": 1,
+    "model": 2,
+    "driver": 1
+   },
+   "sum": 7,
+   "grade": "B",
+   "nul": 0,
+   "why": {
+    "prod": "협동로봇으로 대체 관계",
+    "cust": "같은 전방",
+    "mix": "뉴로메카만 협동로봇이 주력. 레인보우는 제품군이 넓다",
+    "model": "같은 판매 방식",
+    "driver": "일부만 겹침"
+   }
+  },
+  {
+   "a": "277810",
+   "b": "454910",
+   "gid": "cobot",
+   "score": {
+    "prod": 2,
+    "cust": 1,
+    "mix": 1,
+    "model": 2,
+    "driver": 1
+   },
+   "sum": 7,
+   "grade": "B",
+   "nul": 0,
+   "why": {
+    "prod": "협동로봇은 서로 대체되는 제품이다",
+    "cust": "같은 전방",
+    "mix": "두산로보틱스만 협동로봇이 과반. 레인보우는 휴머노이드·4족·천문마운트가 섞여 있다",
+    "model": "같은 판매 방식",
+    "driver": "레인보우는 삼성 그룹 수요와 휴머노이드 기대가 별도로 걸려 있어 일부만 겹친다"
+   }
+  },
+  {
+   "a": "348340",
+   "b": "454910",
+   "gid": "cobot",
+   "score": {
+    "prod": 2,
+    "cust": 1,
+    "mix": 2,
+    "model": 2,
+    "driver": 2
+   },
+   "sum": 9,
+   "grade": "A",
+   "nul": 0,
+   "why": {
+    "prod": "둘 다 협동로봇을 같은 용도(제조·F&B 자동화)로 팔아 서로 대체된다",
+    "cust": "같은 전방(제조업 자동화)이나 주요 고객 실명 중복은 확인 못 함",
+    "mix": "두산로보틱스는 협동로봇 전업, 뉴로메카도 협동로봇·자동화 플랫폼이 주력",
+    "model": "대리점·SI 경유 판매로 같다",
+    "driver": "제조업 자동화 capex가 양쪽 실적을 같이 움직인다"
+   }
+  },
+  {
+   "a": "090360",
+   "b": "090710",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": 1,
+    "mix": 1,
+    "model": 2,
+    "driver": 1
+   },
+   "sum": 6,
+   "grade": "B",
+   "nul": 0,
+   "why": {
+    "prod": "휴림로봇은 제조용·서비스용이 섞여 있다",
+    "cust": "같은 제조업 전방",
+    "mix": "로보스타만 과반",
+    "model": "설비 수주",
+    "driver": "일부만 겹침"
+   }
+  },
+  {
+   "a": "090360",
+   "b": "099440",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": 1,
+    "mix": 1,
+    "model": 2,
+    "driver": 1
+   },
+   "sum": 6,
+   "grade": "B",
+   "nul": 0,
+   "why": {
+    "prod": "스맥은 공작기계가 중심, 로보스타는 제조용 로봇이 중심",
+    "cust": "같은 제조업 전방",
+    "mix": "로보스타만 로봇이 과반",
+    "model": "설비 수주",
+    "driver": "일부만 겹침"
+   }
+  },
+  {
+   "a": "090360",
+   "b": "117730",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 2,
+    "cust": 2,
+    "mix": 1,
+    "model": 2,
+    "driver": 2
+   },
+   "sum": 9,
+   "grade": "A",
+   "nul": 0,
+   "why": {
+    "prod": "제조용 이송로봇으로 대체 관계",
+    "cust": "같은 장비사 고객",
+    "mix": "로보스타는 장비 매출이 섞여 있다",
+    "model": "수주형 B2B",
+    "driver": "같은 capex 사이클"
+   }
+  },
+  {
+   "a": "090360",
+   "b": "232680",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 2,
+    "cust": 2,
+    "mix": 1,
+    "model": 2,
+    "driver": 2
+   },
+   "sum": 9,
+   "grade": "A",
+   "nul": 0,
+   "why": {
+    "prod": "둘 다 반도체·FPD 공정용 이송로봇을 같은 용도로 공급",
+    "cust": "반도체·디스플레이 장비사로 고객이 겹친다",
+    "mix": "로보스타는 FPD 장비·IT부품 장비가 섞여 있다",
+    "model": "장비사 대상 B2B 수주",
+    "driver": "반도체·디스플레이 capex"
+   }
+  },
+  {
+   "a": "090360",
+   "b": "317830",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "090360",
+   "b": "388720",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "090360",
+   "b": "459510",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "090360",
+   "b": "468670",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "090360",
+   "b": "484810",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "090710",
+   "b": "099440",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "090710",
+   "b": "117730",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "090710",
+   "b": "232680",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "090710",
+   "b": "317830",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "090710",
+   "b": "388720",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "090710",
+   "b": "459510",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "090710",
+   "b": "468670",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "090710",
+   "b": "484810",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "099440",
+   "b": "117730",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "099440",
+   "b": "232680",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "099440",
+   "b": "317830",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "099440",
+   "b": "388720",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "099440",
+   "b": "459510",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "099440",
+   "b": "468670",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "099440",
+   "b": "484810",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "117730",
+   "b": "232680",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 2,
+    "cust": 2,
+    "mix": 2,
+    "model": 2,
+    "driver": 2
+   },
+   "sum": 10,
+   "grade": "A",
+   "nul": 0,
+   "why": {
+    "prod": "진공·FPD 이송로봇으로 용도가 같다",
+    "cust": "반도체·디스플레이 장비사",
+    "mix": "양쪽 모두 로봇이 매출의 과반",
+    "model": "수주형 B2B",
+    "driver": "반도체·디스플레이 capex"
+   }
+  },
+  {
+   "a": "117730",
+   "b": "317830",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "117730",
+   "b": "388720",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "117730",
+   "b": "459510",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "117730",
+   "b": "468670",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "117730",
+   "b": "484810",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "232680",
+   "b": "317830",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "232680",
+   "b": "388720",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "232680",
+   "b": "459510",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "232680",
+   "b": "468670",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "232680",
+   "b": "484810",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "317830",
+   "b": "388720",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": 1,
+    "mix": 2,
+    "model": 2,
+    "driver": 1
+   },
+   "sum": 7,
+   "grade": "B",
+   "nul": 0,
+   "why": {
+    "prod": "갠트리 로봇과 취출로봇으로 방식이 다르다",
+    "cust": "같은 제조업 전방",
+    "mix": "양쪽 모두 로봇·자동화가 과반",
+    "model": "설비 수주",
+    "driver": "일부만 겹침"
+   }
+  },
+  {
+   "a": "317830",
+   "b": "459510",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "317830",
+   "b": "468670",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "317830",
+   "b": "484810",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "388720",
+   "b": "459510",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 2,
+    "cust": 2,
+    "mix": 2,
+    "model": 2,
+    "driver": 2
+   },
+   "sum": 10,
+   "grade": "A",
+   "nul": 0,
+   "why": {
+    "prod": "둘 다 사출 주변 취출로봇·자동화시스템",
+    "cust": "사출 성형업체로 고객이 겹친다",
+    "mix": "양쪽 모두 로봇·자동화가 과반",
+    "model": "설비 수주·납품",
+    "driver": "사출업체 설비투자"
+   }
+  },
+  {
+   "a": "388720",
+   "b": "468670",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "388720",
+   "b": "484810",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "459510",
+   "b": "468670",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "459510",
+   "b": "484810",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "468670",
+   "b": "484810",
+   "gid": "ind_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": 1,
+    "driver": 1
+   },
+   "sum": 3,
+   "grade": "C",
+   "nul": 2,
+   "why": {
+    "prod": "티엑스알은 물류 AMR/AGV, 브릴스는 로봇 모듈화 플랫폼",
+    "cust": "미확인",
+    "mix": "미확인",
+    "model": "유사",
+    "driver": "일부만 겹침"
+   }
+  },
+  {
+   "a": "056080",
+   "b": "215100",
+   "gid": "service_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "056080",
+   "b": "270660",
+   "gid": "service_robot",
+   "score": {
+    "prod": 1,
+    "cust": 1,
+    "mix": 1,
+    "model": 1,
+    "driver": 1
+   },
+   "sum": 5,
+   "grade": "C",
+   "nul": 0,
+   "why": {
+    "prod": "에브리봇은 로봇청소기 전업, 유진로봇은 물류로봇·라이다로 축이 옮겨갔다",
+    "cust": "일부 겹침",
+    "mix": "에브리봇만 청소기가 과반",
+    "model": "B2C vs B2B로 갈린다",
+    "driver": "드라이버가 다르다"
+   }
+  },
+  {
+   "a": "056080",
+   "b": "475580",
+   "gid": "service_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "215100",
+   "b": "270660",
+   "gid": "service_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "215100",
+   "b": "475580",
+   "gid": "service_robot",
+   "score": {
+    "prod": 2,
+    "cust": 2,
+    "mix": 2,
+    "model": 2,
+    "driver": 2
+   },
+   "sum": 10,
+   "grade": "A",
+   "nul": 0,
+   "why": {
+    "prod": "둘 다 교육용 로봇·코딩 콘텐츠",
+    "cust": "학교·교육기관으로 고객이 겹친다",
+    "mix": "양쪽 모두 교육용이 과반",
+    "model": "교육기관 납품·콘텐츠",
+    "driver": "교육과정 편성과 예산"
+   }
+  },
+  {
+   "a": "270660",
+   "b": "475580",
+   "gid": "service_robot",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "060280",
+   "b": "439960",
+   "gid": "med_wear",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "060280",
+   "b": "455900",
+   "gid": "med_wear",
+   "score": {
+    "prod": 1,
+    "cust": 1,
+    "mix": 1,
+    "model": 1,
+    "driver": 1
+   },
+   "sum": 5,
+   "grade": "C",
+   "nul": 0,
+   "why": {
+    "prod": "큐렉소는 수술로봇이 중심, 엔젤로보틱스는 웨어러블 재활",
+    "cust": "병원으로 일부 겹침",
+    "mix": "엔젤로보틱스만 재활이 과반",
+    "model": "유사",
+    "driver": "일부만 겹침"
+   }
+  },
+  {
+   "a": "060280",
+   "b": "460940",
+   "gid": "med_wear",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "439960",
+   "b": "455900",
+   "gid": "med_wear",
+   "score": {
+    "prod": 2,
+    "cust": 1,
+    "mix": 1,
+    "model": 1,
+    "driver": 1
+   },
+   "sum": 6,
+   "grade": "B",
+   "nul": 0,
+   "why": {
+    "prod": "둘 다 웨어러블 로봇",
+    "cust": "같은 전방",
+    "mix": "코스모로보틱스는 제품별 비중 미확인이라 한쪽만 과반으로 본다",
+    "model": "유사",
+    "driver": "일부만 겹침"
+   }
+  },
+  {
+   "a": "439960",
+   "b": "460940",
+   "gid": "med_wear",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "455900",
+   "b": "460940",
+   "gid": "med_wear",
+   "score": {
+    "prod": 2,
+    "cust": 2,
+    "mix": 2,
+    "model": 2,
+    "driver": 2
+   },
+   "sum": 10,
+   "grade": "A",
+   "nul": 0,
+   "why": {
+    "prod": "둘 다 보행·재활 로봇",
+    "cust": "재활병원·요양기관으로 고객이 겹친다",
+    "mix": "양쪽 모두 재활로봇이 과반",
+    "model": "의료기관 납품",
+    "driver": "재활 수가·보급 사업"
+   }
+  },
+  {
+   "a": "448710",
+   "b": "466100",
+   "gid": "robot_sw",
+   "score": {
+    "prod": 0,
+    "cust": 0,
+    "mix": 2,
+    "model": 0,
+    "driver": 0
+   },
+   "sum": 2,
+   "grade": "C",
+   "nul": 0,
+   "why": {
+    "prod": "코츠테크놀로지는 군용 SBC 하드웨어, 클로봇은 로봇 SW — 제품이 다르다",
+    "cust": "다르다",
+    "mix": "양쪽 모두 해당 제품이 과반",
+    "model": "다르다",
+    "driver": "다르다"
+   }
+  },
+  {
+   "a": "047400",
+   "b": "285490",
+   "gid": "magnet_mat",
+   "score": {
+    "prod": 1,
+    "cust": 1,
+    "mix": 2,
+    "model": 2,
+    "driver": 1
+   },
+   "sum": 7,
+   "grade": "B",
+   "nul": 0,
+   "why": {
+    "prod": "둘 다 자석이나 유니온머티리얼은 페라이트, 노바텍은 마그넷·실드마그넷으로 적용처가 다르다",
+    "cust": "같은 전자 전방",
+    "mix": "양쪽 모두 자석이 과반",
+    "model": "부품 납품",
+    "driver": "일부만 겹침"
+   }
+  },
+  {
+   "a": "012330",
+   "b": "204320",
+   "gid": "oem_link",
+   "score": {
+    "prod": 1,
+    "cust": 2,
+    "mix": 2,
+    "model": 2,
+    "driver": 2
+   },
+   "sum": 9,
+   "grade": "B",
+   "nul": 0,
+   "why": {
+    "prod": "현대모비스는 모듈·A/S부품 전반, HL만도는 제동·조향·현가로 범위가 다르다",
+    "cust": "현대차·기아로 주요 고객이 실명 중복",
+    "mix": "양쪽 모두 자동차부품이 과반",
+    "model": "완성차 납품",
+    "driver": "완성차 생산대수"
+   }
+  },
+  {
+   "a": "012330",
+   "b": "307950",
+   "gid": "oem_link",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "012330",
+   "b": "489790",
+   "gid": "oem_link",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "204320",
+   "b": "307950",
+   "gid": "oem_link",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "204320",
+   "b": "489790",
+   "gid": "oem_link",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  },
+  {
+   "a": "307950",
+   "b": "489790",
+   "gid": "oem_link",
+   "score": {
+    "prod": 1,
+    "cust": null,
+    "mix": null,
+    "model": null,
+    "driver": null
+   },
+   "sum": 1,
+   "grade": "C",
+   "nul": 4,
+   "why": {
+    "prod": "공시 사업내용 기준 같은 묶음 — 고객 중복·매출 비중·사업모델·실적 드라이버는 조사 전이라 등급 C(참고)"
+   }
+  }
+ ],
+ "co": {
+  "160190": {
+   "n": "하이젠알앤엠",
+   "gids": [
+    "motor_servo"
+   ],
+   "main": "전동기 및 발전기 (범용모터, 서보모터)",
+   "sec": "산업재"
+  },
+  "033200": {
+   "n": "모아텍",
+   "gids": [
+    "motor_servo"
+   ],
+   "main": "위치제어용초정및소형모터",
+   "sec": "정보기술"
+  },
+  "012200": {
+   "n": "계양전기",
+   "gids": [
+    "motor_servo"
+   ],
+   "main": "전동공구(그라인더,드릴,커팅머신 등), 엔진, 자동차용 모터 제조",
+   "sec": "임의소비재"
+  },
+  "024840": {
+   "n": "KBI메탈",
+   "gids": [
+    "motor_servo"
+   ],
+   "main": "동ROD, 모터코어",
+   "sec": "기타"
+  },
+  "193250": {
+   "n": "링크드",
+   "gids": [
+    "motor_servo"
+   ],
+   "main": "휴대폰용 진동모터",
+   "sec": "정보기술"
+  },
+  "437730": {
+   "n": "삼현",
+   "gids": [
+    "act_module"
+   ],
+   "main": "스마트 액추에이터, 스마트 파워유닛",
+   "sec": "임의소비재"
+  },
+  "108490": {
+   "n": "로보티즈",
+   "gids": [
+    "act_module"
+   ],
+   "main": "솔루션(로봇 엑츄에이터 모듈과 구동 소프트웨어), 에듀테인먼트 로봇, 로봇 플랫폼",
+   "sec": "정보기술"
+  },
+  "058610": {
+   "n": "에스피지",
+   "gids": [
+    "gear_reducer"
+   ],
+   "main": "소형 Geared Motor",
+   "sec": "산업재"
+  },
+  "389500": {
+   "n": "에스비비테크",
+   "gids": [
+    "gear_reducer"
+   ],
+   "main": "베어링, 감속기",
+   "sec": "산업재"
+  },
+  "496320": {
+   "n": "본시스템즈",
+   "gids": [
+    "gear_reducer"
+   ],
+   "main": "감속기 등 로봇부품",
+   "sec": "산업재"
+  },
+  "101170": {
+   "n": "우림피티에스",
+   "gids": [
+    "gear_reducer"
+   ],
+   "main": "트랜스미션,감속기,기어전동축 제조",
+   "sec": "산업재"
+  },
+  "008830": {
+   "n": "대동기어",
+   "gids": [
+    "gear_reducer"
+   ],
+   "main": "기어, 베벨기어, 축, 엑셀, T/M, 유성감속기, 기타조립품",
+   "sec": "산업재"
+  },
+  "212560": {
+   "n": "네오오토",
+   "gids": [
+    "gear_reducer"
+   ],
+   "main": "자동차부품(피니언기어, 디프어셈블리, 대형기어), 로봇 및 로봇부품, 모빌리티 부품 제조",
+   "sec": "임의소비재"
+  },
+  "264850": {
+   "n": "이랜시스",
+   "gids": [
+    "gear_reducer"
+   ],
+   "main": "비데도어락부품",
+   "sec": "정보기술"
+  },
+  "004380": {
+   "n": "삼익THK",
+   "gids": [
+    "bearing_linear"
+   ],
+   "main": "직선운동시스템,메카트로시스템,기타정밀 자동화기기 제조,판매/전자상거래,인터넷 관련 s/w,h/w 개발,판매,유지보수",
+   "sec": "산업재"
+  },
+  "297090": {
+   "n": "씨에스베어링",
+   "gids": [
+    "bearing_linear"
+   ],
+   "main": "풍력용 선회베어링, 산업용 선회베어링",
+   "sec": "산업재"
+  },
+  "140670": {
+   "n": "알에스오토메이션",
+   "gids": [
+    "motion_ctrl"
+   ],
+   "main": "모션제어기, 드라이브, 에너지제어장치",
+   "sec": "정보기술"
+  },
+  "059120": {
+   "n": "아진엑스텍",
+   "gids": [
+    "motion_ctrl"
+   ],
+   "main": "전자집적회로, 모션제어칩",
+   "sec": "정보기술"
+  },
+  "048770": {
+   "n": "TPC로보틱스",
+   "gids": [
+    "motion_ctrl"
+   ],
+   "main": "구동기기(실린더), 방향제어기(밸브)",
+   "sec": "산업재"
+  },
+  "475400": {
+   "n": "씨메스로보틱스",
+   "gids": [
+    "vision"
+   ],
+   "main": "AI 기반 로봇 솔루션 및 3D 비전 솔루션",
+   "sec": "산업재"
+  },
+  "464080": {
+   "n": "에스오에스랩",
+   "gids": [
+    "vision"
+   ],
+   "main": "산업용 및 차량용 라이다(LiDAR)",
+   "sec": "정보기술"
+  },
+  "300120": {
+   "n": "라온피플",
+   "gids": [
+    "vision"
+   ],
+   "main": "카메라 모듈 검사기, AI 머신비전, 골프센서",
+   "sec": "정보기술"
+  },
+  "098460": {
+   "n": "고영",
+   "gids": [
+    "vision"
+   ],
+   "main": "전자제품및반도체생산용 3차원 납도포검사장비",
+   "sec": "정보기술"
+  },
+  "126700": {
+   "n": "하이비젼시스템",
+   "gids": [
+    "vision"
+   ],
+   "main": "카메라모듈 제조검사용 장비",
+   "sec": "정보기술"
+  },
+  "097520": {
+   "n": "엠씨넥스",
+   "gids": [
+    "vision"
+   ],
+   "main": "모바일 카메라모듈,전장 카메라모듈,블랙박스,IP 카메라",
+   "sec": "정보기술"
+  },
+  "370090": {
+   "n": "퓨런티어",
+   "gids": [
+    "vision"
+   ],
+   "main": "전장카메라모듈장비, 모바일카메라모듈장비, PC및 광원",
+   "sec": "정보기술"
+  },
+  "053450": {
+   "n": "세코닉스",
+   "gids": [
+    "optic_part"
+   ],
+   "main": "모바일용 카메라렌즈, 차량용 카메라 및 광학부품",
+   "sec": "정보기술"
+  },
+  "082210": {
+   "n": "옵트론텍",
+   "gids": [
+    "optic_part"
+   ],
+   "main": "IRFilter,Grating",
+   "sec": "정보기술"
+  },
+  "190510": {
+   "n": "나무가",
+   "gids": [
+    "optic_part"
+   ],
+   "main": "스마트폰 카메라모듈, 노트북 카메라모듈",
+   "sec": "정보기술"
+  },
+  "454910": {
+   "n": "두산로보틱스",
+   "gids": [
+    "cobot"
+   ],
+   "main": "협동로봇",
+   "sec": "산업재"
+  },
+  "348340": {
+   "n": "뉴로메카",
+   "gids": [
+    "cobot"
+   ],
+   "main": "협동로봇, 협동로봇 자동화 플랫폼, 로봇제어기 등",
+   "sec": "산업재"
+  },
+  "277810": {
+   "n": "레인보우로보틱스",
+   "gids": [
+    "cobot"
+   ],
+   "main": "협동로봇, 모바일휴머노이드, 4족보행로봇, 천문마운트시스템 등",
+   "sec": "산업재"
+  },
+  "090360": {
+   "n": "로보스타",
+   "gids": [
+    "ind_robot"
+   ],
+   "main": "제조용 로봇, FPD 장비, IT부품 제조장비",
+   "sec": "산업재"
+  },
+  "099440": {
+   "n": "스맥",
+   "gids": [
+    "ind_robot"
+   ],
+   "main": "공작기계 및 산업용로봇제조",
+   "sec": "산업재"
+  },
+  "388720": {
+   "n": "유일로보틱스",
+   "gids": [
+    "ind_robot"
+   ],
+   "main": "취출로봇, 사출장비 및 자동화시스템",
+   "sec": "산업재"
+  },
+  "317830": {
+   "n": "에스피시스템스",
+   "gids": [
+    "ind_robot"
+   ],
+   "main": "산업용 갠트리 로봇",
+   "sec": "산업재"
+  },
+  "459510": {
+   "n": "나우로보틱스",
+   "gids": [
+    "ind_robot"
+   ],
+   "main": "산업용로봇 및 로봇자동화시스템",
+   "sec": "산업재"
+  },
+  "232680": {
+   "n": "라온로보틱스",
+   "gids": [
+    "ind_robot"
+   ],
+   "main": "반도체 및 FPD용 로봇시스템",
+   "sec": "정보기술"
+  },
+  "117730": {
+   "n": "티로보틱스",
+   "gids": [
+    "ind_robot"
+   ],
+   "main": "중대형 시스템, 중대형 로봇",
+   "sec": "산업재"
+  },
+  "090710": {
+   "n": "휴림로봇",
+   "gids": [
+    "ind_robot"
+   ],
+   "main": "제조업용로봇및서비스로봇",
+   "sec": "산업재"
+  },
+  "468670": {
+   "n": "브릴스",
+   "gids": [
+    "ind_robot"
+   ],
+   "main": "로봇 모듈화 플랫폼 솔루션",
+   "sec": "산업재"
+  },
+  "484810": {
+   "n": "티엑스알로보틱스",
+   "gids": [
+    "ind_robot"
+   ],
+   "main": "물류자동화, 로봇자동화, AMR/AGV",
+   "sec": "산업재"
+  },
+  "270660": {
+   "n": "에브리봇",
+   "gids": [
+    "service_robot"
+   ],
+   "main": "물걸레 로봇청소기, 흡입형 로봇청소기",
+   "sec": "기타"
+  },
+  "056080": {
+   "n": "유진로봇",
+   "gids": [
+    "service_robot"
+   ],
+   "main": "청소로봇, 완구류외",
+   "sec": "임의소비재"
+  },
+  "215100": {
+   "n": "로보로보",
+   "gids": [
+    "service_robot"
+   ],
+   "main": "교육용로봇",
+   "sec": "임의소비재"
+  },
+  "475580": {
+   "n": "에이럭스",
+   "gids": [
+    "service_robot"
+   ],
+   "main": "교육용 드론/로봇 및 코딩 콘텐츠",
+   "sec": "커뮤니케이션"
+  },
+  "455900": {
+   "n": "엔젤로보틱스",
+   "gids": [
+    "med_wear"
+   ],
+   "main": "재활 전문 웨어러블 로봇, 근력 보조 무동력 웨어러블 슈트, 일상생활 보조 웨어러블 로봇 등",
+   "sec": "산업재"
+  },
+  "060280": {
+   "n": "큐렉소",
+   "gids": [
+    "med_wear"
+   ],
+   "main": "만화단행본, 정기간행물",
+   "sec": "커뮤니케이션"
+  },
+  "439960": {
+   "n": "코스모로보틱스",
+   "gids": [
+    "med_wear"
+   ],
+   "main": "웨어러블 로봇",
+   "sec": "헬스케어"
+  },
+  "460940": {
+   "n": "피앤에스로보틱스",
+   "gids": [
+    "med_wear"
+   ],
+   "main": "보행재활로봇 시스템",
+   "sec": "헬스케어"
+  },
+  "466100": {
+   "n": "클로봇",
+   "gids": [
+    "robot_sw"
+   ],
+   "main": "로봇 소프트웨어(카멜레온, 크롬스)",
+   "sec": "정보기술"
+  },
+  "448710": {
+   "n": "코츠테크놀로지",
+   "gids": [
+    "robot_sw"
+   ],
+   "main": "싱글보드컴퓨터(SBC), 군용 전시기 등",
+   "sec": "정보기술"
+  },
+  "047400": {
+   "n": "유니온머티리얼",
+   "gids": [
+    "magnet_mat"
+   ],
+   "main": "페라이트,세라믹 제조,도매",
+   "sec": "기타"
+  },
+  "285490": {
+   "n": "노바텍",
+   "gids": [
+    "magnet_mat"
+   ],
+   "main": "Magnet, Shield Magnet, 심재",
+   "sec": "기타"
+  },
+  "012330": {
+   "n": "현대모비스",
+   "gids": [
+    "oem_link"
+   ],
+   "main": "자동차A/S용 부품,컨테이너,특수중기,산업기계제품 생산,판매,부품모듈화,부품수출사업,환경/플랜트사업,특수중기부문(컨테이너)",
+   "sec": "임의소비재"
+  },
+  "204320": {
+   "n": "HL만도",
+   "gids": [
+    "oem_link"
+   ],
+   "main": "제동장치, 조향장치, 현가장치",
+   "sec": "임의소비재"
+  },
+  "307950": {
+   "n": "현대오토에버",
+   "gids": [
+    "oem_link"
+   ],
+   "main": "차량SW, 내비게이션, 스마트팩토리, AI·클라우드 기반 솔루션, 디지털 전환 컨설팅 및 IT서비스",
+   "sec": "정보기술"
+  },
+  "489790": {
+   "n": "한화비전",
+   "gids": [
+    "oem_link"
+   ],
+   "main": "비금융지주회사",
+   "sec": "금융"
+  }
+ }
 }

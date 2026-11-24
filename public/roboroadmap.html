@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>휴머노이드 2027 로드맵 팩트체크 · 한국 대시보드</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin:0; background:#f6f7f9; color:#1a1f2e; font-family:-apple-system,"Segoe UI","Malgun Gothic",sans-serif; }
+.wrap { max-width:1020px; margin:0 auto; padding:20px 18px 56px; }
+header { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+h1 { font-size:20px; margin:0; font-weight:800; }
+.sub { color:#6b7280; font-size:12.5px; margin:5px 0 0; line-height:1.8; max-width:800px; }
+a.back { font-size:12.5px; color:#2f6df6; text-decoration:none; }
+.panel { background:#fff; border:1px solid #eceef2; border-radius:14px; padding:16px 18px; margin:14px 0; box-shadow:0 1px 2px rgba(20,30,60,.04); }
+.panel h2 { font-size:14px; margin:0 0 4px; font-weight:800; }
+.panel .lead { font-size:12.5px; color:#6b7280; line-height:1.8; margin:0 0 11px; }
+.loading { text-align:center; padding:48px; color:#6b7280; font-size:13px; }
+/* 태그 */
+.tg { display:inline-block; font-size:10.5px; font-weight:800; border-radius:5px; padding:1px 6px; vertical-align:1px; white-space:nowrap; }
+.tg.확인 { background:#e3f3e9; color:#14532d; border:1px solid #c9e6d5; }
+.tg.보도 { background:#e6eefc; color:#1b3f87; border:1px solid #cfdcf7; }
+.tg.미확인 { background:#fdf1dd; color:#7a4a05; border:1px solid #f3dfba; }
+.tg.판단 { background:#eef0f4; color:#4b5563; border:1px solid #dfe3ea; }
+.tgkey { display:flex; flex-wrap:wrap; gap:6px 14px; margin-top:4px; }
+.tgkey span { font-size:11.5px; color:#6b7280; line-height:1.7; }
+/* 교정 카드 */
+.cx { border:1px solid #e3e8f0; border-left:3px solid #d92d20; border-radius:0 12px 12px 0; margin:11px 0; overflow:hidden; background:#fff; }
+.cx .q { padding:10px 15px; background:#fdf6f5; border-bottom:1px solid #f4e3e1; font-size:13px; font-weight:800; color:#7f1d1d; line-height:1.65; }
+.cx .a { padding:11px 15px 13px; font-size:13px; line-height:1.85; color:#28303f; }
+.cx .s { font-size:11.5px; color:#8a93a2; margin-top:8px; }
+/* 플레이어 */
+.pl { border:1px solid #e3e8f0; border-radius:14px; margin:12px 0; overflow:hidden; background:#fff; }
+.pl .hd { padding:12px 16px; background:linear-gradient(180deg,#fbfcfe,#fff); border-bottom:1px solid #eef1f5; }
+.pl h3 { font-size:15.5px; font-weight:800; margin:0; display:inline; }
+.pl .mk { font-size:11px; color:#8a93a2; margin-left:7px; font-weight:700; }
+.pl .hh { font-size:12.5px; color:#2f6df6; font-weight:700; margin-top:5px; }
+.pl .bd { padding:12px 16px 15px; }
+.pl .st { font-size:13px; line-height:1.85; color:#28303f; margin:0 0 12px; background:#f4f7fd; border-radius:10px; padding:10px 13px; }
+.lbl { font-size:11px; font-weight:800; color:#8a93a2; letter-spacing:.3px; display:block; margin-bottom:5px; }
+table { width:100%; border-collapse:collapse; }
+th,td { border-bottom:1px solid #eef1f5; padding:8px 7px; font-size:12.5px; text-align:left; vertical-align:top; line-height:1.75; }
+th { font-size:11px; color:#8a93a2; font-weight:800; letter-spacing:.3px; }
+.co { color:#1a2a4a; font-weight:700; white-space:nowrap; }
+.cd { font-size:11px; color:#9aa7bd; font-weight:400; }
+.wh { white-space:nowrap; font-weight:800; color:#1a2a4a; font-size:12px; }
+/* 원가 막대 */
+.bar { display:flex; align-items:center; gap:10px; margin:9px 0; }
+.bar .nm { width:140px; flex:0 0 140px; font-size:12.5px; font-weight:700; color:#1a2a4a; text-align:right; }
+.bar .tr { flex:1; background:#f1f3f7; border-radius:4px; height:20px; position:relative; }
+.bar .fl { height:20px; border-radius:0 4px 4px 0; background:#2f5fb8; }
+.bar .vl { font-size:12px; font-weight:800; color:#1a2a4a; width:112px; flex:0 0 112px; }
+/* 지켜볼 것 */
+.wl { counter-reset:w; margin:0; padding:0; list-style:none; }
+.wl li { counter-increment:w; position:relative; padding:8px 0 8px 30px; font-size:13px; line-height:1.8; border-bottom:1px dashed #eef1f5; }
+.wl li:last-child { border-bottom:0; }
+.wl li::before { content:counter(w); position:absolute; left:0; top:9px; width:20px; height:20px; border-radius:50%;
+  background:#1a2a4a; color:#fff; font-size:10.5px; font-weight:800; display:flex; align-items:center; justify-content:center; }
+.hint { font-size:11.5px; color:#8a93a2; line-height:1.85; }
+.srcs { font-size:11.5px; color:#8a93a2; line-height:1.9; margin:0; padding-left:17px; }
+@media (max-width:640px){
+  .wrap{padding:14px 12px 40px}
+  .bar .nm{width:92px;flex:0 0 92px;font-size:11.5px}
+  .bar .vl{width:84px;flex:0 0 84px;font-size:11.5px}
+}
+</style>
+</head>
+<body>
+<div id="gnavhost"></div>
+<div class="wrap">
+  <header>
+    <div><h1>🤖 휴머노이드 2027 로드맵 팩트체크</h1><p class="sub" id="sub">—</p></div>
+    <a class="back" href="/">← 대시보드</a>
+  </header>
+  <div id="body"><div class="loading">불러오는 중…</div></div>
+</div>
+<script src="/nav.js"></script>
+<script>
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const tg = t => t ? `<span class="tg ${esc(t)}">${esc(t)}</span>` : '';
+const won = v => v.toLocaleString('en-US');
+
+fetch('/data/roboroadmap.json').then(r => r.json()).then(D => {
+  document.getElementById('sub').textContent = D.intro;
+  let h = '';
+
+  /* 태그 범례 — 이 페이지는 사실과 보도와 해석을 끝까지 구분한다 */
+  h += `<div class="panel"><h2>🏷 표기 기준</h2>`
+    + `<div class="tgkey">` + D.tagdef.map(([t,d]) =>
+        `<span>${tg(t)} ${esc(d)}</span>`).join('') + `</div></div>`;
+
+  /* 교정 */
+  h += `<div class="panel"><h2>✂️ 인포그래픽과 어긋난 것</h2>`
+    + `<p class="lead">아래 ${D.correct.length}건은 돌아다니는 로드맵 이미지와 원 보도가 다르다. 투자 판단에 쓰기 전에 먼저 걸러야 하는 항목이다.</p>`
+    + D.correct.map(c =>
+        `<div class="cx"><div class="q">${esc(c.q)}</div><div class="a">${esc(c.a)}`
+        + `<div class="s">${tg(c.tag)}${c.src && c.src !== '—' ? ' 근거 — '+esc(c.src) : ''}</div></div></div>`).join('')
+    + `</div>`;
+
+  /* 4사 로드맵 */
+  h += `<div class="panel"><h2>📅 4사 로드맵 — 확인된 것만</h2>`
+    + `<p class="lead">시점·수치는 원 보도에 적힌 그대로 옮겼고, 당사 확인이 없는 것은 [보도]로 남겼다. 공급망 표의 기업명은 전부 대시보드 상장 마스터로 종목코드를 대조했다.</p>`
+    + D.players.map(p =>
+        `<div class="pl"><div class="hd"><h3>${esc(p.name)}</h3>`
+        + `<span class="mk">${esc(p.mkt)}${p.code?' · '+esc(p.code):''}</span>`
+        + `<div class="hh">${esc(p.head)}</div></div><div class="bd">`
+        + `<p class="st">${esc(p.stance)}</p>`
+        + `<span class="lbl">일정 · 수치</span><table><tbody>`
+        + p.items.map(i => `<tr><td class="wh" style="width:88px">${esc(i.when)}</td>`
+            + `<td>${esc(i.what)}</td><td style="width:50px">${tg(i.tag)}</td></tr>`).join('')
+        + `</tbody></table>`
+        + (p.chain.length ? `<span class="lbl" style="margin-top:14px">공급망 · 지분 — 보도로 확인된 것</span>`
+            + `<table><tbody>` + p.chain.map(c =>
+              `<tr><td class="co" style="width:124px">${esc(c.n)}`
+              + (c.c?`<br><span class="cd">${esc(c.c)}</span>`:'')
+              + `</td><td>${esc(c.role)}</td><td style="width:50px">${tg(c.tag)}</td></tr>`).join('')
+            + `</tbody></table>` : '')
+        + `</div></div>`).join('')
+    + `</div>`;
+
+  /* 대당 단가 — 막대 하나, 축 하나 */
+  const mx = Math.max.apply(null, D.cost.rows.map(r => r.v));
+  h += `<div class="panel"><h2>💵 ${esc(D.cost.head)}</h2>`
+    + `<p class="lead">${esc(D.cost.note)}</p>`
+    + D.cost.rows.map(r =>
+        `<div class="bar"><div class="nm">${esc(r.n)}</div>`
+        + `<div class="tr"><div class="fl" style="width:${(r.v/mx*100).toFixed(1)}%"></div></div>`
+        + `<div class="vl">$${won(r.v)}${r.range?'<span class="cd"> '+esc(r.range)+'</span>':''}</div></div>`).join('')
+    + `<div class="hint" style="margin-top:9px">단위 달러 · 전부 ${tg('보도')} 단계 수치다. 사양·수량 조건이 공개되지 않아 같은 조건의 비교가 아니다.</div></div>`;
+
+  /* 미확인 */
+  h += `<div class="panel"><h2>❓ 인포그래픽에 있으나 근거를 찾지 못한 종목</h2>`
+    + `<p class="lead">「근거 없음」이 아니라 「내가 확인하지 못함」이다. 수주 공시나 보도를 찾으면 위 공급망 표로 옮긴다.</p>`
+    + `<table><thead><tr><th style="width:124px">기업</th><th>왜 빼뒀나</th></tr></thead><tbody>`
+    + D.unver.map(u => `<tr><td class="co">${esc(u.n)}<br><span class="cd">${esc(u.c)}</span></td>`
+        + `<td>${esc(u.why)}</td></tr>`).join('')
+    + `</tbody></table></div>`;
+
+  /* 지켜볼 것 */
+  h += `<div class="panel"><h2>👀 보도가 사실로 바뀌는 지점</h2>`
+    + `<ol class="wl">` + D.watch.map(w => `<li>${esc(w)}</li>`).join('') + `</ol></div>`;
+
+  /* 출처 */
+  h += `<div class="panel"><h2>📎 근거</h2><ul class="srcs">`
+    + D.src.map(s => `<li>${esc(s)}</li>`).join('') + `</ul>`
+    + `<div class="hint" style="margin-top:10px">갱신 ${esc(D.updated)} · 기사 원문 이미지는 싣지 않았다.</div></div>`;
+
+  document.getElementById('body').innerHTML = h;
+}).catch(e => {
+  document.getElementById('body').innerHTML = '<div class="loading">자료를 불러오지 못했습니다.</div>';
+});
+</script>
+</body>
+</html>

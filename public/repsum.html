@@ -27,6 +27,68 @@ a{color:#1d4ed8;text-decoration:none}a:hover{text-decoration:underline}
 .rs .tag.r{background:#fdeeee;color:#9c2b2b;border-color:#f3c9c9}
 .rs .tag.g{background:#eaf7f1;color:#146b4b;border-color:#bfe6d4}
 .rs .card{background:#fff;border:1px solid #e4e7ec;border-radius:12px;padding:16px 18px;margin:14px 0}
+/* ── 보강 3차 ─────────────────────────────────────────────── */
+.rs .rs-tg{display:inline-block;font-size:11.5px;font-weight:700;padding:1px 7px;border-radius:999px;
+  margin-right:4px;vertical-align:1px;background:#eef3fa;color:#1b5fae;border:1px solid #cfe0f5}
+.rs .rs-tg.c{background:#eef7f2;color:#13674a;border-color:#c3e3d3}   /* 계산 */
+.rs .rs-tg.j{background:#fff5e8;color:#95620a;border-color:#f6d6a4}   /* 판단 */
+.rs .rs-tg.x{background:#f3f4f6;color:#5a6372;border-color:#dfe3ea}   /* 미확인 */
+.rs .rs-tg.s{background:#fdeeee;color:#9c2b2b;border-color:#f3c9c9}   /* 회사발언 */
+.rs .rs-cap{font-size:12.5px;color:#667085;margin:4px 0 10px;line-height:1.75}
+.rs .rs-key{background:#fff;border:1px solid #e4e7ec;border-left:4px solid #2a78d6;border-radius:10px;
+  padding:12px 15px;margin:6px 0 14px;font-size:13.8px;line-height:1.95;color:#28303f}
+.rs .rs-warn{background:linear-gradient(90deg,#fff8e7,#fffdf7);border:1px solid #fcd98a;
+  border-left:5px solid #eda100;border-radius:11px;padding:13px 16px;margin:16px 0;font-size:13.5px;line-height:1.9}
+/* ── 보강 2차 ─────────────────────────────────────────────── */
+.rs tr.hl td{background:#f4f8fd;font-weight:700}
+.rs tr.ref td{color:#5a6372;font-size:12.5px;background:#fafbfc}
+.rs td.bad{color:#9c2b2b;font-weight:700}
+.rs td.em{font-weight:700;color:#0f2847}
+.rs td.why{color:#5a6372;font-size:12.5px;line-height:1.8}
+.rs td.ctr{text-align:center}
+.rs td.lft{text-align:left}
+.rs table.wide,.rs table.gaps,.rs table.figs,.rs table.nums{width:100%}
+.rs table.nums td,.rs table.figs td{font-variant-numeric:tabular-nums}
+.rs table.gaps td,.rs table.gaps th{padding:9px 8px}
+.rs table.figs{font-size:12.5px}
+.rs ol.bone,.rs ol.risk{margin:6px 0 6px 20px;line-height:1.95}
+.rs ol.risk li{margin:3px 0}
+.rs .tg{display:inline-block}
+/* ── 보강 (2026-11-24): 리포트 산출물이 쓰는 클래스 ───────────── */
+/* 태그 배지 변형 — .tag 와 같은 모양으로 맞춘다 */
+.rs .tg2,.rs .tg-o,.rs .tg-c,.rs .tg-j,.rs .tg-u,.rs .tg-q{display:inline-block;font-size:11.5px;font-weight:700;
+  padding:1px 7px;border-radius:999px;margin-right:4px;vertical-align:1px;
+  background:#eef3fa;color:#1b5fae;border:1px solid #cfe0f5}
+.rs .tg-c{background:#eef7f2;color:#13674a;border-color:#c3e3d3}   /* 계산 */
+.rs .tg-j{background:#fff5e8;color:#95620a;border-color:#f6d6a4}   /* 판단 */
+.rs .tg-u{background:#f3f4f6;color:#5a6372;border-color:#dfe3ea}   /* 미확인 */
+.rs .tg-q{background:#fdeeee;color:#9c2b2b;border-color:#f3c9c9}   /* 회사발언 */
+.rs .tag.c{background:#fdeeee;color:#9c2b2b;border-color:#f3c9c9}
+/* 증감·강조 — 색만으로 뜻을 전하지 않도록 부호·문구는 본문에 그대로 둔다 */
+.rs td.up,.rs td.pos,.rs td.ok{color:#146b4b;font-weight:700}
+.rs td.dn,.rs td.neg{color:#9c2b2b;font-weight:700}
+.rs td.mut,.rs td.na,.rs td.lo{color:#98a2b3}
+.rs td.hi{font-weight:700;color:#0f2847}
+.rs td.cn{color:#5a6372}
+/* 표 변형 */
+.rs table.num td,.rs table.cmp td{font-variant-numeric:tabular-nums}
+.rs table.small{font-size:12.5px}
+.rs tr.big td{font-weight:700;background:#f7f9fc}
+.rs tr.sum td{font-weight:700;border-top:2px solid #cfd6e0;background:#f7f9fc}
+.rs tr.sub-row td{color:#5a6372;font-size:12.5px}
+.rs td.grp,.rs td.sec{background:#eef3fa;font-weight:700;color:#0f2847}
+.rs table.warn-t th{background:#fff8e7}
+/* 그 밖 */
+.rs .cap{font-size:12.5px;color:#667085;margin:4px 0 10px;line-height:1.75}
+.rs .caveat{font-size:12.5px;color:#95620a;background:#fffaf0;border-left:3px solid #eda100;padding:7px 11px;margin:8px 0;line-height:1.8}
+.rs .pg{font-size:11.5px;color:#98a2b3;font-weight:700}
+.rs .lead1{font-size:14.5px;line-height:1.95;color:#28303f;margin:4px 0 14px}
+.rs .box,.rs .warnbox{background:#fff;border:1px solid #e4e7ec;border-radius:11px;padding:13px 16px;margin:14px 0;line-height:1.9}
+.rs .warnbox{background:linear-gradient(90deg,#fff8e7,#fffdf7);border-color:#fcd98a;border-left:5px solid #eda100}
+.rs .tp{display:inline-block;font-size:11.5px;font-weight:700;padding:1px 7px;border-radius:999px;background:#eaf7f1;color:#146b4b;border:1px solid #bfe6d4;margin-right:4px}
+.rs ol.sk{margin:6px 0 6px 20px;line-height:1.95}
+.rs .one{margin:6px 0}
+.rs svg.sv{display:block;max-width:100%;height:auto}
 .rs .warn{background:linear-gradient(90deg,#fff8e7,#fffdf7);border:1px solid #fcd98a;border-left:5px solid #eda100;border-radius:11px;padding:13px 16px;margin:16px 0;font-size:13.5px;line-height:1.9}
 .rs .keynote{background:#fff;border:1px solid #e4e7ec;border-left:4px solid #2a78d6;border-radius:10px;padding:12px 15px;margin:6px 0 14px;font-size:13.8px;line-height:1.95;color:#28303f}
 .rs .keynote b{color:#0f2847}

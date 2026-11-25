@@ -144,6 +144,83 @@ def tables_near(txt, words, window=60000, limit=6):
 
 AD = re.compile(r'광고(선전|비)|선전비|광고및선전|판매촉진|판촉비|마케팅')
 
+# ── 판관비 명세 파서 ──────────────────────────────────────────
+# 「광고선전비」 한 줄만 보면 틀린다 — 회사마다 계정명이 다르다.
+#   에이피알  인건비/광고선전비/지급수수료/운반비/감가상각비/기타
+#   달바      지급수수료 자리에 '판매수수료'
+#   한국콜마·코스메카  '연구개발비'가 따로
+# 그래서 명세 전체를 떠서 성격별로 묶고, 광고만/광고+판촉 둘 다 낸다.
+BUCKET = [
+    ('ad',   r'광고선전비?|광고비|선전비|광고및선전비?'),
+    ('prom', r'판매촉진비?|판촉비|판매부대비|샘플비|견본비'),
+    ('comm', r'지급수수료|판매수수료|수수료'),
+    ('pay',  r'급여|임금|인건비|상여|퇴직급여|복리후생비?'),
+    ('ship', r'운반비|운송비|물류비|보관료'),
+    ('rnd',  r'경상연구개발비?|연구개발비?'),
+    ('dep',  r'감가상각비|무형자산상각비|사용권자산상각비'),
+    ('rent', r'지급임차료|임차료'),
+]
+BUCKET = [(k, re.compile(p)) for k, p in BUCKET]
+TOTAL  = re.compile(r'^(합\s*계|계|총\s*계|판매비와\s*관리비|판매비및관리비)$')
+
+def bucket_of(nm):
+    n = re.sub(r'\s', '', nm or '')
+    if TOTAL.match(n):
+        return 'total'
+    for k, rx in BUCKET:
+        if rx.search(n):
+            return k
+    return 'etc'
+
+def tonum(s):
+    """(1,234) → -1234 / '-' → None. 괄호는 음수 표기다."""
+    t = re.sub(r'[\s,]', '', str(s or ''))
+    if not t or t in ('-', '—', '–'):
+        return None
+    neg = t.startswith('(') and t.endswith(')')
+    t = re.sub(r'[^\d.\-]', '', t)
+    if not t or t == '-':
+        return None
+    try:
+        v = float(t)
+    except Exception:
+        return None
+    return -v if neg else v
+
+# 표마다 천원·백만원이 섞여 있다. 놓치면 1,000배 틀린다 — 모르면 추정하지 않는다.
+UNIT = [(r'단위\s*[:：]?\s*백만\s*원', 1e6), (r'\(백만\s*원\)', 1e6),
+        (r'단위\s*[:：]?\s*천\s*원', 1e3), (r'\(천\s*원\)', 1e3),
+        (r'단위\s*[:：]?\s*원', 1.0)]
+
+def unit_near(txt, at, back=1200):
+    seg = txt[max(0, at - back): at + 300]
+    for p, m in UNIT:
+        if re.search(p, seg):
+            return m
+    return None
+
+def parse_sga(rows):
+    """표 행들 → {계정: [숫자들]} + 성격별 합. 숫자 열이 여럿이면(당기/전기) 그대로 둔다."""
+    out, lines = {}, []
+    for r in rows:
+        if not r:
+            continue
+        nm = r[0]
+        if not nm or not re.search(r'[가-힣A-Za-z]', nm):
+            continue
+        nums = [tonum(x) for x in r[1:]]
+        nums = [x for x in nums if x is not None]
+        if not nums:
+            continue
+        b = bucket_of(nm)
+        lines.append({'nm': nm[:28], 'b': b, 'v': nums[:4]})
+        out.setdefault(b, []).append(nums[0])
+    agg = {k: sum(v) for k, v in out.items()}
+    ad, prom = agg.get('ad'), agg.get('prom')
+    agg['mkt'] = (ad or 0) + (prom or 0) if (ad is not None or prom is not None) else None
+    return {'lines': lines[:24], 'agg': agg}
+
+
 def probe_one(code, name, corp):
     rs = reports(corp)
     kinds = {}
@@ -166,11 +243,15 @@ def probe_one(code, name, corp):
         tbs = tables_near(txt, ['판매비와관리비', '판매비와 관리비', '판매비및관리비'], limit=8)
         e['표_후보'] = len(tbs)
         hit = []
-        for t in tbs:
-            lab = [r2[0] if r2 else '' for r2 in t['rows']]
-            if any(AD.search(x or '') for x in lab):
-                hit.append({'행수': len(t['rows']),
-                            '앞10행': [' | '.join(x[:5])[:110] for x in t['rows'][:10]]})
+        for tb in tbs:
+            lab = [r2[0] if r2 else '' for r2 in tb['rows']]
+            if not any(AD.search(x or '') for x in lab):
+                continue
+            pr = parse_sga(tb['rows'])
+            hit.append({'행수': len(tb['rows']),
+                        '단위': unit_near(txt, tb['at']),
+                        '앞10행': [' | '.join(x[:5])[:110] for x in tb['rows'][:10]],
+                        '파싱': pr})
         e['광고행_포함표'] = hit[:2]
         rec['seen'].append(e)
         time.sleep(0.4)

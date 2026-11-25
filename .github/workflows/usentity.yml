@@ -1,0 +1,46 @@
+name: 미국 현지법인 현황 (관세 IOR 판단용)
+
+# Section 301 12.5% 를 누가 내느냐는 통관서류상 수입자(IOR)가 정한다.
+# CBP 서류는 공개되지 않으므로, 공시로 확인 가능한 '미국 법인 보유 여부'까지만 사실로 담고
+# IOR 추정은 판단으로 따로 표시한다. 가벼운 JSON API 라 몇 분이면 끝난다.
+on:
+  schedule:
+    - cron: '40 19 * * 1'     # 매주 화 04:40 KST
+  workflow_dispatch: {}
+  push:
+    paths: ['usentity.py']
+permissions:
+  contents: write
+jobs:
+  usentity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 수집
+        env:
+          DART_KEY: ${{ secrets.DART_KEY }}
+        run: python usentity.py
+      - name: 산출물 점검
+        run: |
+          python - <<'PY'
+          import json, sys
+          d = json.load(open('public/data/usentity.json', encoding='utf-8'))
+          print('대상 %d곳 · 분포 %s' % (d['n'], d['stat']))
+          if d['n'] < 20:
+              sys.exit('대상이 %d곳뿐 — 정의 파일을 못 읽었을 수 있다' % d['n'])
+          hit = sum(1 for v in d['co'].values() if (v.get('tag') or {}).get('n_us'))
+          print('미국 법인 보유 %d곳' % hit)
+          PY
+      - name: 결과 커밋
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/usentity.json
+          git commit -m "미국 현지법인 현황 갱신" || echo "변경 없음"
+          git pull --rebase origin main || true
+          git push || true

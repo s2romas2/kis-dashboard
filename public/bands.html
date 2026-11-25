@@ -102,7 +102,7 @@ function drawV(){
     scales:{x:{ticks:{maxTicksLimit:12,font:{size:10}},grid:{display:false}},
       y:{grid:{color:'#f0f2f5'},ticks:{font:{size:10},callback:v=>Number(v).toLocaleString()}}}}});
 }
-let MODE='minmax', LASTCODE=null; // minmax(기본) | pct(5~95% 이상치 제거)
+let MODE='minmax', LASTCODE=null; // minmax(기본) | pct(5~95% 이상치 제거) | q(분위수 — 선 사이 관측 수가 같다)
 const QC=['#c9ced7','#98a1b0','#626c7c','#3d4552','#98a1b0','#c9ced7']; // 6밴드: 양끝 옅게·중앙 진하게 (NICE 스타일)
 function quantile(sorted,q){
   const i=(sorted.length-1)*q, lo=Math.floor(i), hi=Math.ceil(i);
@@ -142,9 +142,18 @@ function mkBand(canvas, oldC, px, ratio, label){
   let lo, hi, warn=false;
   if(MODE==='pct'){ lo=p5; hi=p95; }
   else { lo=rvals[0]; hi=rvals[rvals.length-1]; if(hi>2*p95||lo<0.5*p5) warn=true; }
-  const step=(hi-lo)/5;
   const prec = hi>=100?0:(hi>=10?1:2);
-  const qs=[0,1,2,3,4,5].map(i=>Number((lo+step*i).toFixed(prec)));
+  let qs;
+  if(MODE==='q'){
+    /* 분위수 밴드 — 선을 '균등 간격'이 아니라 '분위수 그 자리'에 긋는다.
+       균등분할은 한 번의 폭등이 최댓값을 끌어올리면 선 전체가 위로 밀리고,
+       관측이 아래쪽에 몰려 있어도 칸은 똑같이 나뉘어 "지금 몇 번째 칸"이 뜻을 잃는다.
+       분위수로 그으면 선과 선 사이 관측 수가 같아서, 칸 위치가 곧 과거 빈도다. */
+    qs=[0.05,0.20,0.40,0.60,0.80,0.95].map(q=>Number(quantile(rvals,q).toFixed(prec)));
+  } else {
+    const step=(hi-lo)/5;
+    qs=[0,1,2,3,4,5].map(i=>Number((lo+step*i).toFixed(prec)));
+  }
   const dsets=qs.map((qv,i)=>({label:label+' '+qv.toFixed(prec),
     data:base.map(b=>b!=null?Math.round(b*qv):null),
     borderColor:QC[i],borderWidth:1.2,pointRadius:0,tension:0,spanGaps:true}));
@@ -288,11 +297,12 @@ async function show(code){
     html+=`<span class="pos ${p<=30?'lo':(p>=70?'hi':'mid')}">현재 PSR ${r3.cur.toFixed(2)}배 — 백분위 ${p}%</span>`; }
   // 밴드 배수·모드 표시
   const modeBtn=(m,t)=>`<span class="pos ${MODE===m?'hi':'mid'}" style="cursor:pointer;${MODE===m?'background:#1a2a4a;color:#fff':''}" onclick="setMode('${m}')">${t}</span>`;
-  html+='<span style="margin-left:6px">'+modeBtn('minmax','10년 min–max (기본)')+modeBtn('pct','이상치 제거 (5~95%)')+'</span>';
+  html+='<span style="margin-left:6px">'+modeBtn('minmax','10년 min–max (기본)')+modeBtn('pct','이상치 제거 (5~95%)')+modeBtn('q','분위수')+'</span>';
   document.getElementById('posline').innerHTML=html;
   const fmt=r=>r&&r.qs? r.qs.map(v=>v.toFixed(r.prec)).join(' · ') : '—';
   let extra='PER 밴드 '+fmt(r1)+' | PBR 밴드 '+fmt(r2)+(r3.qs?' | PSR 밴드 '+fmt(r3):'')+' (최근 10년 유효 배수 min–max 균등 6단계, 배수 고정)';
-  if(MODE==='minmax'&&((r1&&r1.warn)||(r2&&r2.warn)||(r3&&r3.warn))) extra+=' — ⚠️ 극단 배수(이익 급감기 등)로 밴드 간격이 벌어질 수 있어요. 위 "이상치 제거" 모드로 비교해보세요.';
+  if(MODE==='minmax'&&((r1&&r1.warn)||(r2&&r2.warn)||(r3&&r3.warn))) extra+=' — ⚠️ 극단 배수(이익 급감기 등)로 밴드 간격이 벌어질 수 있어요. 위 "이상치 제거"·"분위수" 모드와 비교해보세요.';
+  if(MODE==='q') extra+=' — 선을 분위수 자리(5·20·40·60·80·95%)에 그었습니다. 선과 선 사이 관측 수가 같아서, 주가가 몇 번째 칸에 있는지가 곧 과거 빈도입니다. 증권사 밴드차트와 맞춰보려면 "10년 min–max"로 바꾸세요.';
   document.getElementById('posdesc').textContent=(desc[0]?desc[0]+' · ':'')+extra+' · 기준일 '+(d.px[d.px.length-1][0])+' · 재무 갱신 '+(d.gen||'');
   if(!r1.c) document.getElementById('perBand').parentElement.innerHTML='<div class="loading">흑자 기간이 짧아 PER 밴드를 그릴 수 없습니다.</div>';
 }

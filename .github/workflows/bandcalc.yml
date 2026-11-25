@@ -1,0 +1,47 @@
+name: 밴드 위치 갱신 (compare 시계열 → peer 표)
+
+# compare.py 가 쌓아 둔 일별 PER·PBR·PSR·ROE 를 읽어
+# 「지금 배수가 과거 분포의 몇 분위인가」만 뽑아 요약한다.
+# API 를 한 번도 부르지 않으므로 키가 필요 없고 몇 초면 끝난다.
+# compare(09:30·21:30 UTC, 최대 150분) 가 끝난 뒤에 돈다.
+on:
+  schedule:
+    - cron: '20 12,0 * * *'
+  workflow_dispatch: {}
+  push:
+    paths: ['bandcalc.py']
+permissions:
+  contents: write
+jobs:
+  bandcalc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 밴드 위치 계산
+        run: python bandcalc.py
+      - name: 산출물 점검
+        run: |
+          python - <<'PY'
+          import json, sys
+          d = json.load(open('public/data/bandpos.json', encoding='utf-8'))
+          n = d['n']
+          print('종목 %d · 섹터 %d · 미보유 %d' % (n, len(d['sector']), len(d['miss'])))
+          if n < 20:
+              sys.exit('판정 종목이 %d곳뿐 — compare/ 를 읽지 못했을 수 있다' % n)
+          bad = [c for c, v in d['co'].items()
+                 if v.get('use') and not (0 <= (v['now'][v['use']]['pct'] or 0) <= 100)]
+          if bad:
+              sys.exit('분위가 0~100 밖인 종목: %s' % bad[:5])
+          PY
+      - name: 결과 커밋
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/bandpos.json
+          git commit -m "밴드 위치 갱신" || echo "변경 없음"
+          git pull --rebase origin main || true
+          git push || true

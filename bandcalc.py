@@ -24,6 +24,11 @@
 """
 import datetime, json, math, os, sys, glob
 
+# GitHub Actions 러너는 UTC 로 돈다. datetime.now() 에 'KST' 를 붙이면 9시간 어긋난 시각이 찍힌다.
+KST = datetime.timezone(datetime.timedelta(hours=9))
+NOW = datetime.datetime.now(KST)
+TODAY = NOW.date()
+
 DD   = 'public/data'
 SRC  = os.path.join(DD, 'compare')
 OUT  = os.environ.get('OUT', os.path.join(DD, 'bandpos.json'))
@@ -114,7 +119,7 @@ def main():
                       'top': g.get('top') or '', 'seg': g.get('seg') or '', 'gid': g.get('id') or ''}
         log('%s → %d종목' % (fn, len(d.get('co') or {})))
 
-    cut = (datetime.date.today() - datetime.timedelta(days=int(YEARS * 365.25))).isoformat()
+    cut = (TODAY - datetime.timedelta(days=int(YEARS * 365.25))).isoformat()
     recs, miss = {}, []
     for c, meta in uni.items():
         src = load(os.path.join(SRC, '%s.json' % c))
@@ -217,7 +222,7 @@ def main():
         e['note'] = '구성 %d곳의 중앙값. 시총가중을 쓰면 대장주 한 곳이 섹터를 지배해 사실상 그 종목 밴드가 된다.' % len(rs)
         sec[key] = e
 
-    out = {'updated': datetime.datetime.now().strftime('%Y-%m-%d %H:%M KST'),
+    out = {'updated': NOW.strftime('%Y-%m-%d %H:%M KST'),
            'years': YEARS, 'n': len(recs), 'co': recs, 'sector': sec,
            'miss': miss,
            'note': ('compare/ 일별 시계열에서 뽑은 밴드 위치 요약. API 호출 없음. '

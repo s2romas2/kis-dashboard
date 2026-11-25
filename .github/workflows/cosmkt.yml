@@ -12,6 +12,11 @@ on:
       codes:
         description: '프로브 대상 종목코드 (쉼표)'
         default: '090430,278470,237880,257720,214150'
+      maxrun:
+        description: '본수집에서 한 번에 돌 종목 수 (한 곳당 보고서 13건 × 수 MB — 약 5분)'
+        default: '6'
+  schedule:
+    - cron: '50 20 * * *'      # 매일 05:50 KST — 본수집(PROBE=0)
   push:
     paths: ['cosmkt.py']
 permissions:
@@ -19,7 +24,7 @@ permissions:
 jobs:
   cosmkt:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -28,8 +33,11 @@ jobs:
       - name: 수집
         env:
           DART_KEY: ${{ secrets.DART_KEY }}
-          PROBE: ${{ github.event.inputs.probe || '1' }}
+          # 수동 실행은 입력값을, 예약·푸시 실행은 본수집(0)을 쓴다
+          PROBE: ${{ github.event.inputs.probe || (github.event_name == 'workflow_dispatch' && '1' || '0') }}
           CODES: ${{ github.event.inputs.codes || '090430,278470,237880,257720,214150' }}
+          MAXRUN: ${{ github.event.inputs.maxrun || '6' }}
+          OUT: public/data/cospeer_mkt.json
         run: python cosmkt.py
       - name: 결과 커밋
         if: always()

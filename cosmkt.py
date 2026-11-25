@@ -144,6 +144,35 @@ def tables_near(txt, words, window=60000, limit=6):
 
 AD = re.compile(r'광고(선전|비)|선전비|광고및선전|판매촉진|판촉비|마케팅')
 
+# ── 판관비 명세표 찾기 ───────────────────────────────────────
+# 처음엔 '판매비와관리비' 를 앵커로 그 뒤 표를 훑었는데, 그 단어가 한 보고서에 20~50번 나온다.
+# 요약재무정보·손익계산서에서 먼저 걸려 명세 주석에 닿기 전에 한도를 다 썼다 — 광고표 0개.
+# 앵커를 버리고 **표 안에 광고 계정이 있는지로 직접** 고른다.
+def sga_tables(txt, limit=6):
+    out = []
+    for tm in re.finditer(r'<TABLE[^>]*>([\s\S]*?)</TABLE>', txt, re.I):
+        body = tm.group(1)
+        if not AD.search(body):
+            continue
+        rows = [cells_of(tr) for tr in re.findall(r'<TR[^>]*>([\s\S]*?)</TR>', body, re.I)]
+        rows = [r for r in rows if any(x for x in r)]
+        if len(rows) < 4:
+            continue
+        lab = ' '.join((r[0] if r else '') for r in rows)
+        if not AD.search(lab):          # 첫 열(계정명)에 있어야 명세표다
+            continue
+        # 판관비 명세다운가 — 인건비·수수료·합계가 같이 있으면 명세일 가능성이 높다.
+        # 공시 표는 '합 계'처럼 글자 사이에 공백을 넣는다 — 지우고 비교해야 잡힌다.
+        labx = re.sub(r'\s', '', lab)
+        score = sum(1 for k in ('급여', '인건비', '합계', '수수료', '감가상각', '운반비', '임차료',
+                                '복리후생', '세금과공과', '소모품')
+                    if k in labx)
+        out.append({'at': tm.start(), 'rows': rows, 'score': score, 'nrow': len(rows)})
+    out.sort(key=lambda x: (-x['score'], -x['nrow']))
+    return out[:limit]
+
+
+
 # ── 판관비 명세 파서 ──────────────────────────────────────────
 # 「광고선전비」 한 줄만 보면 틀린다 — 회사마다 계정명이 다르다.
 #   에이피알  인건비/광고선전비/지급수수료/운반비/감가상각비/기타
@@ -282,19 +311,21 @@ def probe_one(code, name, corp):
             e['err'] = '원문 비어 있음'; rec['seen'].append(e); continue
         e['has_판관비_단어'] = len(re.findall(r'판매비와\s*관리비|판매비및관리비', txt))
         e['has_광고_단어']   = len(AD.findall(txt))
-        tbs = tables_near(txt, ['판매비와관리비', '판매비와 관리비', '판매비및관리비'], limit=8)
+        tbs = sga_tables(txt)
         e['표_후보'] = len(tbs)
         hit = []
         for tb in tbs:
-            lab = [r2[0] if r2 else '' for r2 in tb['rows']]
-            if not any(AD.search(x or '') for x in lab):
-                continue
             pr = parse_sga(tb['rows'])
-            hit.append({'행수': len(tb['rows']),
+            hit.append({'행수': len(tb['rows']), '점수': tb['score'],
                         '단위': unit_near(txt, tb['at']),
                         '앞10행': [' | '.join(x[:5])[:110] for x in tb['rows'][:10]],
                         '파싱': pr})
         e['광고행_포함표'] = hit[:2]
+        if not hit:
+            # 표를 못 찾았으면 '왜 못 찾았는지' 를 보려고 원문 조각을 그대로 담는다.
+            m0 = re.search(r'광고선전비|광고비|선전비', txt)
+            e['못찾음_원문조각'] = (txt[max(0, m0.start() - 700): m0.start() + 700]
+                              if m0 else '광고 계정 단어가 원문에 없다')
         if r['ty'] == 'A001':          # 종속회사 표는 사업보고서에 있다
             sb = subs_loc(txt)
             e['종속회사'] = {'n': len(sb), '미국': [x for x in sb if x['us']][:6],

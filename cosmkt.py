@@ -180,6 +180,9 @@ def sga_tables(txt, limit=6):
 #   한국콜마·코스메카  '연구개발비'가 따로
 # 그래서 명세 전체를 떠서 성격별로 묶고, 광고만/광고+판촉 둘 다 낸다.
 BUCKET = [
+    # 아모레퍼시픽은 '광고선전비 및 판매촉진비' 를 한 줄로 낸다.
+    # 이걸 ad 로 담으면 광고만 따로 내는 회사와 나란히 못 둔다 — 합산 항목은 따로 표시한다.
+    ('admix', r'광고선전비?및판매촉진비?|광고선전및판촉|광고및판매촉진'),
     ('ad',   r'광고선전비?|광고비|선전비|광고및선전비?'),
     ('prom', r'판매촉진비?|판촉비|판매부대비|샘플비|견본비'),
     ('comm', r'지급수수료|판매수수료|수수료'),
@@ -228,6 +231,39 @@ def unit_near(txt, at, back=1200):
             return m
     return None
 
+def xbrl_sga(corp, year, reprt):
+    """XBRL 재무제표의 판매비와관리비 (원 단위, 권위 있는 값).
+       주석 표의 단위를 이걸로 검산한다 — 기재 텍스트만 믿으면 1,000배가 틀어진다."""
+    for fs in ('CFS', 'OFS'):
+        d = jget('%s/fnlttSinglAcntAll.json?crtfc_key=%s&corp_code=%s&bsns_year=%s'
+                 '&reprt_code=%s&fs_div=%s' % (BASE, KEY, corp, year, reprt, fs))
+        for it in (d.get('list') or []):
+            if it.get('sj_div') not in ('IS', 'CIS'):
+                continue
+            nm = re.sub(r'\s', '', it.get('account_nm') or '')
+            if re.fullmatch(r'판매비와관리비|판매비및관리비|판매관리비|판매비와일반관리비|판매비및일반관리비', nm):
+                v = tonum(it.get('thstrm_amount'))
+                if v:
+                    return abs(v)
+    return None
+
+UNIT_STEPS = (1.0, 1e3, 1e6)
+
+def settle_unit(parsed_total, xbrl, said):
+    """주석 합계 × 단위 ≈ XBRL 판관비 가 되는 단위를 고른다.
+       맞는 단위가 없으면 None — 추정해서 채우지 않는다."""
+    if not parsed_total or not xbrl:
+        return (said, '기재' if said else '미확인')
+    best, bestd = None, None
+    for u in UNIT_STEPS:
+        r = (parsed_total * u) / xbrl
+        d = abs(r - 1.0)
+        if bestd is None or d < bestd:
+            best, bestd = u, d
+    if bestd is not None and bestd <= 0.08:        # 8% 이내면 같은 값으로 본다
+        return (best, '검산' if best == said else '검산(기재와 다름)')
+    return (None, '검산 실패 — 합계가 XBRL 판관비와 맞지 않는다')
+
 def parse_sga(rows):
     """표 행들 → {계정: [숫자들]} + 성격별 합. 숫자 열이 여럿이면(당기/전기) 그대로 둔다."""
     out, lines = {}, []
@@ -245,9 +281,20 @@ def parse_sga(rows):
         lines.append({'nm': nm[:28], 'b': b, 'v': nums[:4]})
         out.setdefault(b, []).append(nums[0])
     agg = {k: sum(v) for k, v in out.items()}
-    ad, prom = agg.get('ad'), agg.get('prom')
-    agg['mkt'] = (ad or 0) + (prom or 0) if (ad is not None or prom is not None) else None
-    return {'lines': lines[:24], 'agg': agg}
+    # '판매비와관리비' 가 머리글과 본문에 두 번 잡히면 합이 두 배가 된다 — 최댓값을 쓴다
+    if 'total' in out:
+        agg['total'] = max(out['total'])
+    ad, prom, mix = agg.get('ad'), agg.get('prom'), agg.get('admix')
+    if mix is not None:
+        # 합산 항목만 있는 회사 — 광고만 따로는 알 수 없다. mkt 에만 담고 ad 는 비운다.
+        agg['mkt'] = mix + (ad or 0) + (prom or 0)
+        agg['mkt_kind'] = '광고+판촉 합산'
+    elif ad is not None or prom is not None:
+        agg['mkt'] = (ad or 0) + (prom or 0)
+        agg['mkt_kind'] = '광고' + ('+판촉' if prom is not None else '만')
+    else:
+        agg['mkt'] = None
+    return {'lines': lines[:28], 'agg': agg, 'head': (rows[0] if rows else [])[:6]}
 
 
 # ── 종속회사 소재지 ──────────────────────────────────────────
@@ -313,11 +360,21 @@ def probe_one(code, name, corp):
         e['has_광고_단어']   = len(AD.findall(txt))
         tbs = sga_tables(txt)
         e['표_후보'] = len(tbs)
+        # 이 보고서의 XBRL 판관비 — 주석 표 단위를 검산할 기준값
+        RC = {'A001': '11011', 'A002': '11012', 'A003': None}
+        yy = re.search(r'\((\d{4})\.(\d{2})\)', r['nm'])
+        by = yy.group(1) if yy else str(TODAY.year - 1)
+        mm = yy.group(2) if yy else '12'
+        rc = RC.get(r['ty']) or ('11013' if mm in ('03', '04') else '11014')
+        xb = xbrl_sga(corp, by, rc)
+        e['xbrl_판관비'] = xb
         hit = []
         for tb in tbs:
             pr = parse_sga(tb['rows'])
+            said = unit_near(txt, tb['at'])
+            u, usrc = settle_unit((pr['agg'] or {}).get('total'), xb, said)
             hit.append({'행수': len(tb['rows']), '점수': tb['score'],
-                        '단위': unit_near(txt, tb['at']),
+                        '단위_기재': said, '단위_확정': u, '단위_근거': usrc,
                         '앞10행': [' | '.join(x[:5])[:110] for x in tb['rows'][:10]],
                         '파싱': pr})
         e['광고행_포함표'] = hit[:2]

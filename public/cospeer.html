@@ -153,6 +153,39 @@ mark { background:#fff3b0; color:#1a1f2e; padding:0 2px; border-radius:3px; }
 
 .tag.ok{background:#eaf7f1;color:#146b4b;border:1px solid #bfe6d4}
 .tag.rep{background:#e6eefc;color:#1b3f87;border:1px solid #cfdcf7}
+
+/* ── 마케팅비 · 관세 IOR ─────────────────────────────── */
+.mkw{border:1px solid #e4e7ec;border-radius:10px;padding:10px 12px;margin:6px 0;background:#fcfdff}
+.mkt-seg{display:flex;gap:4px;margin:2px 0 8px}
+.mkt-seg button{font:inherit;font-size:11.5px;padding:3px 10px;border-radius:999px;cursor:pointer;
+  border:1px solid #d8dee9;background:#fff;color:#475467}
+.mkt-seg button.on{background:#0f2847;border-color:#0f2847;color:#fff;font-weight:700}
+.mkc{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:760px){ .mkc{grid-template-columns:1fr} }
+.mkc h5{margin:0 0 2px;font-size:11.5px;color:#475467;font-weight:700}
+.msvg{display:block;width:100%;height:auto}
+.msvg .gl{stroke:#eef1f5;stroke-width:1}
+.msvg .ln{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.msvg .pt{stroke:#fff;stroke-width:2}
+.msvg .tx{font-family:inherit;font-size:9.5px;fill:#98a2b3}
+.msvg .vl{font-family:inherit;font-size:10px;font-weight:700;fill:#1a2a4a}
+.ior{display:inline-block;padding:1px 7px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid}
+.ior.make{background:#e7f6ec;color:#11734b;border-color:#bfe6cd}
+.ior.self{background:#e6eefc;color:#1b3f87;border-color:#cfdcf7}
+.ior.fg{background:#fff7e6;color:#8a5a00;border-color:#f6e3b8}
+.ior.none{background:#f2f4f7;color:#667085;border-color:#e4e7ec}
+.ior.part,.ior.unk{background:#f6f2ff;color:#5b21b6;border-color:#e3d9fb}
+@media(prefers-color-scheme:dark){
+  .mkw{background:#161b26;border-color:#333741}
+  .mkt-seg button{background:#1f242f;border-color:#333741;color:#cecfd2}
+  .mkt-seg button.on{background:#cecfd2;color:#0c111d;border-color:#cecfd2}
+  .msvg .gl{stroke:#333741} .msvg .vl{fill:#f5f5f6}
+  .ior.make{background:#0f2e20;color:#6ee7b7;border-color:#1d5b40}
+  .ior.self{background:#101d3a;color:#9ec1ff;border-color:#243f73}
+  .ior.fg{background:#2b2103;color:#fde68a;border-color:#5a4100}
+  .ior.none{background:#1f242f;color:#94969c;border-color:#333741}
+  .ior.part,.ior.unk{background:#231a3a;color:#c4b5fd;border-color:#3f2d6b}
+}
 </style>
 </head>
 <body>
@@ -249,6 +282,7 @@ var SECK="cos";
    compare/ 일별 시계열에서 뽑은 요약이다. 지금 배수가 과거 분포의 몇 분위인가를 한 칸으로 줄였다.
    분위가 낮다고 싼 것이 아니다 — 깃발이 그 함정을 적는다. */
 var BP={};
+var MKT={}, USE={}, MKTMODE='ann';
 var BASIS='밴드는 DART 연결 재무제표로 직접 계산합니다 — 당기순이익(비지배지분 포함) TTM ÷ 실제 발행주식수. 표의 PER·PBR 은 네이버 시세의 지배주주 기준이라 두 숫자가 다를 수 있습니다. 비지배지분이 큰 곳(해외 자회사 보유)에서 특히 벌어집니다. 분위는 같은 기준의 시계열끼리만 비교하므로 이 차이의 영향을 받지 않습니다.';
 var FGN={peak:'이익 고점 의심',split:'분모 괴리',short:'관측 짧음',ext:'극단값',rich:'분위만 하단',loss:'적자 구간 많음'};
 function bandCover(){
@@ -275,6 +309,133 @@ function tblGap(c,u,x){
     (r>1?r.toFixed(1)+'배 차이':(1/r).toFixed(1)+'배 차이')+'납니다. '+
     (u==='per'?'비지배지분(해외 자회사 등)이 크거나 일회성 손익이 섞였을 때 벌어집니다.'
              :'자본총계에 비지배지분이 섞였을 때 벌어집니다.')};
+}
+/* ── 마케팅비 시계열 ──────────────────────────────────────
+   금액(억원)과 판관비 대비 비중(%)은 축이 달라 한 차트에 겹치지 않는다 — 두 개로 나눈다. */
+function mktOf(c){ return (MKT.co||{})[c]||null; }
+function mktSeries(c){
+  var m=mktOf(c); if(!m) return null;
+  var rows = MKTMODE==='ann' ? (m.ann||[]) : (m.qtr||[]);
+  rows = rows.filter(function(r){ return r && r.mkt!=null; });
+  return rows.length?rows:null;
+}
+function labOf(r){ return MKTMODE==='ann' ? String(r.y) : (String(r.y).slice(2)+'Q'+(r.q||'')); }
+function miniLine(rows, pick, unit, color){
+  var W=330, H=120, L=38, R=10, T=14, B=20;
+  var vs=rows.map(pick).filter(function(v){return v!=null;});
+  if(!vs.length) return '<div class="none2">값이 없습니다</div>';
+  var lo=Math.min.apply(null,vs), hi=Math.max.apply(null,vs);
+  if(hi===lo){ hi=lo*1.1+1; lo=Math.max(0,lo*0.9-1); }
+  lo=Math.min(lo, lo>0?lo*0.9:lo); hi=hi*1.05;
+  var n=rows.length;
+  var X=function(i){ return L + (n<2?(W-L-R)/2 : (W-L-R)*i/(n-1)); };
+  var Y=function(v){ return T + (H-T-B)*(1-(v-lo)/(hi-lo)); };
+  var h='<svg class="msvg" viewBox="0 0 '+W+' '+H+'" role="img">';
+  for(var g=0; g<=3; g++){
+    var yy=T+(H-T-B)*g/3, vv=hi-(hi-lo)*g/3;
+    h+='<line class="gl" x1="'+L+'" y1="'+yy.toFixed(1)+'" x2="'+(W-R)+'" y2="'+yy.toFixed(1)+'"/>';
+    h+='<text class="tx" x="'+(L-4)+'" y="'+(yy+3).toFixed(1)+'" text-anchor="end">'+
+       (Math.abs(vv)>=100?Math.round(vv):vv.toFixed(1))+'</text>';
+  }
+  var pts=[], last=null;
+  rows.forEach(function(r,i){ var v=pick(r); if(v==null) return;
+    pts.push(X(i).toFixed(1)+','+Y(v).toFixed(1)); last={x:X(i),y:Y(v),v:v}; });
+  h+='<polyline class="ln" stroke="'+color+'" points="'+pts.join(' ')+'"/>';
+  rows.forEach(function(r,i){ var v=pick(r); if(v==null) return;
+    h+='<circle class="pt" cx="'+X(i).toFixed(1)+'" cy="'+Y(v).toFixed(1)+'" r="3.2" fill="'+color+'"/>'; });
+  rows.forEach(function(r,i){
+    if(n>8 && i%2) return;
+    h+='<text class="tx" x="'+X(i).toFixed(1)+'" y="'+(H-6)+'" text-anchor="middle">'+esc(labOf(r))+'</text>'; });
+  if(last) h+='<text class="vl" x="'+Math.min(W-R,last.x+4).toFixed(1)+'" y="'+Math.max(T+8,last.y-6).toFixed(1)+
+    '" text-anchor="end">'+(Math.abs(last.v)>=100?Math.round(last.v):last.v.toFixed(1))+unit+'</text>';
+  return h+'</svg>';
+}
+function mktBlock(c){
+  var m=mktOf(c);
+  if(!m){
+    // 아직 이 종목 차례가 아니다. 아무것도 안 보이면 '기능이 없는 것'처럼 읽히니 상태를 적는다.
+    var tot=Object.keys((MKT.co)||{}).length, hv=(MKT.have!=null?MKT.have:0);
+    return '<h4>📣 마케팅비 — 광고선전비는 판관비 주석에 있다</h4><div class="mkw">'+
+      '<div class="none2">이 종목은 아직 수집 전입니다.'+
+      (tot?' 지금까지 '+hv+'/'+tot+'곳 — 원문이 수 MB 라 하루 6곳씩 돕니다.'
+          :' 수집기를 처음 돌리는 중입니다.')+'</div>'+
+      '<p class="lgd">광고선전비는 손익계산서 본문에 없고 <b>판매비와관리비 주석</b>에 있어 정기보고서 원문을 받아 뽑습니다. '+
+      '회사마다 계정명이 달라(에이피알 「광고선전비」 / 아모레 「광고선전비 및 판매촉진비」 / 달바 「판매수수료」) '+
+      '명세 전체를 떠서 성격별로 묶습니다.</p></div>';
+  }
+  var rows=mktSeries(c);
+  var h='<h4>📣 마케팅비 — 광고선전비는 판관비 주석에 있다</h4><div class="mkw">';
+  h+='<div class="mkt-seg">'+
+     ['ann','qtr'].map(function(k){
+       var n=((k==='ann'?m.ann:m.qtr)||[]).filter(function(r){return r.mkt!=null;}).length;
+       return '<button class="'+(MKTMODE===k?'on':'')+'" onclick="setMkt(\''+k+'\')">'+
+              (k==='ann'?'연간':'분기')+' '+n+'개</button>';}).join('')+'</div>';
+  if(!rows){
+    h+='<div class="none2">이 종목은 아직 시계열이 없습니다 — 수집기가 하루 6곳씩 채우는 중입니다.</div>';
+  } else {
+    var kind=(rows[rows.length-1]||{}).kind||'';
+    h+='<div class="mkc">'+
+       '<div><h5>마케팅비 (억원)</h5>'+
+       miniLine(rows,function(r){return r.mkt/1e8;},'억','#1b5fae')+'</div>'+
+       '<div><h5>판관비 대비 (%)</h5>'+
+       miniLine(rows,function(r){return r.r;},'%','#b54708')+'</div></div>';
+    h+='<p class="lgd" style="margin-top:4px"><b>집계 기준</b> — '+esc(kind||'미상')+
+       '. 광고만 따로 내는 회사와 「광고+판촉」을 한 줄로 내는 회사는 같은 선에 두고 비교하면 안 됩니다.</p>';
+  }
+  (m.flags||[]).forEach(function(f){ h+='<div class="fl"><span class="f">⚠ '+esc(f)+'</span></div>'; });
+  // 어느 계정이 어디에 있는지 — '판관비냐 다른 항목이냐'를 눈으로 확인하는 자리
+  var last=(m.src||[]).filter(function(e){return e.lines&&e.lines.length;}).pop();
+  if(last && last.lines){
+    var B={admix:'광고+판촉',ad:'광고',prom:'판촉',comm:'수수료',pay:'인건비',ship:'운반',
+           rnd:'연구개발',dep:'상각',rent:'임차',etc:'기타',total:'합계'};
+    h+='<details style="margin-top:6px"><summary style="font-size:12px;cursor:pointer">'+
+       '판관비 명세 — '+esc(last.nm||'')+' ('+(last.lines.length)+'개 계정)</summary>'+
+       '<table class="bt" style="margin-top:4px"><thead><tr><th class="l">계정</th><th class="l">성격</th>'+
+       '<th>금액(억)</th></tr></thead><tbody>'+
+       last.lines.map(function(l){
+         var v=(last.unit&&l[2]!=null)?(l[2]*last.unit/1e8):null;
+         return '<tr><td class="l">'+esc(l[0])+'</td><td class="l">'+esc(B[l[1]]||l[1])+'</td>'+
+                '<td class="q">'+(v==null?'—':(Math.abs(v)>=100?Math.round(v):v.toFixed(1)))+'</td></tr>';}).join('')+
+       '</tbody></table><p class="lgd">단위 확정 근거 — '+esc(last.unit_src||'')+
+       (last.xbrl_sga?' · XBRL 판관비 '+Math.round(last.xbrl_sga/1e8)+'억':'')+'</p></details>';
+  }
+  return h+'</div>';
+}
+function setMkt(k){ MKTMODE=k; render(); }
+
+/* ── 관세 IOR ─────────────────────────────────────────── */
+var IORN={make:'미국 생산',self:'자가 IOR 가능',part:'소수지분',fg:'소재국 미확인',none:'바이어 IOR 추정',unk:'미확인'};
+function iorOf(c){ return (USE.co||{})[c]||null; }
+function iorChip(c){
+  var u=iorOf(c); if(!u||!u.ior) return '';
+  var lv=u.ior.lv||'unk';
+  return '<span class="ior '+lv+'" title="'+esc((u.ior.m||'')+'\n\n근거 태그: '+(u.ior.tag||''))+'">'+
+         esc(IORN[lv]||lv)+'</span>';
+}
+function iorBlock(c){
+  var u=iorOf(c); if(!u) return '';
+  var h='<h4>🛃 관세 — 누가 내고 누가 환급받나</h4><div class="mkw">';
+  h+='<div style="margin-bottom:5px">'+iorChip(c)+
+     ' <span style="font-size:11.5px;color:#667085">공시 '+(u.year||'-')+'년 타법인 출자현황 '+(u.rows||0)+'행</span></div>';
+  h+='<div style="font-size:12.8px;line-height:1.8">'+esc((u.ior||{}).m||'')+'</div>';
+  if((u.us||[]).length){
+    h+='<table class="bt" style="margin-top:6px"><thead><tr><th class="l">미국 법인</th><th>지분</th>'+
+       '<th class="l">출자목적</th></tr></thead><tbody>'+
+       u.us.slice(0,6).map(function(x){ return '<tr><td class="l">'+esc(x.nm)+'</td><td class="q">'+
+         (x.own!=null?x.own+'%':'—')+'</td><td class="l">'+esc(x.purps||'—')+'</td></tr>';}).join('')+
+       '</tbody></table>';
+  }
+  if((u.fg||[]).length){
+    h+='<details style="margin-top:5px"><summary style="font-size:12px;cursor:pointer">'+
+       '소재국을 알 수 없는 해외 법인 '+u.fg.length+'곳 — 여기에 미국 법인이 섞여 있을 수 있다</summary>'+
+       '<table class="bt" style="margin-top:4px"><thead><tr><th class="l">법인</th><th>지분</th></tr></thead><tbody>'+
+       u.fg.map(function(x){ return '<tr><td class="l">'+esc(x.nm)+'</td><td class="q">'+
+         (x.own!=null?x.own+'%':'—')+'</td></tr>';}).join('')+'</tbody></table>'+
+       '<p class="lgd">타법인 출자현황에는 소재국 열이 없습니다. 사업보고서의 종속회사 현황(소재지 열)을 읽으면 갈립니다 — 수집기가 채우는 중입니다.</p></details>';
+  }
+  h+='<p class="lgd">실제 통관서류상 IOR 은 CBP 자료라 공개되지 않습니다. 여기 「자가 IOR 가능」은 '+
+     '공시로 확인한 지분 구조에서 끌어낸 <b>판단</b>이지 확정이 아닙니다.</p>';
+  return h+'</div>';
 }
 function bandCell(c){
   var b=bpOf(c);
@@ -550,6 +711,8 @@ function drawer(c){
     s+='<p class="lgd" style="margin-top:5px">'+esc(((DEF.cost_def||{}).note)||'')+'</p>';
   }
   s+=bandBlock(c);
+  s+=mktBlock(c);
+  s+=iorBlock(c);
   s+='<h4>🧬 성격</h4>';
   if((d.chars||[]).length){
     s+=(d.chars||[]).map(function(t){ var cd=(DEF.char_def||{})[t];
@@ -619,7 +782,7 @@ function rowsFor(g){
       (sh.psr?'<td>'+num(x.psr)+vs(x.psr,M.psr,-1)+'</td>':'')+
       (sh.opm?'<td>'+num(x.opm,1)+vs(x.opm,M.opm,1)+'</td>':'')+
       (sh.g?'<td>'+pct(x.g_rev)+'</td><td>'+pct(x.g_ni)+'</td>':'')+
-      bandCell(c)+'<td class="cc">'+((d.chars||[]).map(function(t){
+      bandCell(c)+'<td class="cc">'+(iorChip(c)?iorChip(c)+'<br>':'')+((d.chars||[]).map(function(t){
           var cd=(DEF.char_def||{})[t]; return '<span class="ch" title="'+esc(cd?cd[1]:t)+'">'+esc(cd?cd[0]:t)+'</span>';}).join('')||'<span class="none2">—</span>')+
         (d.aging?'<br><span class="ag '+d.aging+'">'+esc(((DEF.aging_def||{})[d.aging]||[d.aging])[0])+'</span>':'')+
         (d.moat&&d.moat!=='none'?'<br><span class="mw '+mw[1]+'">'+mw[0]+'</span>':'')+'</td></tr>';
@@ -813,7 +976,11 @@ fetch('/data/cospeer_def.json').then(function(r){return r.json();}).then(functio
     return fetch('/data/cospeer_backlog.json').then(function(b){return b.json();})
       .then(function(b){ BLG=(b&&b.co)||{}; }).catch(function(){ BLG={}; })
       .then(function(){ return fetch('/data/bandpos.json').then(function(r){return r.json();})
-        .then(function(z){ BP=z||{}; }).catch(function(){ BP={}; }); });
+        .then(function(z){ BP=z||{}; }).catch(function(){ BP={}; }); })
+      .then(function(){ return fetch('/data/cospeer_mkt.json').then(function(r){return r.json();})
+        .then(function(z){ MKT=z||{}; }).catch(function(){ MKT={}; }); })
+      .then(function(){ return fetch('/data/usentity.json').then(function(r){return r.json();})
+        .then(function(z){ USE=z||{}; }).catch(function(){ USE={}; }); });
   }).catch(function(){
     n.style.display='';
     n.innerHTML='<b>아직 밸류 수치가 없습니다.</b> 세부분야·묶은 근거·특장점·인증은 지금도 보이지만, PER·PBR·PSR·매출 그래프는 수집기를 한 번 돌려야 채워집니다 — <code>DEF=cospeer_def.json OUT=public/data/cospeer.json python semipeer.py</code>';

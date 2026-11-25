@@ -1,0 +1,42 @@
+name: 마케팅비(광고선전비) 수집
+
+# 광고선전비는 손익계산서 본문이 아니라 판매비와관리비 '주석' 표에 있다.
+# XBRL API 로는 못 가져오고 정기보고서 원문을 받아 표를 찾아야 한다.
+# 먼저 PROBE 로 '어떤 모양인지'만 확인한 뒤 본수집을 붙인다.
+on:
+  workflow_dispatch:
+    inputs:
+      probe:
+        description: '프로브만 (1=진단, 0=본수집)'
+        default: '1'
+      codes:
+        description: '프로브 대상 종목코드 (쉼표)'
+        default: '090430,278470,237880,257720,214150'
+  push:
+    paths: ['cosmkt.py']
+permissions:
+  contents: write
+jobs:
+  cosmkt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: 수집
+        env:
+          DART_KEY: ${{ secrets.DART_KEY }}
+          PROBE: ${{ github.event.inputs.probe || '1' }}
+          CODES: ${{ github.event.inputs.codes || '090430,278470,237880,257720,214150' }}
+        run: python cosmkt.py
+      - name: 결과 커밋
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add public/data/cosmkt_probe.json public/data/cosmkt.json 2>/dev/null || true
+          git commit -m "마케팅비 수집 결과" || echo "변경 없음"
+          git pull --rebase origin main || true
+          git push || true

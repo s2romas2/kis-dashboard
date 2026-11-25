@@ -28,6 +28,9 @@ PROBE  = os.environ.get('PROBE', '') not in ('', '0')
 POUT   = os.environ.get('POUT', 'public/data/cosmkt_probe.json')
 DEF    = os.environ.get('DEF', 'public/data/cospeer_def.json')
 MAXRUN = int(os.environ.get('MAXRUN', '12'))
+# 파서 버전. 올리면 캐시된 수집분도 다시 읽는다.
+# 검산 기준을 넓혔는데 캐시가 남아 있으면 이미 버려진 14건이 그대로 버려진 채 남는다.
+PV = int(os.environ.get('PV', '2'))
 KST    = datetime.timezone(datetime.timedelta(hours=9))
 NOW    = datetime.datetime.now(KST)
 TODAY  = NOW.date()
@@ -408,13 +411,19 @@ def collect_one(code, name, corp, cache):
         elif r['ty'] in ('A002', 'A003') and nQ < 8:
             pick.append(r); nQ += 1
     for r in pick:
-        if r['rcp'] in cache:
-            rec['src'].append(cache[r['rcp']]); continue
+        c0 = cache.get(r['rcp'])
+        # 성공한 것만 캐시로 쓴다. 단위를 못 정했거나 표를 못 찾은 건 파서가 바뀌면 다시 본다.
+        if c0 and c0.get('pv') == PV and (c0.get('unit') or c0.get('skip')):
+            rec['src'].append(c0); continue
         y, q = period_of(r['nm'], r['ty'])
         ent = {'rcp': r['rcp'], 'ty': RPT[r['ty']], 'nm': r['nm'][:40], 'dt': r['dt'],
-               'y': y, 'q': q}
+               'y': y, 'q': q, 'pv': PV}
         txt = doc_text(r['rcp'])
         rec['new'] += 1
+        tries = ((c0 or {}).get('tries') or 0) + 1
+        ent['tries'] = tries
+        if tries >= 3:
+            ent['skip'] = True      # 세 번 받아도 안 되면 그만 본다 (매번 수 MB 다)
         if not txt:
             ent['err'] = '원문을 받지 못했다'; rec['src'].append(ent); continue
         tbs = sga_tables(txt)

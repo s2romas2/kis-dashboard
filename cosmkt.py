@@ -221,6 +221,48 @@ def parse_sga(rows):
     return {'lines': lines[:24], 'agg': agg}
 
 
+# ── 종속회사 소재지 ──────────────────────────────────────────
+# 타법인 출자현황에는 소재국 열이 없어 이름으로만 미국 법인을 가려야 했다.
+# 그래서 COSMAX WEST(미국)·HuM&C Vina(베트남)가 똑같이 '소재국 미확인'으로 묶였다.
+# 사업보고서의 「연결대상 종속회사 현황」 표에는 소재지 열이 있다 — 같은 원문이니 여기서 같이 뽑는다.
+LOCUS = re.compile(r'미국|U\.?S\.?A?\b|UNITED\s*STATES|아메리카', re.I)
+LOCHD = re.compile(r'소재지|소재국|국가|본점|주소')
+NAMHD = re.compile(r'상호|회사명|법인명|명칭|기업명')
+
+def subs_loc(txt):
+    """종속회사 표에서 (회사명, 소재지, 주요사업) 을 뽑는다. 헤더에서 열 위치를 찾아 쓴다 —
+       열 순서를 가정하면 회사마다 달라 틀린다."""
+    out, seen = [], set()
+    for tb in tables_near(txt, ['연결대상 종속회사', '종속회사 현황', '종속기업 현황',
+                                '연결대상종속회사', '종속회사에 관한 사항'], window=40000, limit=8):
+        rows = tb['rows']
+        if len(rows) < 2:
+            continue
+        # 헤더 행 찾기
+        hi = ci = ni = None
+        for k, r in enumerate(rows[:4]):
+            c1 = [i for i, c in enumerate(r) if LOCHD.search(c or '')]
+            c2 = [i for i, c in enumerate(r) if NAMHD.search(c or '')]
+            if c1 and c2:
+                hi, ci, ni = k, c1[0], c2[0]; break
+        if hi is None:
+            continue
+        for r in rows[hi + 1:]:
+            if len(r) <= max(ci, ni):
+                continue
+            nm = (r[ni] or '').strip()
+            lc = (r[ci] or '').strip()
+            if not nm or not lc or nm == lc:
+                continue
+            key = nm[:40]
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append({'nm': nm[:48], 'loc': lc[:24], 'us': bool(LOCUS.search(lc))})
+        if out:
+            break
+    return out
+
 def probe_one(code, name, corp):
     rs = reports(corp)
     kinds = {}
@@ -253,6 +295,10 @@ def probe_one(code, name, corp):
                         '앞10행': [' | '.join(x[:5])[:110] for x in tb['rows'][:10]],
                         '파싱': pr})
         e['광고행_포함표'] = hit[:2]
+        if r['ty'] == 'A001':          # 종속회사 표는 사업보고서에 있다
+            sb = subs_loc(txt)
+            e['종속회사'] = {'n': len(sb), '미국': [x for x in sb if x['us']][:6],
+                          '앞8개': [('%s @ %s' % (x['nm'][:28], x['loc'])) for x in sb[:8]]}
         rec['seen'].append(e)
         time.sleep(0.4)
     return rec

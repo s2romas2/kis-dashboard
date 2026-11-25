@@ -231,50 +231,70 @@ def unit_near(txt, at, back=1200):
             return m
     return None
 
+SGA_NM = re.compile(r'판매비와관리비|판매비및관리비|판매관리비|판매비와일반관리비|판매비및일반관리비')
+
 def xbrl_sga(corp, year, reprt):
-    """XBRL 재무제표의 판매비와관리비 (원 단위, 권위 있는 값).
-       주석 표의 단위를 이걸로 검산한다 — 기재 텍스트만 믿으면 1,000배가 틀어진다."""
+    """XBRL 판매비와관리비 (원 단위) — 주석 표 단위를 검산할 기준값.
+
+       기준을 하나만 쓰면 안 된다. 처음엔 연결·당기금액 하나만 봤는데
+       브이티 반기가 1.85배, 코리아나 분기가 2.0배 어긋나 전부 버려졌다.
+       DART 의 분기·반기 '당기금액' 은 **그 분기 단독**인데
+       주석 판관비 명세는 보통 **누적**이라 기준 자체가 달랐던 것이다.
+       연결/별도도 갈린다(메디앙스 12% 차이).
+       → 네 가지(연결·별도 × 단독·누적)를 모두 돌려주고 맞는 것을 고르게 한다."""
+    out = {}
     for fs in ('CFS', 'OFS'):
         d = jget('%s/fnlttSinglAcntAll.json?crtfc_key=%s&corp_code=%s&bsns_year=%s'
                  '&reprt_code=%s&fs_div=%s' % (BASE, KEY, corp, year, reprt, fs))
         for it in (d.get('list') or []):
             if it.get('sj_div') not in ('IS', 'CIS'):
                 continue
-            nm = re.sub(r'\s', '', it.get('account_nm') or '')
-            if re.fullmatch(r'판매비와관리비|판매비및관리비|판매관리비|판매비와일반관리비|판매비및일반관리비', nm):
-                v = tonum(it.get('thstrm_amount'))
-                if v:
-                    return abs(v)
-    return None
+            if not SGA_NM.fullmatch(re.sub(r'\s', '', it.get('account_nm') or '')):
+                continue
+            a = tonum(it.get('thstrm_amount'))
+            b = tonum(it.get('thstrm_add_amount'))
+            if a:
+                out.setdefault('%s·단독' % ('연결' if fs == 'CFS' else '별도'), abs(a))
+            if b:
+                out.setdefault('%s·누적' % ('연결' if fs == 'CFS' else '별도'), abs(b))
+        if out:
+            break
+    return out or None
 
 UNIT_STEPS = (1.0, 1e3, 1e6)
 
 CANDNM = {'sum': '합계행 합', 'max': '합계행 최댓값', 'items': '항목 합'}
 
 def settle_unit(cands, xbrl, said):
-    """합계 후보 × 단위 조합 중 XBRL 판관비와 맞는 것을 고른다.
-       합계를 어떻게 읽을지도 여기서 정해진다 — 회사마다 표 모양이 달라
-       내가 미리 한 가지로 정하면 어딘가는 반드시 틀린다.
-       맞는 조합이 없으면 None — 추정해서 채우지 않는다."""
+    """합계 후보 × 단위 × 기준값 조합 중 맞는 것을 고른다.
+       합계를 어떻게 읽을지(합/최댓값/항목합), 단위가 무엇인지, 그리고
+       주석이 단독인지 누적인지까지 여기서 정해진다.
+       회사마다 표 모양이 달라 내가 미리 한 가지로 정하면 어딘가는 반드시 틀린다.
+       맞는 조합이 없으면 None — 추정해서 채우지 않는다.
+       돌려주는 값: (단위, 근거, 합계후보키, 확정합계, 기준값이름)"""
     if not cands or not xbrl:
-        return (said, '기재' if said else '미확인', None, None)
+        return (said, '기재' if said else '미확인', None, None, None)
+    refs = xbrl if isinstance(xbrl, dict) else {'기준': xbrl}
     best = None
-    for k, v in cands.items():
-        if not v:
+    for rk, rv in refs.items():
+        if not rv:
             continue
-        for u in UNIT_STEPS:
-            d = abs((v * u) / xbrl - 1.0)
-            if best is None or d < best[0]:
-                best = (d, u, k, v)
-    if best and best[0] <= 0.08:          # 8% 이내면 같은 값으로 본다
-        d, u, k, v = best
-        src = '검산(%s' % CANDNM.get(k, k)
+        for k, v in cands.items():
+            if not v:
+                continue
+            for u in UNIT_STEPS:
+                d = abs((v * u) / rv - 1.0)
+                if best is None or d < best[0]:
+                    best = (d, u, k, v, rk)
+    if best and best[0] <= 0.08:
+        d, u, k, v, rk = best
+        src = '검산(%s · %s' % (CANDNM.get(k, k), rk)
         src += ', 기재와 다름)' if (said and u != said) else ')'
-        return (u, src, k, v)
+        return (u, src, k, v, rk)
     if best:
-        return (None, '검산 실패 — 가장 가까운 조합도 XBRL 대비 %.0f%% 어긋난다' % (best[0] * 100),
-                None, None)
-    return (None, '검산 실패 — 합계 후보가 없다', None, None)
+        return (None, '검산 실패 — 가장 가까운 조합도 %s 대비 %.0f%% 어긋난다'
+                % (best[4], best[0] * 100), None, None, None)
+    return (None, '검산 실패 — 합계 후보가 없다', None, None, None)
 
 def parse_sga(rows):
     """표 행들 → {계정: [숫자들]} + 성격별 합. 숫자 열이 여럿이면(당기/전기) 그대로 둔다."""
@@ -403,12 +423,13 @@ def collect_one(code, name, corp, cache):
         pr = parse_sga(tbs[0]['rows'])
         rc = RC_OF.get(r['ty']) or ('11013' if q == 1 else '11014')
         xb = xbrl_sga(corp, str(y), rc) if y else None
-        u, usrc, ck, cv = settle_unit((pr['agg'] or {}).get('_cand'),
-                                      xb, unit_near(txt, tbs[0]['at']))
+        u, usrc, ck, cv, rk = settle_unit((pr['agg'] or {}).get('_cand'),
+                                          xb, unit_near(txt, tbs[0]['at']))
         if cv is not None:
             pr['agg']['total'] = cv
-        pr['agg'].pop('_cand', None)
-        ent.update({'unit': u, 'unit_src': usrc, 'xbrl_sga': xb,
+        cand = pr['agg'].pop('_cand', None)
+        ent.update({'unit': u, 'unit_src': usrc, 'xbrl_sga': xb, 'basis': rk,
+                    'cand': cand if not u else None,
                     'agg': pr['agg'], 'kind': (pr['agg'] or {}).get('mkt_kind'),
                     'lines': [[l['nm'], l['b'], l['v'][0]] for l in pr['lines']][:20]})
         if r['ty'] == 'A001':
@@ -478,7 +499,7 @@ def probe_one(code, name, corp):
         for tb in tbs:
             pr = parse_sga(tb['rows'])
             said = unit_near(txt, tb['at'])
-            u, usrc, ck, cv = settle_unit((pr['agg'] or {}).get('_cand'), xb, said)
+            u, usrc, ck, cv, rk = settle_unit((pr['agg'] or {}).get('_cand'), xb, said)
             if cv is not None:
                 pr['agg']['total'] = cv
             hit.append({'행수': len(tb['rows']), '점수': tb['score'],

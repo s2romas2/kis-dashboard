@@ -249,20 +249,32 @@ def xbrl_sga(corp, year, reprt):
 
 UNIT_STEPS = (1.0, 1e3, 1e6)
 
-def settle_unit(parsed_total, xbrl, said):
-    """주석 합계 × 단위 ≈ XBRL 판관비 가 되는 단위를 고른다.
-       맞는 단위가 없으면 None — 추정해서 채우지 않는다."""
-    if not parsed_total or not xbrl:
-        return (said, '기재' if said else '미확인')
-    best, bestd = None, None
-    for u in UNIT_STEPS:
-        r = (parsed_total * u) / xbrl
-        d = abs(r - 1.0)
-        if bestd is None or d < bestd:
-            best, bestd = u, d
-    if bestd is not None and bestd <= 0.08:        # 8% 이내면 같은 값으로 본다
-        return (best, '검산' if best == said else '검산(기재와 다름)')
-    return (None, '검산 실패 — 합계가 XBRL 판관비와 맞지 않는다')
+CANDNM = {'sum': '합계행 합', 'max': '합계행 최댓값', 'items': '항목 합'}
+
+def settle_unit(cands, xbrl, said):
+    """합계 후보 × 단위 조합 중 XBRL 판관비와 맞는 것을 고른다.
+       합계를 어떻게 읽을지도 여기서 정해진다 — 회사마다 표 모양이 달라
+       내가 미리 한 가지로 정하면 어딘가는 반드시 틀린다.
+       맞는 조합이 없으면 None — 추정해서 채우지 않는다."""
+    if not cands or not xbrl:
+        return (said, '기재' if said else '미확인', None, None)
+    best = None
+    for k, v in cands.items():
+        if not v:
+            continue
+        for u in UNIT_STEPS:
+            d = abs((v * u) / xbrl - 1.0)
+            if best is None or d < best[0]:
+                best = (d, u, k, v)
+    if best and best[0] <= 0.08:          # 8% 이내면 같은 값으로 본다
+        d, u, k, v = best
+        src = '검산(%s' % CANDNM.get(k, k)
+        src += ', 기재와 다름)' if (said and u != said) else ')'
+        return (u, src, k, v)
+    if best:
+        return (None, '검산 실패 — 가장 가까운 조합도 XBRL 대비 %.0f%% 어긋난다' % (best[0] * 100),
+                None, None)
+    return (None, '검산 실패 — 합계 후보가 없다', None, None)
 
 def parse_sga(rows):
     """표 행들 → {계정: [숫자들]} + 성격별 합. 숫자 열이 여럿이면(당기/전기) 그대로 둔다."""
@@ -281,9 +293,21 @@ def parse_sga(rows):
         lines.append({'nm': nm[:28], 'b': b, 'v': nums[:4]})
         out.setdefault(b, []).append(nums[0])
     agg = {k: sum(v) for k, v in out.items()}
-    # '판매비와관리비' 가 머리글과 본문에 두 번 잡히면 합이 두 배가 된다 — 최댓값을 쓴다
+    # 합계 행이 어떻게 적히는지가 회사마다 다르다 —
+    #   머리글과 본문에 같은 값이 두 번 잡히면 '합'이 두 배가 되고,
+    #   클리오처럼 판매비·관리비를 두 행으로 쪼개 적으면 '최댓값'이 모자란다.
+    # 어느 쪽인지 내가 정하지 않는다. 후보를 다 남기고 XBRL 판관비가 고르게 한다.
+    cand = {}
     if 'total' in out:
-        agg['total'] = max(out['total'])
+        cand['sum'] = sum(out['total'])
+        cand['max'] = max(out['total'])
+        agg['total'] = cand['max']
+    # 합계 행이 아예 없는 표도 있다 — 항목을 다 더한 값을 후보로 둔다
+    item = sum(x for k, v in out.items() if k != 'total' for x in v)
+    if item:
+        cand['items'] = item
+        agg.setdefault('total', item)
+    agg['_cand'] = cand
     ad, prom, mix = agg.get('ad'), agg.get('prom'), agg.get('admix')
     if mix is not None:
         # 합산 항목만 있는 회사 — 광고만 따로는 알 수 없다. mkt 에만 담고 ad 는 비운다.
@@ -339,6 +363,88 @@ def subs_loc(txt):
             break
     return out
 
+RC_OF = {'A001': '11011', 'A002': '11012'}
+
+def period_of(rptnm, ty):
+    """보고서명에서 (연도, 분기) 를 뽑는다. '사업보고서 (2025.12)' → (2025, 4)"""
+    m = re.search(r'\((\d{4})\.(\d{2})\)', rptnm or '')
+    if not m:
+        return None, None
+    y, mm = int(m.group(1)), m.group(2)
+    q = {'03': 1, '04': 1, '06': 2, '07': 2, '09': 3, '10': 3, '12': 4}.get(mm)
+    if ty == 'A001':
+        q = 4
+    return y, q
+
+def collect_one(code, name, corp, cache):
+    rec = {'n': name, 'src': [], 'ann': [], 'qtr': [], 'flags': [], 'new': 0,
+           'seen': TODAY.isoformat()}
+    rs = reports(corp, years=6)
+    # 사업보고서는 최근 5건, 분기·반기는 최근 8건까지 — 그 이상은 원문 용량 대비 소득이 적다
+    pick, nA, nQ = [], 0, 0
+    for r in rs:
+        if r['ty'] == 'A001' and nA < 5:
+            pick.append(r); nA += 1
+        elif r['ty'] in ('A002', 'A003') and nQ < 8:
+            pick.append(r); nQ += 1
+    for r in pick:
+        if r['rcp'] in cache:
+            rec['src'].append(cache[r['rcp']]); continue
+        y, q = period_of(r['nm'], r['ty'])
+        ent = {'rcp': r['rcp'], 'ty': RPT[r['ty']], 'nm': r['nm'][:40], 'dt': r['dt'],
+               'y': y, 'q': q}
+        txt = doc_text(r['rcp'])
+        rec['new'] += 1
+        if not txt:
+            ent['err'] = '원문을 받지 못했다'; rec['src'].append(ent); continue
+        tbs = sga_tables(txt)
+        if not tbs:
+            ent['err'] = '판관비 명세표를 찾지 못했다'; rec['src'].append(ent); continue
+        pr = parse_sga(tbs[0]['rows'])
+        rc = RC_OF.get(r['ty']) or ('11013' if q == 1 else '11014')
+        xb = xbrl_sga(corp, str(y), rc) if y else None
+        u, usrc, ck, cv = settle_unit((pr['agg'] or {}).get('_cand'),
+                                      xb, unit_near(txt, tbs[0]['at']))
+        if cv is not None:
+            pr['agg']['total'] = cv
+        pr['agg'].pop('_cand', None)
+        ent.update({'unit': u, 'unit_src': usrc, 'xbrl_sga': xb,
+                    'agg': pr['agg'], 'kind': (pr['agg'] or {}).get('mkt_kind'),
+                    'lines': [[l['nm'], l['b'], l['v'][0]] for l in pr['lines']][:20]})
+        if r['ty'] == 'A001':
+            sb = subs_loc(txt)
+            if sb:
+                ent['subs_us'] = [x for x in sb if x['us']][:8]
+                ent['subs_n'] = len(sb)
+        rec['src'].append(ent)
+        time.sleep(0.5)
+    # 시계열로 정리 — 단위가 확정된 것만 쓴다. 추정치를 시계열에 섞으면 추세가 거짓이 된다.
+    for e in rec['src']:
+        a = e.get('agg') or {}
+        u = e.get('unit')
+        if not u or not e.get('y'):
+            continue
+        row = {'y': e['y'], 'q': e.get('q'), 'ty': e['ty'],
+               'mkt': (a['mkt'] * u) if a.get('mkt') is not None else None,
+               'ad':  (a['ad'] * u) if a.get('ad') is not None else None,
+               'prom': (a['prom'] * u) if a.get('prom') is not None else None,
+               'sga': (a['total'] * u) if a.get('total') is not None else None,
+               'kind': a.get('mkt_kind')}
+        if row['sga'] and row['mkt']:
+            row['r'] = round(row['mkt'] / row['sga'] * 100, 1)   # 판관비 대비 %
+        (rec['ann'] if e['ty'] == '사업' else rec['qtr']).append(row)
+    rec['ann'].sort(key=lambda x: x['y'])
+    rec['qtr'].sort(key=lambda x: (x['y'], x['q'] or 0))
+    kinds = {e.get('kind') for e in rec['src'] if e.get('kind')}
+    if '광고+판촉 합산' in kinds:
+        rec['flags'].append('이 회사는 「광고선전비 및 판매촉진비」를 한 줄로 낸다 — '
+                            '광고만 따로 내는 회사와 같은 선에 두고 비교하면 안 된다.')
+    bad = [e for e in rec['src'] if e.get('agg') and not e.get('unit')]
+    if bad:
+        rec['flags'].append('보고서 %d건은 단위를 확정하지 못해 시계열에서 뺐다 — '
+                            '주석 합계가 XBRL 판관비와 맞지 않는다.' % len(bad))
+    return rec
+
 def probe_one(code, name, corp):
     rs = reports(corp)
     kinds = {}
@@ -372,9 +478,12 @@ def probe_one(code, name, corp):
         for tb in tbs:
             pr = parse_sga(tb['rows'])
             said = unit_near(txt, tb['at'])
-            u, usrc = settle_unit((pr['agg'] or {}).get('total'), xb, said)
+            u, usrc, ck, cv = settle_unit((pr['agg'] or {}).get('_cand'), xb, said)
+            if cv is not None:
+                pr['agg']['total'] = cv
             hit.append({'행수': len(tb['rows']), '점수': tb['score'],
                         '단위_기재': said, '단위_확정': u, '단위_근거': usrc,
+                        '합계_후보': (pr['agg'] or {}).get('_cand'),
                         '앞10행': [' | '.join(x[:5])[:110] for x in tb['rows'][:10]],
                         '파싱': pr})
         e['광고행_포함표'] = hit[:2]
@@ -420,7 +529,54 @@ def main():
         json.dump(out, open(POUT, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
         print('프로브 → %s' % POUT)
         return 0
-    print('본수집은 프로브 결과 확인 뒤에 붙인다', file=sys.stderr)
+    # ── 본수집 ───────────────────────────────────────────────
+    dd = {}
+    try:
+        dd = json.load(open(DEF, encoding='utf-8')).get('co') or {}
+    except Exception as e:
+        print('정의 파일 실패 %r' % e, file=sys.stderr); return 1
+    old = {'co': {}}
+    try:
+        old = json.load(open(OUT, encoding='utf-8'))
+    except Exception:
+        pass
+    oco = old.get('co') or {}
+    # 접수번호 단위로 캐시한다 — 이미 읽은 보고서는 다시 받지 않는다(원문이 수 MB 다)
+    done = {c: {x['rcp']: x for x in (v.get('src') or [])} for c, v in oco.items()}
+    out, ran = {}, 0
+    # 오래 안 본 곳부터 — 순환이 고르게 돌도록
+    order = sorted(dd.keys(), key=lambda c: (oco.get(c, {}).get('seen') or ''))
+    for c in order:
+        v = dd[c]
+        corp = cmap.get(c)
+        if not corp:
+            out[c] = oco.get(c) or {'n': v.get('n'), 'err': 'DART 고유번호 없음'}
+            continue
+        if MAXRUN and ran >= MAXRUN:
+            out[c] = oco.get(c) or {'n': v.get('n'), 'wait': True}
+            continue
+        try:
+            out[c] = collect_one(c, v.get('n') or c, corp, done.get(c) or {})
+            ran += 1
+            r = out[c]
+            log('%s %-14s 보고서 %d(새%d) · 연간 %d · 분기 %d' % (
+                c, (v.get('n') or c)[:14], len(r.get('src') or []), r.get('new', 0),
+                len(r.get('ann') or []), len(r.get('qtr') or [])))
+        except Exception as e:
+            out[c] = oco.get(c) or {'n': v.get('n'), 'err': repr(e)[:140]}
+            log('%s 실패 %r' % (c, e))
+    have = sum(1 for x in out.values() if (x.get('ann') or x.get('qtr')))
+    res = {'updated': NOW.strftime('%Y-%m-%d %H:%M KST'), 'n': len(out), 'have': have,
+           'co': out,
+           'note': ('광고선전비는 손익계산서 본문에 없고 판매비와관리비 주석 표에 있다 — 정기보고서 원문을 받아 뽑는다. '
+                    '단위는 기재 텍스트를 믿지 않고 주석 합계 × 단위 ≈ XBRL 판관비 가 되는 값으로 검산한다. '
+                    '아모레퍼시픽처럼 「광고선전비 및 판매촉진비」를 한 줄로 내는 곳은 kind 가 「광고+판촉 합산」이라 '
+                    '광고만 따로 내는 곳과 같은 선에 두면 안 된다. '
+                    '원문이 수 MB 라 한 번에 %d곳씩만 돌고 접수번호 단위로 캐시한다.' % MAXRUN),
+           'debug': DEBUG[-80:]}
+    os.makedirs(os.path.dirname(OUT), exist_ok=True)
+    json.dump(res, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
+    log('완료 %d곳 중 자료 보유 %d곳 (이번 실행 %d곳) → %s' % (len(out), have, ran, OUT))
     return 0
 
 if __name__ == '__main__':

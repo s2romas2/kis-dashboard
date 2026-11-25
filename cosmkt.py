@@ -544,8 +544,22 @@ def main():
     # 접수번호 단위로 캐시한다 — 이미 읽은 보고서는 다시 받지 않는다(원문이 수 MB 다)
     done = {c: {x['rcp']: x for x in (v.get('src') or [])} for c, v in oco.items()}
     out, ran = {}, 0
-    # 오래 안 본 곳부터 — 순환이 고르게 돌도록
-    order = sorted(dd.keys(), key=lambda c: (oco.get(c, {}).get('seen') or ''))
+    # 순서가 중요하다. 첫 실행에서 원료·소재 B2B 소형주부터 돌았더니
+    # 광고선전비가 아예 없는 곳들이라 '연간 0 · 분기 0' 만 나왔다.
+    # 마케팅비가 실제로 의미 있는 분류부터 채운다.
+    TIER = {'브랜드': 0, '유통·채널': 1, '인접(미용의료)': 2, 'OEM/ODM 제조': 3,
+            '지주·간접': 4, '부자재·용기': 5, '원료·소재': 6}
+    gtop = {}
+    try:
+        for g in (json.load(open(DEF, encoding='utf-8')).get('groups') or []):
+            for m in (g.get('members') or []):
+                gtop[m] = g.get('top')
+    except Exception:
+        pass
+    order = sorted(dd.keys(), key=lambda c: (
+        oco.get(c, {}).get('seen') or '',          # 오래 안 본 곳 먼저
+        TIER.get(gtop.get(c), 9),                   # 그다음 마케팅 중요도
+        c))
     for c in order:
         v = dd[c]
         corp = cmap.get(c)

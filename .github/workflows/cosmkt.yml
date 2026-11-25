@@ -36,7 +36,12 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/data/cosmkt_probe.json public/data/cosmkt.json 2>/dev/null || true
+          # git add 는 pathspec 중 하나라도 없으면 전체가 실패해 아무것도 담기지 않는다.
+          # 첫 실행에서 probe 만 생기고 본수집 파일이 없어 커밋이 통째로 비었다 — 하나씩 담는다.
+          for f in public/data/cosmkt_probe.json public/data/cosmkt.json public/data/cospeer_mkt.json; do
+            [ -f "$f" ] && git add "$f" && echo "담음: $f"
+          done
+          git status --short
           git commit -m "마케팅비 수집 결과" || echo "변경 없음"
           git pull --rebase origin main || true
           git push || true

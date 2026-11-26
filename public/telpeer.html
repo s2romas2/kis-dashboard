@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>통신 peer 상대밸류 — 23개 세부분야 199종목 비교</title>
+<meta name="description" content="통신 교과서 23칸을 peer 그룹으로 써서 국내 상장사 199곳의 PER·PBR·ROE를 같은 칸끼리 비교">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap">
+<style>
+/* 레이아웃: 요약 → 필터 → 표 → 상세. 색은 분야를 뜻한다(통신 교과서와 같은 토큰). */
+:root{
+  --bg:#faf8f5; --surf:#ffffff; --surf2:#f3f0ea; --sunk:#efebe3;
+  --ink:#1b1a17; --ink2:#4a473f; --ink3:#817c70; --line:#ddd7cb; --line2:#c8c0af;
+  --wl:#bc3f09; --wd:#0b6f67; --st:#6429c4; --cz:#8a5a00; --warn:#a1130f; --good:#0b6f67;
+  --wl-f:#fbe9df; --wd-f:#dcefec; --st-f:#eae1fb; --cz-f:#f7ecd4; --warn-f:#fbe3e1;
+  --on:#ffffff;
+  --f-dis:'IBM Plex Sans KR',system-ui,sans-serif;
+  --f-bd:'Noto Sans KR',system-ui,sans-serif;
+  --f-mn:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#14151a; --surf:#1c1e25; --surf2:#23262f; --sunk:#101116;
+  --ink:#eceaf2; --ink2:#b4b1bf; --ink3:#817e8d; --line:#30333d; --line2:#434753;
+  --wl:#ff9a63; --wd:#2fcfbf; --st:#b196ff; --cz:#e3b24a; --warn:#ff7b72; --good:#2fcfbf;
+  --wl-f:#3a1e10; --wd-f:#0d2e2b; --st-f:#241a3d; --cz-f:#33280f; --warn-f:#3a1715;
+  --on:#14151a; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#14151a; --surf:#1c1e25; --surf2:#23262f; --sunk:#101116;
+  --ink:#eceaf2; --ink2:#b4b1bf; --ink3:#817e8d; --line:#30333d; --line2:#434753;
+  --wl:#ff9a63; --wd:#2fcfbf; --st:#b196ff; --cz:#e3b24a; --warn:#ff7b72; --good:#2fcfbf;
+  --wl-f:#3a1e10; --wd-f:#0d2e2b; --st-f:#241a3d; --cz-f:#33280f; --warn-f:#3a1715;
+  --on:#14151a; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-bd);font-size:15px;line-height:1.75;-webkit-text-size-adjust:100%}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-dis);font-weight:700;line-height:1.3;margin:0;text-wrap:balance}
+p{margin:0 0 1em}
+code,.mn{font-family:var(--f-mn);font-size:.92em}
+.hero{background:var(--sunk);border-bottom:1px solid var(--line);
+  margin-top:calc(-1 * env(safe-area-inset-top,0px));
+  padding-top:calc(env(safe-area-inset-top,0px) + 42px);padding-bottom:30px}
+.eyebrow{font-family:var(--f-mn);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3);margin-bottom:12px}
+.hero h1{font-size:clamp(28px,5.5vw,44px);letter-spacing:-.03em}
+.hero .sub{font-size:16px;color:var(--ink2);max-width:40em;margin-top:14px;font-weight:300}
+.meta{display:flex;flex-wrap:wrap;gap:5px 20px;font-size:12px;color:var(--ink3);margin-top:20px}
+.meta b{color:var(--ink2);font-weight:500}
+.meta span{font-variant-numeric:tabular-nums}
+section{padding-block:30px}
+.lede{font-size:15px;color:var(--ink2);max-width:44em;margin:0 0 20px;font-weight:300}
+h2{font-size:21px;margin-bottom:8px}
+h3{font-size:16px;margin:26px 0 8px}
+.note{background:var(--surf2);border-radius:9px;padding:13px 15px;font-size:13.5px;color:var(--ink2);margin:16px 0;line-height:1.7}
+.note b{color:var(--ink)}
+.warnbox{background:var(--surf);border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:9px;
+  padding:13px 15px;font-size:13.5px;color:var(--ink2);margin:16px 0;line-height:1.7}
+.tiles{display:grid;gap:9px;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));margin:18px 0}
+.tile{background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:12px 13px;text-align:left;
+  cursor:pointer;font:inherit;color:inherit;transition:.14s}
+.tile:hover{border-color:var(--line2)}
+.tile[aria-pressed="true"]{border-color:currentColor;box-shadow:inset 0 0 0 1px currentColor}
+.tile .v{font-family:var(--f-mn);font-size:25px;font-weight:600;display:block;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.tile .l{font-size:12px;color:var(--ink3);display:block;margin-top:2px;line-height:1.4}
+.tile.edge{color:var(--good)} .tile.low{color:var(--wd)} .tile.high{color:var(--wl)}
+.tile.loss{color:var(--warn)} .tile.all{color:var(--ink2)}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:16px 0 10px}
+.bar select,.bar input{font-family:var(--f-bd);font-size:13.5px;padding:7px 11px;border:1px solid var(--line2);
+  border-radius:8px;background:var(--surf);color:var(--ink)}
+.bar input{flex:1;min-width:160px}
+.bar input:focus,.bar select:focus{outline:2px solid var(--wl);outline-offset:1px}
+.cnt{font-family:var(--f-mn);font-size:11.5px;color:var(--ink3)}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surf)}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:760px}
+th{text-align:left;font-family:var(--f-dis);font-weight:600;font-size:11.5px;color:var(--ink3);padding:9px 10px;
+  border-bottom:1px solid var(--line);white-space:nowrap;position:sticky;top:0;background:var(--surf);z-index:1;cursor:pointer}
+th.r{text-align:right} th:hover{color:var(--ink)}
+td{padding:8px 10px;border-bottom:1px solid var(--line);color:var(--ink2);vertical-align:top}
+td.r{text-align:right;font-family:var(--f-mn);font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink)}
+tr.row{cursor:pointer} tr.row:hover td{background:var(--surf2)}
+tr.row.on td{background:var(--surf2)}
+td.nm{color:var(--ink);font-weight:500;white-space:nowrap}
+td.nm small{display:block;font-weight:400;font-size:11px;color:var(--ink3);font-family:var(--f-mn)}
+.sg{font-family:var(--f-mn);font-size:10.5px;padding:2px 7px;border-radius:4px;white-space:nowrap}
+.sg.edge{background:var(--wd-f);color:var(--good)} .sg.lowper{background:var(--wd-f);color:var(--wd)}
+.sg.highper{background:var(--wl-f);color:var(--wl)} .sg.loss{background:var(--warn-f);color:var(--warn)}
+.sg.midper,.sg.noper,.sg.nopeer{background:var(--surf2);color:var(--ink3)}
+.gtag{font-size:11px;color:var(--ink3);line-height:1.5}
+.spark{display:inline-flex;align-items:flex-end;gap:2px;height:18px}
+.spark i{width:7px;border-radius:1px;display:block}
+.dr{background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:16px 0}
+.dr h3{margin:0 0 2px;font-size:19px;color:var(--ink)}
+.dr .dm{font-family:var(--f-mn);font-size:12px;color:var(--ink3);margin-bottom:10px}
+.kv{display:grid;gap:1px;background:var(--surf);border:1px solid var(--line);border-radius:9px;overflow:hidden;
+  grid-template-columns:repeat(auto-fill,minmax(150px,1fr));margin:12px 0}
+.kv div{background:var(--surf);padding:9px 11px;box-shadow:0 0 0 .5px var(--line)}
+.kv .k{display:block;font-size:11px;color:var(--ink3)}
+.kv .v{display:block;font-family:var(--f-mn);font-size:17px;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.35}
+.kv .s{display:block;font-size:11px;color:var(--ink3);line-height:1.4}
+.cmp{font-size:13px;color:var(--ink2);line-height:1.8}
+.cmp b.lo{color:var(--wd)} .cmp b.hi{color:var(--wl)} .cmp b.md{color:var(--ink3)}
+@media (max-width:640px){ body{font-size:14.5px} .hero h1{font-size:30px} }
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<script src="/nav.js" defer></script>
+
+
+<div class="hero"><div class="wrap">
+  <div class="eyebrow">종목분석 · 상대밸류</div>
+  <h1>통신 peer 상대밸류</h1>
+  <p class="sub">통신 교과서 09장의 <b>23개 칸</b>을 그대로 peer 그룹으로 씁니다.
+  같은 칸에 있는 회사끼리만 비교합니다 — 안테나 만드는 회사를 통신사와 견주는 일이 없도록.</p>
+  <div class="meta" id="meta"></div>
+</div></div>
+
+<div class="wrap">
+<section>
+<h2>이 표를 읽는 법</h2>
+<p class="lede">상대밸류는 <b>절대적으로 싸다</b>를 말하지 않습니다. <b>같은 일을 하는 회사들 사이에서 어디쯤인가</b>만 말합니다.</p>
+<div class="note">
+<b>세 걸음으로 봅니다.</b><br>
+① 같은 칸(peer 그룹)의 <b>PER 중앙값</b>을 구합니다. ② 내 PER을 그 중앙값으로 나눕니다.
+③ <b>0.9 이하면 「싸다」</b>, <b>1.1 이상이면 「비싸다」</b>로 표시합니다. ROE는 중앙값과 <b>1%p</b> 넘게 차이 나면 높음·낮음.<br>
+여기서 가장 쓸모 있는 조합이 <b>싼데 체력은 더 좋은 경우</b>입니다 — PER은 아래, ROE는 위. 표에서 <span class="sg edge">저PER·고ROE</span>로 표시했습니다.
+</div>
+<div class="warnbox">
+<b>비교가 성립하지 않는 경우가 많습니다. 숨기지 않았습니다.</b><br>
+① <b>칸에 흑자 기업이 4곳 미만이면 비교하지 않습니다</b> — 중앙값이 한두 곳에 끌려다닙니다. 23칸 중 <b id="ngok">—</b>칸만 비교가 성립합니다.<br>
+② <b>적자면 PER이 없습니다.</b> 이 표에서 적자가 <b id="nloss">—</b>곳입니다. 국내 통신장비가 지금 어떤 구간인지를 그대로 보여주는 숫자입니다.<br>
+③ <b>싸 보이는 이유가 이익 고점일 수 있습니다.</b> 밴드 분위와 함께 봐야 합니다(10장 참고).
+</div>
+</section>
+
+<section>
+<h2>한눈에</h2>
+<div class="tiles" id="tiles"></div>
+<div class="bar">
+  <label for="gsel" class="cnt">칸</label>
+  <select id="gsel"></select>
+  <label for="q" class="cnt">검색</label>
+  <input id="q" type="search" placeholder="회사명 · 종목코드 · 사업" autocomplete="off">
+  <span class="cnt" id="cnt"></span>
+</div>
+<div id="drawer"></div>
+<div class="tw"><table id="tb"></table></div>
+<p class="cnt" style="margin-top:8px">머리글을 누르면 정렬됩니다. 줄을 누르면 그 회사의 비교 내역이 위에 펼쳐집니다.</p>
+</section>
+
+<section>
+<h2>칸별 중앙값</h2>
+<p class="lede">칸 전체가 자기 과거 대비 어디인지가 아니라, <b>칸끼리 서로 얼마나 다른지</b>를 봅니다.
+흑자 기업이 4곳 미만인 칸은 중앙값을 참고로만 두세요.</p>
+<div class="tw"><table id="gt"></table></div>
+</section>
+
+<section>
+<h2>이 표의 근거와 한계</h2>
+<div class="note">
+<b>어디서 온 숫자인가.</b><br>
+· <b>PER · PBR · ROE</b> = 네이버(FnGuide) 기준, <b>지배주주</b> 기준입니다. 다른 peer 화면과 같은 기준으로 맞췄습니다.<br>
+· <b>부채비율 · 3년 순이익 추이</b> = DART 공시(OpenDART 다중회사 주요계정), <b>연결 전체</b> 기준입니다.<br>
+· <b>매출 · 영업이익률 · PSR</b> = 분기 실적 수집분. 아직 <b id="npsr">—</b>곳만 있습니다.<br>
+· <b>밴드 분위</b> = 일별 시계열 수집분. 아직 <b id="nband">—</b>곳만 있습니다. 수집이 진행되면 자동으로 채워집니다.
+</div>
+<div class="warnbox">
+<b>교차검증에서 걸린 것들.</b><br>
+① DART 연결 순이익으로 계산한 PER과 표의 PER이 <b>1.5배 이상</b> 벌어진 곳이 <b id="npd">—</b>곳입니다.
+표는 <b>지배주주</b>, DART는 <b>비지배지분 포함 연결 전체</b>라서 생기는 차이입니다 — 해외 자회사가 크거나 지주사면 벌어집니다. 해당 줄에 <span class="sg midper">≠DART</span>를 붙였습니다.<br>
+② DART의 <b>최근 4분기 합산 순이익이 최근 3년 최대 연간치의 3배를 넘는</b> 곳이 <b id="nbad">—</b>곳 있어 그 값은 쓰지 않았습니다.
+전체 2,562종목 중에서는 <b>68곳</b>에서 같은 현상이 나옵니다(삼성전자 4.7배 · SK 11.4배 · 제주반도체 7.0배). <b>수집기 쪽에서 확인이 필요합니다.</b><br>
+③ 여기 있다고 사도 된다는 뜻이 아닙니다. 상대밸류는 <b>질문을 좁혀 주는 도구</b>이지 답이 아닙니다.
+</div>
+</section>
+</div>
+<script>
+(function(){
+function boot(D){
+
+var CO=D.co, G=D.g, TH=D.th;
+var SIG={edge:'저PER·고ROE',lowper:'저PER',highper:'고PER',midper:'비슷',loss:'적자',noper:'PER없음',nopeer:'비교불가'};
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m];});}
+function cap(v){ if(v==null) return '—'; return v>=10000?(v/10000).toFixed(v>=100000?0:1)+'조':Math.round(v).toLocaleString('ko-KR')+'억'; }
+function num(v,d){ return v==null?'—':(+v).toFixed(d==null?2:d); }
+var ALL=Object.keys(CO).map(function(k){return CO[k];});
+
+document.getElementById('meta').innerHTML=
+ '<span><b>주가·시총</b> '+esc(D.price_updated)+'</span>'+
+ '<span><b>재무</b> '+esc(D.fin_updated)+' ('+esc(D.fin_q)+')</span>'+
+ '<span><b>밴드</b> '+esc(D.band_updated)+'</span>'+
+ '<span><b>종목</b> '+D.n+'곳 · 칸 '+Object.keys(G).length+'개</span>';
+
+var nb=ALL.filter(function(m){return m.fl.indexOf('ttmbad')>=0;}).length;
+var npd=ALL.filter(function(m){return m.pd;}).length;
+document.getElementById('ngok').textContent=Object.keys(G).filter(function(k){return G[k].nper>=TH.minn;}).length;
+document.getElementById('nloss').textContent=(D.count.loss||0);
+document.getElementById('npsr').textContent=ALL.filter(function(m){return m.psr;}).length;
+document.getElementById('nband').textContent=ALL.filter(function(m){return m.bd;}).length;
+document.getElementById('npd').textContent=npd;
+document.getElementById('nbad').textContent=nb;
+
+var fSig='all', fG='all', fQ='', sortK='cap', sortD=-1, open=null;
+var TL=[['all','전체',ALL.length,'all'],['edge','저PER·고ROE',D.count.edge||0,'edge'],
+        ['lowper','저PER',D.count.lowper||0,'low'],['highper','고PER',D.count.highper||0,'high'],
+        ['loss','적자',D.count.loss||0,'loss']];
+document.getElementById('tiles').innerHTML=TL.map(function(t){
+  return '<button class="tile '+t[3]+'" type="button" data-s="'+t[0]+'" aria-pressed="'+(t[0]==='all')+'">'+
+    '<span class="v">'+t[2]+'</span><span class="l">'+t[1]+'</span></button>';}).join('');
+document.getElementById('tiles').addEventListener('click',function(e){
+  var b=e.target.closest('.tile'); if(!b) return;
+  fSig=b.dataset.s;
+  [].forEach.call(this.children,function(x){x.setAttribute('aria-pressed',x.dataset.s===fSig);});
+  draw();});
+
+var gs=document.getElementById('gsel');
+gs.innerHTML='<option value="all">전체 23칸</option>'+Object.keys(G).map(function(k){
+  return '<option value="'+k+'">'+esc(G[k].t)+' ('+G[k].n+')</option>';}).join('');
+gs.addEventListener('change',function(){fG=this.value;draw();});
+document.getElementById('q').addEventListener('input',function(){fQ=this.value.trim().toLowerCase();draw();});
+
+var COLS=[['n','회사',0],['g','칸',0],['cap','시총',1],['per','PER',1],['pbr','PBR',1],['roe','ROE',1],
+          ['debt','부채비율',1],['yr','3년 순이익',0],['bd','밴드',1],['sig','신호',0]];
+function spark(yr){
+  if(!yr||yr.length<2) return '<span class="gtag">—</span>';
+  var v=yr.map(function(y){return y[1];}), mx=Math.max.apply(null,v.map(Math.abs))||1;
+  return '<span class="spark" title="'+yr.map(function(y){return y[0]+' '+Math.round(y[1]).toLocaleString('ko-KR')+'억';}).join(' / ')+'">'+
+    v.map(function(x){var h=Math.max(2,Math.round(Math.abs(x)/mx*16));
+      return '<i style="height:'+h+'px;background:'+(x>=0?'var(--wd)':'var(--warn)')+'"></i>';}).join('')+'</span>';
+}
+function rows(){
+  var r=ALL.filter(function(m){
+    if(fSig!=='all' && m.sig!==fSig) return false;
+    if(fG!=='all' && m.g.indexOf(fG)<0) return false;
+    if(fQ && (m.n+' '+m.c+' '+m.p+' '+m.g.map(function(g){return G[g].t;}).join(' ')).toLowerCase().indexOf(fQ)<0) return false;
+    return true;});
+  r.sort(function(a,b){
+    var x,y;
+    if(sortK==='n'){x=a.n;y=b.n;return sortD*(x<y?-1:x>y?1:0);}
+    if(sortK==='sig'){x=a.sig;y=b.sig;return sortD*(x<y?-1:x>y?1:0);}
+    if(sortK==='g'){x=G[a.g[0]].t;y=G[b.g[0]].t;return sortD*(x<y?-1:x>y?1:0);}
+    if(sortK==='bd'){x=a.bd?a.bd.pct:null;y=b.bd?b.bd.pct:null;}
+    else if(sortK==='yr'){x=a.nig;y=b.nig;}
+    else {x=a[sortK];y=b[sortK];}
+    if(x==null&&y==null) return 0; if(x==null) return 1; if(y==null) return -1;
+    return sortD*(x-y);});
+  return r;
+}
+function draw(){
+  var r=rows();
+  var h='<tr>'+COLS.map(function(c){
+    return '<th'+(c[2]?' class="r"':'')+' data-k="'+c[0]+'">'+c[1]+(sortK===c[0]?(sortD<0?' ▾':' ▴'):'')+'</th>';}).join('')+'</tr>';
+  r.forEach(function(m){
+    var gt=m.g.map(function(g){return G[g].t.split(' — ')[0];}).join(' · ');
+    h+='<tr class="row'+(open===m.c?' on':'')+'" data-c="'+m.c+'">'+
+      '<td class="nm">'+esc(m.n)+'<small>'+m.c+'</small></td>'+
+      '<td class="gtag">'+esc(gt)+'</td>'+
+      '<td class="r">'+cap(m.cap)+'</td>'+
+      '<td class="r">'+(m.per&&m.per>0?num(m.per):'—')+(m.pd?' <span class="sg midper">≠DART</span>':'')+'</td>'+
+      '<td class="r">'+num(m.pbr)+'</td>'+
+      '<td class="r">'+(m.roe==null?'—':num(m.roe,1)+'%')+'</td>'+
+      '<td class="r">'+(m.debt==null?'—':num(m.debt,0)+'%')+'</td>'+
+      '<td>'+spark(m.yr)+'</td>'+
+      '<td class="r">'+(m.bd?m.bd.pct+'분위':'—')+'</td>'+
+      '<td><span class="sg '+m.sig+'">'+SIG[m.sig]+'</span></td></tr>';
+  });
+  document.getElementById('tb').innerHTML=h;
+  document.getElementById('cnt').textContent=r.length+'곳 / 전체 '+ALL.length+'곳';
+}
+document.getElementById('tb').addEventListener('click',function(e){
+  var th=e.target.closest('th');
+  if(th){ var k=th.dataset.k; if(sortK===k) sortD=-sortD; else {sortK=k;sortD=(k==='n'||k==='g'||k==='sig')?1:-1;} draw(); return; }
+  var tr=e.target.closest('tr.row'); if(tr) show(tr.dataset.c);
+});
+function cmpline(t){
+  var g=G[t[0]], nm={per:'PER',pbr:'PBR',roe:'ROE'}[t[1]];
+  if(t[1]==='roe'){
+    return '<div>'+esc(g.t)+' — ROE 중앙값 <b>'+num(g.roe,1)+'%</b> 대비 <b class="'+(t[3]==='high'?'lo':t[3]==='low'?'hi':'md')+'">'+
+      (t[2]>0?'+':'')+num(t[2],1)+'%p</b></div>';
+  }
+  return '<div>'+esc(g.t)+' — '+nm+' 중앙값 <b>'+num(g[t[1]])+'배</b>의 <b class="'+(t[3]==='low'?'lo':t[3]==='high'?'hi':'md')+'">'+
+    num(t[2])+'배</b> ('+(t[3]==='low'?'싸다':t[3]==='high'?'비싸다':'비슷')+')</div>';
+}
+function show(c){
+  var m=CO[c]; if(!m) return; open=c;
+  var h='<div class="dr"><h3>'+esc(m.n)+'</h3><div class="dm">'+m.c+' · '+esc(m.sec||'')+' · '+esc(m.p)+'</div>'+
+    '<div class="kv">'+
+    '<div><span class="k">시가총액</span><span class="v">'+cap(m.cap)+'</span></div>'+
+    '<div><span class="k">주가</span><span class="v">'+(m.px?Math.round(m.px).toLocaleString('ko-KR'):'—')+'</span><span class="s">원</span></div>'+
+    '<div><span class="k">PER</span><span class="v">'+(m.per&&m.per>0?num(m.per):'—')+'</span><span class="s">네이버·지배주주</span></div>'+
+    '<div><span class="k">PBR</span><span class="v">'+num(m.pbr)+'</span></div>'+
+    '<div><span class="k">ROE</span><span class="v">'+(m.roe==null?'—':num(m.roe,1))+'</span><span class="s">%</span></div>'+
+    '<div><span class="k">부채비율</span><span class="v">'+(m.debt==null?'—':num(m.debt,0))+'</span><span class="s">% · DART 연결</span></div>'+
+    (m.psr?'<div><span class="k">PSR</span><span class="v">'+num(m.psr)+'</span></div>':'')+
+    (m.opm!=null?'<div><span class="k">영업이익률</span><span class="v">'+num(m.opm,1)+'</span><span class="s">%</span></div>':'')+
+    (m.nig!=null?'<div><span class="k">순이익 연평균</span><span class="v">'+(m.nig>0?'+':'')+num(m.nig,1)+'</span><span class="s">% · 3년</span></div>':'')+
+    (m.bd?'<div><span class="k">밴드 분위</span><span class="v">'+m.bd.pct+'</span><span class="s">'+m.bd.u.toUpperCase()+' '+num(m.bd.x)+'배</span></div>':'')+
+    '</div>';
+  if(m.tg&&m.tg.length){ h+='<div class="cmp">'+m.tg.map(cmpline).join('')+'</div>'; }
+  else { h+='<div class="cmp"><b class="md">같은 칸에 흑자 기업이 '+TH.minn+'곳 미만이라 비교하지 않았습니다.</b> 중앙값이 한두 곳에 끌려다니기 때문입니다.</div>'; }
+  if(m.fl.indexOf('loss')>=0) h+='<div class="warnbox" style="margin:12px 0 0">적자이므로 PER 비교에서 제외했습니다. PBR·부채비율로만 보세요.</div>';
+  if(m.pd) h+='<div class="warnbox" style="margin:12px 0 0"><b>표의 PER과 DART 연결 기준이 '+num(m.pd)+'배 차이납니다.</b> 표는 지배주주, DART는 비지배지분 포함 연결 전체입니다. 해외 자회사가 크거나 지주사면 이렇게 벌어집니다.</div>';
+  if(m.fl.indexOf('ttmbad')>=0) h+='<div class="warnbox" style="margin:12px 0 0"><b>DART 최근 4분기 합산 순이익이 최근 3년 최대 연간치의 '+m.ttmr+'배로 나와 쓰지 않았습니다.</b> 수집 쪽 확인이 필요합니다.</div>';
+  h+='</div>';
+  document.getElementById('drawer').innerHTML=h;
+  draw();
+  try{ history.replaceState(null,'','#c='+c); }catch(_){}
+}
+/* 칸별 중앙값 표 */
+(function(){
+  var h='<tr><th>칸</th><th class="r">종목</th><th class="r">흑자</th><th class="r">PER 중앙</th><th class="r">PBR 중앙</th><th class="r">ROE 중앙</th><th class="r">부채 중앙</th><th>비교</th></tr>';
+  Object.keys(G).forEach(function(k){var g=G[k];
+    h+='<tr><td class="nm">'+esc(g.t)+'</td><td class="r">'+g.n+'</td><td class="r">'+g.nper+'</td>'+
+      '<td class="r">'+num(g.per)+'</td><td class="r">'+num(g.pbr)+'</td>'+
+      '<td class="r">'+(g.roe==null?'—':num(g.roe,1)+'%')+'</td><td class="r">'+(g.debt==null?'—':num(g.debt,0)+'%')+'</td>'+
+      '<td class="gtag">'+(g.nper>=TH.minn?'성립':'흑자 '+TH.minn+'곳 미만 — 참고만')+'</td></tr>';});
+  document.getElementById('gt').innerHTML=h;
+})();
+function fromHash(){
+  var m=/^#c=([0-9A-Za-z]+)$/.exec(location.hash||'');
+  if(m&&CO[m[1]]){ show(m[1]); var el=document.getElementById('drawer'); if(el) el.scrollIntoView({block:'center'}); return true; }
+  return false;
+}
+draw();
+if(!fromHash()) show(ALL.slice().sort(function(a,b){return (b.cap||0)-(a.cap||0);}).filter(function(m){return m.sig==='edge';})[0] ?
+   ALL.slice().sort(function(a,b){return (b.cap||0)-(a.cap||0);}).filter(function(m){return m.sig==='edge';})[0].c : ALL[0].c);
+window.addEventListener('hashchange',fromHash);
+}
+fetch('/data/telpeer.json').then(function(r){return r.json();}).then(boot).catch(function(e){
+  document.getElementById('tb').innerHTML='<tr><td>데이터(/data/telpeer.json)를 불러오지 못했습니다: '+(e&&e.message)+'</td></tr>';
+});
+})();
+</script>
+
+</body>
+</html>

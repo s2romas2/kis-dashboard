@@ -1,0 +1,2021 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>통신 교과서 — 유선·무선·위성 구조와 국내 상장사 지도</title>
+<meta name="description" content="유선·무선·위성 통신의 기본 구조, 5G→6G·스타링크·피지컬 AI 밸류체인, 국내 상장사 199곳의 산업 지형도">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap">
+<style>
+/* 레이아웃: 단일 컬럼 본문 + 좌측 장 번호. 색은 분야를 뜻한다 — 무선·유선·위성. */
+:root{
+  --bg:#faf8f5; --surf:#ffffff; --surf2:#f3f0ea; --sunk:#efebe3;
+  --ink:#1b1a17; --ink2:#4a473f; --ink3:#817c70; --line:#ddd7cb; --line2:#c8c0af;
+  --wl:#bc3f09;   /* 무선 */
+  --wd:#0b6f67;   /* 유선·광 */
+  --st:#6429c4;   /* 위성 */
+  --cz:#8a5a00;   /* 코어·연산 */
+  --warn:#a1130f;
+  --wl-f:#fbe9df; --wd-f:#dcefec; --st-f:#eae1fb; --cz-f:#f7ecd4;
+  --f-dis:'IBM Plex Sans KR',system-ui,sans-serif;
+  --f-bd:'Noto Sans KR',system-ui,sans-serif;
+  --f-mn:'IBM Plex Mono',ui-monospace,monospace;
+  --on:#ffffff;
+  --sh:0 1px 2px rgba(27,26,23,.06),0 6px 18px -12px rgba(27,26,23,.22);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#14151a; --surf:#1c1e25; --surf2:#23262f; --sunk:#101116;
+  --ink:#eceaf2; --ink2:#b4b1bf; --ink3:#817e8d; --line:#30333d; --line2:#434753;
+  --wl:#ff9a63; --wd:#2fcfbf; --st:#b196ff; --cz:#e3b24a; --warn:#ff7b72;
+  --wl-f:#3a1e10; --wd-f:#0d2e2b; --st-f:#241a3d; --cz-f:#33280f;
+  --on:#14151a;
+  --sh:0 1px 2px rgba(0,0,0,.4),0 8px 24px -14px rgba(0,0,0,.8);
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#14151a; --surf:#1c1e25; --surf2:#23262f; --sunk:#101116;
+  --ink:#eceaf2; --ink2:#b4b1bf; --ink3:#817e8d; --line:#30333d; --line2:#434753;
+  --wl:#ff9a63; --wd:#2fcfbf; --st:#b196ff; --cz:#e3b24a; --warn:#ff7b72;
+  --wl-f:#3a1e10; --wd-f:#0d2e2b; --st-f:#241a3d; --cz-f:#33280f;
+  --on:#14151a;
+  --sh:0 1px 2px rgba(0,0,0,.4),0 8px 24px -14px rgba(0,0,0,.8);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-bd);font-weight:400;
+  font-size:16px;line-height:1.78;-webkit-text-size-adjust:100%}
+.wrap{max-width:1060px;margin:0 auto;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3,h4{font-family:var(--f-dis);font-weight:700;line-height:1.3;text-wrap:balance;margin:0}
+p{margin:0 0 1.05em}
+b,strong{font-weight:700;color:var(--ink)}
+code,.mn{font-family:var(--f-mn);font-size:.9em;letter-spacing:-.01em}
+a{color:var(--wd)}
+
+/* ── 히어로 ── */
+.hero{background:var(--sunk);border-bottom:1px solid var(--line);
+  margin-top:calc(-1 * env(safe-area-inset-top,0px));
+  padding-top:calc(env(safe-area-inset-top,0px) + 54px);padding-bottom:40px}
+.eyebrow{font-family:var(--f-mn);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink3);margin-bottom:14px}
+.hero h1{font-size:clamp(34px,7.2vw,58px);letter-spacing:-.03em}
+.hero .sub{font-size:clamp(16px,2.3vw,19px);color:var(--ink2);max-width:40em;margin-top:16px;font-weight:300}
+.spec{display:flex;height:7px;margin:28px 0 20px;border-radius:4px;overflow:hidden;max-width:640px}
+.spec i{flex:1}
+.meta{display:flex;flex-wrap:wrap;gap:6px 22px;font-size:12.5px;color:var(--ink3)}
+.meta span{font-variant-numeric:tabular-nums}
+.meta b{color:var(--ink2);font-weight:500}
+
+/* ── 목차 ── */
+.toc{display:grid;grid-template-columns:repeat(auto-fill,minmax(188px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:34px 0 10px}
+.toc a{background:var(--surf);padding:13px 15px;text-decoration:none;color:var(--ink);display:block;
+  transition:background .14s}
+.toc a:hover{background:var(--surf2)}
+.toc .n{font-family:var(--f-mn);font-size:11px;color:var(--ink3);display:block;letter-spacing:.08em}
+.toc .t{font-family:var(--f-dis);font-weight:600;font-size:14.5px;line-height:1.35;display:block;margin-top:3px}
+
+/* ── 섹션 ── */
+section{padding-block:52px;border-top:1px solid var(--line)}
+section:first-of-type{border-top:0}
+.sh{display:flex;gap:16px;align-items:flex-start;margin-bottom:8px}
+.sh .num{font-family:var(--f-mn);font-size:13px;font-weight:600;color:var(--ink3);
+  padding-top:9px;flex:0 0 auto;letter-spacing:.06em}
+.sh h2{font-size:clamp(23px,4.2vw,33px);letter-spacing:-.02em;min-width:0}
+.lede{font-size:17px;color:var(--ink2);max-width:42em;margin:4px 0 26px 0;font-weight:300}
+h3{font-size:19px;margin:38px 0 10px;letter-spacing:-.01em}
+h3:first-of-type{margin-top:26px}
+h4{font-size:15.5px;margin:26px 0 8px;color:var(--ink2)}
+.body{max-width:40em}
+
+/* ── 배지 / 칩 ── */
+.tag{font-family:var(--f-mn);font-size:10.5px;font-weight:500;padding:2px 7px;border-radius:4px;
+  letter-spacing:.03em;white-space:nowrap;vertical-align:1px;display:inline-block}
+.t-wl{background:var(--wl-f);color:var(--wl)} .t-wd{background:var(--wd-f);color:var(--wd)}
+.t-st{background:var(--st-f);color:var(--st)} .t-cz{background:var(--cz-f);color:var(--cz)}
+.t-n{background:var(--surf2);color:var(--ink3)}
+.src{font-family:var(--f-mn);font-size:11px;color:var(--ink3)}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:500;
+  padding:3px 9px;border-radius:999px;border:1px solid var(--line2);background:var(--surf);white-space:nowrap}
+
+/* ── 카드 / 그리드 ── */
+.cards{display:grid;gap:14px;margin:22px 0}
+.c2{grid-template-columns:repeat(auto-fit,minmax(248px,1fr))}
+.c3{grid-template-columns:repeat(auto-fit,minmax(205px,1fr))}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:11px;padding:17px 18px;min-width:0}
+.card h4{margin:0 0 7px;font-size:15px;color:var(--ink);font-family:var(--f-dis);font-weight:600}
+.card p{font-size:14px;color:var(--ink2);margin:0;line-height:1.66}
+.card .big{font-family:var(--f-mn);font-size:27px;font-weight:600;letter-spacing:-.02em;
+  display:block;margin:2px 0 4px;font-variant-numeric:tabular-nums}
+.card.wl{border-left:3px solid var(--wl)} .card.wd{border-left:3px solid var(--wd)}
+.card.st{border-left:3px solid var(--st)} .card.cz{border-left:3px solid var(--cz)}
+
+.note{background:var(--surf2);border-radius:9px;padding:14px 16px;font-size:14px;color:var(--ink2);
+  margin:20px 0;line-height:1.7}
+.note b{color:var(--ink)}
+.warnbox{background:var(--surf);border:1px solid var(--line);border-left:3px solid var(--warn);
+  border-radius:9px;padding:14px 16px;font-size:14px;color:var(--ink2);margin:20px 0;line-height:1.7}
+
+/* ── 표 ── */
+.tw{overflow-x:auto;margin:20px 0;border:1px solid var(--line);border-radius:10px;background:var(--surf)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:520px}
+th{text-align:left;font-family:var(--f-dis);font-weight:600;font-size:12px;color:var(--ink3);
+  padding:10px 13px;border-bottom:1px solid var(--line);white-space:nowrap;letter-spacing:.02em}
+td{padding:9px 13px;border-bottom:1px solid var(--line);color:var(--ink2);vertical-align:top;line-height:1.6}
+tr:last-child td{border-bottom:0}
+td.k{color:var(--ink);font-weight:500;white-space:nowrap}
+td.n{font-family:var(--f-mn);font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink)}
+
+/* ── 그림 ── */
+figure{margin:26px 0}
+.fig{overflow-x:auto;background:var(--surf);border:1px solid var(--line);border-radius:11px;padding:16px 10px}
+.fig svg{display:block;margin:0 auto;max-width:100%;height:auto;min-width:0}
+figcaption{font-size:12.5px;color:var(--ink3);margin-top:9px;line-height:1.6;max-width:46em}
+figcaption b{color:var(--ink2);font-weight:500}
+svg{fill:var(--ink)}
+svg text{font-family:var(--f-bd)}
+svg .b{font-weight:700;font-family:var(--f-dis)}
+svg .s{font-size:10.5px;fill:var(--ink3)}
+svg .m{font-family:var(--f-mn);font-size:11px;fill:var(--ink2)}
+svg .lb{font-size:12px;fill:var(--ink2)}
+svg .ob{fill:var(--on)}
+svg .ti{font-size:12px;font-weight:600;font-family:var(--f-dis);fill:var(--ink3);letter-spacing:.04em}
+svg .gl{stroke:var(--line);stroke-width:1}
+svg .ar{stroke:var(--ink3);stroke-width:1.4;fill:none}
+
+/* ── 용어 사전 ── */
+.gsearch{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);
+  padding-block:12px;margin-bottom:4px}
+.gsearch input{width:100%;max-width:420px;font-family:var(--f-bd);font-size:15px;padding:10px 14px;
+  border:1px solid var(--line2);border-radius:9px;background:var(--surf);color:var(--ink)}
+.gsearch input:focus{outline:2px solid var(--wd);outline-offset:1px}
+.gcount{font-family:var(--f-mn);font-size:11.5px;color:var(--ink3);margin-top:7px}
+.glist{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.gi{background:var(--surf);padding:12px 14px}
+.gi .ab{font-family:var(--f-mn);font-weight:600;font-size:14px;color:var(--ink)}
+.gi .en{font-size:11.5px;color:var(--ink3);margin-top:1px}
+.gi .ko{font-size:13px;color:var(--ink2);margin-top:5px;line-height:1.6}
+.gi .wh{font-size:11.5px;color:var(--ink3);margin-top:5px;line-height:1.55}
+.gi .wh::before{content:"📍 ";opacity:.6}
+.gfilt{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 16px}
+.gfilt button{font-family:var(--f-bd);font-size:12.5px;padding:5px 12px;border-radius:999px;
+  border:1px solid var(--line2);background:var(--surf);color:var(--ink2);cursor:pointer;transition:.14s}
+.gfilt button:hover{border-color:var(--ink3)}
+.gfilt button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* ── 격자 지도 ── */
+.gmap{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;
+  overflow:hidden;min-width:700px}
+.gmw{overflow-x:auto;margin:22px 0}
+.gmap>div{background:var(--surf);padding:10px 12px;min-width:0}
+.gmap .hd{background:var(--surf2);font-family:var(--f-dis);font-weight:600;font-size:12px;color:var(--ink3)}
+.gmap .rl{background:var(--surf2);font-family:var(--f-dis);font-weight:600;font-size:13px;color:var(--ink)}
+.gmap .rl small{display:block;font-family:var(--f-bd);font-weight:400;font-size:11px;color:var(--ink3);
+  margin-top:2px;line-height:1.45}
+.co{display:inline-block;font-size:12px;padding:2px 8px;border-radius:5px;margin:2px 3px 2px 0;
+  border:1px solid transparent;white-space:nowrap}
+.co.wl{background:var(--wl-f);color:var(--wl)} .co.wd{background:var(--wd-f);color:var(--wd)}
+.co.st{background:var(--st-f);color:var(--st)} .co.cz{background:var(--cz-f);color:var(--cz)}
+.co.gl{background:var(--surf2);color:var(--ink3);border-color:var(--line)}
+
+/* ── 레전드 ── */
+.leg{display:flex;flex-wrap:wrap;gap:8px 16px;margin:16px 0;font-size:12.5px;color:var(--ink2)}
+.leg span{display:inline-flex;align-items:center;gap:6px}
+.leg i{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+/* ── 푸터 ── */
+footer{border-top:1px solid var(--line);padding-block:34px 46px;font-size:13px;color:var(--ink3);line-height:1.75}
+footer h4{font-size:13px;color:var(--ink2);margin:0 0 8px}
+footer ol{margin:0;padding-left:1.3em}
+footer li{margin-bottom:5px}
+
+/* ── 산업 지형도 ── */
+.mapw{margin:24px 0}
+.bands{display:grid;gap:12px;grid-template-columns:1fr;margin-bottom:10px}
+@media(min-width:900px){.bands{grid-template-columns:1fr 2fr 1fr;align-items:start}}
+.band{min-width:0}
+.bh{display:flex;align-items:center;gap:8px;font-family:var(--f-dis);font-weight:700;font-size:13px;
+  padding:8px 12px;border-radius:8px;margin-bottom:10px}
+.bh small{font-family:var(--f-bd);font-weight:400;font-size:11.5px;opacity:.8}
+.bh.k1{background:var(--surf2);color:var(--ink2)}
+.bh.k2{background:var(--wl-f);color:var(--wl)}
+.bh.k3{background:var(--cz-f);color:var(--cz)}
+.ngrid{display:grid;gap:9px;grid-template-columns:1fr}
+@media(min-width:560px){.ngrid.two{grid-template-columns:1fr 1fr}}
+.nd{background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:11px 12px;
+  cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%;min-width:0;
+  transition:border-color .14s,background .14s}
+.nd:hover{border-color:var(--line2);background:var(--surf2)}
+.nd[aria-pressed="true"]{border-color:currentColor;box-shadow:inset 0 0 0 1px currentColor}
+.nd.c-back{color:var(--ink2)} .nd.c-core{color:var(--wl)} .nd.c-sat{color:var(--st)} .nd.c-front{color:var(--cz)}
+.nd .top{display:flex;align-items:center;gap:8px}
+.nd svg.ic{width:26px;height:26px;flex:0 0 26px;stroke:currentColor;fill:none;
+  stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.nd .nt{font-family:var(--f-dis);font-weight:600;font-size:13px;color:var(--ink);line-height:1.35;min-width:0}
+.nd .ne{display:block;font-size:11.5px;color:var(--ink3);line-height:1.55;margin-top:6px}
+.nd .nc{display:block;font-family:var(--f-mn);font-size:10.5px;margin-top:7px;color:currentColor}
+.arrowrow{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--ink3);
+  font-size:12px;padding:4px 0}
+.arrowrow svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+
+/* 상세 패널 */
+.dp{background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:16px 17px;margin-top:16px}
+.dp .dh{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.dp .dh svg{width:30px;height:30px;flex:0 0 30px;stroke:currentColor;fill:none;stroke-width:1.6;
+  stroke-linecap:round;stroke-linejoin:round}
+.dp h4{margin:0;font-size:17px;color:var(--ink)}
+.dp .de{font-size:14px;color:var(--ink2);margin:6px 0 14px;line-height:1.7}
+.dp .sec{font-family:var(--f-dis);font-weight:600;font-size:11.5px;color:var(--ink3);
+  letter-spacing:.04em;margin:14px 0 7px}
+.colist{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:9px;overflow:hidden;
+  grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+.ci{background:var(--surf);padding:8px 11px;display:flex;align-items:baseline;gap:8px;min-width:0}
+.ci .cn{font-weight:500;font-size:13px;color:var(--ink);white-space:nowrap}
+.ci .cc{font-family:var(--f-mn);font-size:10.5px;color:var(--ink3)}
+.ci .cm{font-family:var(--f-mn);font-size:10.5px;color:var(--ink3);margin-left:auto;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.ci .cp{font-size:11px;color:var(--ink3);width:100%;line-height:1.45}
+.ci{flex-wrap:wrap}
+.glist2{display:flex;flex-wrap:wrap;gap:6px}
+.gchip{font-size:12px;padding:3px 10px;border-radius:999px;border:1px dashed var(--line2);color:var(--ink2)}
+.gchip.x{opacity:.55;text-decoration:line-through}
+
+/* 전체 색인 */
+.idxbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0 10px}
+.idxbar input{flex:1;min-width:190px;font-family:var(--f-bd);font-size:14px;padding:8px 12px;
+  border:1px solid var(--line2);border-radius:8px;background:var(--surf);color:var(--ink)}
+.idxbar input:focus{outline:2px solid var(--wl);outline-offset:1px}
+.idxn{font-family:var(--f-mn);font-size:11.5px;color:var(--ink3)}
+.idx{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surf)}
+.idx table{min-width:600px}
+.idx td.w{font-size:12px;color:var(--ink3)}
+
+.colink{color:inherit;text-decoration:none;border-bottom:1px dotted var(--line2);transition:.12s}
+.colink:hover{color:var(--wl);border-bottom-color:var(--wl)}
+.colink:focus-visible{outline:2px solid var(--wl);outline-offset:1px;border-radius:2px}
+.svglink text{cursor:pointer}
+.svglink:hover text{fill:var(--wl)!important;text-decoration:underline}
+.ci .cn .colink,.idx .colink{border-bottom-style:dashed}
+
+@media (max-width:640px){
+  body{font-size:15.5px}
+  .sh{gap:10px} .sh .num{padding-top:7px;font-size:11.5px}
+  .lede{font-size:15.5px}
+  section{padding-block:40px}
+  .fig{padding:12px 6px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<script src="/nav.js" defer></script>
+
+
+<div class="hero"><div class="wrap">
+  <div class="eyebrow">교과서 · 통신</div>
+  <h1>통신 교과서</h1>
+  <p class="sub">광케이블이 집에 들어와 Wi‑Fi가 되기까지, 전파가 기지국을 지나 코어망에 닿기까지.
+  약어의 원래 뜻과 그 장비가 <b>어디에 설치되는지</b>까지 그림으로 따라갑니다.
+  그리고 휴머노이드·AI 글래스·자율주행이 왜 이 망을 다시 짓게 만드는지.</p>
+  <div class="spec"><i style="background:var(--wd)"></i><i style="background:var(--wl)"></i><i style="background:var(--cz)"></i><i style="background:var(--st)"></i></div>
+  <div class="meta">
+    <span><b>작성일</b> 2026-11-25</span>
+    <span><b>표준 근거</b> 3GPP TS 22.186 · 3GPP Rel-20/21 일정</span>
+    <span><b>국내 기업 분류</b> 증권사 리포트 2종(2026-05, 2026-07) 재구성</span>
+  </div>
+</div></div>
+
+<div class="wrap">
+<nav class="toc">
+  <a href="#c1"><span class="n">01</span><span class="t">왜 지금 통신인가</span></a>
+  <a href="#c2"><span class="n">02</span><span class="t">통신망 한 장 지도</span></a>
+  <a href="#c3"><span class="n">03</span><span class="t">유선 — OLT에서 Wi‑Fi까지</span></a>
+  <a href="#c4"><span class="n">04</span><span class="t">무선 — RU·DU·CU와 홀</span></a>
+  <a href="#c5"><span class="n">05</span><span class="t">RF — 전파가 지나는 부품들</span></a>
+  <a href="#c6"><span class="n">06</span><span class="t">RAN·vRAN·O‑RAN·AI‑RAN</span></a>
+  <a href="#c7"><span class="n">07</span><span class="t">코어망과 엣지</span></a>
+  <a href="#c8"><span class="n">08</span><span class="t">국내 기업 위치 지도</span></a>
+  <a href="#c9"><span class="n">09</span><span class="t">산업 지형도 — 상장사 지도</span></a>
+  <a href="#c10"><span class="n">10</span><span class="t">5G에서 6G로</span></a>
+  <a href="#c11"><span class="n">11</span><span class="t">스타링크 밸류체인</span></a>
+  <a href="#c12"><span class="n">12</span><span class="t">피지컬 AI 통신 수요</span></a>
+  <a href="#c13"><span class="n">13</span><span class="t">용어 사전</span></a>
+</nav>
+
+<section id="c1">
+<div class="sh"><span class="num">01</span><h2>왜 지금 통신인가 — 올려보내기의 시대</h2></div>
+<p class="lede">지금까지의 통신망은 <b>내려받기</b>를 전제로 지어졌습니다. 영상을 보고, 웹을 열고, 파일을 받는 쪽이었습니다.
+휴머노이드·AI 글래스·자율주행차는 반대입니다. 이들은 <b>센서로 본 것을 끊임없이 올려보냅니다.</b></p>
+
+<div class="body">
+<p>이 한 문장이 통신 투자 사이클의 뿌리입니다. 사람이 쓰는 기기는 소비자였지만, 기계가 쓰는 기기는 <b>관측자</b>입니다.
+카메라·라이다·마이크가 본 것을 네트워크 반대편의 연산 장치로 보내고, 그 판단을 받아 몸을 움직입니다.
+그래서 세 가지가 동시에 바뀝니다 — <b>방향</b>, <b>지연</b>, <b>자릿수</b>.</p>
+</div>
+
+<h3>바뀌는 것 ① 방향 — 업링크가 다운링크를 넘어선다</h3>
+<div class="body">
+<p>국제 표준 3GPP가 정의한 <b>원격주행(Remote Driving)</b>의 요구 사항을 보면 방향이 완전히 뒤집혀 있습니다.
+올려보내기 25Mbps에 내려받기 1Mbps — <b>25배 비대칭</b>입니다.
+사람이 영상을 볼 때와 정확히 반대 모양입니다.</p>
+</div>
+
+<figure><div class="fig">
+<svg viewBox="0 0 760 232" role="img" aria-label="원격주행과 영상시청의 업링크·다운링크 요구량 비교 막대그래프">
+  <text class="ti" x="0" y="13">요구 대역폭 (Mbps)</text>
+  <g>
+    <line class="gl" x1="160" y1="26" x2="160" y2="192"/>
+    <line class="gl" x1="264" y1="26" x2="264" y2="192"/>
+    <line class="gl" x1="368" y1="26" x2="368" y2="192"/>
+    <line class="gl" x1="472" y1="26" x2="472" y2="192"/>
+    <line class="gl" x1="576" y1="26" x2="576" y2="192"/>
+    <line class="gl" x1="680" y1="26" x2="680" y2="192"/>
+    <text class="s" x="160" y="208" text-anchor="middle">0</text>
+    <text class="s" x="264" y="208" text-anchor="middle">5</text>
+    <text class="s" x="368" y="208" text-anchor="middle">10</text>
+    <text class="s" x="472" y="208" text-anchor="middle">15</text>
+    <text class="s" x="576" y="208" text-anchor="middle">20</text>
+    <text class="s" x="680" y="208" text-anchor="middle">25</text>
+  </g>
+  <text class="lb b" x="150" y="55" text-anchor="end">원격주행</text>
+  <text class="s" x="150" y="70" text-anchor="end">3GPP TS 22.186</text>
+  <rect x="160" y="38" width="520" height="19" rx="4" fill="var(--wl)"/>
+  <text class="m ob" x="672" y="52" text-anchor="end" >올려보내기 25</text>
+  <rect x="160" y="62" width="21" height="19" rx="4" fill="var(--ink3)"/>
+  <text class="m" x="189" y="76">내려받기 1</text>
+
+  <text class="lb b" x="150" y="134" text-anchor="end">영상 시청</text>
+  <text class="s" x="150" y="149" text-anchor="end">1080p 스트리밍 · 참고</text>
+  <rect x="160" y="117" width="7" height="19" rx="3" fill="var(--wl)"/>
+  <text class="m" x="175" y="131">올려보내기 0.3</text>
+  <rect x="160" y="141" width="104" height="19" rx="4" fill="var(--ink3)"/>
+  <text class="m" x="272" y="155">내려받기 5</text>
+  <line class="gl" x1="160" y1="192" x2="680" y2="192" stroke="var(--line2)"/>
+</svg>
+</div><figcaption><b>원격주행</b>은 3GPP TS 22.186 표 5.5-1의 요구치입니다<span class="tag t-n">확인·표준</span>.
+<b>영상 시청</b>은 일반적인 1080p 스트리밍 수준으로 넣은 비교용 값입니다<span class="tag t-n">참고</span>.
+막대는 같은 축을 씁니다.</figcaption></figure>
+
+<div class="note">
+<b>왜 이게 장비를 더 팔리게 하나.</b> 5G는 같은 주파수를 시간으로 쪼개 쓰는 <b class="mn">TDD</b> 방식이 주력입니다.
+그 시간 배분이 보통 내려받기 쪽에 더 많이 가 있습니다(예: 4:1). 올려보내기 수요가 커지면
+① 시간 배분을 바꾸거나 ② 기지국을 촘촘히 더 세우거나 ③ 새 주파수를 받아야 합니다.
+①은 공짜지만 내려받기 성능을 깎고, ②와 ③은 곧 <b>장비 발주</b>입니다.
+</div>
+
+<h3>바뀌는 것 ② 지연 — 불편이 아니라 안전이 된다</h3>
+<div class="body">
+<p>영상이 0.5초 늦게 뜨면 불편합니다. 로봇 팔이 0.5초 늦게 멈추면 사고입니다.
+표준이 요구하는 숫자는 <b class="mn">3~5ms</b>, 즉 0.005초입니다.
+문제는 이 시간의 상당 부분을 <b>빛이 케이블을 지나가는 데</b> 써 버린다는 것입니다.</p>
+<p>광섬유 안에서 빛은 진공보다 느려 초속 약 20만 km로 갑니다. 1ms면 200km입니다.
+왕복이므로 실제로는 <b>100km</b>. 연산 서버가 300km 떨어져 있으면 왕복만 3ms —
+무선 구간과 서버 처리에 쓸 시간이 거의 남지 않습니다.</p>
+</div>
+
+<figure><div class="fig">
+<svg viewBox="0 0 760 212" role="img" aria-label="5밀리초 지연 예산을 구간별로 나눈 막대와 거리 환산">
+  <text class="ti" x="0" y="13">5ms 를 어디에 쓰는가 — 지연 예산</text>
+  <rect x="0" y="26" width="212" height="30" rx="5" fill="var(--wl)"/>
+  <rect x="214" y="26" width="170" height="30" rx="5" fill="var(--wd)"/>
+  <rect x="386" y="26" width="128" height="30" rx="5" fill="var(--cz)"/>
+  <rect x="516" y="26" width="244" height="30" rx="5" fill="var(--ink2)"/>
+  <text class="m ob" x="106" y="46" text-anchor="middle" >무선 구간</text>
+  <text class="m ob" x="299" y="46" text-anchor="middle" >광 전송 왕복</text>
+  <text class="m ob" x="450" y="46" text-anchor="middle" >DU·CU</text>
+  <text class="m ob" x="638" y="46" text-anchor="middle" >서버 추론 + 단말 처리</text>
+  <text class="s" x="106" y="72" text-anchor="middle">약 1.4ms</text>
+  <text class="s" x="299" y="72" text-anchor="middle">약 1.1ms</text>
+  <text class="s" x="450" y="72" text-anchor="middle">약 0.8ms</text>
+  <text class="s" x="638" y="72" text-anchor="middle">남는 1.7ms</text>
+
+  <text class="ti" x="0" y="112">광섬유에서 1ms 가 가는 거리</text>
+  <line class="gl" x1="0" y1="140" x2="520" y2="140" stroke="var(--line2)" stroke-width="2"/>
+  <g>
+    <line class="gl" x1="0" y1="133" x2="0" y2="147" stroke="var(--line2)"/>
+    <line class="gl" x1="130" y1="133" x2="130" y2="147" stroke="var(--line2)"/>
+    <line class="gl" x1="260" y1="133" x2="260" y2="147" stroke="var(--line2)"/>
+    <line class="gl" x1="390" y1="133" x2="390" y2="147" stroke="var(--line2)"/>
+    <line class="gl" x1="520" y1="133" x2="520" y2="147" stroke="var(--line2)"/>
+    <text class="s" x="0" y="160">0</text>
+    <text class="s" x="130" y="160" text-anchor="middle">50km</text>
+    <text class="s" x="260" y="160" text-anchor="middle">100km</text>
+    <text class="s" x="390" y="160" text-anchor="middle">150km</text>
+    <text class="s" x="520" y="160" text-anchor="middle">200km</text>
+  </g>
+  <rect x="0" y="118" width="260" height="14" rx="3" fill="var(--wd)" opacity=".85"/>
+  <text class="m" x="268" y="130">왕복이면 100km 까지</text>
+  <text class="lb" x="0" y="190">그래서 연산을 중앙 데이터센터에 두면 5ms 를 못 맞춥니다.</text>
+  <text class="lb" x="0" y="206">가입자 가까이 내려놓는 구조 — 그것이 <tspan class="b">MEC</tspan> 와 <tspan class="b">UPF 분산</tspan> 입니다.</text>
+</svg>
+</div><figcaption>구간별 배분은 전체 예산이 어떻게 소진되는지 보여주기 위한 <b>예시 분해</b>입니다<span class="tag t-n">판단</span>.
+합계 5ms와 <b>광섬유 1ms = 200km</b>(굴절률 약 1.47, 초속 약 20만 km)는 물리값입니다<span class="tag t-n">확인</span>.</figcaption></figure>
+
+<h3>바뀌는 것 ③ 자릿수 — 9를 하나 더 붙이는 비용</h3>
+<div class="body">
+<p>신뢰성 99%와 99.999%는 글자로는 비슷해 보입니다. 시간으로 바꾸면 전혀 다릅니다.
+<b>9가 하나 늘 때마다 중단 시간이 10분의 1</b>이 됩니다.
+3GPP가 로봇·차량 용도에 요구하는 것은 <b class="mn">99.999%</b>, 이른바 <b>파이브 나인</b>입니다.</p>
+</div>
+
+<figure><div class="fig">
+<svg viewBox="0 0 760 196" role="img" aria-label="신뢰성 등급별 연간 누적 중단 시간 막대그래프, 로그 축">
+  <text class="ti" x="0" y="13">연간 누적 중단 시간 — 로그 축</text>
+  <text class="lb b mn" x="150" y="42" text-anchor="end">99%</text>
+  <rect x="160" y="30" width="469" height="17" rx="4" fill="var(--ink3)"/>
+  <text class="m" x="637" y="43">3.65일</text>
+  <text class="lb b mn" x="150" y="72" text-anchor="end">99.9%</text>
+  <rect x="160" y="60" width="358" height="17" rx="4" fill="var(--ink3)"/>
+  <text class="m" x="526" y="73">8.8시간</text>
+  <text class="lb b mn" x="150" y="102" text-anchor="end">99.99%</text>
+  <rect x="160" y="90" width="246" height="17" rx="4" fill="var(--wl)" opacity=".55"/>
+  <text class="m" x="414" y="103">52.6분</text>
+  <text class="lb b mn" x="150" y="132" text-anchor="end">99.999%</text>
+  <rect x="160" y="120" width="135" height="17" rx="4" fill="var(--wl)"/>
+  <text class="m" x="303" y="133">5.26분  ← 로봇·차량 요구치</text>
+  <text class="lb b mn" x="150" y="162" text-anchor="end">99.9999%</text>
+  <rect x="160" y="150" width="25" height="17" rx="4" fill="var(--wl)"/>
+  <text class="m" x="193" y="163">31.6초</text>
+  <line class="gl" x1="160" y1="176" x2="680" y2="176" stroke="var(--line2)"/>
+  <text class="s" x="160" y="190">한 해 8,760시간 기준 · 막대 길이는 로그 눈금</text>
+</svg>
+</div><figcaption>주황은 3GPP가 V2X 고신뢰 용도에 요구하는 구간입니다. 값은 단순 환산이라 검산됩니다<span class="tag t-n">확인</span>.</figcaption></figure>
+
+<h3>세 가지 수요를 한 표로</h3>
+<div class="tw"><table>
+<tr><th>쓰임새</th><th>무엇을 올려보내나</th><th>지연 요구</th><th>신뢰성</th><th>망에 생기는 숙제</th></tr>
+<tr><td class="k">자율주행 — 원격주행</td><td>조향·제동 제어와 차량 영상</td><td class="n">5ms</td><td class="n">99.999%</td><td>올려보내기 25Mbps, 이동 중에도 끊김 없이</td></tr>
+<tr><td class="k">자율주행 — 센서 공유</td><td>라이다·카메라 원본을 옆 차와 공유</td><td class="n">3ms</td><td class="n">99.999%</td><td>최대 1,000Mbps급, 차 사이 직접 통신</td></tr>
+<tr><td class="k">자율주행 — 충돌 회피</td><td>궤적·위치</td><td class="n">10ms</td><td class="n">99.99%</td><td>교차로마다 노변 장치(RSU) 설치</td></tr>
+<tr><td class="k">휴머노이드</td><td>관절 상태·시야 영상, 원격 조작 명령</td><td class="n">수 ms급</td><td class="n">높음</td><td>공장 안에서 끊기면 안 되므로 <b>전용망</b> 수요</td></tr>
+<tr><td class="k">AI 글래스</td><td>1인칭 영상·음성을 상시로</td><td class="n">수십 ms</td><td class="n">중간</td><td>기기 수가 많고 <b>항상 켜져</b> 있어 업링크 총량이 커짐</td></tr>
+</table></div>
+<p class="src">자율주행 3행은 3GPP TS 22.186 표 5.3-1·5.4-1·5.5-1<span class="tag t-n">확인·표준</span>.
+휴머노이드·AI 글래스 행은 표준에 해당 항목이 없어 <b>구조만</b> 적었습니다<span class="tag t-n">판단</span> — 수치를 지어내지 않았습니다.</p>
+
+<h3>그래서 무엇이 발주되나</h3>
+<div class="cards c3">
+  <div class="card wl"><h4>무선 구간</h4><p>올려보내기를 늘리려면 기지국이 촘촘해야 합니다. <b>RU·안테나·필터·전력증폭기</b>, 음영 지역엔 중계기와 스몰셀.</p></div>
+  <div class="card wd"><h4>전송 구간</h4><p>기지국이 늘면 그만큼 광선로가 필요합니다. <b>프론트홀 장비·광트랜시버·WDM</b>, 그리고 광케이블 자체.</p></div>
+  <div class="card cz"><h4>연산 구간</h4><p>지연 때문에 연산이 가입자 쪽으로 내려옵니다. <b>DU·CU 서버, UPF, 엣지 데이터센터</b> — 통신 투자와 데이터센터 투자가 같은 것이 됩니다.</p></div>
+</div>
+<p class="src">세 칸이 한 줄로 이어지는 지점이 <b>AI-RAN</b> 입니다 — 06장에서 다룹니다.</p>
+
+<h3>일정 — 언제 무엇이 정해지나</h3>
+<div class="tw"><table>
+<tr><th>시점</th><th>일어나는 일</th><th>의미</th></tr>
+<tr><td class="n">2025 중반 ~ 2027 상반기</td><td class="k">3GPP Release 20 — 6G 연구 단계</td><td>무엇을 만들지 고르는 기간. 규격 문장은 아직 없음</td></tr>
+<tr><td class="n">2027</td><td class="k">WRC-27 — 세계 주파수 회의</td><td>6G 후보 대역 확정. 현재 검토 중인 구간은 4.4~4.8GHz · 7.125~8.4GHz · 14.8~15.35GHz</td></tr>
+<tr><td class="n">2027.03 ~ 2028 말</td><td class="k">Release 21 — 6G 규격 작성</td><td>코어 구조(Stage 2)는 2028.06, 프로토콜(Stage 3)은 2028.12 동결</td></tr>
+<tr><td class="n">2029.03</td><td class="k">최종 코드 동결 (ASN.1 · OpenAPI)</td><td>칩·장비 설계가 본격화되는 시점</td></tr>
+<tr><td class="n">2030</td><td class="k">첫 상용 6G</td><td>에릭슨 전망</td></tr>
+</table></div>
+<p class="src">출처: 3GPP 2026년 6월 총회에서 승인된 Release 21 일정과 에릭슨·ITU-R 자료<span class="tag t-n">확인</span>.
+O-RAN 측 6G 작업은 2027 중반~2029로, 3GPP보다 3~6개월 뒤에 따라옵니다.</p>
+
+<div class="warnbox">
+<b>주의 — 수요 이야기와 실적 이야기는 다릅니다.</b> 위 내용은 전부 <b>왜 망을 고쳐야 하는가</b>에 대한 것이고,
+그것이 특정 기업의 매출이 되려면 ① 통신사가 실제로 발주하고 ② 그 발주가 어느 벤더(삼성·에릭슨·노키아)로 가고
+③ 그 벤더가 국내 부품사에서 얼마나 사는지 — 세 단계를 더 지나야 합니다.
+증권사 리포트도 이 구간을 <b>블랙박스</b>라고 부릅니다. 08장의 위치 지도는 "어디에 있는가"이지 "얼마를 번다"가 아닙니다.
+</div>
+</section>
+
+<section id="c2">
+<div class="sh"><span class="num">02</span><h2>통신망 한 장 지도</h2></div>
+<p class="lede">통신망은 크게 두 갈래입니다. 전파로 연결하는 <b>무선</b>과 광섬유로 연결하는 <b>유선</b>.
+둘은 끝에서 같은 <b>코어망</b>으로 모입니다. 나머지 장은 전부 이 그림의 한 칸을 확대한 것입니다.</p>
+
+<figure><div class="fig">
+<svg viewBox="0 0 880 392" role="img" aria-label="무선망과 유선망이 코어망으로 모이는 전체 구조도">
+  <text class="ti" x="0" y="14" style="fill:var(--wl)">무선 — 전파로 연결</text>
+  <text class="s" x="129" y="36" text-anchor="middle">전파</text>
+  <text class="s" x="271" y="36" text-anchor="middle">Fronthaul (광)</text>
+  <text class="s" x="413" y="36" text-anchor="middle">Midhaul</text>
+  <g fill="var(--wl-f)" stroke="var(--wl)" stroke-width="1.4">
+    <rect x="10" y="44" width="96" height="56" rx="8"/>
+    <rect x="152" y="44" width="96" height="56" rx="8"/>
+    <rect x="294" y="44" width="96" height="56" rx="8"/>
+    <rect x="436" y="44" width="96" height="56" rx="8"/>
+  </g>
+  <g class="b" font-size="14" style="fill:var(--wl)" text-anchor="middle">
+    <text x="58" y="68">단말</text><text x="200" y="68">RU</text><text x="342" y="68">DU</text><text x="484" y="68">CU</text>
+  </g>
+  <g class="s" text-anchor="middle">
+    <text x="58" y="85">폰·로봇·차</text><text x="200" y="85">전파 송수신</text>
+    <text x="342" y="85">실시간 처리</text><text x="484" y="85">상위 제어</text>
+    <text x="58" y="118">손 안</text><text x="200" y="118">옥상·철탑</text>
+    <text x="342" y="118">기지국함체·국사</text><text x="484" y="118">국사·데이터센터</text>
+  </g>
+  <g class="ar" marker-end="url(#ah)">
+    <line x1="110" y1="72" x2="146" y2="72"/><line x1="252" y1="72" x2="288" y2="72"/>
+    <line x1="394" y1="72" x2="430" y2="72"/><line x1="536" y1="72" x2="592" y2="150"/>
+  </g>
+  <text class="s" x="556" y="112">Backhaul</text>
+
+  <text class="ti" x="0" y="190" style="fill:var(--wd)">유선 — 광섬유로 연결</text>
+  <text class="s" x="129" y="212" text-anchor="middle">Wi‑Fi / 랜선</text>
+  <text class="s" x="271" y="212" text-anchor="middle">랜선</text>
+  <text class="s" x="413" y="212" text-anchor="middle">광섬유 1가닥</text>
+  <g fill="var(--wd-f)" stroke="var(--wd)" stroke-width="1.4">
+    <rect x="10" y="220" width="96" height="56" rx="8"/>
+    <rect x="152" y="220" width="96" height="56" rx="8"/>
+    <rect x="294" y="220" width="96" height="56" rx="8"/>
+    <rect x="436" y="220" width="96" height="56" rx="8"/>
+  </g>
+  <g class="b" font-size="14" style="fill:var(--wd)" text-anchor="middle">
+    <text x="58" y="244">PC·TV</text><text x="200" y="244">AP·공유기</text><text x="342" y="244">ONT</text><text x="484" y="244">OLT</text>
+  </g>
+  <g class="s" text-anchor="middle">
+    <text x="58" y="261">가정 기기</text><text x="200" y="261">Wi‑Fi 제공</text>
+    <text x="342" y="261">광↔전기 변환</text><text x="484" y="261">가입자 수용</text>
+    <text x="58" y="294">집 안</text><text x="200" y="294">집 안</text>
+    <text x="342" y="294">집 안 벽·단자함</text><text x="484" y="294">통신사 국사</text>
+  </g>
+  <g class="ar" marker-end="url(#ah)">
+    <line x1="110" y1="248" x2="146" y2="248"/><line x1="252" y1="248" x2="288" y2="248"/>
+    <line x1="394" y1="248" x2="430" y2="248"/><line x1="536" y1="248" x2="592" y2="214"/>
+  </g>
+  <circle cx="413" cy="248" r="0" fill="none"/>
+  <text class="s" x="556" y="276">광분배기 경유</text>
+
+  <rect x="596" y="118" width="120" height="128" rx="10" fill="var(--cz-f)" stroke="var(--cz)" stroke-width="1.6"/>
+  <text class="b" x="656" y="160" text-anchor="middle" font-size="15" style="fill:var(--cz)">코어망</text>
+  <text class="s" x="656" y="178" text-anchor="middle">가입자 인증</text>
+  <text class="s" x="656" y="193" text-anchor="middle">데이터 경로 결정</text>
+  <text class="s" x="656" y="208" text-anchor="middle">정책 관리</text>
+  <text class="s" x="656" y="266" text-anchor="middle">국사 · 데이터센터</text>
+  <line class="ar" x1="720" y1="182" x2="752" y2="182" marker-end="url(#ah)"/>
+  <rect x="758" y="146" width="112" height="72" rx="9" fill="var(--surf2)" stroke="var(--line2)" stroke-width="1.2"/>
+  <text class="b" x="814" y="176" text-anchor="middle" font-size="13">인터넷</text>
+  <text class="s" x="814" y="194" text-anchor="middle">데이터센터·서비스</text>
+  <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M0,1 L9,5 L0,9 z" fill="var(--ink3)"/></marker></defs>
+  <text class="lb" x="0" y="340">같은 코어망을 쓰기 때문에, 집에서 Wi‑Fi로 보는 영상과 길에서 LTE로 보는 영상은</text>
+  <text class="lb" x="0" y="360">중간 길만 다를 뿐 끝에서는 같은 장비를 지납니다.</text>
+  <text class="s" x="0" y="382">※ 화살표는 데이터가 올라가는 방향 기준. 실제 통신은 양방향입니다.</text>
+</svg>
+</div><figcaption>각 칸 아래 작은 글씨가 <b>그 장비가 실제로 놓이는 자리</b>입니다. 집 안 → 옥상·철탑 → 국사 → 데이터센터 순으로 멀어집니다.</figcaption></figure>
+</section>
+
+<section id="c3">
+<div class="sh"><span class="num">03</span><h2>유선 — OLT에서 Wi‑Fi까지</h2></div>
+<p class="lede">집에 인터넷이 들어오는 길입니다. 통신사 국사에서 출발한 빛이 광섬유를 타고 와,
+집 앞에서 전기 신호로 바뀌고, 마지막에 Wi‑Fi 전파가 됩니다.</p>
+
+<h3>① 왜 광섬유 한 가닥을 여럿이 나눠 쓰나 — PON</h3>
+<div class="body">
+<p><b class="mn">PON</b>(Passive Optical Network, 수동형 광가입자망)의 핵심은 가운데 있는 <b>광분배기</b>입니다.
+빛을 거울처럼 갈라 여러 집으로 나눠 줍니다. <b>Passive</b>는 "전원이 필요 없다"는 뜻입니다 —
+전기를 안 쓰니 고장도 적고 전봇대나 지하 함체에 그냥 둘 수 있습니다.
+집마다 국사에서 케이블을 따로 끌어오면 비용이 감당이 안 되는데, 이 방식이면 한 가닥으로 32~64집을 덮습니다.</p>
+</div>
+
+<figure><div class="fig">
+<svg viewBox="0 0 760 318" role="img" aria-label="PON 구조도: OLT에서 광분배기를 거쳐 여러 가정의 ONT로 분기">
+  <rect x="300" y="14" width="160" height="56" rx="9" fill="var(--wd-f)" stroke="var(--wd)" stroke-width="1.6"/>
+  <text class="b" x="380" y="40" text-anchor="middle" font-size="15" style="fill:var(--wd)">OLT</text>
+  <text class="s" x="380" y="57" text-anchor="middle">Optical Line Terminal</text>
+  <text class="s" x="380" y="88" text-anchor="middle">통신사 국사에 설치 · 가입자 수백~수천을 수용</text>
+
+  <line x1="380" y1="96" x2="380" y2="134" stroke="var(--wd)" stroke-width="3.5"/>
+  <text class="m" x="392" y="120" style="fill:var(--wd)">광섬유 1가닥</text>
+
+  <rect x="286" y="134" width="188" height="42" rx="7" fill="var(--surf2)" stroke="var(--line2)" stroke-width="1.4"/>
+  <text class="b" x="380" y="152" text-anchor="middle" font-size="13">광분배기 (Splitter)</text>
+  <text class="s" x="380" y="168" text-anchor="middle">전원 없음 · 빛을 1→32 로 가름</text>
+
+  <line x1="380" y1="176" x2="380" y2="200" stroke="var(--wd)" stroke-width="2.5"/>
+  <line x1="92" y1="200" x2="668" y2="200" stroke="var(--wd)" stroke-width="2.5"/>
+  <g stroke="var(--wd)" stroke-width="2.5">
+    <line x1="92" y1="200" x2="92" y2="226"/><line x1="284" y1="200" x2="284" y2="226"/>
+    <line x1="476" y1="200" x2="476" y2="226"/><line x1="668" y1="200" x2="668" y2="226"/>
+  </g>
+  <g fill="var(--wd-f)" stroke="var(--wd)" stroke-width="1.4">
+    <rect x="36" y="226" width="112" height="44" rx="7"/><rect x="228" y="226" width="112" height="44" rx="7"/>
+    <rect x="420" y="226" width="112" height="44" rx="7"/><rect x="612" y="226" width="112" height="44" rx="7"/>
+  </g>
+  <g class="b" font-size="13" style="fill:var(--wd)" text-anchor="middle">
+    <text x="92" y="246">ONT</text><text x="284" y="246">ONT</text><text x="476" y="246">ONT</text><text x="668" y="246">ONT</text>
+  </g>
+  <g class="s" text-anchor="middle">
+    <text x="92" y="262">+ 공유기·AP</text><text x="284" y="262">+ 공유기·AP</text>
+    <text x="476" y="262">+ 공유기·AP</text><text x="668" y="262">+ 공유기·AP</text>
+    <text x="92" y="288">가정 1</text><text x="284" y="288">가정 2</text><text x="476" y="288">가정 3</text><text x="668" y="288">가정 4</text>
+  </g>
+  <text class="s" x="0" y="312">※ 실제로는 1:32 또는 1:64 분기. 나눠 쓰는 만큼 속도도 나눠 가집니다.</text>
+</svg>
+</div><figcaption>속도표에 적힌 "2.5Gbps"는 <b>분배기 위쪽 한 가닥의 총량</b>입니다. 32집이 동시에 다 쓰면 한 집이 쓸 수 있는 몫은 그만큼 줄어듭니다.</figcaption></figure>
+
+<h3>② 비슷해 보이는 네 장비 — ONU·ONT·공유기·AP</h3>
+<div class="tw"><table>
+<tr><th>장비</th><th>약어 원뜻</th><th>하는 일</th><th>놓이는 자리</th></tr>
+<tr><td class="k">ONU</td><td class="n">Optical Network Unit</td><td>광↔전기 변환. 광가입자망 장치를 가리키는 <b>포괄적</b> 이름</td><td>건물 통신실 또는 가정</td></tr>
+<tr><td class="k">ONT</td><td class="n">Optical Network Terminal</td><td>같은 변환을 하되 <b>최종 가입자</b> 자리에 놓이는 것</td><td>가정·사무실 벽 단자함</td></tr>
+<tr><td class="k">Router (공유기)</td><td class="n">—</td><td>서로 다른 망을 잇고 데이터 경로를 정함. 집 안 기기에 주소를 나눠 줌</td><td>집 안</td></tr>
+<tr><td class="k">AP</td><td class="n">Access Point</td><td>유선으로 온 인터넷을 <b>Wi‑Fi 전파</b>로 바꿔 쏨</td><td>집 안·사무실 천장</td></tr>
+<tr><td class="k">Switch</td><td class="n">—</td><td>여러 유선 기기를 한데 묶음. 경로 판단은 안 함</td><td>통신실·책상 밑</td></tr>
+</table></div>
+<div class="note">실무에서 <b>ONU와 ONT는 자주 섞어 씁니다.</b> 완전히 다른 기술이 아니라, 같은 기능을 가리키는 넓은 이름과 좁은 이름입니다.
+요즘 가정용 제품은 ONT·공유기·AP를 <b>한 상자</b>에 넣어 팔기 때문에 더 헷갈립니다.</div>
+
+<h3>③ PON 세대 — 속도가 올라가면 양쪽 장비를 다 바꿔야 한다</h3>
+<figure><div class="fig">
+<svg viewBox="0 0 760 212" role="img" aria-label="PON 세대별 전송 속도 막대그래프">
+  <text class="ti" x="0" y="13">공유 회선 기준 전송 속도 (Gbps)</text>
+  <text class="lb b mn" x="128" y="46" text-anchor="end">GPON</text>
+  <rect x="138" y="34" width="29" height="18" rx="4" fill="var(--wd)" opacity=".4"/>
+  <text class="m" x="175" y="47">하향 2.5 / 상향 1.25</text>
+  <text class="lb b mn" x="128" y="80" text-anchor="end">XGS-PON</text>
+  <rect x="138" y="68" width="116" height="18" rx="4" fill="var(--wd)" opacity=".6"/>
+  <text class="m" x="262" y="81">상·하향 10 — 현재 주력</text>
+  <text class="lb b mn" x="128" y="114" text-anchor="end">25G-PON</text>
+  <rect x="138" y="102" width="290" height="18" rx="4" fill="var(--wd)" opacity=".8"/>
+  <text class="m" x="436" y="115">25</text>
+  <text class="lb b mn" x="128" y="148" text-anchor="end">50G-PON</text>
+  <rect x="138" y="136" width="580" height="18" rx="4" fill="var(--wd)"/>
+  <text class="m ob" x="710" y="149" text-anchor="end" >50 — 차세대</text>
+  <line class="gl" x1="138" y1="166" x2="718" y2="166" stroke="var(--line2)"/>
+  <g class="s" text-anchor="middle"><text x="138" y="180">0</text><text x="254" y="180">10</text>
+    <text x="428" y="180">25</text><text x="718" y="180">50</text></g>
+  <text class="lb" x="0" y="204">세대를 올리면 국사의 <tspan class="b">OLT</tspan> 와 집집마다의 <tspan class="b">ONT</tspan> 를 함께 교체해야 합니다 — 그래서 교체 사이클이 길고, 한 번 돌면 규모가 큽니다.</text>
+</svg>
+</div><figcaption>속도는 규격 정의값입니다<span class="tag t-n">확인·표준</span>. 에치에프알·자람테크놀로지 같은 국내 업체의 유선 사업을 볼 때 핵심이 되는 숫자입니다.</figcaption></figure>
+
+<h3>④ 광케이블 대신 전파로 — FWA</h3>
+<div class="tw"><table>
+<tr><th>구분</th><th>FTTH <span class="s">Fiber To The Home</span></th><th>FWA <span class="s">Fixed Wireless Access</span></th></tr>
+<tr><td class="k">가정까지 연결</td><td>광케이블을 직접 끌어옴</td><td>5G 기지국 전파를 받음</td></tr>
+<tr><td class="k">주요 장비</td><td>OLT · ONU · ONT</td><td>5G CPE (실내 수신 단말)</td></tr>
+<tr><td class="k">공사 부담</td><td>높음 — 땅을 파거나 전봇대를 타야 함</td><td>낮음 — 단말만 놓으면 됨</td></tr>
+<tr><td class="k">안정성</td><td>일반적으로 높음</td><td>전파 환경에 좌우됨</td></tr>
+<tr><td class="k">잘 맞는 곳</td><td>인구 밀집 도시</td><td>미국처럼 넓고 포설비가 비싼 지역</td></tr>
+</table></div>
+<p class="src"><b class="mn">CPE</b>는 Customer Premises Equipment — "고객이 쓰는 장소에 놓이는 장비"라는 뜻의 포괄적 이름입니다.
+공유기도, ONT도, 공장용 5G 게이트웨이도 전부 CPE에 들어갑니다.</p>
+</section>
+
+<section id="c4">
+<div class="sh"><span class="num">04</span><h2>무선 — RU·DU·CU와 세 개의 홀</h2></div>
+<p class="lede">예전 기지국은 한 덩어리였습니다. 지금은 셋으로 쪼갭니다 —
+전파를 다루는 <b class="mn">RU</b>, 실시간 연산을 하는 <b class="mn">DU</b>, 상위 제어를 맡는 <b class="mn">CU</b>.
+왜 쪼갰는지가 이 장의 전부입니다.</p>
+
+<div class="body">
+<p>쪼갠 이유는 <b>셋이 요구하는 조건이 서로 다르기 때문</b>입니다.
+RU는 전파가 닿아야 하니 높은 곳에 있어야 합니다. DU는 마이크로초 단위로 응답해야 하니 가까워야 합니다.
+CU는 급하지 않으니 멀리 모아 두면 됩니다. 조건이 다르면 따로 두는 쪽이 싸집니다 —
+RU만 전국에 수십만 개 뿌리고, DU·CU는 모아서 서버로 돌리는 것이 지금의 구조입니다.</p>
+</div>
+
+<figure><div class="fig">
+<svg viewBox="0 0 800 304" role="img" aria-label="RU DU CU 가 거리 제약에 따라 배치되는 구조도">
+  <text class="ti" x="0" y="14">기지국이 셋으로 쪼개진 이유 — 거리가 다르다</text>
+  <line x1="40" y1="212" x2="770" y2="212" stroke="var(--line2)" stroke-width="2"/>
+  <g stroke="var(--line2)" stroke-width="1">
+    <line x1="40" y1="206" x2="40" y2="218"/><line x1="240" y1="206" x2="240" y2="218"/>
+    <line x1="520" y1="206" x2="520" y2="218"/><line x1="740" y1="206" x2="740" y2="218"/>
+  </g>
+  <g class="s" text-anchor="middle">
+    <text x="40" y="232">0 km</text><text x="240" y="232">약 30 km</text>
+    <text x="520" y="232">약 200 km</text><text x="740" y="232">제한 없음</text>
+  </g>
+  <text class="ti" x="40" y="252">기지국에서의 거리</text>
+
+  <rect x="8" y="40" width="96" height="60" rx="9" fill="var(--wl-f)" stroke="var(--wl)" stroke-width="1.6"/>
+  <text class="b" x="56" y="64" text-anchor="middle" font-size="15" style="fill:var(--wl)">RU</text>
+  <text class="s" x="56" y="80" text-anchor="middle">Radio Unit</text>
+  <text class="s" x="56" y="94" text-anchor="middle">전파 송수신</text>
+  <line x1="56" y1="100" x2="56" y2="206" stroke="var(--wl)" stroke-width="1.2" stroke-dasharray="3 3"/>
+  <text class="s" x="56" y="124" text-anchor="middle">옥상·철탑</text>
+
+  <rect x="150" y="40" width="112" height="60" rx="9" fill="var(--wl-f)" stroke="var(--wl)" stroke-width="1.6"/>
+  <text class="b" x="206" y="64" text-anchor="middle" font-size="15" style="fill:var(--wl)">DU</text>
+  <text class="s" x="206" y="80" text-anchor="middle">Distributed Unit</text>
+  <text class="s" x="206" y="94" text-anchor="middle">실시간 처리</text>
+  <line x1="206" y1="100" x2="206" y2="206" stroke="var(--wl)" stroke-width="1.2" stroke-dasharray="3 3"/>
+  <text class="s" x="206" y="124" text-anchor="middle">기지국 함체·인근 국사</text>
+
+  <rect x="420" y="40" width="112" height="60" rx="9" fill="var(--wl-f)" stroke="var(--wl)" stroke-width="1.6"/>
+  <text class="b" x="476" y="64" text-anchor="middle" font-size="15" style="fill:var(--wl)">CU</text>
+  <text class="s" x="476" y="80" text-anchor="middle">Centralized Unit</text>
+  <text class="s" x="476" y="94" text-anchor="middle">상위 제어·암호화</text>
+  <line x1="476" y1="100" x2="476" y2="206" stroke="var(--wl)" stroke-width="1.2" stroke-dasharray="3 3"/>
+  <text class="s" x="476" y="124" text-anchor="middle">지역 국사</text>
+
+  <rect x="648" y="40" width="112" height="60" rx="9" fill="var(--cz-f)" stroke="var(--cz)" stroke-width="1.6"/>
+  <text class="b" x="704" y="70" text-anchor="middle" font-size="15" style="fill:var(--cz)">코어망</text>
+  <text class="s" x="704" y="88" text-anchor="middle">인증·정책·경로</text>
+  <line x1="704" y1="100" x2="704" y2="206" stroke="var(--cz)" stroke-width="1.2" stroke-dasharray="3 3"/>
+  <text class="s" x="704" y="124" text-anchor="middle">중앙 데이터센터</text>
+
+  <g stroke-width="3">
+    <line x1="104" y1="160" x2="150" y2="160" stroke="var(--wd)"/>
+    <line x1="262" y1="160" x2="420" y2="160" stroke="var(--wd)"/>
+    <line x1="532" y1="160" x2="648" y2="160" stroke="var(--wd)"/>
+  </g>
+  <g class="m" text-anchor="middle" style="fill:var(--wd)">
+    <text x="127" y="152">Fronthaul</text><text x="341" y="152">Midhaul</text><text x="590" y="152">Backhaul</text>
+  </g>
+  <g class="s" text-anchor="middle">
+    <text x="127" y="178">가장 까다로움</text><text x="341" y="178">여유 있음</text><text x="590" y="178">일반 전송망</text>
+  </g>
+  <text class="lb" x="0" y="278">Haul 은 "운반"이라는 뜻입니다. 앞쪽 구간이 Fronthaul, 중간이 Midhaul, 뒤쪽이 Backhaul —</text>
+  <text class="lb" x="0" y="298">약어가 아니라 그냥 영어 단어를 붙인 이름입니다. 셋을 묶어 X-Haul 이라고 부릅니다.</text>
+</svg>
+</div><figcaption>거리 한계값(DU 약 30km, CU 약 200km)은 증권사 산업 리포트에 제시된 수치입니다<span class="tag t-n">증권사</span>.
+표준이 고정한 값이 아니라 <b>실시간성에서 나오는 물리적 상한</b>이라, 구현에 따라 달라집니다.</figcaption></figure>
+
+<div class="note">
+<b>프론트홀이 가장 어려운 이유.</b> RU와 DU 사이에는 아직 가공되지 않은 신호가 오갑니다. 양이 많고, 늦으면 안 됩니다.
+그래서 이 구간은 반드시 광선로로 깔고, 전용 장비를 씁니다. <b>에치에프알·쏠리드</b>의 핵심 사업이 바로 이 구간입니다.
+기지국 수가 늘면 프론트홀 장비 수요가 함께 늘어나는 구조입니다<span class="tag t-n">증권사</span>.
+</div>
+
+<h3>광섬유를 더 효율적으로 — WDM</h3>
+<div class="body">
+<p>기지국이 늘 때마다 땅을 파서 케이블을 새로 묻을 수는 없습니다.
+<b class="mn">WDM</b>(Wavelength Division Multiplexing, 파장분할다중화)은 <b>이미 묻혀 있는 광섬유 한 가닥에
+서로 다른 색의 빛을 여러 개 실어</b> 동시에 보내는 기술입니다. 빛의 색(파장)이 다르면 서로 섞이지 않습니다.</p>
+</div>
+
+<figure><div class="fig">
+<svg viewBox="0 0 740 180" role="img" aria-label="WDM 파장분할다중화 개념도">
+  <g class="s" text-anchor="end">
+    <text x="88" y="38">신호 1</text><text x="88" y="62">신호 2</text><text x="88" y="86">신호 3</text><text x="88" y="110">신호 4</text>
+  </g>
+  <g stroke-width="3">
+    <line x1="96" y1="34" x2="168" y2="34" stroke="#c2410c"/><line x1="96" y1="58" x2="168" y2="58" stroke="#b45309"/>
+    <line x1="96" y1="82" x2="168" y2="82" stroke="#0b6f67"/><line x1="96" y1="106" x2="168" y2="106" stroke="#6429c4"/>
+  </g>
+  <rect x="172" y="22" width="56" height="96" rx="7" fill="var(--surf2)" stroke="var(--line2)" stroke-width="1.4"/>
+  <text class="b" x="200" y="66" text-anchor="middle" font-size="12">MUX</text>
+  <text class="s" x="200" y="82" text-anchor="middle">합침</text>
+  <g stroke-width="2.6">
+    <line x1="232" y1="62" x2="500" y2="62" stroke="#c2410c"/>
+    <line x1="232" y1="66" x2="500" y2="66" stroke="#b45309"/>
+    <line x1="232" y1="70" x2="500" y2="70" stroke="#0b6f67"/>
+    <line x1="232" y1="74" x2="500" y2="74" stroke="#6429c4"/>
+  </g>
+  <text class="m" x="366" y="52" text-anchor="middle">광섬유 1가닥 — 묻혀 있는 그대로</text>
+  <rect x="504" y="22" width="60" height="96" rx="7" fill="var(--surf2)" stroke="var(--line2)" stroke-width="1.4"/>
+  <text class="b" x="534" y="66" text-anchor="middle" font-size="12">DEMUX</text>
+  <text class="s" x="534" y="82" text-anchor="middle">가름</text>
+  <g stroke-width="3">
+    <line x1="568" y1="34" x2="640" y2="34" stroke="#c2410c"/><line x1="568" y1="58" x2="640" y2="58" stroke="#b45309"/>
+    <line x1="568" y1="82" x2="640" y2="82" stroke="#0b6f67"/><line x1="568" y1="106" x2="640" y2="106" stroke="#6429c4"/>
+  </g>
+  <g class="s"><text x="648" y="38">신호 1</text><text x="648" y="62">신호 2</text><text x="648" y="86">신호 3</text><text x="648" y="110">신호 4</text></g>
+  <text class="lb" x="0" y="148"><tspan class="b">CWDM</tspan> 은 파장 간격이 넓어 싸고, <tspan class="b">DWDM</tspan> 은 간격이 좁아 더 많이 싣습니다.</text>
+  <text class="s" x="0" y="170">※ 색은 파장이 다르다는 표시일 뿐, 실제 통신용 빛은 눈에 보이지 않는 적외선입니다.</text>
+</svg>
+</div><figcaption>MUX는 Multiplexer(합치는 장치), DEMUX는 Demultiplexer(가르는 장치)의 줄임말입니다.</figcaption></figure>
+
+<h3>전파가 안 닿는 곳을 메우는 장비들</h3>
+<div class="cards c2">
+  <div class="card wl"><h4>중계기 <span class="s">Repeater</span></h4><p>받은 전파를 증폭해서 다시 쏩니다. 지하·터널·건물 안쪽 음영 지역용.
+  <span class="src">쏠리드 · 에치에프알 · 웨이브일렉트로</span></p></div>
+  <div class="card wl"><h4>DAS <span class="s">Distributed Antenna System</span></h4><p>건물 안 곳곳에 안테나를 나눠 달아 전파를 뿌립니다. 지하철·공항·병원·쇼핑몰.
+  <span class="src">쏠리드의 대표 사업</span></p></div>
+  <div class="card wl"><h4>스몰셀 <span class="s">Small Cell</span></h4><p>작은 기지국. 사람이 몰리는 곳의 트래픽을 나눠 받습니다.
+  <span class="src">LIG아큐버 · 쏠리드 · 에치에프알</span></p></div>
+  <div class="card wl"><h4>Private 5G <span class="s">기업 전용망</span></h4><p>공장·물류센터가 자기 망을 따로 씁니다. 휴머노이드·자율 운반차가 들어오면 수요가 커지는 영역.
+  <span class="src">에치에프알이 RU·vDU·vCU·vCore·CPE 를 묶어 공급</span></p></div>
+</div>
+<p class="src">공급사 표기는 증권사 리포트의 기업 분류표를 옮긴 것입니다<span class="tag t-n">증권사</span>. 보유 기술과 실제 매출 발생은 구분해서 봐야 합니다.</p>
+</section>
+
+<section id="c5">
+<div class="sh"><span class="num">05</span><h2>RF — 전파가 실제로 지나는 부품들</h2></div>
+<p class="lede"><b class="mn">RF</b>는 Radio Frequency, 무선 주파수입니다.
+RU 상자 안을 열면 전파가 정해진 순서로 부품을 통과합니다. 그 순서가 곧 부품 업체의 자리입니다.</p>
+
+<figure><div class="fig">
+<svg viewBox="0 0 800 340" role="img" aria-label="RF 신호가 안테나에서 트랜시버까지 지나는 송신 수신 경로">
+  <text class="ti" x="0" y="14">RU 안에서 전파가 지나는 순서</text>
+  <text class="m" x="0" y="120" style="fill:var(--wl)">전파</text>
+  <line class="ar" x1="38" y1="135" x2="10" y2="135" marker-end="url(#ah2)"/>
+  <line class="ar" x1="10" y1="152" x2="38" y2="152" marker-end="url(#ah2)"/>
+
+  <rect x="44" y="100" width="104" height="70" rx="9" fill="var(--wl-f)" stroke="var(--wl)" stroke-width="1.6"/>
+  <text class="b" x="96" y="128" text-anchor="middle" font-size="14" style="fill:var(--wl)">안테나</text>
+  <text class="s" x="96" y="145" text-anchor="middle">전파를</text>
+  <text class="s" x="96" y="159" text-anchor="middle">내보내고 받는다</text>
+
+  <rect x="186" y="36" width="104" height="198" rx="9" fill="var(--wl-f)" stroke="var(--wl)" stroke-width="1.6"/>
+  <text class="b" x="238" y="122" text-anchor="middle" font-size="14" style="fill:var(--wl)">필터</text>
+  <text class="s" x="238" y="140" text-anchor="middle">쓸 주파수만</text>
+  <text class="s" x="238" y="154" text-anchor="middle">통과시킨다</text>
+
+  <rect x="336" y="40" width="112" height="62" rx="9" fill="var(--wl-f)" stroke="var(--wl)" stroke-width="1.6"/>
+  <text class="b" x="392" y="64" text-anchor="middle" font-size="14" style="fill:var(--wl)">PA</text>
+  <text class="s" x="392" y="80" text-anchor="middle">Power Amplifier</text>
+  <text class="s" x="392" y="94" text-anchor="middle">세게 키워 내보낸다</text>
+
+  <rect x="336" y="170" width="112" height="62" rx="9" fill="var(--wl-f)" stroke="var(--wl)" stroke-width="1.6"/>
+  <text class="b" x="392" y="194" text-anchor="middle" font-size="14" style="fill:var(--wl)">LNA</text>
+  <text class="s" x="392" y="210" text-anchor="middle">Low Noise Amplifier</text>
+  <text class="s" x="392" y="224" text-anchor="middle">약한 신호를 곱게 키운다</text>
+
+  <rect x="496" y="100" width="116" height="70" rx="9" fill="var(--cz-f)" stroke="var(--cz)" stroke-width="1.6"/>
+  <text class="b" x="554" y="126" text-anchor="middle" font-size="14" style="fill:var(--cz)">트랜시버</text>
+  <text class="s" x="554" y="143" text-anchor="middle">전파 ↔ 디지털</text>
+  <text class="s" x="554" y="157" text-anchor="middle">신호 변환</text>
+
+  <rect x="660" y="100" width="112" height="70" rx="9" fill="var(--surf2)" stroke="var(--line2)" stroke-width="1.4"/>
+  <text class="b" x="716" y="130" text-anchor="middle" font-size="14">DU 로</text>
+  <text class="s" x="716" y="148" text-anchor="middle">디지털 데이터</text>
+
+  <g class="ar" marker-end="url(#ah2)">
+    <path d="M496,71 L448,71"/><path d="M336,71 L292,71"/>
+    <path d="M292,199 L332,199"/><path d="M448,199 L492,199"/>
+    <path d="M186,135 L152,135"/><path d="M152,152 L186,152"/>
+    <path d="M612,135 L656,135"/><path d="M656,152 L612,152"/>
+  </g>
+  <text class="m" x="392" y="26" text-anchor="middle" style="fill:var(--wl)">◂ 송신 (TX) — 내가 말하는 길</text>
+  <text class="m" x="392" y="252" text-anchor="middle" style="fill:var(--wl)">수신 (RX) ▸ — 내가 듣는 길</text>
+
+  <g class="s" text-anchor="middle">
+    <text x="96" y="300">케이엠더블유 · 에이스테크</text><text x="96" y="314">알에프텍 · 기가레인 · 센서뷰</text>
+    <text x="238" y="300">케이엠더블유 · 에이스테크</text><text x="238" y="314">기가레인 · 센서뷰</text>
+    <text x="392" y="300" style="fill:var(--wl)">RFHIC</text><text x="392" y="314">— 국내는 사실상 한 곳</text>
+    <text x="554" y="300">ADI · NXP · 퀄컴</text><text x="554" y="314">— 국내 공급사 없음</text>
+  </g>
+  <text class="ti" x="0" y="276">국내 공급사</text>
+  <defs><marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M0,1 L9,5 L0,9 z" fill="var(--ink3)"/></marker></defs>
+</svg>
+</div><figcaption>공급사는 증권사 리포트의 부품별 분류표를 옮긴 것입니다<span class="tag t-n">증권사</span>.
+<b>두 칸이 비어 있다는 점</b>이 이 그림의 핵심입니다 — 트랜시버는 국내 공급사가 없고, 증폭기는 사실상 한 곳뿐입니다.</figcaption></figure>
+
+<div class="note">
+<b>왜 안테나·필터는 여러 곳인데 증폭기는 한 곳인가.</b>
+안테나와 필터는 금속을 정밀하게 깎고 조립하는 <b>기구 가공</b>에 가깝습니다. 잘 만드는 회사가 여럿 나올 수 있습니다.
+반면 PA는 <b>반도체 공정</b>입니다. 고출력·고주파를 견디려면 <b class="mn">GaN</b>(Gallium Nitride, 질화갈륨) 같은
+화합물 반도체를 써야 하고, 웨이퍼 공정과 패키징 기술이 함께 있어야 합니다. 진입 장벽의 성격이 다릅니다.
+</div>
+
+<div class="tw"><table>
+<tr><th>약어</th><th>원뜻</th><th>쉽게 말하면</th></tr>
+<tr><td class="k">PA</td><td class="n">Power Amplifier</td><td>목소리를 크게 내는 확성기. 전파를 멀리 보내려면 세게 키워야 함</td></tr>
+<tr><td class="k">LNA</td><td class="n">Low Noise Amplifier</td><td>멀리서 온 약한 소리를 <b>잡음을 보태지 않고</b> 키우는 보청기</td></tr>
+<tr><td class="k">GaN</td><td class="n">Gallium Nitride</td><td>높은 전압·높은 주파수를 견디는 반도체 재료. 실리콘으로는 한계가 있는 자리에 씀</td></tr>
+<tr><td class="k">MIMO</td><td class="n">Multiple Input Multiple Output</td><td>안테나를 여러 개 써서 동시에 여러 갈래로 보냄. 같은 주파수로 더 많이 나르는 방법</td></tr>
+<tr><td class="k">듀플렉서</td><td class="n">Duplexer</td><td>보내는 신호와 받는 신호가 한 안테나를 같이 쓰게 갈라 주는 부품</td></tr>
+</table></div>
+</section>
+
+<section id="c6">
+<div class="sh"><span class="num">06</span><h2>RAN · vRAN · O-RAN · AI-RAN</h2></div>
+<p class="lede">이름이 비슷해서 헷갈리지만, 서로 반대말이 아닙니다.
+<b>RAN</b>은 망 그 자체이고, 나머지 셋은 그 망을 <b>어떻게 만드느냐</b>에 대한 서로 다른 선택입니다.</p>
+
+<div class="tw"><table>
+<tr><th>이름</th><th>원뜻</th><th>무엇을 바꾸는가</th><th>묻는 질문</th></tr>
+<tr><td class="k">RAN</td><td class="n">Radio Access Network</td><td>바꾸는 게 아니라 <b>대상 그 자체</b>. RU·DU·CU를 포함한 무선 접속망</td><td>—</td></tr>
+<tr><td class="k">vRAN</td><td class="n">Virtualized RAN</td><td>DU·CU를 <b>전용 장비 대신 범용 서버 + 소프트웨어</b>로 구현</td><td>하드웨어에 묶일 것인가?</td></tr>
+<tr><td class="k">O-RAN</td><td class="n">Open RAN</td><td>장비 사이 <b>연결 규격을 공개</b>해 다른 제조사 장비를 섞을 수 있게 함</td><td>한 벤더에 묶일 것인가?</td></tr>
+<tr><td class="k">AI-RAN</td><td class="n">AI RAN</td><td>통신 연산과 <b>AI 연산을 같은 인프라</b>에서 처리하거나, 망 운영에 AI를 적용</td><td>이 서버로 AI도 돌릴 것인가?</td></tr>
+</table></div>
+<div class="note">vRAN과 O-RAN은 <b>같이 가야 하는 것이 아닙니다.</b>
+가상화는 했지만 한 제조사 장비만 쓰는 구성도 가능하고, 그 반대도 가능합니다. 둘은 독립된 축입니다.</div>
+
+<h3>O-RAN이 실제로 바꾸는 것</h3>
+<figure><div class="fig">
+<svg viewBox="0 0 760 260" role="img" aria-label="전통 RAN과 O-RAN의 벤더 구성 비교">
+  <text class="ti" x="0" y="14">기존 RAN — 한 제조사가 통째로</text>
+  <rect x="0" y="26" width="520" height="56" rx="9" fill="var(--surf2)" stroke="var(--line2)" stroke-width="1.4"/>
+  <g stroke="var(--line2)" stroke-width="1" stroke-dasharray="4 4">
+    <line x1="173" y1="26" x2="173" y2="82"/><line x1="346" y1="26" x2="346" y2="82"/>
+  </g>
+  <g class="b" font-size="13" text-anchor="middle"><text x="86" y="52">RU</text><text x="260" y="52">DU</text><text x="433" y="52">CU</text></g>
+  <text class="s" x="260" y="70" text-anchor="middle">세 칸 전부 같은 제조사 — 규격이 비공개라 섞을 수 없음</text>
+  <text class="m" x="534" y="58" style="fill:var(--ink3)">교체하려면 통째로</text>
+
+  <text class="ti" x="0" y="124" style="fill:var(--wl)">O-RAN — 칸마다 고를 수 있다</text>
+  <rect x="0" y="136" width="160" height="56" rx="9" fill="var(--wl-f)" stroke="var(--wl)" stroke-width="1.6"/>
+  <rect x="180" y="136" width="160" height="56" rx="9" fill="var(--wl-f)" stroke="var(--wl)" stroke-width="1.6"/>
+  <rect x="360" y="136" width="160" height="56" rx="9" fill="var(--wl-f)" stroke="var(--wl)" stroke-width="1.6"/>
+  <g class="b" font-size="13" text-anchor="middle" style="fill:var(--wl)">
+    <text x="80" y="160">O-RU</text><text x="260" y="160">O-DU</text><text x="440" y="160">O-CU</text></g>
+  <g class="s" text-anchor="middle">
+    <text x="80" y="178">제조사 A</text><text x="260" y="178">제조사 B</text><text x="440" y="178">제조사 C</text></g>
+  <g class="m" text-anchor="middle" style="fill:var(--wd)"><text x="170" y="214">공개 규격</text><text x="350" y="214">공개 규격</text></g>
+  <g stroke="var(--wd)" stroke-width="2.5"><line x1="160" y1="164" x2="180" y2="164"/><line x1="340" y1="164" x2="360" y2="164"/></g>
+  <text class="m" x="534" y="168" style="fill:var(--wl)">그 칸만 바꾸면 됨</text>
+  <text class="lb" x="0" y="248">이 "공개 규격" 덕분에 작은 회사도 한 칸만 잘 만들어 팔 수 있습니다 — 국내 중소형 장비사에 기회가 열리는 지점입니다.</text>
+</svg>
+</div><figcaption>증권사 추정으로는 O-RAN 도입 시 설비투자(Capex)를 최대 50%, 운영비(Opex)를 약 30% 줄일 수 있다고 봅니다<span class="tag t-n">증권사·추정</span>.
+실제 절감폭은 구성과 규모에 따라 달라지므로, 확정된 숫자로 보면 안 됩니다.</figcaption></figure>
+
+<h3>AI-RAN — 통신 투자와 AI 투자가 겹치는 자리</h3>
+<div class="body">
+<p>DU·CU를 범용 서버로 돌리기 시작하면 질문이 하나 생깁니다. <b>그 서버가 놀 때는 무엇을 하나?</b>
+기지국 트래픽은 시간대별로 크게 출렁입니다. 새벽에 노는 연산 자원으로 AI 추론을 돌리자는 것이 AI-RAN의 출발점입니다.</p>
+<p>거꾸로도 성립합니다. 01장에서 본 <b>5ms 제약</b> 때문에 AI 추론 서버는 가입자 가까이 내려와야 하는데,
+통신사는 이미 전국 국사에 <b>자리·전원·광선로</b>를 갖고 있습니다. 엣지 데이터센터를 새로 지을 필요가 없습니다.
+이 둘이 만나면 통신 장비 발주와 AI 인프라 발주가 같은 사업이 됩니다.</p>
+</div>
+
+<div class="tw"><table>
+<tr><th>약어</th><th>원뜻</th><th>RAN에서의 쓰임</th></tr>
+<tr><td class="k">ASIC</td><td class="n">Application Specific Integrated Circuit</td><td>통신 전용으로 굳힌 칩. 빠르고 전력 효율이 좋지만 바꿀 수 없음 — 기존 기지국의 주력</td></tr>
+<tr><td class="k">DSP</td><td class="n">Digital Signal Processor</td><td>신호 처리 전담 칩</td></tr>
+<tr><td class="k">FPGA</td><td class="n">Field Programmable Gate Array</td><td>만든 뒤에도 회로를 바꿀 수 있는 칩. 규격이 바뀌는 과도기에 유용</td></tr>
+<tr><td class="k">CPU</td><td class="n">Central Processing Unit</td><td>범용 서버의 중심. vRAN이 기대는 자리</td></tr>
+<tr><td class="k">GPU</td><td class="n">Graphics Processing Unit</td><td>병렬 연산용. AI-RAN이 끌어들이는 자리</td></tr>
+<tr><td class="k">SoC</td><td class="n">System on Chip</td><td>여러 기능을 한 칩에 통합</td></tr>
+<tr><td class="k">NIC</td><td class="n">Network Interface Card</td><td>서버를 망에 붙이는 장치. 통신 가속 기능을 얹기도 함</td></tr>
+</table></div>
+<p class="src">전용 플랫폼(ASIC·DSP·FPGA) → 범용 서버(CPU + 가속기) → AI 병행(GPU)으로 무게중심이 옮겨 가는 중입니다.</p>
+</section>
+
+<section id="c7">
+<div class="sh"><span class="num">07</span><h2>코어망과 엣지</h2></div>
+<p class="lede">코어망은 "누가 접속했고, 그 데이터를 어디로 보낼지"를 정하는 머리입니다.
+요금제·인증·과금이 여기서 돌아갑니다. 예전엔 전용 장비였지만 지금은 소프트웨어입니다 — 그것이 <b class="mn">vCore</b>.</p>
+
+<div class="tw"><table>
+<tr><th>약어</th><th>원뜻</th><th>하는 일</th></tr>
+<tr><td class="k">UPF</td><td class="n">User Plane Function</td><td><b>실제 데이터를 나르는 통로.</b> 내 영상·사진이 지나가는 길목</td></tr>
+<tr><td class="k">AMF</td><td class="n">Access and Mobility Management Function</td><td>단말이 접속했는지, 어느 기지국으로 옮겨 갔는지 관리</td></tr>
+<tr><td class="k">SMF</td><td class="n">Session Management Function</td><td>데이터 연결을 만들고 끊음. UPF에게 "이 사용자는 이리로 보내라" 지시</td></tr>
+<tr><td class="k">AUSF</td><td class="n">Authentication Server Function</td><td>USIM이 진짜 가입자인지 확인</td></tr>
+<tr><td class="k">UDM</td><td class="n">Unified Data Management</td><td>가입자 정보 보관</td></tr>
+<tr><td class="k">PCF</td><td class="n">Policy Control Function</td><td>요금제·속도 제한 같은 정책 적용</td></tr>
+</table></div>
+
+<h3>여섯 중 UPF가 유독 중요한 이유</h3>
+<div class="body">
+<p>나머지 다섯은 <b>제어 신호</b>를 다룹니다. 접속할 때 잠깐 쓰이고 끝납니다.
+UPF만 <b>데이터 그 자체</b>가 지나갑니다. 그래서 UPF를 어디에 두느냐가 지연을 결정합니다.</p>
+<p>UPF가 중앙 데이터센터에만 있으면, 공장 안 로봇이 바로 옆 서버와 이야기할 때도
+데이터가 서울까지 갔다 돌아옵니다. UPF를 공장 근처로 내려놓으면 그 왕복이 사라집니다.
+이것이 <b class="mn">MEC</b>(Multi-access Edge Computing)입니다.</p>
+</div>
+
+<figure><div class="fig">
+<svg viewBox="0 0 760 266" role="img" aria-label="중앙 UPF와 엣지 UPF 경로 비교">
+  <text class="ti" x="0" y="14">같은 로봇, 같은 서버 — UPF 위치만 다르다</text>
+  <text class="m" x="0" y="42" style="fill:var(--ink3)">① UPF 가 중앙에만 있을 때</text>
+  <g fill="var(--surf2)" stroke="var(--line2)" stroke-width="1.3">
+    <rect x="0" y="54" width="92" height="42" rx="7"/><rect x="608" y="54" width="146" height="42" rx="7"/>
+  </g>
+  <rect x="300" y="54" width="110" height="42" rx="7" fill="var(--cz-f)" stroke="var(--cz)" stroke-width="1.5"/>
+  <text class="b" x="46" y="80" text-anchor="middle" font-size="12">로봇</text>
+  <text class="b" x="355" y="80" text-anchor="middle" font-size="12" style="fill:var(--cz)">중앙 UPF</text>
+  <text class="b" x="681" y="74" text-anchor="middle" font-size="12">AI 추론 서버</text>
+  <text class="s" x="681" y="89" text-anchor="middle">공장 바로 옆</text>
+  <path class="ar" d="M92,75 L296,75" marker-end="url(#ah3)"/>
+  <path class="ar" d="M410,75 L604,75" marker-end="url(#ah3)"/>
+  <path d="M700,100 C700,130 300,130 46,100" class="ar" stroke-dasharray="4 4"/>
+  <text class="s" x="194" y="68" text-anchor="middle">서울까지</text>
+  <text class="s" x="507" y="68" text-anchor="middle">다시 공장으로</text>
+  <text class="m" x="380" y="132" text-anchor="middle" style="fill:var(--warn)">왕복 수백 km — 수 ms 를 길에서 소모</text>
+
+  <text class="m" x="0" y="174" style="fill:var(--ink3)">② UPF 를 엣지로 내렸을 때</text>
+  <g fill="var(--surf2)" stroke="var(--line2)" stroke-width="1.3">
+    <rect x="0" y="186" width="92" height="42" rx="7"/><rect x="258" y="186" width="146" height="42" rx="7"/>
+  </g>
+  <rect x="132" y="186" width="98" height="42" rx="7" fill="var(--cz-f)" stroke="var(--cz)" stroke-width="1.5"/>
+  <text class="b" x="46" y="212" text-anchor="middle" font-size="12">로봇</text>
+  <text class="b" x="181" y="206" text-anchor="middle" font-size="12" style="fill:var(--cz)">엣지 UPF</text>
+  <text class="s" x="181" y="221" text-anchor="middle">인근 국사</text>
+  <text class="b" x="331" y="206" text-anchor="middle" font-size="12">AI 추론 서버</text>
+  <text class="s" x="331" y="221" text-anchor="middle">같은 국사 안</text>
+  <path class="ar" d="M92,207 L128,207" marker-end="url(#ah3)"/>
+  <path class="ar" d="M230,207 L254,207" marker-end="url(#ah3)"/>
+  <rect x="440" y="186" width="314" height="42" rx="7" fill="var(--wd-f)" stroke="var(--wd)" stroke-width="1.4"/>
+  <text class="m" x="597" y="206" text-anchor="middle" style="fill:var(--wd)">데이터가 지역을 벗어나지 않는다</text>
+  <text class="s" x="597" y="221" text-anchor="middle">지연도 줄고, 공장 밖으로 자료가 안 나간다</text>
+  <text class="lb" x="0" y="258">통신사가 전국 국사에 이미 자리·전원·광선로를 갖고 있다는 점이 여기서 자산이 됩니다.</text>
+  <defs><marker id="ah3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M0,1 L9,5 L0,9 z" fill="var(--ink3)"/></marker></defs>
+</svg>
+</div><figcaption>01장의 5ms 예산이 여기서 풀립니다. 지연을 줄이는 가장 확실한 방법은 빠른 장비가 아니라 <b>짧은 거리</b>입니다.</figcaption></figure>
+
+<div class="cards c2">
+  <div class="card cz"><h4>SA <span class="s">Standalone</span></h4><p>5G 기지국 + 5G 코어망. 완전한 5G. 저지연·전용망 기능이 여기서 나옵니다.</p></div>
+  <div class="card cz"><h4>NSA <span class="s">Non-Standalone</span></h4><p>5G 기지국 + <b>4G 코어망</b>. 빨리 깔려고 쓴 과도기 구성. 속도는 올라가지만 저지연 기능은 제한됩니다.</p></div>
+  <div class="card cz"><h4>NMS <span class="s">Network Management System</span></h4><p>장비가 정상인지, 어디서 장애가 났는지 보는 관리 소프트웨어.</p></div>
+  <div class="card cz"><h4>E2E <span class="s">End-to-End</span></h4><p>"끝에서 끝까지". 장비를 낱개로 파는 게 아니라 망 한 벌을 통째로 공급한다는 뜻.</p></div>
+</div>
+</section>
+
+<section id="c8">
+<div class="sh"><span class="num">08</span><h2>국내 기업 위치 지도</h2></div>
+<p class="lede">통신은 한 산업이 아니라 세 산업입니다 — <b style="color:var(--wl)">무선</b>, <b style="color:var(--wd)">유선·광</b>, <b style="color:var(--st)">위성</b>.
+어떤 회사가 어느 영역에 있는지, 그리고 <b>둘 이상에 걸쳐 있는 회사는 누구인지</b>를 먼저 봅니다.</p>
+
+<h3>① 세 영역과 그 교집합</h3>
+<figure><div class="fig">
+<svg viewBox="120 40 690 710" role="img" aria-label="무선 유선 위성 세 영역의 벤 다이어그램과 국내 기업 배치">
+  <g stroke-width="2">
+    <circle cx="330" cy="250" r="200" fill="var(--wl)" fill-opacity=".10" stroke="var(--wl)"/>
+    <circle cx="590" cy="250" r="200" fill="var(--wd)" fill-opacity=".10" stroke="var(--wd)"/>
+    <circle cx="460" cy="480" r="200" fill="var(--st)" fill-opacity=".10" stroke="var(--st)"/>
+  </g>
+  <text class="b" x="215" y="112" text-anchor="middle" font-size="15" style="fill:var(--wl)">무선 밸류체인</text>
+  <text class="b" x="702" y="112" text-anchor="middle" font-size="15" style="fill:var(--wd)">유선 밸류체인</text>
+  <text class="b" x="460" y="658" text-anchor="middle" font-size="15" style="fill:var(--st)">위성통신</text>
+
+  <g font-size="13" text-anchor="middle" style="fill:var(--ink)">
+    <text x="250" y="174">케이엠더블유</text><text x="250" y="196">에이스테크</text>
+    <text x="250" y="218">기가레인</text><text x="250" y="240">알에프텍</text>
+    <text x="250" y="262">웨이브일렉트로</text><text x="250" y="284">서진시스템</text>
+    <text x="250" y="306">RF머트리얼즈</text><text x="250" y="328">쏠리드</text>
+  </g>
+  <g font-size="13" text-anchor="middle" style="fill:var(--ink)">
+    <text x="657" y="180">오이솔루션</text><text x="657" y="202">대한광통신</text>
+    <text x="657" y="224">빛과전자</text><text x="657" y="246">성호전자</text>
+    <text x="657" y="268">유비쿼스</text><text x="657" y="290">다산네트웍스</text>
+    <text x="657" y="312">머큐리</text>
+  </g>
+  <text class="s" x="460" y="178" text-anchor="middle">무선 + 유선</text>
+  <g font-size="13" text-anchor="middle" style="fill:var(--ink)" font-weight="700">
+    <text x="460" y="204">에치에프알</text><text x="460" y="226">자람테크놀로지</text>
+  </g>
+  <text class="s" x="378" y="374" text-anchor="middle">무선 + 위성</text>
+  <g font-size="13" text-anchor="middle" style="fill:var(--ink)" font-weight="700">
+    <text x="378" y="400">RFHIC</text><text x="378" y="422">LIG아큐버</text>
+  </g>
+  <g font-size="13" text-anchor="middle" style="fill:var(--ink)">
+    <text x="460" y="562">인텔리안테크</text><text x="460" y="584">에이비스</text>
+    <text x="460" y="606">RF시스템즈</text><text x="460" y="628">센서뷰</text>
+  </g>
+</svg>
+</div><figcaption>증권사 리포트의 교집합 그림을 재구성했습니다<span class="tag t-n">증권사·분류</span>.
+원문에 있던 <b>투자의견(Top pick·관심종목)과 밸류에이션 원은 옮기지 않았습니다</b> — 이 지도는 "어디에 있는가"만 다룹니다.<br>
+<b>⚠ 분류는 리포트마다 다릅니다.</b> 여기서 위성에 놓인 <b>센서뷰</b>는 다른 리포트의 무선 부품표에서 안테나·필터·커넥터 공급사로 나옵니다.
+경계선은 확정된 사실이 아니라 각 하우스의 판단입니다. 세 영역 모두에 걸친 회사와 「유선+위성」 교집합은 비어 있습니다.</figcaption></figure>
+
+<div class="note"><b>교집합에 있다는 것의 의미.</b> 두 영역에 걸친 회사는 한쪽 투자 사이클이 식어도 다른 쪽이 받쳐 줍니다.
+반대로 어느 쪽에서도 1등이 아닐 수 있습니다. 교집합은 <b>안정성의 근거이지 우월함의 근거가 아닙니다.</b></div>
+
+<h3>② 계층별 위치 — 업스트림 · 미드스트림 · 다운스트림</h3>
+<div class="leg">
+  <span><i style="background:var(--wl)"></i>무선</span>
+  <span><i style="background:var(--wd)"></i>유선·광</span>
+  <span><i style="background:var(--st)"></i>위성</span>
+  <span><i style="background:var(--ink3)"></i>통신사·대형 벤더</span>
+</div>
+<div class="gmw"><div class="gmap" id="gmap"></div></div>
+<p class="src">무선·유선 미드스트림 분류는 증권사 부품별 공급사 표<span class="tag t-n">증권사</span>,
+위성은 다른 증권사의 NTN 밸류체인 그림<span class="tag t-n">증권사</span>을 따랐습니다.
+다운스트림은 일반적으로 알려진 구성입니다<span class="tag t-n">참고</span>.
+<b>한 회사가 여러 칸에 나오는 것이 정상입니다</b> — 제품군이 여럿이기 때문입니다.</p>
+
+<h3>③ 부품별로 누가 하나 — 무선 기지국 기준</h3>
+<div class="tw"><table>
+<tr><th>부품</th><th>하는 일</th><th>국내 공급사</th></tr>
+<tr><td class="k">안테나</td><td>전파를 안정적으로 송수신</td><td>케이엠더블유 · 에이스테크 · 알에프텍 · 기가레인 · 센서뷰</td></tr>
+<tr><td class="k">필터</td><td>쓸 주파수만 고르고 잡음 제거</td><td>케이엠더블유 · 에이스테크 · 기가레인 · 센서뷰</td></tr>
+<tr><td class="k">커넥터·케이블</td><td>기지국 내부 모듈 간 물리적 연결</td><td>기가레인 · 센서뷰</td></tr>
+<tr><td class="k">트랜지스터·증폭기</td><td>RF 신호를 증폭해 전송 효율을 올림</td><td>RFHIC</td></tr>
+<tr><td class="k">광트랜시버</td><td>광↔전기 변환으로 고속 송수신</td><td>오이솔루션 · 빛과전자</td></tr>
+<tr><td class="k">시험·계측기</td><td>기지국·단말 성능 검증과 정밀 측정</td><td>LIG아큐버</td></tr>
+<tr><td class="k">스몰셀</td><td>커버리지 확장·트래픽 분산용 소형 기지국</td><td>LIG아큐버 · 쏠리드 · 에치에프알</td></tr>
+<tr><td class="k">중계기</td><td>신호를 증폭·재방사해 음영 지역 해소</td><td>쏠리드 · 에치에프알 · 웨이브일렉트로</td></tr>
+<tr><td class="k">케이스·함체</td><td>부품 보호와 발열 제어</td><td>서진시스템</td></tr>
+<tr><td class="k">프론트홀 장비</td><td>RU와 DU를 광선로로 연결</td><td>에치에프알 · 쏠리드</td></tr>
+<tr><td class="k">O-RU</td><td>개방형 규격의 무선 송수신 장비</td><td>에치에프알 · 쏠리드 · LIG아큐버 · 웨이브일렉트로</td></tr>
+</table></div>
+<p class="src">출처: 증권사 통신장비 리포트의 「무선통신장비 기업 정리」 표(2026-05)<span class="tag t-n">증권사</span>.
+<b>기술 보유와 매출 발생은 다릅니다</b> — 표에 이름이 있다고 그 품목에서 의미 있는 매출이 나온다는 뜻은 아닙니다.</p>
+
+<div class="warnbox">
+<b>이 지도로 할 수 없는 것.</b> 어느 칸의 회사가 돈을 버는지는 여기 없습니다.
+국내 부품사 상당수는 삼성전자 밸류체인에 묶여 있고, 삼성전자가 북미에서 얼마를 수주할지,
+그 안에서 국내 상장사가 얼마를 가져갈지는 <b>외부에서 확인되지 않습니다</b>.
+증권사 리포트도 이 구간을 "주문 배분과 고객사를 알기 어려운 블랙박스"라고 적습니다<span class="tag t-n">증권사</span>.
+위치는 출발점일 뿐, 실적은 공시로 따로 확인해야 합니다.
+</div>
+</section>
+
+<section id="c9">
+<div class="sh"><span class="num">09</span><h2>산업 지형도 — 국내 상장사는 어디에 있나</h2></div>
+<p class="lede">통신은 <b>부품을 만드는 쪽(후방)</b> → <b>장비와 서비스를 만드는 쪽(핵심)</b> → <b>그 망 위에서 장사하는 쪽(전방)</b>으로 흐릅니다.
+칸을 누르면 그 칸의 <b>국내 상장사 전부</b>와 글로벌 기업이 아래에 펼쳐집니다.</p>
+
+<div class="body">
+<p><b>쉽게 말하면 이렇습니다.</b> 누군가는 작은 칩과 부품을 만듭니다(후방). 다른 누군가는 그걸 모아
+철탑 위에 올라갈 장비를 만들고, 통신사는 그 장비를 사서 망을 깝니다(핵심).
+그리고 우리는 그 망 위에서 영상을 보고, 차는 길을 묻고, 로봇은 명령을 받습니다(전방).
+<b>돈은 전방에서 나와 핵심을 거쳐 후방으로 흘러갑니다.</b> 그래서 통신사가 지갑을 닫으면 부품사까지 조용해집니다.</p>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-chip" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/><path d="M9.5 6V2.8M14.5 6V2.8M9.5 21.2V18M14.5 21.2V18M6 9.5H2.8M6 14.5H2.8M21.2 9.5H18M21.2 14.5H18"/></symbol>
+<symbol id="i-wave" viewBox="0 0 24 24"><rect x="9" y="3.5" width="6" height="17" rx="1.2" fill="currentColor" stroke="none" opacity=".18"/><path d="M1.5 12 Q3.3 5.5 5.1 12 T8.7 12 T12.3 12 T15.9 12 T19.5 12 T23 12"/></symbol>
+<symbol id="i-pcb" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7.5 9.5h4.5v5H17"/><path d="M7.5 17h3.5"/><circle cx="7.5" cy="9.5" r="1.2" fill="currentColor" stroke="none"/><circle cx="17" cy="14.5" r="1.2" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-fiber" viewBox="0 0 24 24"><path d="M2 20 Q13 20 16.5 6.5"/><path d="M2 16.5 Q10 16 13.5 5.5"/><circle cx="17.5" cy="5" r="3.4" fill="currentColor" stroke="none" opacity=".2"/><circle cx="17.5" cy="5" r="1.4" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-conn" viewBox="0 0 24 24"><rect x="2.5" y="8" width="9" height="8" rx="1.6"/><path d="M11.5 10.5h4.5M11.5 13.5h4.5"/><rect x="16" y="5.5" width="5.5" height="13" rx="1.6"/></symbol>
+<symbol id="i-box" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M7.5 7h9M7.5 10h9M7.5 13h9"/><circle cx="8.5" cy="17.5" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="17.5" r="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18.5h10a4 4 0 0 0 .4-8 5.6 5.6 0 0 0-10.7 1.2A3.6 3.6 0 0 0 7 18.5z"/></symbol>
+<symbol id="i-tower" viewBox="0 0 24 24"><path d="M12 21V9.5"/><path d="M8 21l4-11.5L16 21"/><path d="M9.4 16.5h5.2M10.3 13h3.4"/><circle cx="12" cy="7" r="1.4" fill="currentColor" stroke="none"/><path d="M9.2 5.8 Q12 2.2 14.8 5.8"/><path d="M7.2 4.2 Q12 -1.2 16.8 4.2"/></symbol>
+<symbol id="i-repeat" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="7" height="7" rx="1.5"/><path d="M6.5 9.8 Q4.2 12 6.5 14.2"/><path d="M17.5 9.8 Q19.8 12 17.5 14.2"/><path d="M4 7.6 Q0.6 12 4 16.4"/><path d="M20 7.6 Q23.4 12 20 16.4"/></symbol>
+<symbol id="i-fhaul" viewBox="0 0 24 24"><rect x="1.5" y="8.5" width="6.5" height="7" rx="1.5"/><rect x="16" y="8.5" width="6.5" height="7" rx="1.5"/><path d="M8 12h8"/><circle cx="12" cy="12" r="1.7" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-trx" viewBox="0 0 24 24"><rect x="2.5" y="8" width="13" height="8" rx="1.6"/><path d="M5.5 11h4.5M5.5 13.5h4.5"/><path d="M15.5 12h5"/><circle cx="21" cy="12" r="1.5" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-router" viewBox="0 0 24 24"><rect x="3" y="13.5" width="18" height="6" rx="2"/><path d="M7.5 13.5L6 5.5M16.5 13.5L18 5.5"/><circle cx="7.5" cy="16.5" r="1" fill="currentColor" stroke="none"/><circle cx="11.5" cy="16.5" r="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2.8l7 3v5.4c0 4.6-3 8.2-7 10-4-1.8-7-5.4-7-10V5.8z"/><path d="M9 12l2.2 2.2L15.4 10"/></symbol>
+<symbol id="i-meter" viewBox="0 0 24 24"><path d="M3.5 18 Q12 4 20.5 18"/><path d="M12 18l4.2-5.4"/><circle cx="12" cy="18" r="1.5" fill="currentColor" stroke="none"/><path d="M3.5 20.5h17"/></symbol>
+<symbol id="i-wrench" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.3"/><path d="M12 2.2v3M12 18.8v3M2.2 12h3M18.8 12h3M5.1 5.1l2.1 2.1M16.8 16.8l2.1 2.1M18.9 5.1l-2.1 2.1M7.2 16.8l-2.1 2.1"/></symbol>
+<symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.4"/><path d="M10.6 5.2h2.8"/><circle cx="12" cy="18.6" r="1" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-stb" viewBox="0 0 24 24"><rect x="2.5" y="13" width="19" height="7" rx="1.8"/><circle cx="6.5" cy="16.5" r="1.1" fill="currentColor" stroke="none"/><path d="M10.5 16.5h7"/><path d="M8.6 10 Q12 5.6 15.4 10"/><path d="M10.4 11.4 Q12 9.2 13.6 11.4"/></symbol>
+<symbol id="i-sat" viewBox="0 0 24 24"><rect x="9.5" y="9" width="5" height="7.5" rx="1"/><rect x="1.5" y="10.2" width="6.6" height="5" rx=".8"/><rect x="15.9" y="10.2" width="6.6" height="5" rx=".8"/><path d="M12 9V5.4"/><path d="M9.6 4.6 Q12 1.6 14.4 4.6"/></symbol>
+<symbol id="i-dish" viewBox="0 0 24 24"><path d="M4 16.5 Q4 4 16.5 4 Q16.5 12 4 16.5 z"/><path d="M9.8 11.6L7 20"/><path d="M4 20.5h6.5"/><path d="M10.6 10.4l5.2 1.2"/><circle cx="16.4" cy="11.7" r="1.3" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-satphone" viewBox="0 0 24 24"><rect x="7.5" y="8" width="8" height="13.2" rx="2"/><path d="M9.8 11.2h3.4"/><path d="M15.5 8V3.6"/><path d="M13.6 3 Q15.5 0.6 17.4 3"/></symbol>
+<symbol id="i-signal" viewBox="0 0 24 24"><path d="M4 20.5v-5M9.3 20.5v-9M14.6 20.5v-13M20 20.5V3.5"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><rect x="2.5" y="4.5" width="19" height="15" rx="2.5"/><path d="M10 8.8l5.4 3.2L10 15.2z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-car" viewBox="0 0 24 24"><path d="M3 17v-3.4l2.2-4.2h11.6L20 13.6V17"/><path d="M3 17h18"/><circle cx="7.6" cy="18.4" r="1.9"/><circle cx="16.4" cy="18.4" r="1.9"/><path d="M9 6.6 Q12 3.4 15 6.6"/></symbol>
+<symbol id="i-arr" viewBox="0 0 24 24"><path d="M4 12h15M14 7l5 5-5 5"/></symbol>
+</defs></svg>
+
+<div class="mapw">
+  <div class="bands">
+    <div class="band"><div class="bh k1">후방산업 <small>소재 · 부품 · 칩</small></div><div class="ngrid" id="bd-back"></div></div>
+    <div class="band"><div class="bh k2">핵심산업 <small>장비 · 단말 · 위성 · 통신서비스</small></div><div class="ngrid two" id="bd-core"></div></div>
+    <div class="band"><div class="bh k3">전방산업 <small>플랫폼 · 융합서비스</small></div><div class="ngrid" id="bd-front"></div></div>
+  </div>
+  <div id="detail"></div>
+</div>
+
+<h3>국내 상장사 전체 색인</h3>
+<p class="lede" style="margin-bottom:12px">대시보드가 보유한 <b>국내 상장 2,762종목의 사업 설명 전체</b>를 통신 관련 어휘로 훑어 추린 목록입니다.
+회사 이름이 아니라 <b>사업 내용</b>으로 골랐기 때문에, 이름에 "통신"이 없어도 들어옵니다.</p>
+<div class="idxbar">
+  <label for="iq" class="s" style="color:var(--ink3)">검색</label>
+  <input id="iq" type="search" placeholder="회사명 · 종목코드 · 사업 내용 · 분야" autocomplete="off">
+  <span class="idxn" id="in"></span>
+</div>
+<div class="idx tw" id="idx"></div>
+<p class="src">시가총액은 2026-11-25 종가 기준<span class="tag t-n">확인</span>, 사업 설명은 2026-11-02 수집분입니다<span class="tag t-n">확인</span>.
+<b>한 회사가 여러 칸에 나오는 것이 정상입니다</b> — 제품군이 여럿이기 때문입니다.</p>
+
+<div class="warnbox">
+<b>이 목록의 한계를 분명히 해 둡니다.</b><br>
+① <b>분류는 제 판단입니다.</b> 사업 설명 한 줄로 칸을 나눴기 때문에, 매출 비중이 1%인 사업 때문에 들어온 회사가 있을 수 있습니다.<br>
+② <b>이름에 통신이 없고 설명에도 통신 어휘가 없으면 못 걸러냅니다.</b> 실제로 통신 매출이 있어도 한 줄 설명이 다른 사업을 가리키면 빠집니다.<br>
+③ <b>비상장은 없습니다.</b> 요청하신 대로 상장사만 담았습니다. 글로벌 쪽에서 화웨이·SpaceX·Rohde &amp; Schwarz 같은 큰 회사가 빠진 것은 그 때문이며, 칩에 <span class="gchip x" style="display:inline-block;padding:1px 8px">표시</span>해 두었습니다.<br>
+④ <b>여기 있다고 돈을 번다는 뜻이 아닙니다.</b> 08장 끝에 적은 대로, 발주가 어느 벤더로 가고 그 안에서 국내사가 얼마를 가져가는지는 밖에서 확인되지 않습니다.
+</div>
+</section>
+
+<section id="c10">
+<div class="sh"><span class="num">10</span><h2>5G에서 6G로 — 무엇이 실제로 바뀌나</h2></div>
+<p class="lede">세대가 바뀐다는 말은 <b>쓰는 주파수와 규칙이 바뀐다</b>는 뜻입니다.
+그래서 기지국 장비를 새로 깔아야 하고, 그 순간 발주가 납니다. 그게 통신 투자 사이클의 정체입니다.</p>
+
+<div class="body">
+<p><b>먼저 솔직하게.</b> 6G는 <b>아직 속도 숫자가 정해지지 않았습니다.</b>
+국제전기통신연합(ITU)이 2023년 11월에 내놓은 6G 기준 문서는 <b>13개 능력 항목</b> 중
+숫자를 적어 둔 것이 <b>다섯 개뿐</b>입니다. 최고 속도·체감 속도·주파수 효율 같은 나머지는
+항목만 있고 값이 비어 있습니다. "6G는 1Tbps"처럼 도는 숫자들은 <b>표준이 아니라 업계의 희망치</b>입니다.</p>
+</div>
+
+<div class="tw"><table>
+<tr><th>능력</th><th>5G <span class="s">IMT-2020 · 2015년 확정</span></th><th>6G <span class="s">IMT-2030 · 2023년 틀</span></th><th>뜻</th></tr>
+<tr><td class="k">지연</td><td class="n">1 ms</td><td class="n">0.1 ~ 1 ms</td><td>최대 10배 빨라질 수 있다는 범위</td></tr>
+<tr><td class="k">연결 밀도</td><td class="n">100만 대 / km²</td><td class="n">100만 ~ 1억 대 / km²</td><td><b>최대 100배</b> — 기기 수가 폭증한다는 전제</td></tr>
+<tr><td class="k">이동성</td><td class="n">500 km/h</td><td class="n">500 ~ 1,000 km/h</td><td>고속철·항공기까지</td></tr>
+<tr><td class="k">신뢰성</td><td class="n">1 − 10⁻⁵</td><td class="n">1 − 10⁻⁵ ~ 1 − 10⁻⁷</td><td>99.999% → 최대 99.99999%</td></tr>
+<tr><td class="k">측위 정확도</td><td class="n">항목 없음</td><td class="n">1 ~ 10 cm</td><td><b>새로 생긴 항목.</b> 통신망이 위치까지 잰다</td></tr>
+<tr><td class="k">최고 속도</td><td class="n">하향 20 Gbps · 상향 10 Gbps</td><td class="n">— 미정</td><td>항목은 있으나 숫자가 비어 있다</td></tr>
+<tr><td class="k">체감 속도</td><td class="n">100 Mbps</td><td class="n">— 미정</td><td>같음</td></tr>
+</table></div>
+<p class="src">6G 값은 ITU-R 「IMT-2030 Capabilities」 문서의 범위 그대로입니다<span class="tag t-n">확인·표준</span>.
+ITU는 "범위 안의 모든 값은 연구에서 동등한 우선순위를 가진다"고 적어 두었습니다 — <b>아직 고르는 중</b>이라는 뜻입니다.
+5G 값은 IMT-2020 규격의 확정치입니다<span class="tag t-n">확인·표준</span>.</p>
+
+<h3>측위가 새 항목이 된 이유</h3>
+<div class="body">
+<p>표에서 눈여겨볼 것은 <b>측위 정확도 1~10cm</b>입니다. 5G에는 아예 없던 항목입니다.
+GPS는 실내에서 안 되고, 되더라도 수 미터 오차입니다. 공장 안 로봇이나 창고의 운반차에는 못 씁니다.</p>
+<p>6G는 <b>통신 전파로 위치까지 재겠다</b>는 것입니다. 전파가 물체에 맞고 돌아오는 걸 읽으면 레이더가 됩니다.
+이걸 <b>ISAC</b>(Integrated Sensing and Communication, 통신·센싱 통합)이라 부릅니다.
+기지국이 통신 장비인 동시에 센서가 되면, 01장에서 본 로봇·차량 수요와 바로 이어집니다.</p>
+</div>
+
+<h3>업스트림 · 미드스트림 · 다운스트림</h3>
+<div class="body">
+<p>앞에서 본 변화를 <b>세 단으로 세워</b> 보겠습니다. 부품을 만드는 단, 망을 짓는 단, 그 망으로 돈을 버는 단입니다.
+칸 이름은 09장과 같고, 회사 이름을 누르면 peer 표로 갑니다.</p>
+</div>
+
+<figure><div class="fig">
+<svg viewBox="0 0 800 134" role="img" aria-label="5G에서 5G-Advanced를 거쳐 6G로 가는 단계">
+  <text class="ti" x="0" y="13">세대는 한 번에 안 바뀐다 — 가운데 한 단계가 더 있다</text>
+  <rect x="0" y="30" width="232" height="62" rx="10" fill="var(--wd-f)" stroke="var(--wd)" stroke-width="1.5"/>
+  <text class="b" x="18" y="56" font-size="17" style="fill:var(--wd)">5G</text>
+  <text class="s" x="18" y="74">초고속 · 저지연 — 지금 깔려 있는 것</text>
+  <rect x="284" y="30" width="232" height="62" rx="10" fill="var(--wl-f)" stroke="var(--wl)" stroke-width="1.5"/>
+  <text class="b" x="302" y="56" font-size="17" style="fill:var(--wl)">5G-Advanced</text>
+  <text class="s" x="302" y="74">업링크 강화 · 센싱 — <tspan class="b">지금 여기</tspan></text>
+  <rect x="568" y="30" width="232" height="62" rx="10" fill="var(--st-f)" stroke="var(--st)" stroke-width="1.5"/>
+  <text class="b" x="586" y="56" font-size="17" style="fill:var(--st)">6G</text>
+  <text class="s" x="586" y="74">AI 내장 · 위성 연동 · 초연결 — 2030</text>
+  <g class="ar" marker-end="url(#ah)"><line x1="236" y1="61" x2="278" y2="61"/><line x1="520" y1="61" x2="562" y2="61"/></g>
+  <text class="lb" x="0" y="122">"6G 수혜"라는 말이 붙은 발주의 상당수는 실제로는 <tspan class="b">가운데 칸</tspan>입니다 — 5G 장비에 기능을 더하는 투자입니다.</text>
+</svg>
+</div><figcaption>5G-Advanced는 3GPP Release 18~20에 해당하며, <b>업링크 강화</b>와 <b>센싱</b>이 핵심 주제입니다<span class="tag t-n">확인·표준</span>.
+01장에서 본 "올려보내기의 시대"가 표준에 반영된 첫 단계입니다.</figcaption></figure>
+
+<div class="tw"><table>
+<tr><th>단</th><th>무엇을 하나</th><th>국내 상장사</th><th>글로벌 상장사</th></tr>
+<tr><td class="k">업 ①<br><span class="s">반도체·설계자산</span></td><td>RF칩 · 기지국 칩셋 · 통신 SoC · 전력반도체</td>
+  <td>RFHIC · 웨이비스 · PS일렉트로닉스 · 퀄리타스반도체 · 자람테크놀로지 · 아이씨티케이</td>
+  <td>Qualcomm · Broadcom · MediaTek · Analog Devices · NXP · Marvell · MACOM · Wolfspeed</td></tr>
+<tr><td class="k">업 ②<br><span class="s">안테나·RF 부품</span></td><td>Massive MIMO 안테나 · 필터 · PA/LNA · 커넥터</td>
+  <td>케이엠더블유 · 에이스테크 · 기가레인 · 센서뷰 · 와이솔 · 쏘닉스 · RF머트리얼즈 · 알엔투테크놀로지 · 코스텍시스</td>
+  <td>Murata · TDK · Skyworks · Taiyo Yuden · Amphenol · TE Connectivity</td></tr>
+<tr><td class="k">업 ③<br><span class="s">광 부품</span></td><td>광섬유 · 광모듈 · 광소자</td>
+  <td>대한광통신 · 오이솔루션 · 빛과전자 · 옵티코어 · 우리로 · 라이콤 · 한국첨단소재 · 티엠씨</td>
+  <td>Corning · Coherent · Lumentum · Sumitomo Electric · Fujikura</td></tr>
+<tr><td class="k">업 ④<br><span class="s">기판·수동소자·전원·함체</span></td><td>PCB/MLB · MLCC · 전원장치 · 금속 함체</td>
+  <td>삼성전기 · 이수페타시스 · 대덕전자 · 코리아써키트 · 삼화콘덴서공업 · 동양이엔피 · 서진시스템</td>
+  <td>Murata · Yageo · TTM Technologies · Ibiden</td></tr>
+<tr><td class="k">업 ⑤<br><span class="s">소프트웨어·표준·보안</span></td><td>3GPP 규격 · 망 관리(OSS/BSS) · 보안</td>
+  <td>텔코웨어 · 이루온 · 유엔젤 · 인티큐브 · 네이블 · 윈스테크넷 · 파이오링크 · 지니언스</td>
+  <td>Palo Alto Networks · Fortinet · F5 · Amdocs</td></tr>
+<tr><td class="k">미드 ①<br><span class="s">무선접속망(RAN)</span></td><td>매크로 기지국 · 스몰셀 · 중계기 · O-RU (RU → DU → CU)</td>
+  <td>쏠리드 · 에치에프알 · LIG아큐버 · 웨이브일렉트로 · 에프알텍 · 주성코퍼레이션 · 기산텔레콤 · 와이어블</td>
+  <td>Ericsson · Nokia · Samsung Electronics · ZTE · <span class="s">Huawei(비상장)</span></td></tr>
+<tr><td class="k">미드 ②<br><span class="s">전송망</span></td><td>Fronthaul · Midhaul · Backhaul · WDM</td>
+  <td>에치에프알 · 쏠리드 · 우리넷 · 코위버 · 광무 · 한울소재과학</td>
+  <td>Ciena · Nokia · Cisco · Adtran · Fujitsu · NEC</td></tr>
+<tr><td class="k">미드 ③<br><span class="s">코어망·클라우드</span></td><td>5G Core · MEC 엣지 · 네트워크 슬라이싱</td>
+  <td>텔코웨어 · 이루온 · NAVER · 삼성에스디에스 · LG씨엔에스 · 케이아이엔엑스 · 가비아</td>
+  <td>Ericsson · Nokia · Cisco · Amazon(AWS) · Microsoft(Azure) · Equinix</td></tr>
+<tr><td class="k">미드 ④<br><span class="s">유선 액세스</span></td><td>OLT · ONT · 스위치 · 공유기</td>
+  <td>유비쿼스 · 유비쿼스홀딩스 · 다산네트웍스 · 머큐리 · 자람테크놀로지 · 엔더블유시 · DGI</td>
+  <td>Nokia · Adtran · Calix · Cisco · Arista · HPE(Juniper)</td></tr>
+<tr><td class="k">미드 ⑤<br><span class="s">시험·계측 / 망 구축</span></td><td>규격 검증 장비, 그리고 실제로 깔고 고치는 일</td>
+  <td>LIG아큐버 · 에스넷 · 링네트 · 오파스넷 · 삼지전자 · 아이티센씨티에스 · 우리기술</td>
+  <td>Keysight · Viavi · Anritsu · <span class="s">Rohde &amp; Schwarz(비상장)</span></td></tr>
+<tr><td class="k">미드 ⑥<br><span class="s">6G 확장</span></td><td>위성 연동(NTN) · 통신+센싱(ISAC) · AI 기반 자율최적화</td>
+  <td>인텔리안테크 · 컨텍 · RF시스템즈 · 덕산넵코어스 · RFHIC</td>
+  <td>Gilat · Comtech · Kratos · Nvidia</td></tr>
+<tr><td class="k">다운 ①<br><span class="s">통신 서비스</span></td><td>이동통신 · 초고속인터넷 · FWA · 알뜰폰</td>
+  <td>SK텔레콤 · KT · LG유플러스 · SK스퀘어 · LG헬로비전 · 세종텔레콤 · 씨씨에스 · 아이즈비전</td>
+  <td>AT&amp;T · Verizon · T-Mobile US · Deutsche Telekom · Vodafone · NTT · SoftBank · KDDI</td></tr>
+<tr><td class="k">다운 ②<br><span class="s">단말기</span></td><td>스마트폰 · CPE/공유기 · IoT 기기 · AI 글래스</td>
+  <td>삼성전자 · LG전자 · 엠씨넥스 · 파트론 · 나무가 · 인탑스 · 휴맥스 · 가온그룹 · 트루엔</td>
+  <td>Apple · Xiaomi · Technicolor · CommScope</td></tr>
+<tr><td class="k">다운 ③<br><span class="s">기업망</span></td><td>사설 5G · 캠퍼스망</td>
+  <td>에치에프알 · LIG아큐버 · 쏠리드</td><td>Nokia · Ericsson · Cisco</td></tr>
+<tr><td class="k">다운 ④<br><span class="s">플랫폼·콘텐츠</span></td><td>OTT · 게임 · 음악 · XR — 트래픽을 만드는 쪽</td>
+  <td>NAVER · 카카오 · 크래프톤 · 넷마블 · NC · CJ ENM · 스튜디오드래곤 · 하이브 · SOOP</td>
+  <td>Netflix · Alphabet · Meta · Amazon · Disney · Spotify · Tencent</td></tr>
+<tr><td class="k">다운 ⑤<br><span class="s">산업 응용</span></td><td>커넥티드카 · 스마트팩토리 · 스마트시티</td>
+  <td>현대자동차 · 기아 · 현대모비스 · HL만도 · 에스엘 · 현대오토에버 · 현대무벡스</td>
+  <td>Tesla · Nvidia · ABB · Fanuc</td></tr>
+</table></div>
+<div class="note">
+<b>단말기를 어디에 두느냐는 자료마다 다릅니다.</b> 여기서는 <b>다운스트림</b>에 두었습니다 —
+단말은 망을 <b>짓는</b> 것이 아니라 망을 <b>쓰는</b> 쪽이기 때문입니다.
+단말 <b>제조</b>를 기준으로 삼아 미드스트림에 넣는 분류도 흔합니다. 틀린 게 아니라 기준이 다른 것이니,
+다른 자료와 비교할 때 이 한 줄을 먼저 맞춰 보세요.
+</div>
+
+<h3>6G가 정한 여섯 가지 쓰임새</h3>
+<figure><div class="fig">
+<svg viewBox="0 0 800 268" role="img" aria-label="6G의 여섯 가지 사용 시나리오 그림">
+  <text class="ti" x="0" y="13">ITU가 정한 6G 사용 시나리오 — 5G의 세 가지에서 여섯 가지로</text>
+  <g>
+    <rect x="0" y="30" width="252" height="74" rx="9" fill="var(--wl-f)" stroke="var(--wl)" stroke-width="1.4"/>
+    <text class="b" x="16" y="54" font-size="13" style="fill:var(--wl)">몰입형 통신</text>
+    <text class="s" x="16" y="70">Immersive Communication</text>
+    <text class="s" x="16" y="88">VR·AR·홀로그램 — 5G eMBB 의 확장</text>
+    <rect x="274" y="30" width="252" height="74" rx="9" fill="var(--wl-f)" stroke="var(--wl)" stroke-width="1.4"/>
+    <text class="b" x="290" y="54" font-size="13" style="fill:var(--wl)">대규모 통신</text>
+    <text class="s" x="290" y="70">Massive Communication</text>
+    <text class="s" x="290" y="88">센서·IoT 가 km²당 최대 1억 대</text>
+    <rect x="548" y="30" width="252" height="74" rx="9" fill="var(--wl-f)" stroke="var(--wl)" stroke-width="1.4"/>
+    <text class="b" x="564" y="54" font-size="13" style="fill:var(--wl)">초고신뢰 저지연</text>
+    <text class="s" x="564" y="70">Hyper Reliable &amp; Low-Latency</text>
+    <text class="s" x="564" y="88">로봇·차량 제어 — 01장의 그 요구</text>
+  </g>
+  <g>
+    <rect x="0" y="118" width="252" height="74" rx="9" fill="var(--st-f)" stroke="var(--st)" stroke-width="1.4"/>
+    <text class="b" x="16" y="142" font-size="13" style="fill:var(--st)">어디서나 연결</text>
+    <text class="s" x="16" y="158">Ubiquitous Connectivity</text>
+    <text class="s" x="16" y="176">바다·산간까지 — <tspan class="b">위성이 들어오는 칸</tspan></text>
+    <rect x="274" y="118" width="252" height="74" rx="9" fill="var(--cz-f)" stroke="var(--cz)" stroke-width="1.4"/>
+    <text class="b" x="290" y="142" font-size="13" style="fill:var(--cz)">AI 와 통신</text>
+    <text class="s" x="290" y="158">AI and Communication</text>
+    <text class="s" x="290" y="176">망이 AI 를 돌리고, AI 가 망을 돌린다</text>
+    <rect x="548" y="118" width="252" height="74" rx="9" fill="var(--cz-f)" stroke="var(--cz)" stroke-width="1.4"/>
+    <text class="b" x="564" y="142" font-size="13" style="fill:var(--cz)">통신·센싱 통합</text>
+    <text class="s" x="564" y="158">Integrated Sensing and Communication</text>
+    <text class="s" x="564" y="176">기지국이 레이더가 된다 — <tspan class="b">신설</tspan></text>
+  </g>
+  <text class="lb" x="0" y="222">앞의 세 칸은 5G 의 eMBB · mMTC · URLLC 를 이어받은 것이고,</text>
+  <text class="lb" x="0" y="242">뒤의 세 칸이 <tspan class="b">6G 에서 새로 생긴 것</tspan>입니다. 위성·AI·센싱 — 전부 지상 기지국 장사만으로는 안 되는 영역입니다.</text>
+</svg>
+</div><figcaption>ITU-R 권고 M.2160(2023-11)의 6개 사용 시나리오<span class="tag t-n">확인·표준</span>. 색은 이 교과서의 분야 구분을 따랐습니다 — 주황은 무선, 보라는 위성, 금색은 연산.</figcaption></figure>
+
+<h3>주파수 — 멀리 갈 것이냐, 빨리 갈 것이냐</h3>
+<div class="body">
+<p>전파는 <b>주파수가 낮으면 멀리 가고 벽을 잘 뚫지만 느리고</b>, <b>높으면 빠르지만 금방 꺾입니다.</b>
+이 맞바꿈이 통신 장비 발주의 양을 결정합니다 — 높은 주파수를 쓰면 기지국을 훨씬 촘촘히 세워야 하기 때문입니다.</p>
+</div>
+
+<figure><div class="fig">
+<svg viewBox="0 0 800 244" role="img" aria-label="주파수 대역별 특성과 6G 후보 대역">
+  <text class="ti" x="0" y="13">주파수가 올라갈수록 — 빨라지지만 멀리 못 간다</text>
+  <line x1="20" y1="120" x2="780" y2="120" stroke="var(--line2)" stroke-width="2"/>
+  <g stroke="var(--line2)"><line x1="90" y1="114" x2="90" y2="126"/><line x1="280" y1="114" x2="280" y2="126"/>
+    <line x1="480" y1="114" x2="480" y2="126"/><line x1="680" y1="114" x2="680" y2="126"/></g>
+  <g class="m" text-anchor="middle"><text x="90" y="142">700 MHz</text><text x="280" y="142">3.5 GHz</text>
+    <text x="480" y="142">7 ~ 15 GHz</text><text x="680" y="142">28 GHz</text></g>
+  <g class="s" text-anchor="middle"><text x="90" y="158">저대역</text><text x="280" y="158">C-밴드 · 5G 주력</text>
+    <text x="480" y="158">6G 후보 — 검토 중</text><text x="680" y="158">밀리미터파</text></g>
+  <rect x="396" y="100" width="168" height="40" rx="6" fill="var(--wl)" opacity=".13"/>
+  <rect x="20" y="40" width="760" height="18" rx="4" fill="var(--wd)" opacity=".22"/>
+  <text class="s" x="26" y="53">도달 거리 — 왼쪽이 멀리 간다</text>
+  <path d="M30 76 L140 76" stroke="var(--wd)" stroke-width="7" stroke-linecap="round"/>
+  <path d="M230 78 L330 78" stroke="var(--wd)" stroke-width="5" stroke-linecap="round"/>
+  <path d="M440 80 L520 80" stroke="var(--wd)" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M650 82 L710 82" stroke="var(--wd)" stroke-width="2" stroke-linecap="round"/>
+  <g class="s" text-anchor="middle" style="fill:var(--wd)">
+    <text x="85" y="66">넓다</text><text x="280" y="68">보통</text><text x="480" y="70">좁다</text><text x="680" y="72">아주 좁다</text></g>
+  <text class="lb" x="20" y="186">그래서 <tspan class="b">7~15GHz</tspan> 를 쓰면 지금보다 기지국이 더 촘촘해야 합니다 — 안테나·필터·증폭기 수요가 그만큼 늘어납니다.</text>
+  <text class="lb" x="20" y="206">2027년 세계 주파수 회의(WRC-27)가 이 대역을 정식으로 배정할지 결정합니다.</text>
+  <text class="s" x="20" y="232">※ 가로축은 눈금 간격이 일정하지 않습니다(로그에 가깝게 배치). 막대 길이는 도달 거리의 상대 비교용 표시입니다.</text>
+</svg>
+</div><figcaption>WRC-27 검토 대역은 4.4~4.8GHz · 7.125~8.4GHz · 14.8~15.35GHz입니다<span class="tag t-n">확인</span>.
+도달 거리 막대는 경향을 보이기 위한 <b>상대 표시</b>이며 실측값이 아닙니다<span class="tag t-n">판단</span>.</figcaption></figure>
+
+<h3>그래서 어느 칸에 발주가 가나</h3>
+<div class="tw"><table>
+<tr><th>6G가 가져오는 변화</th><th>필요해지는 것</th><th>09장의 칸</th></tr>
+<tr><td class="k">새 주파수 대역(7~15GHz)</td><td>그 대역용 안테나·필터·증폭기를 새로 설계. 기지국도 더 촘촘히</td><td>기지국 장비 · RF 부품 · 함체</td></tr>
+<tr><td class="k">기지국 증가</td><td>늘어난 기지국마다 광선로와 전송장비</td><td>프론트홀·광전송 · 광트랜시버 · 커넥터·케이블</td></tr>
+<tr><td class="k">AI와 통신 통합</td><td>범용 서버와 가속기, 엣지 데이터센터</td><td>클라우드·데이터센터 · 코어망 소프트웨어</td></tr>
+<tr><td class="k">어디서나 연결(위성)</td><td>지상망과 위성을 함께 쓰는 단말·지상국</td><td>지상국·위성 안테나 · 위성 단말</td></tr>
+<tr><td class="k">통신·센싱 통합</td><td>레이더급 정밀도를 내는 RF 부품과 계측</td><td>RF 부품 · 시험·계측</td></tr>
+<tr><td class="k">새 규격 검증</td><td>규격이 바뀔 때마다 측정 장비가 먼저 팔린다</td><td>시험·계측</td></tr>
+</table></div>
+<div class="warnbox">
+<b>다만 일정이 멉니다.</b> 01장의 표대로 6G 규격은 <b>2029년 초</b>에야 나오고 상용은 <b>2030년</b> 전망입니다.
+지금 "6G 수혜"라는 말이 붙은 발주의 대부분은 실제로는 <b>5G 보완 투자</b>(C-밴드 추가, 커버리지 보강, O-RAN 전환)입니다.
+둘을 섞어 읽으면 시점을 몇 년 틀리게 됩니다.
+</div>
+</section>
+
+<section id="c11">
+<div class="sh"><span class="num">11</span><h2>스타링크 밸류체인 — 기지국을 하늘에 띄우면</h2></div>
+<p class="lede">위성 인터넷은 <b>기지국을 하늘에 올린 것</b>입니다. 전봇대도, 땅을 파는 공사도 없습니다.
+대신 기지국이 시속 2만 7천 km로 머리 위를 지나갑니다 — 그래서 구조가 완전히 달라집니다.</p>
+
+<div class="body">
+<p>예전 위성 인터넷은 <b>정지궤도</b>(36,000km)를 썼습니다. 한 자리에 떠 있으니 안테나를 고정하면 됐지만,
+빛이 왕복하는 데만 0.24초가 걸려 느렸습니다. 스타링크는 <b>저궤도</b>를 씁니다 —
+지금 광대역 위성은 <b>450~490km</b>, 휴대폰 직접 연결용은 <b>360km</b> 안팎입니다.
+70배 가까이 가까워진 만큼 지연이 줄지만, 한 대가 머리 위에 있는 시간이 <b>몇 분</b>뿐이라
+<b>수천 대를 띄워 릴레이</b>해야 합니다. 이 한 가지가 밸류체인 전부를 설명합니다.</p>
+</div>
+
+<figure><div class="fig">
+<svg viewBox="0 0 820 356" role="img" aria-label="스타링크의 신호 경로 단면도">
+  <text class="ti" x="0" y="13">신호가 지나는 길 — 단면으로 보면</text>
+  <line x1="0" y1="286" x2="820" y2="286" stroke="var(--line2)" stroke-width="2"/>
+  <text class="s" x="0" y="302">지표면</text>
+  <g stroke="var(--line)" stroke-dasharray="4 5">
+    <line x1="0" y1="72" x2="820" y2="72"/><line x1="0" y1="168" x2="820" y2="168"/>
+  </g>
+  <text class="s" x="816" y="76" text-anchor="end" style="fill:var(--st)">450~490 km · 광대역</text>
+  <text class="s" x="816" y="172" text-anchor="end" style="fill:var(--st)">약 360 km · 휴대폰 직접 연결</text>
+
+  <g style="fill:var(--st)">
+    <g transform="translate(150,72)"><rect x="-11" y="-14" width="22" height="28" rx="3" fill="var(--st-f)" stroke="var(--st)" stroke-width="1.4"/>
+      <rect x="-38" y="-8" width="24" height="16" rx="2" fill="var(--st-f)" stroke="var(--st)" stroke-width="1.2"/>
+      <rect x="14" y="-8" width="24" height="16" rx="2" fill="var(--st-f)" stroke="var(--st)" stroke-width="1.2"/></g>
+    <g transform="translate(400,72)"><rect x="-11" y="-14" width="22" height="28" rx="3" fill="var(--st-f)" stroke="var(--st)" stroke-width="1.4"/>
+      <rect x="-38" y="-8" width="24" height="16" rx="2" fill="var(--st-f)" stroke="var(--st)" stroke-width="1.2"/>
+      <rect x="14" y="-8" width="24" height="16" rx="2" fill="var(--st-f)" stroke="var(--st)" stroke-width="1.2"/></g>
+    <g transform="translate(650,72)"><rect x="-11" y="-14" width="22" height="28" rx="3" fill="var(--st-f)" stroke="var(--st)" stroke-width="1.4"/>
+      <rect x="-38" y="-8" width="24" height="16" rx="2" fill="var(--st-f)" stroke="var(--st)" stroke-width="1.2"/>
+      <rect x="14" y="-8" width="24" height="16" rx="2" fill="var(--st-f)" stroke="var(--st)" stroke-width="1.2"/></g>
+    <g transform="translate(520,168)"><rect x="-10" y="-12" width="20" height="24" rx="3" fill="var(--st-f)" stroke="var(--st)" stroke-width="1.3"/>
+      <rect x="-32" y="-7" width="20" height="14" rx="2" fill="var(--st-f)" stroke="var(--st)" stroke-width="1.1"/>
+      <rect x="12" y="-7" width="20" height="14" rx="2" fill="var(--st-f)" stroke="var(--st)" stroke-width="1.1"/></g>
+  </g>
+  <g stroke="var(--st)" stroke-width="2" stroke-dasharray="5 4">
+    <line x1="190" y1="72" x2="360" y2="72"/><line x1="440" y1="72" x2="610" y2="72"/></g>
+  <text class="m" x="275" y="62" text-anchor="middle" style="fill:var(--st)">레이저 링크</text>
+  <text class="s" x="525" y="62" text-anchor="middle">위성끼리 직접 — 바다 위에도 중계가 선다</text>
+
+  <path d="M150 90 L70 278" stroke="var(--wl)" stroke-width="2.2"/>
+  <path d="M650 90 L740 278" stroke="var(--wd)" stroke-width="2.2"/>
+  <path d="M520 186 L430 278" stroke="var(--wl)" stroke-width="2.2" stroke-dasharray="4 3"/>
+
+  <g transform="translate(70,286)">
+    <path d="M-16 0 L0 -16 L16 0 z" fill="var(--wl-f)" stroke="var(--wl)" stroke-width="1.4"/>
+    <text class="b" x="0" y="20" text-anchor="middle" font-size="12" style="fill:var(--wl)">사용자 단말</text>
+    <text class="s" x="0" y="36" text-anchor="middle">평판 안테나 — 접시가 아니다</text>
+    <text class="s" x="0" y="50" text-anchor="middle">전자적으로 위성을 따라간다</text></g>
+  <g transform="translate(430,286)">
+    <rect x="-9" y="-20" width="18" height="20" rx="3" fill="var(--wl-f)" stroke="var(--wl)" stroke-width="1.3"/>
+    <text class="b" x="0" y="20" text-anchor="middle" font-size="12" style="fill:var(--wl)">일반 휴대폰</text>
+    <text class="s" x="0" y="36" text-anchor="middle">안테나 없이 바로</text>
+    <text class="s" x="0" y="50" text-anchor="middle">Direct to Cell</text></g>
+  <g transform="translate(740,286)">
+    <path d="M-20 0 Q-20 -22 2 -22 Q2 -8 -20 0 z" fill="var(--wd-f)" stroke="var(--wd)" stroke-width="1.4"/>
+    <path d="M-9 -11 L-13 0"/>
+    <text class="b" x="0" y="20" text-anchor="middle" font-size="12" style="fill:var(--wd)">게이트웨이 지상국</text>
+    <text class="s" x="0" y="36" text-anchor="middle">여기서 인터넷에 붙는다</text>
+    <text class="s" x="0" y="50" text-anchor="middle">접시 여러 대를 한 자리에</text></g>
+  <text class="s" x="0" y="352">※ 고도 축은 실제 비율이 아닙니다. 지구 반지름 6,371km 에 비하면 450km 는 아주 얇은 껍질입니다.</text>
+</svg>
+</div><figcaption>고도는 스타링크가 공개한 궤도 자료 기준입니다<span class="tag t-n">확인</span> — 광대역 462~485km, 휴대폰 직접 연결 358~360km.
+위성이 낮을수록 지연은 줄지만 <b>더 많이 띄워야</b> 합니다.</figcaption></figure>
+
+<h3>지금 하늘에 얼마나 있나</h3>
+<div class="cards c3">
+  <div class="card st"><h4>스타링크</h4><span class="big">9,980+</span><p>운용 중인 위성 수. 궤도상 총 11,150기, 가입자 <b>1,200만 명 이상</b>, 150개국.
+  휴대폰 직접 연결용 페이로드만 <b>650기 이상</b>.</p></div>
+  <div class="card st"><h4>아마존 Leo</h4><span class="big">392</span><p>구 프로젝트 카이퍼. 2025년 4월 발사 시작.
+  1세대 인가는 3,232기이며 최종 기한은 2029년 7월.</p></div>
+  <div class="card st"><h4>유텔샛 원웹</h4><span class="big">654</span><p>1세대, 고도 1,200km. 2세대 교체분 669기를 발주해 둔 상태.</p></div>
+</div>
+<div class="cards c3">
+  <div class="card st"><h4>AST SpaceMobile</h4><span class="big">12</span><p>휴대폰 직접 연결 전용. 2027년 초 45기 목표. 미국 규제당국이 248기까지 승인.</p></div>
+  <div class="card st"><h4>글로벌스타</h4><span class="big">24</span><p>2세대 운용 중. 48기 추가 계획.</p></div>
+  <div class="card st"><h4>텔레샛 라이트스피드</h4><span class="big">0</span><p>아직 한 기도 안 올라갔습니다. 시험기 2기가 2027년 6월 이후, 상용은 2028년 중반 목표.</p></div>
+</div>
+<p class="src">전부 2026년 10월 기준 집계입니다<span class="tag t-n">보도</span>. 위성 수는 매주 바뀌므로 <b>숫자 자체보다 격차</b>를 보세요 —
+스타링크가 궤도상 탑재체의 약 <b>절반</b>을 차지합니다.</p>
+
+<h3>업스트림 · 미드스트림 · 다운스트림</h3>
+<div class="tw"><table>
+<tr><th>단</th><th>하는 일</th><th>국내 상장사</th><th>글로벌 상장사</th></tr>
+<tr><td class="k">업스트림 ①<br><span class="s">발사체</span></td><td>위성을 궤도에 올린다. 발사 비용이 전체 경제성을 좌우</td>
+  <td>이노스페이스 · 한화에어로스페이스</td><td>Rocket Lab · <span class="s">SpaceX(비상장)</span></td></tr>
+<tr><td class="k">업스트림 ②<br><span class="s">위성 제조</span></td><td>본체(버스)·탑재체·태양전지·배터리·레이저 링크</td>
+  <td>쎄트렉아이 · 루미르 · 나라스페이스테크놀로지 · 제노코 · 한국항공우주 · 한화시스템</td>
+  <td>Airbus · Boeing · Northrop Grumman · Planet Labs</td></tr>
+<tr><td class="k">업스트림 ③<br><span class="s">부품·소재</span></td><td>구조물·내열소재·정밀가공품</td>
+  <td>스피어 · 에이치브이엠 · 켄코아에어로스페이스 · 케이피항공산업</td><td>Honeywell Aerospace</td></tr>
+<tr><td class="k">미드스트림<br><span class="s">지상국·망운영</span></td><td>게이트웨이 접시 안테나, 지상국 운영, 주파수 관리</td>
+  <td><b>인텔리안테크</b> · 컨텍 · 위월드 · 케이앤에스아이앤씨 · RF시스템즈 · 덕산넵코어스 · 휴니드테크놀러지스</td>
+  <td>Gilat · Comtech · Kratos · Viasat · EchoStar</td></tr>
+<tr><td class="k">다운스트림 ①<br><span class="s">사용자 단말</span></td><td>평판 안테나(FPA), 선박·항공기용 단말, 휴대폰 직접 연결</td>
+  <td>AP위성 · 인텔리안테크</td><td>Iridium · Globalstar · AST SpaceMobile · Gilat</td></tr>
+<tr><td class="k">다운스트림 ②<br><span class="s">서비스 판매</span></td><td>요금을 받는 쪽. 통신사와 제휴하거나 직접 판매</td>
+  <td>케이티스카이라이프 · 세종텔레콤 <span class="s">(KT SAT·SK텔링크는 비상장 자회사)</span></td>
+  <td>Eutelsat · Viasat · EchoStar · <span class="s">Amazon(Leo)</span></td></tr>
+</table></div>
+<p class="src">단 구분은 증권사 NTN 밸류체인 분류를 따랐고<span class="tag t-n">증권사</span>,
+국내 기업은 09장과 같은 데이터에서 뽑았습니다. 이름을 누르면 peer 표로 갑니다.</p>
+
+<div class="warnbox">
+<b>투자 관점에서 가장 중요한 한 가지 — 스타링크는 수직계열화돼 있습니다.</b><br>
+SpaceX가 <b>발사체·위성·단말·서비스를 전부 직접</b> 합니다. 다른 위성 사업자가 외부에서 사 오는 자리를
+스타링크는 안에서 해결합니다. 그래서 <b>스타링크가 커진다고 부품사 매출이 따라 늘지 않습니다.</b><br><br>
+게다가 <b>SpaceX는 비상장</b>입니다. 상장 시장에서 스타링크 자체를 살 방법은 없습니다.
+상장사로 연결되는 길은 셋뿐입니다 —
+① <b>게이트웨이 지상국 안테나</b>처럼 스타링크도 외부에서 사는 품목(인텔리안테크가 여기)
+② <b>경쟁 별자리</b>(아마존 Leo·원웹·AST)와 그 공급망
+③ <b>위성이 늘어나면 같이 늘어나는 것</b>(발사체·지상국 운영·주파수 장비).<br><br>
+"스타링크 수혜주"라는 말이 붙었을 때 <b>이 셋 중 어디인지</b>를 먼저 확인해야 합니다.
+</div>
+
+<h3>왜 지금 위성이 통신의 한 칸이 됐나</h3>
+<div class="body">
+<p>10장에서 본 6G의 여섯 시나리오 중 하나가 <b>「어디서나 연결」</b>이었습니다.
+이게 위성을 통신 표준 안으로 끌어들인 문입니다. 예전엔 위성과 지상망이 별개 산업이었지만,
+3GPP가 <b>NTN</b>(Non-Terrestrial Network, 비지상 통신망)을 규격에 넣으면서
+<b>같은 단말이 지상 기지국과 위성을 오가게</b> 됐습니다.</p>
+<p>그래서 위성은 더 이상 "통신이 안 되는 곳의 대체재"가 아니라 <b>통신망의 한 층</b>입니다.
+08장 벤 다이어그램에서 위성이 무선과 겹치는 칸(RFHIC·LIG아큐버)이 생긴 것도 같은 이유입니다 —
+위성용 RF 부품과 지상 기지국용 RF 부품이 점점 같은 기술이 됩니다.</p>
+</div>
+</section>
+
+<section id="c12">
+<div class="sh"><span class="num">12</span><h2>피지컬 AI의 통신 밸류체인 — 네 가지 수요</h2></div>
+<p class="lede">스마트팩토리 · 휴머노이드 · AI 글래스 · 자율주행.
+겉보기엔 다른 산업이지만 <b>망에 거는 요구는 거의 같습니다</b> — 많이 올려보내고, 늦으면 안 되고, 끊기면 안 됩니다.</p>
+
+<div class="body">
+<p><b>왜 이 넷을 묶어서 보나.</b> 지금까지 통신의 고객은 <b>사람</b>이었습니다.
+사람은 하루 몇 시간 쓰고, 주로 내려받고, 0.5초 늦어도 불편할 뿐입니다.
+이 넷의 고객은 <b>기계</b>입니다. 24시간 켜져 있고, 센서로 본 것을 올려보내고, 늦으면 사고가 납니다.
+01장에서 본 <b>방향·지연·자릿수</b>의 전환이 구체적으로 나타나는 자리가 바로 이 넷입니다.</p>
+</div>
+
+<h3>넷이 망에 거는 요구</h3>
+<figure><div class="fig">
+<svg viewBox="0 0 800 300" role="img" aria-label="네 가지 수요가 통신망에 거는 요구의 상대 강도">
+  <text class="ti" x="0" y="13">요구의 상대 강도 — 수치가 아니라 등급</text>
+  <g class="ti" style="fill:var(--ink3)"><text x="186" y="42">올려보내는 양</text><text x="398" y="42">지연 민감도</text><text x="610" y="42">끊기면 안 되는 정도</text></g>
+  <g class="lb" text-anchor="end">
+    <text x="172" y="72">스마트팩토리</text><text x="172" y="120">휴머노이드</text>
+    <text x="172" y="168">AI 글래스</text><text x="172" y="216">자율주행</text></g>
+  <g>
+    <rect x="186" y="60" width="90" height="15" rx="3" fill="var(--wl)" opacity=".45"/>
+    <rect x="186" y="108" width="120" height="15" rx="3" fill="var(--wl)" opacity=".7"/>
+    <rect x="186" y="156" width="150" height="15" rx="3" fill="var(--wl)"/>
+    <rect x="186" y="204" width="180" height="15" rx="3" fill="var(--wl)"/>
+    <rect x="398" y="60" width="120" height="15" rx="3" fill="var(--cz)" opacity=".7"/>
+    <rect x="398" y="108" width="180" height="15" rx="3" fill="var(--cz)"/>
+    <rect x="398" y="156" width="60" height="15" rx="3" fill="var(--cz)" opacity=".35"/>
+    <rect x="398" y="204" width="180" height="15" rx="3" fill="var(--cz)"/>
+    <rect x="610" y="60" width="150" height="15" rx="3" fill="var(--wd)"/>
+    <rect x="610" y="108" width="150" height="15" rx="3" fill="var(--wd)"/>
+    <rect x="610" y="156" width="60" height="15" rx="3" fill="var(--wd)" opacity=".35"/>
+    <rect x="610" y="204" width="180" height="15" rx="3" fill="var(--wd)"/>
+  </g>
+  <g class="s" text-anchor="start">
+    <text x="282" y="72">중간</text><text x="312" y="120">높음</text><text x="342" y="168">높음</text><text x="372" y="216">매우 높음</text>
+    <text x="524" y="72">높음</text><text x="584" y="120">매우 높음</text><text x="464" y="168">중간</text><text x="584" y="216">매우 높음</text>
+    <text x="766" y="72">높음</text><text x="766" y="120">높음</text><text x="676" y="168">중간</text><text x="764" y="216">최고</text></g>
+  <text class="lb" x="0" y="256">가장 극단은 <tspan class="b">자율주행</tspan>입니다 — 세 가지가 모두 꼭대기입니다. 그래서 표준이 가장 먼저 만들어진 영역이기도 합니다.</text>
+  <text class="lb" x="0" y="276"><tspan class="b">AI 글래스</tspan>는 하나하나의 요구는 낮지만 <tspan class="b">기기 수</tspan>로 승부합니다 — 수천만 대가 늘 켜져 있으면 총량이 문제가 됩니다.</text>
+  <text class="s" x="0" y="296">※ 막대 길이는 <tspan class="b">상대 등급</tspan>이며 측정값이 아닙니다. 자율주행만 3GPP 표준에 실제 수치가 있습니다(01장 표).</text>
+</svg>
+</div><figcaption>자율주행 행만 3GPP TS 22.186의 실제 요구치에 근거합니다<span class="tag t-n">확인·표준</span>.
+나머지 셋은 <b>표준에 해당 항목이 없어</b> 구조에서 도출한 상대 등급입니다<span class="tag t-n">판단</span> — 수치를 지어내지 않았습니다.</figcaption></figure>
+
+<h3>넷은 각각 어떤 망을 쓰나</h3>
+<div class="tw"><table>
+<tr><th>수요</th><th>쓰는 망</th><th>왜 그 망인가</th><th>핵심 병목</th></tr>
+<tr><td class="k">스마트팩토리</td><td><b class="mn">Private 5G</b> + Wi-Fi 6E·7</td>
+  <td>공장 밖으로 자료가 안 나가야 하고, 설비가 멈추면 안 되므로 <b>자기 망</b>을 깐다</td>
+  <td>공장 안에 RU·DU·CU·코어를 통째로 넣어야 함 — 비싸다</td></tr>
+<tr><td class="k">휴머노이드 <span class="s">피지컬 AI</span></td><td><b class="mn">Private 5G</b> · 엣지 연산</td>
+  <td>몸은 가볍게, 머리는 밖에. 연산을 망 건너에 두면 로봇이 싸진다</td>
+  <td>연산을 밖에 두는 순간 <b>지연이 안전 문제</b>가 된다 — 07장의 MEC</td></tr>
+<tr><td class="k">AI 글래스</td><td>공중 5G · Wi-Fi · 블루투스</td>
+  <td>들고 다니므로 일반 이동통신망. 폰을 거쳐 가기도 한다</td>
+  <td>배터리. 그리고 <b>상시 업링크</b>가 망 전체 총량을 밀어올린다</td></tr>
+<tr><td class="k">자율주행</td><td>공중 5G · <b class="mn">V2X</b> · 위성(NTN)</td>
+  <td>이동하므로 기지국을 계속 갈아타야 하고, 차끼리 직접 통신도 필요</td>
+  <td>교차로마다 노변장치(RSU). 터널·산간은 위성으로 메워야 함</td></tr>
+</table></div>
+<div class="note">
+<b>왜 공장은 Wi-Fi로 안 되나.</b> Wi-Fi는 <b>먼저 말하는 쪽이 이기는</b> 방식입니다 — 기기가 많아지면 서로 부딪혀 지연이 들쭉날쭉해집니다.
+5G는 <b>기지국이 순서를 정해 주는</b> 방식이라 지연이 일정합니다. 로봇 팔에는 "평균 10ms"보다 <b>"최악에도 15ms"</b>가 중요합니다.
+그래서 공장에 Private 5G가 들어갑니다. 대신 비싸서, 사무동은 Wi-Fi·생산라인은 5G로 나누는 구성이 많습니다.
+</div>
+
+<h3>수요가 발주로 바뀌는 경로</h3>
+<figure><div class="fig">
+<svg viewBox="0 0 820 268" role="img" aria-label="네 수요가 통신 장비 발주로 이어지는 경로">
+  <text class="ti" x="0" y="13">수요 → 필요한 성질 → 09장의 어느 칸이 팔리나</text>
+  <g fill="var(--surf2)" stroke="var(--line2)" stroke-width="1.3">
+    <rect x="0" y="34" width="150" height="36" rx="7"/><rect x="0" y="80" width="150" height="36" rx="7"/>
+    <rect x="0" y="126" width="150" height="36" rx="7"/><rect x="0" y="172" width="150" height="36" rx="7"/></g>
+  <g class="b" font-size="12.5" text-anchor="middle"><text x="75" y="57">스마트팩토리</text><text x="75" y="103">휴머노이드</text>
+    <text x="75" y="149">AI 글래스</text><text x="75" y="195">자율주행</text></g>
+
+  <g fill="var(--wl-f)" stroke="var(--wl)" stroke-width="1.4">
+    <rect x="250" y="34" width="176" height="36" rx="7"/><rect x="250" y="80" width="176" height="36" rx="7"/>
+    <rect x="250" y="126" width="176" height="36" rx="7"/><rect x="250" y="172" width="176" height="36" rx="7"/></g>
+  <g class="b" font-size="12" text-anchor="middle" style="fill:var(--wl)">
+    <text x="338" y="52">구내 전용망</text><text x="338" y="98">연산을 가까이</text>
+    <text x="338" y="144">업링크 총량 증가</text><text x="338" y="190">이동 중 끊김 없음</text></g>
+  <g class="s" text-anchor="middle"><text x="338" y="65">자기 망을 따로 깐다</text><text x="338" y="111">국사에 서버를 내린다</text>
+    <text x="338" y="157">기지국을 촘촘히</text><text x="338" y="203">도로변·터널·위성</text></g>
+
+  <g fill="var(--wd-f)" stroke="var(--wd)" stroke-width="1.4">
+    <rect x="536" y="34" width="284" height="36" rx="7"/><rect x="536" y="80" width="284" height="36" rx="7"/>
+    <rect x="536" y="126" width="284" height="36" rx="7"/><rect x="536" y="172" width="284" height="36" rx="7"/></g>
+  <g class="b" font-size="12" style="fill:var(--wd)">
+    <text x="550" y="52">기업 전용망 통합 · 스몰셀 · 코어망 SW</text>
+    <text x="550" y="98">클라우드·데이터센터 · 코어망 SW</text>
+    <text x="550" y="144">기지국 장비 · 프론트홀 · 광트랜시버</text>
+    <text x="550" y="190">중계기·DAS · 지상국·위성 안테나</text></g>
+  <g class="s"><text x="550" y="65">에치에프알 · LIG아큐버 · 쏠리드 · 텔코웨어</text>
+    <text x="550" y="111">NAVER · 삼성에스디에스 · 케이아이엔엑스</text>
+    <text x="550" y="157">케이엠더블유 · 에이스테크 · RFHIC · 오이솔루션</text>
+    <text x="550" y="203">쏠리드 · 웨이브일렉트로 · 인텔리안테크</text></g>
+  <g class="ar" marker-end="url(#ah)">
+    <line x1="152" y1="52" x2="246" y2="52"/><line x1="152" y1="98" x2="246" y2="98"/>
+    <line x1="152" y1="144" x2="246" y2="144"/><line x1="152" y1="190" x2="246" y2="190"/>
+    <line x1="428" y1="52" x2="532" y2="52"/><line x1="428" y1="98" x2="532" y2="98"/>
+    <line x1="428" y1="144" x2="532" y2="144"/><line x1="428" y1="190" x2="532" y2="190"/></g>
+  <text class="lb" x="0" y="240">네 줄이 서로 다른 칸으로 가는 것이 요점입니다 — <tspan class="b">"통신 수혜"는 한 덩어리가 아닙니다.</tspan></text>
+  <text class="s" x="0" y="260">기업명은 각 칸의 대표 사례이며 전부가 아닙니다. 전체는 09장 색인에서 보세요.</text>
+</svg>
+</div><figcaption>어느 수요가 커지느냐에 따라 <b>팔리는 칸이 다릅니다.</b> 공장이 늘면 전용망 통합이, 글래스가 늘면 기지국 부품이, 차가 늘면 중계기와 위성이 움직입니다.</figcaption></figure>
+
+<h3>네 응용의 업 · 미드 · 다운</h3>
+<div class="body">
+<p>네 수요는 구조가 똑같습니다 — <b>센서와 칩이 데이터를 만들고 → 통신망과 엣지가 나르고 판단하고 → 실제 서비스가 된다.</b>
+다른 것은 <b>미드스트림에서 어떤 망을 쓰느냐</b>뿐입니다. 그 차이가 어느 통신 기업으로 발주가 가는지를 가릅니다.</p>
+</div>
+
+<h4>① 스마트팩토리</h4>
+<div class="tw"><table>
+<tr><th>단</th><th>내용</th><th>국내 상장사</th><th>글로벌</th></tr>
+<tr><td class="k">업</td><td>산업용 센서 · 카메라 · 라이다 · 로봇 부품 · 5G 모듈</td>
+  <td>엠씨넥스 · 파트론 · 에스오에스랩 · 트루엔 · 로보티즈</td><td>Keyence · Cognex · Omron</td></tr>
+<tr><td class="k">미드</td><td><b>사설 5G</b> · 산업 게이트웨이 · MEC 엣지 · 제어 네트워크</td>
+  <td>에치에프알 · LIG아큐버 · 쏠리드 · 텔코웨어 · 삼성에스디에스 · 현대오토에버</td><td>Nokia · Ericsson · Siemens · Cisco</td></tr>
+<tr><td class="k">다운</td><td>무인운송차(AGV·AMR) · 비전검사 · 예지보전 · 원격제어</td>
+  <td>현대무벡스 · 티로보틱스 · 고영 · 브이원텍 · 클로봇 · 유일로보틱스 · 두산로보틱스</td><td>ABB · Fanuc</td></tr>
+</table></div>
+
+<h4>② 피지컬 AI <span class="s">— 현실에서 움직이는 AI</span></h4>
+<div class="tw"><table>
+<tr><th>단</th><th>내용</th><th>국내 상장사</th><th>글로벌</th></tr>
+<tr><td class="k">업</td><td>카메라 · 라이다 · AI 칩 · 배터리 · 액추에이터(구동장치)</td>
+  <td>에스오에스랩 · 엠씨넥스 · 로보티즈 · 에이직랜드 · 가온칩스</td><td>Nvidia · Qualcomm</td></tr>
+<tr><td class="k">미드</td><td>로봇 제어기 · <b>저지연 통신</b> · 엣지 추론 · 디지털 트윈</td>
+  <td>에치에프알 · 클로봇 · 삼성에스디에스 · NAVER · 케이아이엔엑스</td><td>Nvidia · Microsoft · Siemens</td></tr>
+<tr><td class="k">다운</td><td>휴머노이드 · 물류로봇 · 순찰·점검 · 원격조작</td>
+  <td>레인보우로보틱스 · 두산로보틱스 · 뉴로메카 · 에브리봇 · 로보티즈 · 유일로보틱스</td>
+  <td>Tesla · <span class="s">Figure(비상장)</span> · ABB</td></tr>
+</table></div>
+
+<h4>③ AI 글래스</h4>
+<div class="tw"><table>
+<tr><th>단</th><th>내용</th><th>국내 상장사</th><th>글로벌</th></tr>
+<tr><td class="k">업</td><td>마이크로 디스플레이 · 카메라/마이크 · SoC·모뎀 · 배터리</td>
+  <td>엠씨넥스 · 나무가 · 이엠텍 · 아이언디바이스 · 텔레칩스 · 파트론</td><td>Qualcomm · Sony · Samsung Electronics</td></tr>
+<tr><td class="k">미드</td><td>폰 연동 또는 5G/Wi-Fi 직접 접속 · 클라우드·엣지 AI · 앱 플랫폼</td>
+  <td>삼성전자 · NAVER · 카카오 · 케이아이엔엑스 · 가비아</td><td>Qualcomm · Meta · Alphabet · Amazon(AWS)</td></tr>
+<tr><td class="k">다운</td><td>실시간 번역 · 원격 지원 · 내비게이션 · 교육·훈련 · AR 가이드</td>
+  <td>NAVER · 카카오 · 코난테크놀로지</td><td>Meta · Alphabet · Apple</td></tr>
+</table></div>
+<p class="src"><b>국내 상장사 중 AI 글래스 완제품을 만드는 곳은 사실상 없습니다.</b> 위 국내 칸은 전부 <b>부품·플랫폼</b>입니다.
+리포트에서도 단말 RF 프런트엔드(FEM·SAW·BAW·안테나 튜너)는 국내 상장 플레이어가 없어 거의 다루지 않습니다<span class="tag t-n">판단</span>.</p>
+
+<h4>④ 자율주행차</h4>
+<div class="tw"><table>
+<tr><th>단</th><th>내용</th><th>국내 상장사</th><th>글로벌</th></tr>
+<tr><td class="k">업</td><td>레이더·카메라·라이다 · 차량용 칩 · TCU/V2X 모듈 · 정밀지도</td>
+  <td>에스오에스랩 · 엠씨넥스 · 텔레칩스 · 라닉스 · 현대오토에버 · 씨앤에스링크</td>
+  <td>Nvidia · Qualcomm · Mobileye(Intel) · Texas Instruments</td></tr>
+<tr><td class="k">미드</td><td>5G/6G · <b>C-V2X</b> · 노변기지국(RSU) · 엣지 클라우드 · 위성(NTN)</td>
+  <td>쏠리드 · 웨이브일렉트로 · 에치에프알 · 에스디시스템 · 에이텍모빌리티 · 인텔리안테크</td>
+  <td>Ericsson · Nokia · Qualcomm</td></tr>
+<tr><td class="k">다운</td><td>주행보조·자율주행 · 텔레매틱스 · 관제·플릿 관리 · 원격지원</td>
+  <td>현대자동차 · 기아 · 현대모비스 · HL만도 · 에스엘 · 현대오토에버</td>
+  <td>Tesla · <span class="s">Waymo(Alphabet 자회사)</span></td></tr>
+</table></div>
+
+<div class="note">
+<b>네 표에서 반복해서 나오는 이름을 보세요.</b> <b>에치에프알</b>은 네 개 중 세 개의 미드스트림에 나옵니다.
+<b>에스오에스랩·엠씨넥스</b>는 업스트림에 반복됩니다. <b>현대오토에버</b>는 셋에 걸칩니다.
+이렇게 여러 응용에 걸친 회사는 한 수요가 늦어져도 다른 수요가 받쳐 주지만,
+반대로 <b>어느 한 곳에서도 1등이 아닐 수</b> 있습니다 — 08장에서 교집합을 두고 한 말과 같습니다.
+</div>
+
+<h3>넷 중 지금 실제로 돈이 도는 곳</h3>
+<div class="body">
+<p>냉정하게 보면 <b>네 수요의 시점이 다릅니다.</b></p>
+</div>
+<div class="tw"><table>
+<tr><th>수요</th><th>지금 상태</th><th>통신 발주로 이어졌나</th></tr>
+<tr><td class="k">스마트팩토리</td><td>이미 깔고 있음. 국내도 기업 전용망 사례가 나옴</td><td><b>일부 이어짐</b> — 다만 규모가 작다</td></tr>
+<tr><td class="k">AI 글래스</td><td>기기는 팔리기 시작. 통신은 기존 망을 그대로 씀</td><td><b>아직 아님</b> — 기존 망 여유분으로 감당</td></tr>
+<tr><td class="k">휴머노이드</td><td>실증 단계. 대부분 유선이나 Wi-Fi로 테스트 중</td><td><b>아직 아님</b></td></tr>
+<tr><td class="k">자율주행</td><td>표준은 완성. 도로 인프라(RSU) 보급이 관건</td><td><b>지역 시범사업 수준</b></td></tr>
+</table></div>
+<div class="warnbox">
+<b>그래서 01장과 같은 결론으로 돌아옵니다.</b>
+수요의 방향은 분명하지만 <b>전방 설비투자 숫자는 아직 크게 돌지 않았습니다.</b>
+증권사 세 곳이 같은 무선 시장을 보면서 결론이 갈렸던 이유도 여기 있습니다 —
+의견 차이는 <b>전망</b>이 아니라 <b>진입 시점</b>에 있습니다.<br><br>
+이 장을 읽고 할 수 있는 일은 "어디가 오른다"를 고르는 게 아니라,
+<b>어느 수요가 실제로 움직였을 때 어느 칸이 먼저 반응하는지</b>를 미리 정해 두는 것입니다.
+그다음은 공시와 수주로 확인하는 일만 남습니다.
+</div>
+</section>
+
+<section id="c13">
+<div class="sh"><span class="num">13</span><h2>용어 사전</h2></div>
+<p class="lede">약어의 <b>원래 영문</b>, 하는 일, 그리고 <b>어디에 놓이는지</b>까지. 리포트를 읽다 모르는 말이 나오면 여기서 찾습니다.</p>
+<div class="gsearch">
+  <label for="gq" class="s" style="display:block;margin-bottom:6px;color:var(--ink3)">검색 — 약어·영문·한국어 아무거나</label>
+  <input id="gq" type="search" placeholder="예: UPF, 프론트홀, amplifier, 가입자" autocomplete="off">
+  <div class="gcount" id="gc"></div>
+</div>
+<div class="gfilt" id="gf"></div>
+<div class="glist" id="gl"></div>
+</section>
+
+<footer>
+<h4>표기 규칙</h4>
+<p>문장 끝의 배지는 근거의 종류입니다 —
+<span class="tag t-n">확인·표준</span> 국제 표준 문서에서 확인한 값 ·
+<span class="tag t-n">확인</span> 1차 자료에서 확인 ·
+<span class="tag t-n">증권사</span> 증권사 리포트 내용 ·
+<span class="tag t-n">증권사·추정</span> 증권사의 추정치 ·
+<span class="tag t-n">판단</span> 설명을 위해 제가 구성한 것 ·
+<span class="tag t-n">참고</span> 비교용 일반값.
+<b>수치를 지어내지 않았습니다</b> — 표준에 없는 항목은 숫자를 비우고 구조만 적었습니다.</p>
+<h4 style="margin-top:20px">근거 자료</h4>
+<ol>
+<li>3GPP TS 22.186 — V2X 서비스 요구사항(군집주행·고도자율주행·센서공유·원격주행 성능표)</li>
+<li>3GPP 2026년 6월 총회 — Release 21 일정 승인(Stage 2 2028.06, Stage 3 2028.12, 최종 동결 2029.03)</li>
+<li>에릭슨 — 6G 표준화 일정과 RAN 구조 결정 사항, 첫 상용 2030 전망</li>
+<li>ITU-R / GSMA — WRC-27 의제 1.7 IMT 후보 대역(4.4~4.8GHz · 7.125~8.4GHz · 14.8~15.35GHz)</li>
+<li>증권사 통신장비 리포트(2026-05) — 무선통신장비 부품별 기업 정리표, 밸류체인 교집합 그림</li>
+<li>증권사 통신 In-Depth 리포트(2026-07) — NTN 위성 밸류체인 3단 구분과 국내 매핑</li>
+</ol>
+<p style="margin-top:18px">작성일 2026-11-25. 표준 일정과 기업 분류는 바뀝니다 — 숫자를 쓰기 전에 원문을 다시 확인하세요.
+이 문서는 개념 학습용이며 특정 종목의 투자 판단 근거가 아닙니다.</p>
+</footer>
+</div>
+
+<script>
+(function(){
+var GRID=[
+{L:'업스트림',S:'소재 · 반도체 · 핵심 부품',
+ wl:[['RF 화합물 반도체 (GaN)',['RFHIC','웨이비스']],['RF 부자재 · 패키징',['RF머트리얼즈']]],
+ wd:[['광섬유 · 모재',['대한광통신']],['광소자 · 칩',['빛과전자']],['전원 부품',['성호전자']]],
+ st:[['위성 부품 · 소재',['한화에어로스페이스','쎄트렉아이','에이치브이엠','스피어']]]},
+{L:'미드스트림',S:'모듈 · 장비 — 국내 상장사가 가장 두터운 층',
+ wl:[['안테나',['케이엠더블유','에이스테크','알에프텍','기가레인','센서뷰']],
+     ['필터',['케이엠더블유','에이스테크','기가레인','센서뷰']],
+     ['커넥터 · 케이블',['기가레인','센서뷰']],
+     ['증폭기 · 트랜지스터',['RFHIC']],
+     ['함체 · 케이스',['서진시스템']],
+     ['중계기 · DAS',['쏠리드','에치에프알','웨이브일렉트로']],
+     ['스몰셀',['LIG아큐버','쏠리드','에치에프알']],
+     ['O-RU (개방형 무선유닛)',['에치에프알','쏠리드','LIG아큐버','웨이브일렉트로']],
+     ['시험 · 계측',['LIG아큐버']]],
+ wd:[['광트랜시버',['오이솔루션','빛과전자']],
+     ['프론트홀 전송장비',['에치에프알','쏠리드']],
+     ['PON 장비 (OLT · ONT)',['에치에프알','유비쿼스','다산네트웍스']],
+     ['PON 통신칩 (SoC)',['자람테크놀로지']],
+     ['가입자 단말 · 공유기',['머큐리','다산네트웍스']]],
+ st:[['지상국 · 게이트웨이 안테나',['인텔리안테크']],
+     ['위성통신 RF 부품',['에이비스','RF시스템즈','센서뷰']]]},
+{L:'다운스트림',S:'시스템 통합 · 망 운영 · 서비스',
+ wl:[['장비 벤더',['삼성전자','에릭슨','노키아']],['기업 전용망 통합 (Private 5G)',['에치에프알']],['이동통신 서비스',['SK텔레콤','KT','LG유플러스']]],
+ wd:[['초고속 인터넷 서비스',['SK브로드밴드','KT','LG유플러스']]],
+ st:[['지상국 운영',['컨텍']],['위성 서비스',['KT SAT','SK텔링크']]]}];
+var TEL={'삼성전자':1,'에릭슨':1,'노키아':1,'SK텔레콤':1,'KT':1,'LG유플러스':1,'SK브로드밴드':1,'KT SAT':1,'SK텔링크':1};
+function cell(groups,cls){
+  if(!groups||!groups.length) return '<div></div>';
+  return '<div>'+groups.map(function(g){
+    return '<div style="margin-bottom:9px"><div class="s" style="font-size:11px;margin-bottom:3px;color:var(--ink3)">'+g[0]+'</div>'+
+      g[1].map(function(c){return '<span class="co '+(TEL[c]?'gl':cls)+'">'+c+'</span>';}).join('')+'</div>';
+  }).join('')+'</div>';
+}
+var h='<div class="hd"></div><div class="hd" style="color:var(--wl)">무선</div>'+
+      '<div class="hd" style="color:var(--wd)">유선 · 광</div><div class="hd" style="color:var(--st)">위성</div>';
+GRID.forEach(function(r){
+  h+='<div class="rl">'+r.L+'<small>'+r.S+'</small></div>'+cell(r.wl,'wl')+cell(r.wd,'wd')+cell(r.st,'st');
+});
+var gm=document.getElementById('gmap');
+gm.style.gridTemplateColumns='168px 1fr 1fr 1fr';
+gm.innerHTML=h;
+})();
+</script>
+<script>
+(function(){
+var G=[
+['무선','RU','Radio Unit','스마트폰과 직접 전파를 주고받는 장비. 안에 안테나·필터·증폭기·RF 반도체가 들어간다','건물 옥상·통신 철탑'],
+['무선','DU','Distributed Unit','RU가 받은 신호를 실시간으로 처리하고, 단말마다 통신 자원을 배정한다','기지국 함체 또는 인근 국사 (약 30km 이내)'],
+['무선','CU','Centralized Unit','여러 DU를 묶어 암호화·상위 데이터 처리·접속 상태를 관리한다','지역 국사 (약 200km 이내)'],
+['무선','RF','Radio Frequency','무선 통신에 쓰는 고주파 전기 신호. 그 신호를 다루는 부품군 전체를 가리키기도 한다','—'],
+['무선','PA','Power Amplifier','전파를 멀리 보내려고 신호 세기를 키우는 전력증폭기','RU 안'],
+['무선','LNA','Low Noise Amplifier','멀리서 온 약한 신호를 잡음을 거의 보태지 않고 키우는 저잡음 증폭기','RU 안'],
+['무선','MIMO','Multiple Input Multiple Output','안테나를 여러 개 써서 같은 주파수로 더 많은 데이터를 나르는 기술','RU 안테나부'],
+['무선','RAN','Radio Access Network','스마트폰을 망에 붙이는 무선 접속망 전체. RU·DU·CU를 포함한다','—'],
+['무선','vRAN','Virtualized RAN','DU·CU를 전용 장비 대신 범용 서버와 소프트웨어로 구현하는 방식','국사의 서버실'],
+['무선','O-RAN','Open RAN','제조사가 달라도 장비를 섞어 쓸 수 있게 연결 규격을 공개하는 방식','—'],
+['무선','O-RU','Open Radio Unit','O-RAN 규격을 따르는 무선 유닛. O-DU와 공개된 프론트홀 규격으로 연결된다','옥상·철탑'],
+['무선','AI-RAN','AI Radio Access Network','통신 연산과 AI 연산을 같은 인프라에서 처리하거나, 망 운영에 AI를 적용하는 방식','국사·엣지 데이터센터'],
+['무선','DAS','Distributed Antenna System','건물 안 곳곳에 안테나를 나눠 달아 전파를 고르게 뿌리는 시스템','지하철·공항·병원·쇼핑몰 내부'],
+['무선','Small Cell','—','커버리지를 넓히고 트래픽을 나눠 받는 소형 기지국','가로등·건물 벽·실내'],
+['무선','Repeater','중계기','받은 전파를 증폭해 다시 쏴 음영 지역을 없애는 장비','터널·지하·건물 안쪽'],
+['무선','Private 5G','—','공장·물류센터 등이 독립적으로 쓰는 기업 전용 5G 망','사업장 구내'],
+['무선','FWA','Fixed Wireless Access','광케이블 대신 5G 전파로 가정에 인터넷을 넣는 고정형 무선 방식','가정 (5G CPE 설치)'],
+['무선','SA','Standalone','5G 기지국에 5G 코어망을 붙인 완전한 5G 구성','—'],
+['무선','NSA','Non-Standalone','5G 기지국에 기존 4G 코어망을 붙인 과도기 구성','—'],
+['무선','GaN','Gallium Nitride','고출력·고주파를 견디는 질화갈륨 반도체. 기지국 증폭기의 핵심 재료','PA 칩 내부'],
+['무선','Duplexer','듀플렉서','보내는 신호와 받는 신호가 안테나 하나를 같이 쓰도록 갈라 주는 부품','RU 안'],
+['유선','ONU','Optical Network Unit','광신호를 전기 신호로, 전기를 다시 광으로 바꾸는 광가입자망 장치의 포괄적 이름','건물 통신실 또는 가정'],
+['유선','ONT','Optical Network Terminal','ONU와 같은 일을 하되 최종 가입자 자리에 놓이는 광통신 단말','가정·사무실 벽 단자함'],
+['유선','OLT','Optical Line Terminal','여러 가정의 ONU·ONT와 데이터를 주고받는 통신사 측 장비','통신사 국사'],
+['유선','AP','Access Point','유선으로 온 인터넷을 Wi-Fi 전파로 바꿔 쏘는 무선 접속 장치','집 안·사무실 천장'],
+['유선','Router','공유기','서로 다른 망을 잇고 데이터 경로를 정한다. 집 안 기기에 주소를 배정','집 안'],
+['유선','Switch','스위치','여러 유선 기기를 한데 묶는 장비. 경로 판단은 하지 않는다','통신실·책상 밑'],
+['유선','PON','Passive Optical Network','광분배기로 광섬유 한 가닥을 여러 가입자가 나눠 쓰게 하는 수동형 광가입자망','국사~가정 구간'],
+['유선','GPON','Gigabit Passive Optical Network','하향 약 2.5Gbps·상향 1.25Gbps급 PON','—'],
+['유선','XGS-PON','10-Gigabit Symmetric PON','상·하향 모두 10Gbps급. 현재 주력 세대','—'],
+['유선','25G-PON','25-Gigabit PON','25Gbps급 차세대 PON','—'],
+['유선','50G-PON','50-Gigabit PON','50Gbps급 차차세대 PON','—'],
+['유선','FTTH','Fiber To The Home','광케이블을 가정까지 직접 끌어오는 방식','—'],
+['유선','Splitter','광분배기','전원 없이 빛을 여러 갈래로 가르는 부품. PON의 핵심','전봇대·지하 함체·건물 통신실'],
+['유선','CPE','Customer Premises Equipment','고객이 쓰는 장소에 놓이는 통신장비의 포괄적 이름. 공유기·ONT·산업용 게이트웨이 모두 포함','가정·사무실·공장'],
+['전송','Fronthaul','Front + Haul','RU와 DU 사이를 잇는 전송망. 데이터가 많고 지연에 가장 민감하다','기지국~인근 국사'],
+['전송','Midhaul','Mid + Haul','DU와 CU 사이를 잇는 전송망','국사 간'],
+['전송','Backhaul','Back + Haul','RAN과 코어망 사이를 잇는 전송망','국사~데이터센터'],
+['전송','X-Haul','—','프론트홀·미드홀·백홀을 묶어 부르는 이름','—'],
+['전송','WDM','Wavelength Division Multiplexing','광섬유 한 가닥에 서로 다른 파장의 빛을 여러 개 실어 동시에 보내는 파장분할다중화','전송 구간 양 끝'],
+['전송','CWDM','Coarse WDM','파장 간격이 넓은 WDM. 상대적으로 저렴','—'],
+['전송','DWDM','Dense WDM','파장 간격이 좁아 더 많은 채널을 싣는 WDM','장거리·대용량 구간'],
+['전송','MUX','Multiplexer','여러 신호를 하나로 합치는 장비','전송 장비 송신단'],
+['전송','DEMUX','Demultiplexer','합쳐진 신호를 다시 가르는 장비','전송 장비 수신단'],
+['전송','Transceiver','광트랜시버','광신호와 전기 신호를 서로 바꿔 고속 송수신을 가능하게 하는 부품','전송 장비·스위치의 포트'],
+['코어','Core Network','코어망','가입자 인증·서비스 정책·인터넷 연결을 관리하는 통신망의 머리','국사·중앙 데이터센터'],
+['코어','vCore','Virtualized Core','코어망 기능을 전용 하드웨어 대신 범용 서버와 소프트웨어로 구현','서버실'],
+['코어','UPF','User Plane Function','사용자 데이터를 실제로 나르는 기능. 어디에 두느냐가 지연을 결정한다','중앙 또는 엣지 국사'],
+['코어','AMF','Access and Mobility Management Function','단말 접속과 이동(핸드오버)을 관리','코어망'],
+['코어','SMF','Session Management Function','데이터 통신 연결을 만들고 끊는다. UPF에 경로를 지시','코어망'],
+['코어','AUSF','Authentication Server Function','가입자가 진짜인지 인증','코어망'],
+['코어','UDM','Unified Data Management','가입자 정보를 보관·관리','코어망'],
+['코어','PCF','Policy Control Function','요금제·속도 제한 같은 서비스 정책을 적용','코어망'],
+['코어','MEC','Multi-access Edge Computing','연산을 중앙이 아닌 사용자 가까운 곳에서 처리하는 분산 컴퓨팅','지역 국사·기지국 인근'],
+['코어','NMS','Network Management System','장비 상태·장애·트래픽을 감시하고 관리하는 소프트웨어','운용센터'],
+['코어','E2E','End-to-End','개별 장비가 아니라 망에 필요한 장비와 소프트웨어를 통째로 공급한다는 뜻','—'],
+['반도체','CPU','Central Processing Unit','범용 중앙처리장치. vRAN이 기대는 연산 자원','서버'],
+['반도체','GPU','Graphics Processing Unit','대량 병렬 연산에 유리한 처리장치. AI-RAN이 끌어들이는 자원','서버'],
+['반도체','ASIC','Application Specific Integrated Circuit','특정 용도에 맞춰 굳힌 전용 반도체. 빠르지만 바꿀 수 없다','기지국 보드'],
+['반도체','DSP','Digital Signal Processor','디지털 신호 처리에 특화된 반도체','기지국 보드'],
+['반도체','FPGA','Field Programmable Gate Array','만든 뒤에도 내부 회로를 바꿀 수 있는 반도체','기지국 보드·시제품'],
+['반도체','SoC','System on Chip','여러 기능을 한 칩에 통합한 반도체','ONT·단말·기지국'],
+['반도체','NIC','Network Interface Card','서버를 외부 통신망에 붙이는 장치','서버'],
+['반도체','DRAM','Dynamic Random Access Memory','연산에 필요한 데이터를 임시 저장하는 메모리','서버·장비 보드'],
+['반도체','HBM','High Bandwidth Memory','매우 넓은 대역폭을 제공하는 메모리','AI 가속기 옆'],
+['일반','CAPEX','Capital Expenditure','설비투자비. 통신사가 장비를 사는 돈','—'],
+['일반','OPEX','Operating Expenditure','운영비. 전기·임대·유지보수','—'],
+['일반','LAN','Local Area Network','근거리 통신망','—'],
+['일반','WAN','Wide Area Network','광역 통신망','—'],
+['일반','TDD','Time Division Duplex','같은 주파수를 시간으로 쪼개 올리기와 내리기에 나눠 쓰는 방식','—'],
+['일반','URLLC','Ultra-Reliable Low-Latency Communication','초저지연·초고신뢰 통신. 로봇·차량 용도의 요구 등급','—'],
+['일반','V2X','Vehicle to Everything','차량과 차량·노변장치·보행자·망 사이의 통신 전반','—'],
+['일반','RSU','Road Side Unit','교차로 등 도로변에 설치해 차량과 통신하는 노변 장치','교차로·도로변'],
+['일반','NTN','Non-Terrestrial Network','위성 등 지상 밖 설비를 쓰는 통신망','—'],
+['일반','LEO','Low Earth Orbit','저궤도. 지연이 짧아 위성 인터넷에 쓰인다','고도 약 300~2,000km']];
+var cats=['전체','무선','유선','전송','코어','반도체','일반'],cur='전체',q='';
+var gl=document.getElementById('gl'),gc=document.getElementById('gc'),gf=document.getElementById('gf');
+var CC={'무선':'t-wl','유선':'t-wd','전송':'t-wd','코어':'t-cz','반도체':'t-cz','일반':'t-n'};
+cats.forEach(function(c){var b=document.createElement('button');b.textContent=c;
+  if(c===cur)b.className='on';b.onclick=function(){cur=c;
+    [].forEach.call(gf.children,function(x){x.className=x.textContent===c?'on':'';});draw();};
+  gf.appendChild(b);});
+function esc(s){return s.replace(/[&<>]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[m];});}
+function draw(){
+  var n=0,h='';
+  G.forEach(function(r){
+    if(cur!=='전체'&&r[0]!==cur)return;
+    if(q&&(r[1]+' '+r[2]+' '+r[3]+' '+r[4]+' '+r[0]).toLowerCase().indexOf(q)<0)return;
+    n++;
+    h+='<div class="gi"><div class="ab">'+esc(r[1])+' <span class="tag '+CC[r[0]]+'">'+r[0]+'</span></div>'+
+       (r[2]!=='—'?'<div class="en">'+esc(r[2])+'</div>':'')+
+       '<div class="ko">'+esc(r[3])+'</div>'+
+       (r[4]!=='—'?'<div class="wh">'+esc(r[4])+'</div>':'')+'</div>';
+  });
+  gl.innerHTML=h||'<div class="gi"><div class="ko">찾는 용어가 없습니다. 다른 말로 검색해 보세요.</div></div>';
+  gc.textContent=n+'개 / 전체 '+G.length+'개';
+}
+document.getElementById('gq').addEventListener('input',function(e){q=e.target.value.trim().toLowerCase();draw();});
+draw();
+})();
+</script>
+<script>
+(function(){
+function boot(N){
+
+/* ── 기업명 → 통신 peer 표 연결 ── */
+var PEER='/telpeer.html';
+var CODE={};
+N.forEach(function(n){ n.ko.forEach(function(r){ CODE[r[0]]=r[1]; }); });
+function plink(name,cls){
+  var c=CODE[name]; if(!c) return esc(name);
+  return '<a class="'+(cls||'colink')+'" href="'+PEER+'#c='+c+'" target="_blank" rel="noopener" title="'+esc(name)+' 상대밸류 보기">'+esc(name)+'</a>';
+}
+var NAMES=Object.keys(CODE).filter(function(s){return s.length>=3;}).sort(function(a,b){return b.length-a.length;});
+function ko(ch){return /[가-힣]/.test(ch);} function az(ch){return /[A-Za-z0-9]/.test(ch);}
+function walk(root){
+  if(!root) return;
+  var SKIP={A:1,BUTTON:1,SCRIPT:1,STYLE:1,TH:1,INPUT:1,SELECT:1,OPTION:1};
+  var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:function(n){
+    for(var p=n.parentNode;p&&p!==root;p=p.parentNode){ if(SKIP[p.nodeName]) return NodeFilter.FILTER_REJECT; }
+    return n.nodeValue && n.nodeValue.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;}});
+  var list=[],t;
+  while((t=w.nextNode())) list.push(t);
+  list.forEach(function(node){
+    var s=node.nodeValue, out=[], i=0, hit=false;
+    while(i<s.length){
+      var m=null;
+      for(var k=0;k<NAMES.length;k++){
+        var nm=NAMES[k];
+        if(s.substr(i,nm.length)!==nm) continue;
+        var pre=i>0?s[i-1]:'', post=s[i+nm.length]||'';
+        if(ko(nm[0])&&(ko(pre)||ko(post))) continue;
+        if(az(nm[0])&&(az(pre)||az(post))) continue;
+        m=nm; break;
+      }
+      if(m){ out.push({t:'a',v:m}); i+=m.length; hit=true; }
+      else { if(!out.length||out[out.length-1].t!=='x') out.push({t:'x',v:''}); out[out.length-1].v+=s[i]; i++; }
+    }
+    if(!hit) return;
+    var frag=document.createDocumentFragment();
+    out.forEach(function(p){
+      if(p.t==='x'){ frag.appendChild(document.createTextNode(p.v)); return; }
+      var a=document.createElement('a');
+      a.className='colink'; a.href=PEER+'#c='+CODE[p.v]; a.target='_blank'; a.rel='noopener';
+      a.title=p.v+' 상대밸류 보기'; a.textContent=p.v;
+      frag.appendChild(a);
+    });
+    node.parentNode.replaceChild(frag,node);
+  });
+}
+function svglink(scope){
+  var ns='http://www.w3.org/2000/svg';
+  [].forEach.call(document.querySelectorAll(scope+' svg text'),function(t){
+    var nm=(t.textContent||'').trim(); var c=CODE[nm]; if(!c) return;
+    if(t.parentNode && t.parentNode.nodeName.toLowerCase()==='a') return;
+    var a=document.createElementNS(ns,'a');
+    a.setAttributeNS('http://www.w3.org/1999/xlink','href',PEER+'#c='+c);
+    a.setAttribute('href',PEER+'#c='+c); a.setAttribute('target','_blank');
+    a.setAttribute('class','svglink');
+    t.parentNode.insertBefore(a,t); a.appendChild(t);
+  });
+}
+
+function esc(s){return String(s).replace(/[&<>"]/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m];});}
+function cap(v){ if(!v) return '—'; return v>=10000 ? (v/10000).toFixed(v>=100000?0:1)+'조' : v.toLocaleString('ko-KR')+'억'; }
+function ic(k,cls){return '<svg class="'+(cls||'ic')+'" aria-hidden="true"><use href="#i-'+k+'"/></svg>';}
+var BAND={back:'bd-back',core:'bd-core',sat:'bd-core',front:'bd-front'};
+var cur=null;
+function card(n){
+  var top=n.ko.slice(0,3).map(function(r){return r[0];}).join(' · ');
+  return '<button class="nd c-'+n.b+'" type="button" data-id="'+n.id+'" aria-pressed="false">'+
+    '<span class="top">'+ic(n.ic)+'<span class="nt">'+esc(n.t)+'</span></span>'+
+    '<span class="ne">'+esc(n.e)+'</span>'+
+    '<span class="nc">국내 '+n.ko.length+'곳'+(n.gl.length?' · 글로벌 '+n.gl.length+'곳':'')+(top?' — '+esc(top):'')+'</span>'+
+    '</button>';
+}
+var buf={};
+N.forEach(function(n){ var k=BAND[n.b]; (buf[k]=buf[k]||[]).push(card(n)); });
+Object.keys(buf).forEach(function(k){ var el=document.getElementById(k); if(el) el.innerHTML=buf[k].join(''); });
+
+function detail(n){
+  var h='<div class="dp c-'+n.b+'" style="color:var(--'+({back:'ink2',core:'wl',sat:'st',front:'cz'}[n.b])+')">'+
+    '<div class="dh">'+ic(n.ic,'')+'<h4>'+esc(n.t)+'</h4></div>'+
+    '<div class="de">'+esc(n.e)+'</div>'+
+    '<div class="sec">국내 상장사 '+n.ko.length+'곳 — 시가총액 순</div><div class="colist">';
+  n.ko.forEach(function(r){
+    h+='<div class="ci"><span class="cn">'+plink(r[0])+'</span><span class="cc">'+r[1]+'</span>'+
+       '<span class="cm">'+cap(r[2])+'</span><span class="cp">'+esc(r[3])+'</span></div>';
+  });
+  h+='</div>';
+  if(n.gl.length){
+    h+='<div class="sec">글로벌 — 상장사 기준</div><div class="glist2">'+
+      n.gl.map(function(g){return '<span class="gchip'+(/비상장/.test(g)?' x':'')+'">'+esc(g)+'</span>';}).join('')+'</div>';
+  }
+  h+='</div>';
+  document.getElementById('detail').innerHTML=h;
+}
+function pick(id){
+  cur=id;
+  var n=N.filter(function(x){return x.id===id;})[0]; if(!n) return;
+  [].forEach.call(document.querySelectorAll('.nd'),function(b){b.setAttribute('aria-pressed', b.dataset.id===id?'true':'false');});
+  detail(n);
+}
+document.addEventListener('click',function(e){
+  var b=e.target.closest && e.target.closest('.nd'); if(!b) return;
+  pick(b.dataset.id);
+  document.getElementById('detail').scrollIntoView({block:'nearest',behavior:'smooth'});
+});
+pick('c_bts');
+
+/* 전체 색인 */
+var IDX={};
+N.forEach(function(n){ n.ko.forEach(function(r){
+  var o=IDX[r[1]]||(IDX[r[1]]={n:r[0],c:r[1],m:r[2],p:r[3],w:[]});
+  if(o.w.indexOf(n.t)<0) o.w.push(n.t);
+});});
+var ROWS=Object.keys(IDX).map(function(k){return IDX[k];}).sort(function(a,b){return (b.m||0)-(a.m||0);});
+var iq=document.getElementById('iq'), inn=document.getElementById('in'), idx=document.getElementById('idx');
+function short(t){return t.split(' — ')[0];}
+function drawIdx(){
+  var q=(iq.value||'').trim().toLowerCase(), h='<table><tr><th>회사</th><th>코드</th><th style="text-align:right">시총</th><th>사업</th><th>속한 칸</th></tr>',n=0;
+  ROWS.forEach(function(r){
+    if(q && (r.n+' '+r.c+' '+r.p+' '+r.w.join(' ')).toLowerCase().indexOf(q)<0) return;
+    n++;
+    h+='<tr><td class="k">'+plink(r.n)+'</td><td class="n">'+r.c+'</td><td class="n" style="text-align:right">'+cap(r.m)+
+       '</td><td class="w">'+esc(r.p)+'</td><td class="w">'+r.w.map(short).map(esc).join(' · ')+'</td></tr>';
+  });
+  idx.innerHTML=h+'</table>';
+  inn.textContent=n+'곳 / 전체 '+ROWS.length+'곳';
+}
+iq.addEventListener('input',drawIdx);
+drawIdx();
+['#gmap','#c10','#c11','#c12'].forEach(function(sel){ walk(document.querySelector(sel)); });
+svglink('#c8');
+}
+fetch('/data/telnodes.json').then(function(r){return r.json();}).then(function(d){
+  boot(d.nodes.map(function(n){return {id:n.id,b:n.b,ic:n.ic,t:n.t,e:n.e,gl:n.gl,ko:n.ko};}));
+}).catch(function(e){
+  var el=document.getElementById('bd-core');
+  if(el) el.textContent='분류 파일(/data/telnodes.json)을 불러오지 못했습니다: '+(e&&e.message);
+});
+})();
+</script>
+
+</body>
+</html>

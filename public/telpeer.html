@@ -111,7 +111,8 @@ td.nm small{display:block;font-weight:400;font-size:11px;color:var(--ink3);font-
   <div class="eyebrow">종목분석 · 상대밸류</div>
   <h1>통신 peer 상대밸류</h1>
   <p class="sub">통신 교과서 09장의 <b>23개 칸</b>을 그대로 peer 그룹으로 씁니다.
-  같은 칸에 있는 회사끼리만 비교합니다 — 안테나 만드는 회사를 통신사와 견주는 일이 없도록.</p>
+  같은 칸에 있는 회사끼리만 비교합니다 — 안테나 만드는 회사를 통신사와 견주는 일이 없도록.<br>
+  PER·PBR·ROE는 <b>DART 최근 4분기(TTM)</b> 기준입니다.</p>
   <div class="meta" id="meta"></div>
 </div></div>
 
@@ -128,7 +129,7 @@ td.nm small{display:block;font-weight:400;font-size:11px;color:var(--ink3);font-
 <div class="warnbox">
 <b>비교가 성립하지 않는 경우가 많습니다. 숨기지 않았습니다.</b><br>
 ① <b>칸에 흑자 기업이 4곳 미만이면 비교하지 않습니다</b> — 중앙값이 한두 곳에 끌려다닙니다. 23칸 중 <b id="ngok">—</b>칸만 비교가 성립합니다.<br>
-② <b>적자면 PER이 없습니다.</b> 이 표에서 적자가 <b id="nloss">—</b>곳입니다. 국내 통신장비가 지금 어떤 구간인지를 그대로 보여주는 숫자입니다.<br>
+② <b>적자면 PER이 없습니다.</b> 이 표에서 최근 4분기 적자가 <b id="nloss">—</b>곳입니다. 국내 통신장비가 지금 어떤 구간인지를 그대로 보여주는 숫자입니다.<br>
 ③ <b>싸 보이는 이유가 이익 고점일 수 있습니다.</b> 밴드 분위와 함께 봐야 합니다(10장 참고).
 </div>
 </section>
@@ -159,18 +160,21 @@ td.nm small{display:block;font-weight:400;font-size:11px;color:var(--ink3);font-
 <h2>이 표의 근거와 한계</h2>
 <div class="note">
 <b>어디서 온 숫자인가.</b><br>
-· <b>PER · PBR · ROE</b> = 네이버(FnGuide) 기준, <b>지배주주</b> 기준입니다. 다른 peer 화면과 같은 기준으로 맞췄습니다.<br>
-· <b>부채비율 · 3년 순이익 추이</b> = DART 공시(OpenDART 다중회사 주요계정), <b>연결 전체</b> 기준입니다.<br>
+· <b>PER · PBR · ROE</b> = <b>DART 공시 최근 4분기(TTM)</b>입니다. PER = 시가총액 ÷ 최근 4분기 순이익, PBR = 시가총액 ÷ 최근 분기말 자본, ROE = 순이익 ÷ 자본.
+<b>연결 전체</b>(비지배지분 포함) 기준입니다.<br>
+· <b>부채비율 · 3년 순이익 추이</b> = 같은 DART 자료입니다.<br>
 · <b>매출 · 영업이익률 · PSR</b> = 분기 실적 수집분. 아직 <b id="npsr">—</b>곳만 있습니다.<br>
 · <b>밴드 분위</b> = 일별 시계열 수집분. 아직 <b id="nband">—</b>곳만 있습니다. 수집이 진행되면 자동으로 채워집니다.
 </div>
 <div class="warnbox">
 <b>교차검증에서 걸린 것들.</b><br>
-① DART 연결 순이익으로 계산한 PER과 표의 PER이 <b>1.5배 이상</b> 벌어진 곳이 <b id="npd">—</b>곳입니다.
-표는 <b>지배주주</b>, DART는 <b>비지배지분 포함 연결 전체</b>라서 생기는 차이입니다 — 해외 자회사가 크거나 지주사면 벌어집니다. 해당 줄에 <span class="sg midper">≠DART</span>를 붙였습니다.<br>
-② DART의 <b>최근 4분기 합산 순이익이 최근 3년 최대 연간치의 3배를 넘는</b> 곳이 <b id="nbad">—</b>곳 있어 그 값은 쓰지 않았습니다.
-전체 2,562종목 중에서는 <b>68곳</b>에서 같은 현상이 나옵니다(삼성전자 4.7배 · SK 11.4배 · 제주반도체 7.0배). <b>수집기 쪽에서 확인이 필요합니다.</b><br>
-③ 여기 있다고 사도 된다는 뜻이 아닙니다. 상대밸류는 <b>질문을 좁혀 주는 도구</b>이지 답이 아닙니다.
+① <b>증권사 화면의 PER과 크게 다를 수 있습니다.</b> 흔히 보이는 PER은 <b>직전 결산(전년) 확정 EPS</b> 기준인 경우가 많습니다.
+2026년처럼 이익이 급변한 해에는 그 값이 현실과 멀어집니다 — 삼성전자는 전년 기준 25.4배, 최근 4분기 기준 <b>4.6배</b>입니다.
+이 표는 <b>최근 4분기</b>를 씁니다. 두 값이 1.5배 이상 벌어진 곳이 <b id="npd">—</b>곳이며, 해당 줄에 <span class="sg midper">≠전년</span>을 붙이고 상세에 전년 기준 값을 함께 적었습니다.<br>
+② <b>최근 4분기 순이익이 최근 3년 최대 연간치의 3배를 넘는</b> 곳이 <b id="nbad">—</b>곳입니다. 2026년 메모리·AI 수요 급증이 실적에 들어온 결과이며,
+<b>그만큼 PER이 낮게 보입니다.</b> 이익이 꼭대기여서 PER이 눌린 것일 수 있으니 밴드 분위와 함께 보세요.<br>
+③ <b>지배주주가 아니라 연결 전체 순이익</b>을 씁니다. 비지배지분(해외 자회사 등)이 크거나 지주사면 통상의 PER보다 낮게 나옵니다.<br>
+④ 여기 있다고 사도 된다는 뜻이 아닙니다. 상대밸류는 <b>질문을 좁혀 주는 도구</b>이지 답이 아닙니다.
 </div>
 </section>
 </div>
@@ -179,7 +183,7 @@ td.nm small{display:block;font-weight:400;font-size:11px;color:var(--ink3);font-
 function boot(D){
 
 var CO=D.co, G=D.g, TH=D.th;
-var SIG={edge:'저PER·고ROE',lowper:'저PER',highper:'고PER',midper:'비슷',loss:'적자',noper:'PER없음',nopeer:'비교불가'};
+var SIG={edge:'저PER·고ROE',lowper:'저PER',highper:'고PER',midper:'비슷',loss:'적자',noper:'PER없음',nopeer:'비교불가',nofin:'재무없음'};
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m];});}
 function cap(v){ if(v==null) return '—'; return v>=10000?(v/10000).toFixed(v>=100000?0:1)+'조':Math.round(v).toLocaleString('ko-KR')+'억'; }
 function num(v,d){ return v==null?'—':(+v).toFixed(d==null?2:d); }
@@ -187,12 +191,12 @@ var ALL=Object.keys(CO).map(function(k){return CO[k];});
 
 document.getElementById('meta').innerHTML=
  '<span><b>주가·시총</b> '+esc(D.price_updated)+'</span>'+
- '<span><b>재무</b> '+esc(D.fin_updated)+' ('+esc(D.fin_q)+')</span>'+
+ '<span><b>재무</b> '+esc(D.fin_updated)+' ('+esc(D.fin_q)+' TTM)</span>'+
  '<span><b>밴드</b> '+esc(D.band_updated)+'</span>'+
  '<span><b>종목</b> '+D.n+'곳 · 칸 '+Object.keys(G).length+'개</span>';
 
-var nb=ALL.filter(function(m){return m.fl.indexOf('ttmbad')>=0;}).length;
-var npd=ALL.filter(function(m){return m.pd;}).length;
+var nb=ALL.filter(function(m){return m.fl.indexOf('surge')>=0;}).length;
+var npd=ALL.filter(function(m){return m.kg;}).length;
 document.getElementById('ngok').textContent=Object.keys(G).filter(function(k){return G[k].nper>=TH.minn;}).length;
 document.getElementById('nloss').textContent=(D.count.loss||0);
 document.getElementById('npsr').textContent=ALL.filter(function(m){return m.psr;}).length;
@@ -256,7 +260,7 @@ function draw(){
       '<td class="nm">'+esc(m.n)+'<small>'+m.c+'</small></td>'+
       '<td class="gtag">'+esc(gt)+'</td>'+
       '<td class="r">'+cap(m.cap)+'</td>'+
-      '<td class="r">'+(m.per&&m.per>0?num(m.per):'—')+(m.pd?' <span class="sg midper">≠DART</span>':'')+'</td>'+
+      '<td class="r">'+(m.per&&m.per>0?num(m.per):'—')+(m.kg?' <span class="sg midper">≠전년</span>':'')+'</td>'+
       '<td class="r">'+num(m.pbr)+'</td>'+
       '<td class="r">'+(m.roe==null?'—':num(m.roe,1)+'%')+'</td>'+
       '<td class="r">'+(m.debt==null?'—':num(m.debt,0)+'%')+'</td>'+
@@ -287,10 +291,12 @@ function show(c){
     '<div class="kv">'+
     '<div><span class="k">시가총액</span><span class="v">'+cap(m.cap)+'</span></div>'+
     '<div><span class="k">주가</span><span class="v">'+(m.px?Math.round(m.px).toLocaleString('ko-KR'):'—')+'</span><span class="s">원</span></div>'+
-    '<div><span class="k">PER</span><span class="v">'+(m.per&&m.per>0?num(m.per):'—')+'</span><span class="s">네이버·지배주주</span></div>'+
-    '<div><span class="k">PBR</span><span class="v">'+num(m.pbr)+'</span></div>'+
-    '<div><span class="k">ROE</span><span class="v">'+(m.roe==null?'—':num(m.roe,1))+'</span><span class="s">%</span></div>'+
-    '<div><span class="k">부채비율</span><span class="v">'+(m.debt==null?'—':num(m.debt,0))+'</span><span class="s">% · DART 연결</span></div>'+
+    '<div><span class="k">PER</span><span class="v">'+(m.per&&m.per>0?num(m.per):'—')+'</span><span class="s">최근 4분기 · 연결 전체</span></div>'+
+    '<div><span class="k">PBR</span><span class="v">'+num(m.pbr)+'</span><span class="s">최근 분기말 자본</span></div>'+
+    '<div><span class="k">ROE</span><span class="v">'+(m.roe==null?'—':num(m.roe,1))+'</span><span class="s">% · 최근 4분기</span></div>'+
+    '<div><span class="k">순이익</span><span class="v">'+(m.ni==null?'—':cap(m.ni))+'</span><span class="s">최근 4분기 합</span></div>'+
+    '<div><span class="k">부채비율</span><span class="v">'+(m.debt==null?'—':num(m.debt,0))+'</span><span class="s">%</span></div>'+
+    (m.kper?'<div><span class="k">전년 기준 PER</span><span class="v">'+num(m.kper)+'</span><span class="s">직전 결산 확정 EPS</span></div>':'')+
     (m.psr?'<div><span class="k">PSR</span><span class="v">'+num(m.psr)+'</span></div>':'')+
     (m.opm!=null?'<div><span class="k">영업이익률</span><span class="v">'+num(m.opm,1)+'</span><span class="s">%</span></div>':'')+
     (m.nig!=null?'<div><span class="k">순이익 연평균</span><span class="v">'+(m.nig>0?'+':'')+num(m.nig,1)+'</span><span class="s">% · 3년</span></div>':'')+
@@ -298,9 +304,10 @@ function show(c){
     '</div>';
   if(m.tg&&m.tg.length){ h+='<div class="cmp">'+m.tg.map(cmpline).join('')+'</div>'; }
   else { h+='<div class="cmp"><b class="md">같은 칸에 흑자 기업이 '+TH.minn+'곳 미만이라 비교하지 않았습니다.</b> 중앙값이 한두 곳에 끌려다니기 때문입니다.</div>'; }
-  if(m.fl.indexOf('loss')>=0) h+='<div class="warnbox" style="margin:12px 0 0">적자이므로 PER 비교에서 제외했습니다. PBR·부채비율로만 보세요.</div>';
-  if(m.pd) h+='<div class="warnbox" style="margin:12px 0 0"><b>표의 PER과 DART 연결 기준이 '+num(m.pd)+'배 차이납니다.</b> 표는 지배주주, DART는 비지배지분 포함 연결 전체입니다. 해외 자회사가 크거나 지주사면 이렇게 벌어집니다.</div>';
-  if(m.fl.indexOf('ttmbad')>=0) h+='<div class="warnbox" style="margin:12px 0 0"><b>DART 최근 4분기 합산 순이익이 최근 3년 최대 연간치의 '+m.ttmr+'배로 나와 쓰지 않았습니다.</b> 수집 쪽 확인이 필요합니다.</div>';
+  if(m.fl.indexOf('loss')>=0) h+='<div class="warnbox" style="margin:12px 0 0">최근 4분기가 적자라 PER 비교에서 제외했습니다. PBR·부채비율로만 보세요.</div>';
+  if(m.fl.indexOf('nofin')>=0) h+='<div class="warnbox" style="margin:12px 0 0">DART 재무가 아직 수집되지 않았습니다.</div>';
+  if(m.kg) h+='<div class="warnbox" style="margin:12px 0 0"><b>전년 확정 기준 PER('+num(m.kper)+'배)과 최근 4분기 기준('+num(m.per)+'배)이 '+num(m.kg)+'배 차이납니다.</b> 증권사 화면에서 흔히 보이는 값은 전년 기준인 경우가 많습니다 — 이익이 급변한 해에는 둘이 크게 벌어집니다.</div>';
+  if(m.fl.indexOf('surge')>=0) h+='<div class="warnbox" style="margin:12px 0 0"><b>최근 4분기 순이익이 최근 3년 최대 연간치의 '+m.ttmr+'배입니다.</b> PER이 그만큼 낮게 보입니다 — 이익 고점일 가능성을 밴드 분위와 함께 확인하세요.</div>';
   h+='</div>';
   document.getElementById('drawer').innerHTML=h;
   draw();

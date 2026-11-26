@@ -1,0 +1,27 @@
+name: telpeer
+on:
+  schedule:
+    # 09:40 · 21:40 KST — bandcalc(09:20·21:20) 이후. 외부 API를 쓰지 않아 키가 필요 없다.
+    - cron: '40 0,12 * * *'
+  workflow_dispatch:
+  push:
+    paths: ['telpeer.py', 'public/data/telnodes.json', '.github/workflows/telpeer.yml']
+permissions:
+  contents: write
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - name: 통신 peer 계산
+        run: python telpeer.py
+      - name: 커밋
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          for f in public/data/telpeer.json public/data/telnodes.json; do [ -f "$f" ] && git add "$f"; done
+          git diff --staged --quiet || git commit -m "통신 peer 갱신"
+          git pull --rebase --autostash || true
+          git push
